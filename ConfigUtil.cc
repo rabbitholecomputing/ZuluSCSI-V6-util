@@ -128,9 +128,9 @@ ConfigUtil::Default(size_t targetIdx)
 	config.bytesPerSector = 512;
 	config.sectorsPerTrack = 63;
 	config.headsPerCylinder = 255;
-	memcpy(config.vendor, " codesrc", 8);
-	memcpy(config.prodId, "         SCSI2SD", 16);
-	memcpy(config.revision, " 6.0", 4);
+	memcpy(config.vendor, "CDC-RHC", 8);
+	memcpy(config.prodId, "ZuluSCSI V6      ", 16);
+	memcpy(config.revision, " 6.4", 4);
 	memcpy(config.serial, "1234567812345678", 16);
 
 	// Reserved fields, already set to 0
