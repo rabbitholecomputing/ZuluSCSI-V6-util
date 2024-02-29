@@ -35,8 +35,6 @@ public:
     class compatibility_iterator
     {
     private:
-        /* Workaround for broken VC6 nested class name resolution */
-        typedef typename BaseListType::iterator iterator;
         friend class wxDList<T>;
 
         iterator m_iter;
@@ -240,7 +238,7 @@ public:
         Node *GetNext() const      { return m_next; }
         Node *GetPrevious() const  { return m_previous; }
         T *GetData() const         { return m_data; }
-        T **GetDataPtr() const     { return &(wx_const_cast(nodetype*,this)->m_data); }
+        T **GetDataPtr() const     { return &(const_cast<nodetype*>(this)->m_data); }
         void SetData( T *data )    { m_data = data; }
 
         int IndexOf() const
@@ -341,7 +339,7 @@ public:
     void Assign(const wxDList<T> &list)
     {
         wxASSERT_MSG( !list.m_destroy,
-                      "copying list which owns it's elements is a bad idea" );
+                      "copying list which owns its elements is a bad idea" );
         Clear();
         m_destroy = list.m_destroy;
         m_nodeFirst = NULL;
@@ -741,7 +739,7 @@ public:
             { return it.m_node == m_node; }
     };
 
-    wxEXPLICIT wxDList(size_type n, const_reference v = value_type())
+    explicit wxDList(size_type n, const_reference v = value_type())
         { assign(n, v); }
     wxDList(const const_iterator& first, const const_iterator& last)
         { assign(first, last); }

@@ -73,14 +73,14 @@ protected:
 private:
     wxArchiveNotifier *m_notifier;
 
-    DECLARE_ABSTRACT_CLASS(wxArchiveEntry)
+    wxDECLARE_ABSTRACT_CLASS(wxArchiveEntry);
 };
 
 
 /////////////////////////////////////////////////////////////////////////////
 // wxArchiveInputStream
 //
-// GetNextEntry() returns an wxArchiveEntry object containing the meta-data
+// GetNextEntry() returns a wxArchiveEntry object containing the meta-data
 // for the next entry in the archive (and gives away ownership). Reading from
 // the wxArchiveInputStream then returns the entry's data. Eof() becomes true
 // after an attempt has been made to read past the end of the entry's data.
@@ -99,7 +99,7 @@ public:
 
     wxArchiveEntry *GetNextEntry()  { return DoGetNextEntry(); }
 
-    virtual char Peek()             { return wxInputStream::Peek(); }
+    virtual char Peek() wxOVERRIDE  { return wxInputStream::Peek(); }
 
 protected:
     wxArchiveInputStream(wxInputStream& stream, wxMBConv& conv);
@@ -181,11 +181,7 @@ void _wxSetArchiveIteratorValue(
     val = std::make_pair(X(entry->GetInternalName()), Y(entry));
 }
 
-#if defined _MSC_VER && _MSC_VER < 1300
-template <class Arc, class T = Arc::entry_type*>
-#else
 template <class Arc, class T = typename Arc::entry_type*>
-#endif
 class wxArchiveIterator
 {
 public:
@@ -374,7 +370,7 @@ private:
     static wxArchiveClassFactory *sm_first;
     wxArchiveClassFactory *m_next;
 
-    DECLARE_ABSTRACT_CLASS(wxArchiveClassFactory)
+    wxDECLARE_ABSTRACT_CLASS(wxArchiveClassFactory);
 };
 
 #endif // wxUSE_STREAMS && wxUSE_ARCHIVE_STREAMS

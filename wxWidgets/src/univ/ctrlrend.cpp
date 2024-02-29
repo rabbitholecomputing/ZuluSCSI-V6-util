@@ -19,9 +19,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"
@@ -68,7 +65,7 @@ wxControlRenderer::wxControlRenderer(wxWindow *window,
 
 void wxControlRenderer::DrawLabel()
 {
-    m_dc.SetBackgroundMode(wxTRANSPARENT);
+    m_dc.SetBackgroundMode(wxBRUSHSTYLE_TRANSPARENT);
     m_dc.SetFont(m_window->GetFont());
     m_dc.SetTextForeground(m_window->GetForegroundColour());
 
@@ -89,7 +86,7 @@ void wxControlRenderer::DrawLabel()
 void wxControlRenderer::DrawButtonLabel(const wxBitmap& bitmap,
                                         wxCoord marginX, wxCoord marginY)
 {
-    m_dc.SetBackgroundMode(wxTRANSPARENT);
+    m_dc.SetBackgroundMode(wxBRUSHSTYLE_TRANSPARENT);
     m_dc.SetFont(m_window->GetFont());
     m_dc.SetTextForeground(m_window->GetForegroundColour());
 
@@ -188,7 +185,7 @@ void wxControlRenderer::DrawBitmap(wxDC &dc,
     {
         if ( alignment & wxALIGN_RIGHT )
         {
-            x = rect.GetRight() - width;
+            x = rect.GetRight() - width + 1;
         }
         else if ( alignment & wxALIGN_CENTRE )
         {
@@ -201,7 +198,7 @@ void wxControlRenderer::DrawBitmap(wxDC &dc,
 
         if ( alignment & wxALIGN_BOTTOM )
         {
-            y = rect.GetBottom() - height;
+            y = rect.GetBottom() - height + 1;
         }
         else if ( alignment & wxALIGN_CENTRE_VERTICAL )
         {
@@ -438,7 +435,7 @@ void wxControlRenderer::DrawCheckItems(const wxCheckListBox *lbox,
 void wxControlRenderer::DrawProgressBar(const wxGauge *gauge)
 {
     // draw background
-    m_dc.SetBrush(wxBrush(m_window->GetBackgroundColour(), wxSOLID));
+    m_dc.SetBrush(m_window->GetBackgroundColour());
     m_dc.SetPen(*wxTRANSPARENT_PEN);
     m_dc.DrawRectangle(m_rect);
 
@@ -458,7 +455,7 @@ void wxControlRenderer::DrawProgressBar(const wxGauge *gauge)
 
     wxColour col = m_window->UseFgCol() ? m_window->GetForegroundColour()
                                         : wxTHEME_COLOUR(GAUGE);
-    m_dc.SetBrush(wxBrush(col, wxSOLID));
+    m_dc.SetBrush(col);
 
     if ( gauge->IsSmooth() )
     {

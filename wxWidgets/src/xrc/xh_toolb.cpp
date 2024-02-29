@@ -10,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_XRC && wxUSE_TOOLBAR
 
@@ -27,7 +24,7 @@
 
 #include "wx/xml/xml.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxToolBarXmlHandler, wxXmlResourceHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxToolBarXmlHandler, wxXmlResourceHandler);
 
 wxToolBarXmlHandler::wxToolBarXmlHandler()
 : wxXmlResourceHandler(), m_isInside(false), m_toolbar(NULL)
@@ -36,7 +33,6 @@ wxToolBarXmlHandler::wxToolBarXmlHandler()
     XRC_ADD_STYLE(wxTB_DOCKABLE);
     XRC_ADD_STYLE(wxTB_VERTICAL);
     XRC_ADD_STYLE(wxTB_HORIZONTAL);
-    XRC_ADD_STYLE(wxTB_3DBUTTONS);
     XRC_ADD_STYLE(wxTB_TEXT);
     XRC_ADD_STYLE(wxTB_NOICONS);
     XRC_ADD_STYLE(wxTB_NODIVIDER);
@@ -130,8 +126,8 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
                        (
                           GetID(),
                           GetText(wxT("label")),
-                          GetBitmap(wxT("bitmap"), wxART_TOOLBAR, m_toolSize),
-                          GetBitmap(wxT("bitmap2"), wxART_TOOLBAR, m_toolSize),
+                          GetBitmapBundle(wxT("bitmap"), wxART_TOOLBAR, m_toolSize),
+                          GetBitmapBundle(wxT("bitmap2"), wxART_TOOLBAR, m_toolSize),
                           kind,
                           GetText(wxT("tooltip")),
                           GetText(wxT("longhelp"))
@@ -197,9 +193,13 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
                          GetName());
         SetupWindow(toolbar);
 
-        m_toolSize = GetSize(wxT("bitmapsize"));
+        // This will be used as GetBitmapBundle() parameter, which should be in
+        // physical pixels, independent of the DPI, so don't use GetSize() here
+        // which would scale it by the current DPI and, instead, just use
+        // FromDIP() ourselves manually when passing it to SetToolBitmapSize().
+        m_toolSize = GetPairInts(wxT("bitmapsize"));
         if (!(m_toolSize == wxDefaultSize))
-            toolbar->SetToolBitmapSize(m_toolSize);
+            toolbar->SetToolBitmapSize(toolbar->FromDIP(m_toolSize));
         wxSize margins = GetSize(wxT("margins"));
         if (!(margins == wxDefaultSize))
             toolbar->SetMargins(margins.x, margins.y);

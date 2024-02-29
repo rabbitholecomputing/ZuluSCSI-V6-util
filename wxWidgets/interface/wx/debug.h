@@ -6,22 +6,18 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /** @addtogroup group_funcmacro_debug */
-//@{
+///@{
 
 /**
     Exits the program immediately.
 
-    This is a simple wrapper for the standard abort() function which is not
-    available under all platforms (currently only Windows CE doesn't provide
-    it).
+    This is a simple wrapper for the standard abort() function.
 
     @since 2.9.4
  */
 void wxAbort();
 
 /**
-    @def wxDEBUG_LEVEL
-
     Preprocessor symbol defining the level of debug support available.
 
     This symbol is defined to 1 by default meaning that asserts are compiled in
@@ -42,8 +38,6 @@ void wxAbort();
 #define wxDEBUG_LEVEL
 
 /**
-    @def __WXDEBUG__
-
     Compatibility macro indicating presence of debug support.
 
     This symbol is defined if wxDEBUG_LEVEL is greater than 0 and undefined
@@ -141,6 +135,27 @@ typedef void (*wxAssertHandler_t)(const wxString& file,
 #define wxASSERT_MSG( condition, message )
 
 /**
+    Assert macro pretending to assert at the specified location.
+
+    This macro is the same as wxASSERT_MSG(), but the assert message will use
+    the specified source file, line number and function name instead of the
+    values corresponding to the current location as done by wxASSERT_MSG() by
+    default.
+
+    It is mostly useful for asserting inside functions called from macros, as
+    by passing the usual @c \__FILE__, @c \__LINE__ and @c \__FUNCTION__ values to
+    a function, it's possible to pretend that the assert happens at the
+    location of the macro in the source code (which can be useful) instead of
+    inside the function itself (which is never useful as these values are
+    always the same for the given assertion).
+
+    @since 3.1.0
+
+    @header{wx/debug.h}
+ */
+#define wxASSERT_MSG_AT( condition, message, file, line, func )
+
+/**
     Checks that the condition is @true, returns with the given return value if
     not (stops execution in debug mode). This check is done even in release mode.
 
@@ -214,7 +229,7 @@ typedef void (*wxAssertHandler_t)(const wxString& file,
     sometimes desirable to test them at the compile time.
 
     Note that this macro internally declares a struct whose name it tries to
-    make unique by using the @c __LINE__ in it but it may still not work if you
+    make unique by using the @c \__LINE__ in it but it may still not work if you
     use it on the same line in two different source files. In this case you may
     either change the line in which either of them appears on or use the
     wxCOMPILE_TIME_ASSERT2() macro.
@@ -256,8 +271,6 @@ typedef void (*wxAssertHandler_t)(const wxString& file,
 void wxDisableAsserts();
 
 /**
-    @def wxDISABLE_ASSERTS_IN_RELEASE_BUILD
-
     Use this macro to disable asserts in release build when not using
     wxIMPLEMENT_APP().
 
@@ -311,6 +324,18 @@ void wxDisableAsserts();
     @header{wx/debug.h}
 */
 #define wxFAIL_MSG( message )
+
+/**
+    Assert failure macro pretending to assert at the specified location.
+
+    This is a cross between wxASSERT_MSG_AT() and wxFAIL_MSG(), see their
+    documentation for more details.
+
+    @since 3.1.0
+
+    @header{wx/debug.h}
+ */
+#define wxFAIL_MSG_AT( message, file, line, func )
 
 /**
     Returns @true if the program is running under debugger, @false otherwise.
@@ -385,5 +410,5 @@ void wxSetDefaultAssertHandler();
 */
 void wxTrap();
 
-//@}
+///@}
 

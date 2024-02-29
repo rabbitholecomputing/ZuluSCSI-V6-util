@@ -289,6 +289,12 @@ public:
     /**
         Constructor.
 
+        Notice that if the object is created from a worker thread or if it is
+        created from the main thread but the event loop is not running, @a
+        flags parameter @em must include ::wxSOCKET_BLOCK as non-blocking
+        sockets require dispatching events, which can only be done in the main
+        thread.
+
         @param flags
             Socket flags (See wxSocketBase::SetFlags())
     */
@@ -473,7 +479,7 @@ public:
     @endEventTable
 
     @library{wxnet}
-    @category{net}
+    @category{net,events}
 
     @see wxSocketBase, wxSocketClient, wxSocketServer
 */
@@ -606,7 +612,7 @@ enum wxSocketEventFlags
     flag should not be enabled if WriteMsg() is going to be used (it will be
     ignored), if you use it then thread safety may be at risk. Note that
     wxSOCKET_NOWAIT_WRITE impacts only Write operations and does not impact
-    Write operations, allowing Read and Write operations to be set differently.
+    Read operations, allowing Read and Write operations to be set differently.
 
     If @b wxSOCKET_WAITALL is specified, IO calls won't return until ALL
     the data has been read or written (or until an error occurs), blocking if
@@ -658,7 +664,7 @@ enum wxSocketEventFlags
     This option can have surprising platform dependent behaviour, so check the
     documentation for your platform's implementation of setsockopt().
 
-    Note that on BSD-based systems(e.g. Mac OS X), use of
+    Note that on BSD-based systems(e.g. macOS), use of
     @b wxSOCKET_REUSEADDR implies @b SO_REUSEPORT in addition to
     @b SO_REUSEADDR to be consistent with Windows.
 
@@ -726,7 +732,7 @@ public:
     /**
         @name Construction and Destruction
     */
-    //@{
+    ///@{
 
     /**
         Default constructor.
@@ -792,13 +798,13 @@ public:
      */
     static void Shutdown();
 
-    //@}
+    ///@}
 
 
     /**
         @name Socket State
     */
-    //@{
+    ///@{
 
     /**
         Returns @true if an error occurred in the last IO operation.
@@ -935,7 +941,7 @@ public:
     */
     void SaveState();
 
-    //@}
+    ///@}
 
 
     /**
@@ -943,7 +949,7 @@ public:
 
         See also: wxSocketServer::WaitForAccept(), wxSocketClient::WaitOnConnect()
     */
-    //@{
+    ///@{
 
     /**
         Shut down the socket, disabling further transmission and reception of
@@ -1325,13 +1331,13 @@ public:
     */
     wxSocketBase& WriteMsg(const void* buffer, wxUint32 nbytes);
 
-    //@}
+    ///@}
 
 
     /**
         @name Handling Socket Events
     */
-    //@{
+    ///@{
 
     /**
         Returns a pointer of the client data for this socket, as set with
@@ -1415,7 +1421,7 @@ public:
     */
     wxSOCKET_T GetSocket() const;
 
-    //@}
+    ///@}
 };
 
 

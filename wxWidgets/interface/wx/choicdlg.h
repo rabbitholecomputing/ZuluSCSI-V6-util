@@ -17,8 +17,6 @@
 
 /**
     Default style of the choice dialog.
-
-    @remarks wxRESIZE_BORDER is not used under WinCE.
 */
 #define wxCHOICEDLG_STYLE (wxDEFAULT_DIALOG_STYLE | wxOK | wxCANCEL | wxCENTRE | wxRESIZE_BORDER)
 
@@ -35,7 +33,7 @@
     @style{wxCANCEL}
         Show a Cancel button.
     @style{wxCENTRE}
-        Centre the message. Not Windows.
+        Centre the message.
     @endStyleTable
 
     @library{wxbase}
@@ -46,7 +44,7 @@
 class wxMultiChoiceDialog : public wxDialog
 {
 public:
-    //@{
+    ///@{
     /**
         Constructor taking an array of wxString choices.
 
@@ -66,7 +64,7 @@ public:
             default value is equivalent to wxDEFAULT_DIALOG_STYLE |
             wxRESIZE_BORDER | wxOK | wxCANCEL | wxCENTRE.
         @param pos
-            Dialog position. Not Windows.
+            Dialog position.
 
         @remarks Use ShowModal() to show the dialog.
 
@@ -96,7 +94,7 @@ public:
             default value is equivalent to wxDEFAULT_DIALOG_STYLE |
             wxRESIZE_BORDER | wxOK | wxCANCEL | wxCENTRE.
         @param pos
-            Dialog position. Not Windows.
+            Dialog position.
 
         @remarks Use ShowModal() to show the dialog.
 
@@ -110,7 +108,7 @@ public:
                         const wxArrayString& choices,
                         long style = wxCHOICEDLG_STYLE,
                         const wxPoint& pos = wxDefaultPosition);
-    //@}
+    ///@}
 
     /**
         Returns array with indexes of selected items.
@@ -143,7 +141,7 @@ public:
     @style{wxCANCEL}
         Show a Cancel button.
     @style{wxCENTRE}
-        Centre the message. Not Windows.
+        Centre the message.
     @endStyleTable
 
     @library{wxbase}
@@ -154,7 +152,7 @@ public:
 class wxSingleChoiceDialog : public wxDialog
 {
 public:
-    //@{
+    ///@{
     /**
         Constructor, taking an array of wxString choices and optional client
         data.
@@ -178,7 +176,7 @@ public:
             default value is equivalent to wxDEFAULT_DIALOG_STYLE |
             wxRESIZE_BORDER | wxOK | wxCANCEL | wxCENTRE.
         @param pos
-            Dialog position. Not Windows.
+            Dialog position.
 
         @remarks Use ShowModal() to show the dialog.
 
@@ -213,7 +211,7 @@ public:
             default value is equivalent to wxDEFAULT_DIALOG_STYLE |
             wxRESIZE_BORDER | wxOK | wxCANCEL | wxCENTRE.
         @param pos
-            Dialog position. Not Windows.
+            Dialog position.
 
         @remarks Use ShowModal() to show the dialog.
 
@@ -228,7 +226,7 @@ public:
                          void** clientData = NULL,
                          long style = wxCHOICEDLG_STYLE,
                          const wxPoint& pos = wxDefaultPosition);
-    //@}
+    ///@}
 
     /**
         Returns the index of selected item.
@@ -265,7 +263,7 @@ public:
 // ============================================================================
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Same as wxGetSingleChoice() but returns the index representing the
@@ -312,10 +310,10 @@ int wxGetSingleChoiceIndex(const wxString& message,
                            int n, const wxString *choices,
                            int initialSelection,
                            wxWindow *parent = NULL);
-//@}
+///@}
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Pops up a dialog box containing a message, OK/Cancel buttons and a
@@ -372,10 +370,10 @@ wxString wxGetSingleChoice(const wxString& message,
                            int initialSelection,
                            wxWindow *parent = NULL);
 
-//@}
+///@}
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Same as wxGetSingleChoice but takes an array of client data pointers
@@ -428,10 +426,10 @@ void* wxGetSingleChoiceData(const wxString& message,
                             int initialSelection,
                             wxWindow *parent = NULL);
 
-//@}
+///@}
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Pops up a dialog box containing a message, OK/Cancel buttons and a
@@ -479,5 +477,5 @@ int wxGetSelectedChoices(wxArrayInt& selections,
                             int width = wxCHOICE_WIDTH,
                             int height = wxCHOICE_HEIGHT);
 
-//@}
+///@}
 

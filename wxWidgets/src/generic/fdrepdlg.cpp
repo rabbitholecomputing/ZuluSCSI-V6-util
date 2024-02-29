@@ -19,9 +19,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_FINDREPLDLG
 
@@ -49,9 +46,9 @@
 // implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericFindReplaceDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericFindReplaceDialog, wxDialog);
 
-BEGIN_EVENT_TABLE(wxGenericFindReplaceDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxGenericFindReplaceDialog, wxDialog)
     EVT_BUTTON(wxID_FIND, wxGenericFindReplaceDialog::OnFind)
     EVT_BUTTON(wxID_REPLACE, wxGenericFindReplaceDialog::OnReplace)
     EVT_BUTTON(wxID_REPLACE_ALL, wxGenericFindReplaceDialog::OnReplaceAll)
@@ -62,7 +59,7 @@ BEGIN_EVENT_TABLE(wxGenericFindReplaceDialog, wxDialog)
     EVT_UPDATE_UI(wxID_REPLACE_ALL, wxGenericFindReplaceDialog::OnUpdateFindUI)
 
     EVT_CLOSE(wxGenericFindReplaceDialog::OnCloseWindow)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // wxGenericFindReplaceDialog
@@ -86,7 +83,7 @@ bool wxGenericFindReplaceDialog::Create(wxWindow *parent,
                                         const wxString& title,
                                         int style)
 {
-    parent = GetParentForModalDialog(parent, style);
+    parent = GetParentForModelessDialog(parent, style);
 
     if ( !wxDialog::Create(parent, wxID_ANY, title,
                            wxDefaultPosition, wxDefaultSize,
@@ -207,11 +204,9 @@ bool wxGenericFindReplaceDialog::Create(wxWindow *parent,
     if ( style & wxFR_NOUPDOWN)
         m_radioDir->Enable(false);
 
-    SetAutoLayout( true );
     SetSizer( topsizer );
 
     topsizer->SetSizeHints( this );
-    topsizer->Fit( this );
 
     Centre( wxBOTH );
 

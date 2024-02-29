@@ -10,7 +10,7 @@
 
     wxHtmlListBox is an implementation of wxVListBox which shows HTML content in
     the listbox rows. This is still an abstract base class and you will need to
-    derive your own class from it (see htlbox sample for the example) but you will
+    derive your own class from it (see htlbox sample for the example), but you will
     only need to override a single wxHtmlListBox::OnGetItem function.
 
     @beginEventEmissionTable{wxHtmlCellEvent,wxHtmlLinkEvent}
@@ -19,7 +19,7 @@
     @event{EVT_HTML_CELL_HOVER(id, func)}
         The mouse passed over a wxHtmlCell.
     @event{EVT_HTML_LINK_CLICKED(id, func)}
-        A wxHtmlCell which contains an hyperlink was clicked.
+        A wxHtmlCell which contains a hyperlink was clicked.
     @endEventTable
 
     @library{wxhtml}
@@ -64,7 +64,7 @@ public:
                 long style = 0,
                 const wxString& name = wxHtmlListBoxNameStr);
 
-    //@{
+    ///@{
     /**
         Returns the wxFileSystem used by the HTML parser of this object.
 
@@ -75,7 +75,7 @@ public:
     */
     wxFileSystem& GetFileSystem() const;
     const wxFileSystem& GetFileSystem() const;
-    //@}
+    ///@}
 
 protected:
 
@@ -97,7 +97,7 @@ protected:
         background of the selected cells in the same way as GetSelectedTextColour().
 
         It should be rarely, if ever, used because wxVListBox::SetSelectionBackground
-        allows to change the selection background for all cells at once and doing
+        allows changing the selection background for all cells at once and doing
         anything more fancy is probably going to look strangely.
 
         @see GetSelectedTextColour()
@@ -123,7 +123,7 @@ protected:
 
     /**
         This method must be implemented in the derived class and should return
-        the body (i.e. without @c html nor @c body tags) of the HTML fragment
+        the body (i.e.\ without @c html nor @c body tags) of the HTML fragment
         for the given item.
 
         Note that this function should always return a text fragment for the @a n item
@@ -191,7 +191,7 @@ protected:
     @event{EVT_HTML_CELL_HOVER(id, func)}
         The mouse passed over a wxHtmlCell. See wxHtmlCellEvent.
     @event{EVT_HTML_LINK_CLICKED(id, func)}
-        A wxHtmlCell which contains an hyperlink was clicked. See wxHtmlLinkEvent
+        A wxHtmlCell which contains a hyperlink was clicked. See wxHtmlLinkEvent
     @endEventTable
 
     @library{wxhtml}
@@ -200,6 +200,9 @@ protected:
 
     @see wxSimpleHtmlListBox::Create
 */
+#define wxHLB_DEFAULT_STYLE     wxBORDER_SUNKEN
+#define wxHLB_MULTIPLE          wxLB_MULTIPLE
+
 class wxSimpleHtmlListBox : public wxHtmlListBox,
                             public wxItemContainer
 {
@@ -215,7 +218,7 @@ public:
             Window position.
             If ::wxDefaultPosition is specified then a default position is chosen.
         @param size
-            Window size. 
+            Window size.
             If ::wxDefaultSize is specified then the window is sized appropriately.
         @param n
             Number of strings with which to initialise the control.
@@ -275,7 +278,7 @@ public:
     */
     virtual ~wxSimpleHtmlListBox();
 
-    //@{
+    ///@{
     /**
         Creates the HTML listbox for two-step construction.
         See wxSimpleHtmlListBox() for further details.
@@ -294,6 +297,6 @@ public:
                 long style = wxHLB_DEFAULT_STYLE,
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxSimpleHtmlListBoxNameStr);
-    //@}
+    ///@}
 };
 

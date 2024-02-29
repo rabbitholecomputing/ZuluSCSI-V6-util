@@ -125,7 +125,7 @@ void wxThreadPrivate::SprocStart(void *ptr)
 
   thr->p_internal->thread_id = getpid();
   thr->p_internal->exit_status = 0;
-  status = thr->CallEntry();
+  status = thr->Entry();
   thr->Exit(status);
 }
 
@@ -251,10 +251,10 @@ public:
     virtual void OnExit();
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxThreadModule)
+    wxDECLARE_DYNAMIC_CLASS(wxThreadModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxThreadModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxThreadModule, wxModule);
 
 bool wxThreadModule::OnInit()
 {

@@ -12,7 +12,7 @@
     String class for passing textual data to or receiving it from wxWidgets.
 
     @note
-    While the use of wxString is unavoidable in wxWidgets program, you are
+    While the use of wxString is unavoidable in wxWidgets programs, you are
     encouraged to use the standard string classes @c std::string or @c
     std::wstring in your applications and convert them to and from wxString
     only when interacting with wxWidgets.
@@ -85,9 +85,10 @@
         - String in UTF-8 encoding using wxString::utf8_str().
         - String in any given encoding using mb_str() with the appropriate
         wxMBConv object. This is also a potentially destructive operation.
-        - Standard @c std::string using wxString::ToStdString(). The contents
-        of the returned string use the current locale encoding, so this
-        conversion is potentially destructive as well.
+        - Standard @c std::string using wxString::ToStdString(). The encoding
+        of the returned string is specified with a wxMBConv object, so this
+        conversion is potentially destructive as well. To ensure that there is
+        no data loss, use @c wxConvUTF8 conversion or wxString::utf8_string().
         - Wide C string using wxString::wc_str().
         - Standard @c std::wstring using wxString::ToStdWstring().
 
@@ -162,7 +163,7 @@
     or explicitly convert the return value:
         @code
             auto c = s[0].GetValue();
-            c = 'x';            // Doesn't modify the string neither.
+            c = 'x';            // Doesn't modify the string either.
             wxASSERT( s == "abc" );
         @endcode
 
@@ -318,7 +319,7 @@ public:
 
         Types used with wxString.
     */
-    //@{
+    ///@{
     typedef wxUniChar value_type;
     typedef wxUniChar char_type;
     typedef wxUniCharRef reference;
@@ -326,7 +327,7 @@ public:
     typedef const wxChar* const_pointer;
     typedef size_t size_type;
     typedef wxUniChar const_reference;
-    //@}
+    ///@}
 
 
     /**
@@ -339,7 +340,7 @@ public:
 
         See also the assign() STL-like function.
     */
-    //@{
+    ///@{
 
     /**
        Default constructor
@@ -386,13 +387,13 @@ public:
     wxString(const char *psz, const wxMBConv& conv);
 
     /**
-       Constructs a string from the first @a nLength character of the string literal @a psz using
+       Constructs a string from the first @a nLength bytes of the string literal @a psz using
        the current locale encoding to convert it to Unicode (wxConvLibc).
     */
     wxString(const char *psz, size_t nLength);
 
     /**
-       Constructs a string from the first @a nLength character of the string literal @a psz using
+       Constructs a string from the first @a nLength bytes of the string literal @a psz using
        @a conv to convert it Unicode.
     */
     wxString(const char *psz, const wxMBConv& conv, size_t nLength);
@@ -450,7 +451,7 @@ public:
     */
     wxString operator =(wxUniChar c);
 
-    //@}
+    ///@}
 
 
 
@@ -462,7 +463,7 @@ public:
 
         See also the length(), size() or empty() STL-like functions.
     */
-    //@{
+    ///@{
 
 
     /**
@@ -497,7 +498,7 @@ public:
     */
     bool operator!() const;
 
-    //@}
+    ///@}
 
 
 
@@ -511,7 +512,7 @@ public:
         failure in @ref overview_debugging "debug builds", but no checks are
         done in release builds.
     */
-    //@{
+    ///@{
 
     /**
         Returns the character at position @a n (read-only).
@@ -589,7 +590,7 @@ public:
     */
     wxUniCharRef operator [](size_t i);
 
-    //@}
+    ///@}
 
 
     /**
@@ -599,7 +600,7 @@ public:
         strings. Although implicit conversion is quite convenient, you are advised
         to use wc_str() for the sake of clarity.
     */
-    //@{
+    ///@{
 
     /**
         Returns a lightweight intermediate class which is in turn implicitly
@@ -656,18 +657,11 @@ public:
     /**
         Returns a string representation suitable for passing to OS' functions
         for file handling.
-    */
-    const wchar_t* fn_str() const;
 
-    /**
-        @overload
+        Depending on OS and configuration, TYPE is either @c wchar_t*,
+        @c char*, or wxCharBuffer.
     */
-    const char* fn_str() const;
-
-    /**
-        @overload
-    */
-    const wxCharBuffer fn_str() const;
+    const TYPE fn_str() const;
 
     /**
         Returns the multibyte (C string) representation of the string
@@ -687,21 +681,29 @@ public:
     const wxScopedCharBuffer utf8_str() const;
 
     /**
+        Return the string as an std::string using UTF-8 encoding.
+
+        This is a shorter and more readable equivalent of calling ToStdString()
+        with @c wxConvUTF8 argument.
+
+        @since 3.1.5
+     */
+    const std::string utf8_string() const;
+
+    /**
         Converts the strings contents to the wide character representation
-        and returns it as a temporary wxWCharBuffer object (Unix and OS X)
+        and returns it as a temporary wxWCharBuffer object (Unix and macOS)
         or returns a pointer to the internal string contents in wide character
         mode (Windows).
+
+        Depending on OS and configuration, TYPE is either @c wchar_t*
+        or wxCharBuffer.
 
         The macro wxWX2WCbuf is defined as the correct return type (without const).
 
         @see utf8_str(), c_str(), mb_str(), fn_str(), wchar_str()
     */
-    const wchar_t* wc_str() const;
-
-    /**
-        @overload
-    */
-    const wxWCharBuffer wc_str() const;
+    const TYPE wc_str() const;
 
     /**
         Returns an object with string data that is implicitly convertible to
@@ -739,24 +741,28 @@ public:
         a wxCharBuffer (Unicode builds only) or a C string (ANSI builds).
 
         Note that this conversion is only lossless if the string contains only
-        ASCII characters as all the non-ASCII ones are replaced with the @c '_'
-        (underscore) character.
+        ASCII characters as all the non-ASCII ones are replaced with the (same)
+        provided replacement character.
 
         Use mb_str() or utf8_str() to convert to other encodings.
+
+        Depending on OS and configuration, TYPE is either @c char* or
+        wxCharBuffer.
+
+        @param replaceWith
+            The character used to replace any non-ASCII characters, default to
+            underscore (@c "_"). This parameter is new since wxWidgets 3.1.0.
     */
-    const char* ToAscii() const;
+    const TYPE ToAscii(char replaceWith = '_') const;
 
     /**
-        @overload
-    */
-    const wxCharBuffer ToAscii() const;
+        Return the string as a std::string using @e conv's wxMBConv::cWC2MB method.
 
-    /**
-        Return the string as an std::string in current locale encoding.
-
-        Note that if the conversion of (Unicode) string contents to the current
-        locale fails, the return string will be empty. Be sure to check for
-        this to avoid silent data loss.
+        Note that if the conversion of (Unicode) string contents using @e conv
+        fails, the return string will be empty. Be sure to check for
+        this to avoid silent data loss. Alternatively, pass @c wxConvUTF8 as @a
+        conv or use utf8_string() to always use UTF-8 encoding, rather than the
+        current one.
 
         Instead of using this function it's also possible to write
         @code
@@ -767,12 +773,15 @@ public:
         @endcode
         but using ToStdString() may make the code more clear.
 
+        @param conv
+            The converter to be used. This parameter is new in wxWidgets 3.1.1.
+
         @since 2.9.1
     */
-    std::string ToStdString() const;
+    std::string ToStdString(const wxMBConv& conv = wxConvLibc) const;
 
     /**
-        Return the string as an std::wstring.
+        Return the string as a std::wstring.
 
         Unlike ToStdString(), there is no danger of data loss when using this
         function.
@@ -786,7 +795,7 @@ public:
     */
     const wxScopedCharBuffer ToUTF8() const;
 
-    //@}
+    ///@}
 
 
     /**
@@ -800,7 +809,7 @@ public:
 
         See also the insert() and append() STL-like functions.
     */
-    //@{
+    ///@{
 
     /**
        Appends the string literal @a psz.
@@ -876,7 +885,7 @@ public:
     */
     void operator +=(wxUniChar c);
 
-    //@}
+    ///@}
 
 
     /**
@@ -898,7 +907,7 @@ public:
 
         See also the compare() STL-like function.
     */
-    //@{
+    ///@{
 
     /**
         Case-sensitive comparison.
@@ -968,7 +977,7 @@ public:
     */
     bool EndsWith(const wxString& suffix, wxString *rest = NULL) const;
 
-    //@}
+    ///@}
 
 
     /**
@@ -980,6 +989,7 @@ public:
 
         See also the at() and the substr() STL-like functions.
     */
+    ///@{
 
     /**
         Returns a substring starting at @e first, with length @e count, or the rest of
@@ -1053,7 +1063,7 @@ public:
     */
     wxString BeforeLast(wxUniChar ch, wxString *rest = NULL) const;
 
-    //@}
+    ///@}
 
 
     /**
@@ -1063,7 +1073,7 @@ public:
         return a new string which contains the original text converted to the upper or
         lower case and leave the original string unchanged.
     */
-    //@{
+    ///@{
 
     /**
         Return the copy of the string with the first string character in the
@@ -1130,7 +1140,7 @@ public:
     */
     void UpperCase();
 
-    //@}
+    ///@}
 
 
     /**
@@ -1141,7 +1151,7 @@ public:
 
         See also the find(), rfind(), replace() STL-like functions.
     */
-    //@{
+    ///@{
 
     /**
         Searches for the given character @a ch.
@@ -1187,7 +1197,7 @@ public:
     size_t Replace(const wxString& strOld, const wxString& strNew,
                    bool replaceAll = true);
 
-    //@}
+    ///@}
 
 
 
@@ -1203,7 +1213,7 @@ public:
         string, it is returned in the output parameter even if the function
         returns @false because there is more text following it.
      */
-    //@{
+    ///@{
 
     /**
         Attempts to convert the string to a floating point number.
@@ -1231,16 +1241,49 @@ public:
     bool ToDouble(double* val) const;
 
     /**
-        Variant of ToDouble() always working in "C" locale.
+        Variant of ToDouble(), always working in "C" locale.
 
-        Works like ToDouble() but unlike it this function expects the floating point
+        Works like ToDouble(), but this function expects the floating point
         number to be formatted always with the rules dictated by the "C" locale
         (in particular, the decimal point must be a dot), independently from the
         current application-wide locale (see wxLocale).
 
+        @code
+        double val(0);
+
+        // Will extract 2.2 from the string, but returns
+        // false because the "lbs" section of the string
+        // was not part of the conversion.
+        wxString str("2.2lbs");
+        bool fullStringConverted = str.ToCDouble(&val);
+
+        // Will also extract 2.2, but returns true because
+        // the entirety of the string was converted to a double.
+        str.assign("2.2");
+        fullStringConverted = str.ToCDouble(&val);
+        @endcode
+
         @see ToDouble(), ToLong(), ToULong()
     */
     bool ToCDouble(double* val) const;
+
+    /**
+        Works like ToLong() but for signed integers.
+
+        @see ToLong(), ToUInt(), ToDouble()
+
+        @since 3.1.6
+    */
+    bool ToInt(int *val, int base = 10) const;
+
+    /**
+        Works like ToULong() but for unsigned integers.
+
+        @see ToInt(), ToULong(), ToDouble()
+
+        @since 3.1.6
+    */
+    bool ToUInt(unsigned int *val, int base = 10) const;
 
     /**
         Attempts to convert the string to a signed integer in base @a base.
@@ -1270,7 +1313,7 @@ public:
         Please refer to the documentation of the standard function @c strtol()
         for more details about the supported syntax.
 
-        @see ToCDouble(), ToDouble(), ToULong()
+        @see ToCDouble(), ToDouble(), ToULong(), ToInt()
     */
     bool ToLong(long* val, int base = 10) const;
 
@@ -1334,7 +1377,7 @@ public:
     */
     bool ToULongLong(wxULongLong_t* val, int base = 10) const;
 
-    //@}
+    ///@}
 
 
     /**
@@ -1345,7 +1388,7 @@ public:
 
         See also the static Format() and FormatV() functions.
     */
-    //@{
+    ///@{
 
     /**
         Similar to the standard function @e sprintf(). Returns the number of
@@ -1377,7 +1420,7 @@ public:
     */
     int PrintfV(const wxString& pszFormat, va_list argPtr);
 
-    //@}
+    ///@}
 
 
     /**
@@ -1390,7 +1433,7 @@ public:
 
         See also the reserve() and resize() STL-like functions.
     */
-    //@{
+    ///@{
 
     /**
         Preallocate enough space for wxString to store @a nLen characters.
@@ -1432,8 +1475,12 @@ public:
     bool Alloc(size_t nLen);
 
     /**
-        Minimizes the string's memory. This can be useful after a call to
-        Alloc() if too much memory were preallocated.
+        Minimizes the string's memory.
+
+        This can be useful after a call to Alloc() if too much memory were
+        preallocated.
+
+        @return Always returns @true
     */
     bool Shrink();
 
@@ -1458,7 +1505,7 @@ public:
     */
     void Clear();
 
-    //@}
+    ///@}
 
 
 
@@ -1467,7 +1514,7 @@ public:
 
         Miscellaneous other string functions.
     */
-    //@{
+    ///@{
 
     /**
         Returns @true if target appears anywhere in wxString; else @false.
@@ -1561,7 +1608,7 @@ public:
     */
     wxString& Truncate(size_t len);
 
-    //@}
+    ///@}
 
 
 
@@ -1574,19 +1621,23 @@ public:
         Please see any STL reference (e.g. http://www.cppreference.com/wiki/string/start)
         for their documentation.
     */
-    //@{
+    ///@{
 
     const_iterator begin() const;
     iterator begin();
+    const_iterator cbegin() const;
     const_iterator end() const;
     iterator end();
+    const_iterator cend() const;
 
     const_reverse_iterator rbegin() const;
     reverse_iterator rbegin();
+    const_reverse_iterator crbegin() const;
     const_reverse_iterator rend() const;
     reverse_iterator rend();
+    const_reverse_iterator crend() const;
 
-    //@}
+    ///@}
 
 
 
@@ -1598,7 +1649,7 @@ public:
         Please see any STL reference (e.g. http://www.cppreference.com/wiki/string/start)
         for their documentation.
     */
-    //@{
+    ///@{
 
     wxString& append(const wxString& str, size_t pos, size_t n);
     wxString& append(const wxString& str);
@@ -1711,7 +1762,15 @@ public:
     wxString substr(size_t nStart = 0, size_t nLen = npos) const;
     void swap(wxString& str);
 
-    //@}
+    bool starts_with(const wxString &str) const;
+    bool starts_with(const char *sz) const;
+    bool starts_with(const wchar_t *sz) const;
+
+    bool ends_with(const wxString &str) const;
+    bool ends_with(const char *sz) const;
+    bool ends_with(const wchar_t *sz) const;
+
+    ///@}
 
 
 
@@ -1740,7 +1799,7 @@ public:
     */
     static wxString FormatV(const wxString& format, va_list argptr);
 
-    //@{
+    ///@{
     /**
         Converts given buffer of binary data from 8-bit string to wxString. In
         Unicode build, the string is interpreted as being in ISO-8859-1
@@ -1758,19 +1817,25 @@ public:
     */
     static wxString From8BitData(const char* buf, size_t len);
     static wxString From8BitData(const char* buf);
-    //@}
+    ///@}
 
-    //@{
+    ///@{
     /**
         Converts the string or character from an ASCII, 7-bit form
         to the native wxString representation.
+
+        Input must consist only of 7-bit (i.e. less than 128) ASCII characters,
+        the behaviour in presence of non-ASCII characters is undefined but will
+        result in assert failures.
+
+        @see wxASCII_STR()
     */
     static wxString FromAscii(const char* s);
     static wxString FromAscii(const unsigned char* s);
     static wxString FromAscii(const char* s, size_t len);
     static wxString FromAscii(const unsigned char* s, size_t len);
     static wxString FromAscii(char c);
-    //@}
+    ///@}
 
     /**
         Returns a string with the textual representation of the number in C
@@ -1810,7 +1875,7 @@ public:
      */
     static wxString FromDouble(double val, int precision = -1);
 
-    //@{
+    ///@{
     /**
         Converts C string encoded in UTF-8 to wxString.
 
@@ -1820,13 +1885,17 @@ public:
         alternative to this function called FromUTF8Unchecked() which, unlike
         this one, doesn't check that the input string is valid.
 
+        The overload taking @c std::string is only available starting with
+        wxWidgets 3.1.1.
+
         @since 2.8.4
     */
     static wxString FromUTF8(const char* s);
     static wxString FromUTF8(const char* s, size_t len);
-    //@}
+    static wxString FromUTF8(const std::string& s);
+    ///@}
 
-    //@{
+    ///@{
     /**
         Converts C string encoded in UTF-8 to wxString without checking its
         validity.
@@ -1840,16 +1909,20 @@ public:
         string to this function will result in creating a corrupted wxString
         and all the subsequent operations on it will be undefined.
 
+        The overload taking @c std::string is only available starting with
+        wxWidgets 3.1.1.
+
         @since 2.8.9
     */
     static wxString FromUTF8Unchecked(const char* s);
     static wxString FromUTF8Unchecked(const char* s, size_t len);
-    //@}
+    static wxString FromUTF8Unchecked(const std::string& s);
+    ///@}
 };
 
 
 
-//@{
+///@{
 /**
     Comparison operator for string types.
 */
@@ -1871,9 +1944,9 @@ inline bool operator==(const wxString& s1, const wxCharBuffer& s2);
 inline bool operator==(const wxCharBuffer& s1, const wxString& s2);
 inline bool operator!=(const wxString& s1, const wxCharBuffer& s2);
 inline bool operator!=(const wxCharBuffer& s1, const wxString& s2);
-//@}
+///@}
 
-//@{
+///@{
 /**
     Comparison operators char types.
 */
@@ -1895,7 +1968,7 @@ inline bool operator!=(const wxString& s, const wxUniChar& c);
 inline bool operator!=(const wxString& s, const wxUniCharRef& c);
 inline bool operator!=(const wxString& s, char c);
 inline bool operator!=(const wxString& s, wchar_t c);
-//@}
+///@}
 
 /**
     The global wxString instance of an empty string.
@@ -1949,7 +2022,7 @@ public:
         Basically, this is equivalent to calling wxString::GetWriteBuf and
         saving the result.
     */
-    wxStringBufferLength(const wxString& str, size_t len);
+    wxStringBufferLength(wxString& str, size_t len);
 
     /**
         Restores the string passed to the constructor to the usable state by calling
@@ -2010,7 +2083,7 @@ public:
         Basically, this is equivalent to calling wxString::GetWriteBuf() and
         saving the result.
     */
-    wxStringBuffer(const wxString& str, size_t len);
+    wxStringBuffer(wxString& str, size_t len);
 
     /**
         Restores the string passed to the constructor to the usable state by calling
@@ -2027,10 +2100,10 @@ public:
 
 
 /** @addtogroup group_funcmacro_string */
-//@{
+///@{
 
 /**
-    Allows to extend a function with the signature:
+    Allows extending a function with the signature:
     @code bool SomeFunc(const wxUniChar& c) @endcode
     which operates on a single character, to an entire wxString.
 
@@ -2049,4 +2122,14 @@ public:
 template<bool (T)(const wxUniChar& c)>
     inline bool wxStringCheck(const wxString& val);
 
-//@}
+/**
+    Convenience macro for explicitly constructing wxString from ASCII strings.
+
+    This macro simply expands to a call to wxString::FromAscii() but is
+    slightly shorter.
+
+    @since 3.1.4
+ */
+wxString wxASCII_STR(const char* s);
+
+///@}

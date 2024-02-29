@@ -150,18 +150,16 @@ name##PluginSentinel  m_pluginsentinel
 // The 'this' pointer is always true, so use this version
 // to cast the this pointer and avoid compiler warnings.
 #define wxDynamicCastThis(className) \
-     (IsKindOf(&className::ms_classInfo) ? (className *)(this) : (className *)0)
+     (IsKindOf(&className::ms_classInfo) ? (className*)this : NULL)
 
-// FIXME-VC6: dummy argument needed because VC6 doesn't support explicitly
-//            choosing the template function to call
 template <class T>
-inline T *wxCheckCast(const void *ptr, T * = NULL)
+inline T *wxCheckCast(const void *ptr)
 {
     wxASSERT_MSG( wxDynamicCast(ptr, T), "wxStaticCast() used incorrectly" );
     return const_cast<T *>(static_cast<const T *>(ptr));
 }
 
-#define wxStaticCast(obj, className) wxCheckCast((obj), (className *)NULL)
+#define wxStaticCast(obj, className) wxCheckCast<className>(obj)
 
 // ----------------------------------------------------------------------------
 // set up memory debugging macros
@@ -172,7 +170,6 @@ inline T *wxCheckCast(const void *ptr, T * = NULL)
 
     _WX_WANT_NEW_SIZET_WXCHAR_INT             = void *operator new (size_t size, wxChar *fileName = 0, int lineNum = 0)
     _WX_WANT_DELETE_VOID                      = void operator delete (void * buf)
-    _WX_WANT_DELETE_VOID_CONSTCHAR_SIZET      = void operator delete (void *buf, const char *_fname, size_t _line)
     _WX_WANT_DELETE_VOID_WXCHAR_INT           = void operator delete(void *buf, wxChar*, int)
     _WX_WANT_ARRAY_NEW_SIZET_WXCHAR_INT       = void *operator new[] (size_t size, wxChar *fileName , int lineNum = 0)
     _WX_WANT_ARRAY_DELETE_VOID                = void operator delete[] (void *buf)
@@ -181,21 +178,11 @@ inline T *wxCheckCast(const void *ptr, T * = NULL)
 
 #if wxUSE_MEMORY_TRACING
 
-// All compilers get this one
+// All compilers get these ones
 #define _WX_WANT_NEW_SIZET_WXCHAR_INT
+#define _WX_WANT_DELETE_VOID
 
-// Everyone except Visage gets the next one
-#ifndef __VISAGECPP__
-    #define _WX_WANT_DELETE_VOID
-#endif
-
-// Only visage gets this one under the correct circumstances
-#if defined(__VISAGECPP__) && __DEBUG_ALLOC__
-    #define _WX_WANT_DELETE_VOID_CONSTCHAR_SIZET
-#endif
-
-// Only VC++ 6 gets overloaded delete that matches new
-#if (defined(__VISUALC__) && (__VISUALC__ >= 1200))
+#if defined(__VISUALC__)
     #define _WX_WANT_DELETE_VOID_WXCHAR_INT
 #endif
 
@@ -220,7 +207,7 @@ inline T *wxCheckCast(const void *ptr, T * = NULL)
 // ----------------------------------------------------------------------------
 // deprecated variants _not_ requiring a semicolon after them and without wx prefix.
 // (note that also some wx-prefixed macro do _not_ require a semicolon because
-//  it's not always possible to force the compire to require it)
+// it's not always possible to force the compiler to require it)
 
 #define DECLARE_CLASS_INFO_ITERATORS()                              wxDECLARE_CLASS_INFO_ITERATORS();
 #define DECLARE_ABSTRACT_CLASS(n)                                   wxDECLARE_ABSTRACT_CLASS(n);
@@ -281,11 +268,20 @@ class wxObjectDataPtr
 public:
     typedef T element_type;
 
-    wxEXPLICIT wxObjectDataPtr(T *ptr = NULL) : m_ptr(ptr) {}
+    explicit wxObjectDataPtr(T *ptr = NULL) : m_ptr(ptr) {}
 
     // copy ctor
     wxObjectDataPtr(const wxObjectDataPtr<T> &tocopy)
         : m_ptr(tocopy.m_ptr)
+    {
+        if (m_ptr)
+            m_ptr->IncRef();
+    }
+
+    // generalized copy ctor: U must be convertible to T
+    template <typename U>
+    wxObjectDataPtr(const wxObjectDataPtr<U> &tocopy)
+        : m_ptr(tocopy.get())
     {
         if (m_ptr)
             m_ptr->IncRef();
@@ -326,13 +322,35 @@ public:
         m_ptr = ptr;
     }
 
+    T* release()
+    {
+        T* const ptr = m_ptr;
+        m_ptr = NULL;
+        return ptr;
+    }
+
     wxObjectDataPtr& operator=(const wxObjectDataPtr &tocopy)
     {
+        // Take care to increment the reference first to ensure correct
+        // behaviour in case of self-assignment.
+        T* const ptr = tocopy.m_ptr;
+        if (ptr)
+            ptr->IncRef();
         if (m_ptr)
             m_ptr->DecRef();
-        m_ptr = tocopy.m_ptr;
+        m_ptr = ptr;
+        return *this;
+    }
+
+    template <typename U>
+    wxObjectDataPtr& operator=(const wxObjectDataPtr<U> &tocopy)
+    {
+        T* const ptr = tocopy.get();
+        if (ptr)
+            ptr->IncRef();
         if (m_ptr)
-            m_ptr->IncRef();
+            m_ptr->DecRef();
+        m_ptr = ptr;
         return *this;
     }
 
@@ -354,7 +372,9 @@ private:
 
 class WXDLLIMPEXP_BASE wxObject
 {
-    wxDECLARE_ABSTRACT_CLASS(wxObject);
+#if wxUSE_EXTENDED_RTTI
+    wxDECLARE_DYNAMIC_CLASS(wxObject);
+#endif
 
 public:
     wxObject() { m_refData = NULL; }
@@ -378,7 +398,6 @@ public:
 
     bool IsKindOf(const wxClassInfo *info) const;
 
-
     // Turn on the correct set of new and delete operators
 
 #ifdef _WX_WANT_NEW_SIZET_WXCHAR_INT
@@ -387,10 +406,6 @@ public:
 
 #ifdef _WX_WANT_DELETE_VOID
     void operator delete ( void * buf );
-#endif
-
-#ifdef _WX_WANT_DELETE_VOID_CONSTCHAR_SIZET
-    void operator delete ( void *buf, const char *_fname, size_t _line );
 #endif
 
 #ifdef _WX_WANT_DELETE_VOID_WXCHAR_INT
@@ -426,6 +441,15 @@ public:
 
     // check if this object references the same data as the other one
     bool IsSameAs(const wxObject& o) const { return m_refData == o.m_refData; }
+
+#if !wxUSE_EXTENDED_RTTI
+    virtual wxClassInfo* GetClassInfo() const;
+
+    // RTTI information, usually declared by wxDECLARE_DYNAMIC_CLASS() or
+    // similar, but done manually for the hierarchy root. Note that it's public
+    // for compatibility reasons, but shouldn't be accessed directly.
+    static wxClassInfo ms_classInfo;
+#endif
 
 protected:
     // ensure that our data is not shared with anybody else: if we have no
@@ -474,7 +498,7 @@ inline wxObject *wxCheckDynamicCast(wxObject *obj, wxClassInfo *classInfo)
 
 // deprecated variants _not_ requiring a semicolon after them and without wx prefix.
 // (note that also some wx-prefixed macro do _not_ require a semicolon because
-//  it's not always possible to force the compire to require it)
+// it's not always possible to force the compiler to require it)
 
 #define IMPLEMENT_DYNAMIC_CLASS(n,b)                                wxIMPLEMENT_DYNAMIC_CLASS(n,b)
 #define IMPLEMENT_DYNAMIC_CLASS2(n,b1,b2)                           wxIMPLEMENT_DYNAMIC_CLASS2(n,b1,b2)

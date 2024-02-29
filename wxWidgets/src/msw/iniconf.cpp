@@ -11,9 +11,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_INICONF
 
@@ -47,7 +44,7 @@
 // ----------------------------------------------------------------------------
 // ctor & dtor
 // ----------------------------------------------------------------------------
-IMPLEMENT_ABSTRACT_CLASS(wxIniConfig, wxConfigBase)
+wxIMPLEMENT_ABSTRACT_CLASS(wxIniConfig, wxConfigBase);
 
 wxIniConfig::wxIniConfig(const wxString& strAppName,
                          const wxString& strVendor,
@@ -288,8 +285,8 @@ bool wxIniConfig::DoReadString(const wxString& szKey, wxString *pstr) const
                           m_strLocalFilename.t_str());
   if ( wxIsEmpty(szBuf) ) {
     // now look in win.ini
-    wxString strKey = GetKeyName(path.Name());
-    GetProfileString(m_strGroup.t_str(), strKey.t_str(),
+    wxString strWinKey = GetKeyName(path.Name());
+    GetProfileString(m_strGroup.t_str(), strWinKey.t_str(),
                      wxT(""), szBuf, WXSIZEOF(szBuf));
   }
 
@@ -361,6 +358,8 @@ bool wxIniConfig::DoWriteLong(const wxString& szKey, long lValue)
   return Write(szKey, wxString::Format(wxT("%ld"), lValue));
 }
 
+#if wxUSE_BASE64
+
 bool wxIniConfig::DoReadBinary(const wxString& WXUNUSED(key),
                                wxMemoryBuffer * WXUNUSED(buf)) const
 {
@@ -376,6 +375,8 @@ bool wxIniConfig::DoWriteBinary(const wxString& WXUNUSED(key),
 
     return false;
 }
+
+#endif // wxUSE_BASE64
 
 bool wxIniConfig::Flush(bool /* bCurrentOnly */)
 {
@@ -455,7 +456,7 @@ bool wxIniConfig::DeleteAll()
   strFile << '\\' << m_strLocalFilename;
 
   if ( wxFile::Exists(strFile) && !wxRemoveFile(strFile) ) {
-    wxLogSysError(_("Can't delete the INI file '%s'"), strFile.c_str());
+    wxLogSysError(_("Can't delete the INI file '%s'"), strFile);
     return false;
   }
 

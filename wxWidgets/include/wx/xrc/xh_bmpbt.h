@@ -14,14 +14,24 @@
 
 #if wxUSE_XRC && wxUSE_BMPBUTTON
 
+#include "wx/bmpbuttn.h"
+
 class WXDLLIMPEXP_XRC wxBitmapButtonXmlHandler : public wxXmlResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxBitmapButtonXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxBitmapButtonXmlHandler);
 
 public:
     wxBitmapButtonXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() wxOVERRIDE;
+    virtual bool CanHandle(wxXmlNode *node) wxOVERRIDE;
+
+private:
+    typedef void (wxBitmapButton::*BitmapSetter)(const wxBitmapBundle&);
+
+    void SetBitmapIfSpecified(wxBitmapButton* button,
+                              BitmapSetter setter,
+                              const char* paramName,
+                              const char* paramNameAlt = NULL);
 };
 
 #endif // wxUSE_XRC && wxUSE_BMPBUTTON

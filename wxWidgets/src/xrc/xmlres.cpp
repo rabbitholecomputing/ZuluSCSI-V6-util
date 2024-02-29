@@ -10,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_XRC
 
@@ -31,10 +28,6 @@
     #include "wx/wxcrtvararg.h"
 #endif
 
-#ifndef __WXWINCE__
-    #include <locale.h>
-#endif
-
 #include "wx/vector.h"
 #include "wx/wfstream.h"
 #include "wx/filesys.h"
@@ -48,6 +41,11 @@
 #include "wx/xml/xml.h"
 #include "wx/hashset.h"
 #include "wx/scopedptr.h"
+#include "wx/config.h"
+#include "wx/platinfo.h"
+
+#include <limits.h>
+#include <locale.h>
 
 namespace
 {
@@ -76,17 +74,43 @@ wxDateTime GetXRCFileModTime(const wxString& filename)
 // name.
 static void XRCID_Assign(const wxString& str_id, int value);
 
+// Flags indicating whether the XRC contents was loaded from file or URL, more
+// generally: this is usually true but is not set for the records created
+// directly from wxXmlDocument.
+namespace XRCWhence
+{
+
+enum
+{
+    From_URL = 0,
+    From_Doc = 1
+};
+
+} // namespace // XRCWhence
+
 class wxXmlResourceDataRecord
 {
 public:
     // Ctor takes ownership of the document pointer.
     wxXmlResourceDataRecord(const wxString& File_,
-                            wxXmlDocument *Doc_
+                            wxXmlDocument *Doc_,
+                            int flags = XRCWhence::From_URL
                            )
         : File(File_), Doc(Doc_)
     {
 #if wxUSE_DATETIME
-        Time = GetXRCFileModTime(File);
+        switch ( flags )
+        {
+            case XRCWhence::From_URL:
+                Time = GetXRCFileModTime(File);
+                break;
+
+            case XRCWhence::From_Doc:
+                // Leave Time invalid.
+                break;
+        }
+#else
+        wxUnusedVar(flags);
 #endif
     }
 
@@ -290,12 +314,7 @@ wxString wxXmlResource::ConvertFileNameToURL(const wxString& filename)
     {
         // Make the name absolute filename, because the app may
         // change working directory later:
-        wxFileName fn(fnd);
-        if (fn.IsRelative())
-        {
-            fn.MakeAbsolute();
-            fnd = fn.GetFullPath();
-        }
+        fnd = wxFileName(fnd).GetAbsolutePath();
 #if wxUSE_FILESYSTEM
         fnd = wxFileSystem::FileNameToURL(fnd);
 #endif
@@ -345,7 +364,8 @@ bool wxXmlResource::Load(const wxString& filemask_)
 {
     wxString filemask = ConvertFileNameToURL(filemask_);
 
-    bool allOK = true;
+    bool allOK = true,
+         anyOK = false;
 
 #if wxUSE_FILESYSTEM
     wxFileSystem fsys;
@@ -358,32 +378,46 @@ bool wxXmlResource::Load(const wxString& filemask_)
     wxString fnd = wxXmlFindFirst;
     if ( fnd.empty() )
     {
-        wxLogError(_("Cannot load resources from '%s'."), filemask);
-        return false;
+        // Some file system handlers (e.g. wxInternetFSHandler) just don't
+        // implement FindFirst() at all, try using the original path as is.
+        fnd = filemask;
     }
 
     while (!fnd.empty())
     {
+        bool thisOK = true;
+
 #if wxUSE_FILESYSTEM
         if ( IsArchive(fnd) )
         {
             if ( !Load(fnd + wxT("#zip:*.xrc")) )
-                allOK = false;
+                thisOK = false;
         }
         else // a single resource URL
 #endif // wxUSE_FILESYSTEM
         {
             wxXmlDocument * const doc = DoLoadFile(fnd);
             if ( !doc )
-                allOK = false;
+                thisOK = false;
             else
                 Data().push_back(new wxXmlResourceDataRecord(fnd, doc));
         }
+
+        if ( thisOK )
+            anyOK = true;
+        else
+            allOK = false;
 
         fnd = wxXmlFindNext;
     }
 #   undef wxXmlFindFirst
 #   undef wxXmlFindNext
+
+    if ( !anyOK )
+    {
+        wxLogError(_("Cannot load resources from '%s'."), filemask);
+        return false;
+    }
 
     return allOK;
 }
@@ -588,18 +622,7 @@ static void ProcessPlatformProperty(wxXmlNode *node)
 
             while (tkn.HasMoreTokens())
             {
-                s = tkn.GetNextToken();
-#ifdef __WINDOWS__
-                if (s == wxT("win")) isok = true;
-#endif
-#if defined(__MAC__) || defined(__APPLE__)
-                if (s == wxT("mac")) isok = true;
-#elif defined(__UNIX__)
-                if (s == wxT("unix")) isok = true;
-#endif
-#ifdef __OS2__
-                if (s == wxT("os2")) isok = true;
-#endif
+                isok = wxPlatformId::MatchesCurrent(tkn.GetNextToken());
 
                 if (isok)
                     break;
@@ -662,9 +685,14 @@ bool wxXmlResource::UpdateResources()
         if ( m_flags & wxXRC_NO_RELOADING )
             continue;
 
+        // And we don't do it for the records that were not loaded from a
+        // file/URI (or at least not directly) in the first place.
+        if ( !rec->Time.IsValid() )
+            continue;
+
         // Otherwise check its modification time if we can.
 #if wxUSE_DATETIME
-        const wxDateTime lastModTime = GetXRCFileModTime(rec->File);
+        wxDateTime lastModTime = GetXRCFileModTime(rec->File);
 
         if ( lastModTime.IsValid() && lastModTime <= rec->Time )
 #else // !wxUSE_DATETIME
@@ -747,7 +775,15 @@ wxXmlDocument *wxXmlResource::DoLoadFile(const wxString& filename)
         return NULL;
     }
 
-    wxXmlNode * const root = doc->GetRoot();
+    if (!DoLoadDocument(*doc))
+        return NULL;
+
+    return doc.release();
+}
+
+bool wxXmlResource::DoLoadDocument(const wxXmlDocument& doc)
+{
+    wxXmlNode * const root = doc.GetRoot();
     if (root->GetName() != wxT("resource"))
     {
         ReportError
@@ -755,7 +791,7 @@ wxXmlDocument *wxXmlResource::DoLoadFile(const wxString& filename)
             root,
             "invalid XRC resource, doesn't have root node <resource>"
         );
-        return NULL;
+        return false;
     }
 
     long version;
@@ -776,7 +812,34 @@ wxXmlDocument *wxXmlResource::DoLoadFile(const wxString& filename)
     PreprocessForIdRanges(root);
     wxIdRangeManager::Get()->FinaliseRanges(root);
 
-    return doc.release();
+    return true;
+}
+
+bool wxXmlResource::LoadDocument(wxXmlDocument* doc, const wxString& name)
+{
+    wxCHECK_MSG( doc, false, wxS("must have a valid document") );
+
+    if ( !DoLoadDocument(*doc) )
+    {
+        // Still avoid memory leaks.
+        delete doc;
+        return false;
+    }
+
+    // We need to use something instead of the file name, so if we were not
+    // given a name synthesize something ourselves.
+    wxString docname = name;
+    if ( docname.empty() )
+    {
+        static unsigned long s_xrcDocument = 0;
+
+        // Make it look different from any real file name.
+        docname = wxString::Format(wxS("<XML document #%lu>"), ++s_xrcDocument);
+    }
+
+    Data().push_back(new wxXmlResourceDataRecord(docname, doc, XRCWhence::From_Doc));
+
+    return true;
 }
 
 wxXmlNode *wxXmlResource::DoFindResource(wxXmlNode *parent,
@@ -1262,8 +1325,6 @@ wxIdRangeManager::~wxIdRangeManager()
         delete *i;
     }
     m_IdRanges.clear();
-
-    delete ms_instance;
 }
 
 void wxIdRangeManager::AddRange(const wxXmlNode* node)
@@ -1388,7 +1449,7 @@ class wxXmlSubclassFactoryCXX : public wxXmlSubclassFactory
 public:
     ~wxXmlSubclassFactoryCXX() {}
 
-    wxObject *Create(const wxString& className)
+    wxObject *Create(const wxString& className) wxOVERRIDE
     {
         wxClassInfo* classInfo = wxClassInfo::FindClass(className);
 
@@ -1512,73 +1573,83 @@ int wxXmlResourceHandlerImpl::GetStyle(const wxString& param, int defaults)
 
 
 
-wxString wxXmlResourceHandlerImpl::GetText(const wxString& param, bool translate)
+wxString wxXmlResourceHandlerImpl::GetNodeText(const wxXmlNode* node, int flags)
 {
-    wxXmlNode *parNode = GetParamNode(param);
-    wxString str1(GetNodeContent(parNode));
+    wxString str1(GetNodeContent(node));
+    if ( str1.empty() )
+        return str1;
+
     wxString str2;
 
-    // "\\" wasn't translated to "\" prior to 2.5.3.0:
-    const bool escapeBackslash = (m_handler->m_resource->CompareVersion(2,5,3,0) >= 0);
-
-    // VS: First version of XRC resources used $ instead of & (which is
-    //     illegal in XML), but later I realized that '_' fits this purpose
-    //     much better (because &File means "File with F underlined").
-    const wxChar amp_char = (m_handler->m_resource->CompareVersion(2,3,0,1) < 0)
-                            ? '$' : '_';
-
-    for ( wxString::const_iterator dt = str1.begin(); dt != str1.end(); ++dt )
+    if ( !(flags & wxXRC_TEXT_NO_ESCAPE) )
     {
-        // Remap amp_char to &, map double amp_char to amp_char (for things
-        // like "&File..." -- this is illegal in XML, so we use "_File..."):
-        if ( *dt == amp_char )
+        // "\\" wasn't translated to "\" prior to 2.5.3.0:
+        const bool escapeBackslash = (m_handler->m_resource->CompareVersion(2,5,3,0) >= 0);
+
+        // VS: First version of XRC resources used $ instead of & (which is
+        //     illegal in XML), but later I realized that '_' fits this purpose
+        //     much better (because &File means "File with F underlined").
+        const wxChar amp_char = (m_handler->m_resource->CompareVersion(2,3,0,1) < 0)
+                                ? '$' : '_';
+
+        for ( wxString::const_iterator dt = str1.begin(); dt != str1.end(); ++dt )
         {
-            if ( dt+1 == str1.end() || *(++dt) == amp_char )
-                str2 << amp_char;
-            else
-                str2 << wxT('&') << *dt;
-        }
-        // Remap \n to CR, \r to LF, \t to TAB, \\ to \:
-        else if ( *dt == wxT('\\') )
-        {
-            switch ( (*(++dt)).GetValue() )
+            // Remap amp_char to &, map double amp_char to amp_char (for things
+            // like "&File..." -- this is illegal in XML, so we use "_File..."):
+            if ( *dt == amp_char )
             {
-                case wxT('n'):
-                    str2 << wxT('\n');
-                    break;
-
-                case wxT('t'):
-                    str2 << wxT('\t');
-                    break;
-
-                case wxT('r'):
-                    str2 << wxT('\r');
-                    break;
-
-                case wxT('\\') :
-                    // "\\" wasn't translated to "\" prior to 2.5.3.0:
-                    if ( escapeBackslash )
-                    {
-                        str2 << wxT('\\');
+                if ( dt+1 == str1.end() || *(++dt) == amp_char )
+                    str2 << amp_char;
+                else
+                    str2 << wxT('&') << *dt;
+            }
+            // Remap \n to CR, \r to LF, \t to TAB, \\ to \:
+            else if ( *dt == wxT('\\') )
+            {
+                switch ( (*(++dt)).GetValue() )
+                {
+                    case wxT('n'):
+                        str2 << wxT('\n');
                         break;
-                    }
-                    // else fall-through to default: branch below
 
-                default:
-                    str2 << wxT('\\') << *dt;
-                    break;
+                    case wxT('t'):
+                        str2 << wxT('\t');
+                        break;
+
+                    case wxT('r'):
+                        str2 << wxT('\r');
+                        break;
+
+                    case wxT('\\') :
+                        // "\\" wasn't translated to "\" prior to 2.5.3.0:
+                        if ( escapeBackslash )
+                        {
+                            str2 << wxT('\\');
+                            break;
+                        }
+                        wxFALLTHROUGH;// else fall-through to default: branch below
+
+                    default:
+                        str2 << wxT('\\') << *dt;
+                        break;
+                }
+            }
+            else
+            {
+                str2 << *dt;
             }
         }
-        else
-        {
-            str2 << *dt;
-        }
+    }
+    else // Don't escape anything in this string.
+    {
+        // We won't use str1 at all, so move its contents to str2.
+        str2.swap(str1);
     }
 
     if (m_handler->m_resource->GetFlags() & wxXRC_USE_LOCALE)
     {
-        if (translate && parNode &&
-            parNode->GetAttribute(wxT("translate"), wxEmptyString) != wxT("0"))
+        if (!(flags & wxXRC_TEXT_NO_TRANSLATE) && node &&
+            node->GetAttribute(wxT("translate"), wxEmptyString) != wxT("0"))
         {
             return wxGetTranslation(str2, m_handler->m_resource->GetDomain());
         }
@@ -1629,7 +1700,7 @@ float wxXmlResourceHandlerImpl::GetFloat(const wxString& param, float defaultv)
     // strings in XRC always use C locale so make sure to use the
     // locale-independent wxString::ToCDouble() and not ToDouble() which uses
     // the current locale with a potentially different decimal point character
-    double value = defaultv;
+    double value = double(defaultv);
     if (!str.empty())
     {
         if (!str.ToCDouble(&value))
@@ -1781,6 +1852,52 @@ bool GetStockArtAttrs(const wxXmlNode *paramNode,
     return false;
 }
 
+// Load a bitmap from a file system element.
+wxBitmap LoadBitmapFromFS(wxXmlResourceHandlerImpl* impl,
+                            const wxString& path,
+                            wxSize size,
+                            const wxString& nodeName)
+{
+    if (path.empty()) return wxNullBitmap;
+#if wxUSE_FILESYSTEM
+    wxFSFile *fsfile = impl->GetCurFileSystem().OpenFile(path, wxFS_READ | wxFS_SEEKABLE);
+    if (fsfile == NULL)
+    {
+        impl->ReportParamError
+        (
+            nodeName,
+            wxString::Format("cannot open bitmap resource \"%s\"", path)
+        );
+        return wxNullBitmap;
+    }
+    wxImage img(*(fsfile->GetStream()));
+    delete fsfile;
+#else
+    wxImage img(name);
+#endif
+
+    if (!img.IsOk())
+    {
+        impl->ReportParamError
+        (
+            nodeName,
+            wxString::Format("cannot create bitmap from \"%s\"", path)
+        );
+        return wxNullBitmap;
+    }
+    if (!(size == wxDefaultSize)) img.Rescale(size.x, size.y);
+    return wxBitmap(img);
+}
+
+// forward declaration
+template <typename T>
+T
+ParseStringInPixels(wxXmlResourceHandlerImpl* impl,
+                   const wxString& param,
+                   const wxString& str,
+                   const T& defaultValue,
+                   wxWindow *windowToUse = NULL);
+
 } // anonymous namespace
 
 wxBitmap wxXmlResourceHandlerImpl::GetBitmap(const wxString& param,
@@ -1821,36 +1938,139 @@ wxBitmap wxXmlResourceHandlerImpl::GetBitmap(const wxXmlNode* node,
     }
 
     /* ...or load the bitmap from file: */
-    wxString name = GetParamValue(node);
-    if (name.empty()) return wxNullBitmap;
-#if wxUSE_FILESYSTEM
-    wxFSFile *fsfile = GetCurFileSystem().OpenFile(name, wxFS_READ | wxFS_SEEKABLE);
-    if (fsfile == NULL)
-    {
-        ReportParamError
-        (
-            node->GetName(),
-            wxString::Format("cannot open bitmap resource \"%s\"", name)
-        );
-        return wxNullBitmap;
-    }
-    wxImage img(*(fsfile->GetStream()));
-    delete fsfile;
-#else
-    wxImage img(name);
-#endif
+    return LoadBitmapFromFS(this, GetFilePath(node), size, node->GetName());
+}
 
-    if (!img.IsOk())
+
+wxBitmapBundle wxXmlResourceHandlerImpl::GetBitmapBundle(const wxString& param,
+                                                     const wxArtClient& defaultArtClient,
+                                                     wxSize size)
+{
+    wxASSERT_MSG( !param.empty(), "bitmap bundle parameter name can't be empty" );
+
+    const wxXmlNode* const node = GetParamNode(param);
+
+    if ( !node )
     {
-        ReportParamError
-        (
-            node->GetName(),
-            wxString::Format("cannot create bitmap from \"%s\"", name)
-        );
-        return wxNullBitmap;
+        // this is not an error as bitmap parameter could be optional
+        return wxBitmapBundle();
     }
-    if (!(size == wxDefaultSize)) img.Rescale(size.x, size.y);
-    return wxBitmap(img);
+
+    return GetBitmapBundle(node, defaultArtClient, size);
+}
+
+wxBitmapBundle
+wxXmlResourceHandlerImpl::GetBitmapBundle(const wxXmlNode* node,
+                                          const wxArtClient& defaultArtClient,
+                                          wxSize size)
+{
+    if  ( !node )
+        return wxBitmapBundle();
+
+    /* If the bitmap is specified as stock item, query wxArtProvider for it: */
+    wxString art_id, art_client;
+    if ( GetStockArtAttrs(node, defaultArtClient,
+                          art_id, art_client) )
+    {
+        wxBitmapBundle stockArt(wxArtProvider::GetBitmapBundle(art_id, art_client, size));
+        if ( stockArt.IsOk() )
+            return stockArt;
+    }
+
+    wxBitmapBundle bitmapBundle;
+    wxString paramValue = GetFilePath(node);
+    if ( paramValue.EndsWith(".svg") )
+    {
+        if ( paramValue.Contains(";") )
+        {
+            ReportParamError
+            (
+                node->GetName(),
+                "may contain either one SVG file or a list of files separated by ';'"
+            );
+            return bitmapBundle;
+        }
+
+        // it is a bundle from svg file
+        wxString svgDefaultSizeAttr = node->GetAttribute("default_size", "");
+        if ( svgDefaultSizeAttr.empty() )
+        {
+            ReportParamError
+            (
+             node->GetName(),
+                "'default_size' attribute required with svg file"
+            );
+        }
+        else
+        {
+#ifdef wxHAS_SVG
+            wxSize svgDefaultSize = ParseStringInPixels(this, node->GetName(),
+                                                        svgDefaultSizeAttr,
+                                                        wxDefaultSize);
+#if wxUSE_FILESYSTEM
+            wxFSFile* fsfile = GetCurFileSystem().OpenFile(paramValue, wxFS_READ | wxFS_SEEKABLE);
+            if (fsfile == NULL)
+            {
+                ReportParamError
+                (
+                    node->GetName(),
+                    wxString::Format("cannot open SVG resource \"%s\"", paramValue)
+                );
+            }
+            else
+            {
+                wxInputStream* s = fsfile->GetStream();
+                const size_t len = static_cast<size_t>(s->GetLength());
+                wxCharBuffer buf(len);
+                char* const ptr = buf.data();
+
+                if (s->ReadAll(ptr, len))
+                {
+                    bitmapBundle = wxBitmapBundle::FromSVG(ptr, svgDefaultSize);
+                }
+                delete fsfile;
+            }
+#else
+            bitmapBundle = wxBitmapBundle::FromSVGFile(paramValue, svgDefaultSize);
+#endif
+#else // !wxHAS_SVG
+            ReportParamError
+            (
+                node->GetName(),
+                "SVG bitmaps are not supported in this build of the library"
+            );
+#endif // wxHAS_SVG/!wxHAS_SVG
+        }
+    }
+    else
+    {
+        if ( paramValue.Contains(".svg;") )
+        {
+            ReportParamError
+            (
+                node->GetName(),
+                "may contain either one SVG file or a list of files separated by ';'"
+            );
+            return bitmapBundle;
+        }
+
+        // it is a bundle from bitmaps
+        wxVector<wxBitmap> bitmaps;
+        wxArrayString paths = wxSplit(paramValue, ';', '\0');
+        for ( wxArrayString::const_iterator i = paths.begin(); i != paths.end(); ++i )
+        {
+            wxBitmap bmpNext = LoadBitmapFromFS(this, *i, size, node->GetName());
+            if ( !bmpNext.IsOk() )
+            {
+                // error in loading wxBitmap, return invalid wxBitmapBundle
+                return bitmapBundle;
+            }
+            bitmaps.push_back(bmpNext);
+        }
+        bitmapBundle = wxBitmapBundle::FromBitmaps(bitmaps);
+    }
+
+    return bitmapBundle;
 }
 
 
@@ -1894,7 +2114,7 @@ wxIconBundle wxXmlResourceHandlerImpl::GetIconBundle(const wxString& param,
             return stockArt;
     }
 
-    const wxString name = GetParamValue(param);
+    const wxString name = GetFilePath(GetParamNode(param));
     if ( name.empty() )
         return wxNullIconBundle;
 
@@ -1978,6 +2198,16 @@ wxImageList *wxXmlResourceHandlerImpl::GetImageList(const wxString& param)
     return imagelist;
 }
 
+wxString wxXmlResourceHandlerImpl::GetFilePath(const wxXmlNode* node)
+{
+    wxString path = GetParamValue(node);
+
+    if ( m_handler->m_resource->GetFlags() & wxXRC_USE_ENVVARS )
+        path = wxExpandEnvVars(path);
+
+    return path;
+}
+
 wxXmlNode *wxXmlResourceHandlerImpl::GetParamNode(const wxString& param)
 {
     wxCHECK_MSG(m_handler->m_node, NULL, wxT("You can't access handler data before it was initialized!"));
@@ -2007,6 +2237,13 @@ bool wxXmlResourceHandlerImpl::IsOfClass(wxXmlNode *node, const wxString& classn
 }
 
 
+bool wxXmlResourceHandlerImpl::IsObjectNode(const wxXmlNode *node) const
+{
+    return node &&
+            node->GetType() == wxXML_ELEMENT_NODE &&
+                (node->GetName() == wxS("object") ||
+                    node->GetName() == wxS("object_ref"));
+}
 
 wxString wxXmlResourceHandlerImpl::GetNodeContent(const wxXmlNode *node)
 {
@@ -2024,6 +2261,21 @@ wxString wxXmlResourceHandlerImpl::GetNodeContent(const wxXmlNode *node)
     return wxEmptyString;
 }
 
+wxXmlNode *wxXmlResourceHandlerImpl::GetNodeParent(const wxXmlNode *node) const
+{
+    return node ? node->GetParent() : NULL;
+}
+
+wxXmlNode *wxXmlResourceHandlerImpl::GetNodeNext(const wxXmlNode *node) const
+{
+    return node ? node->GetNext() : NULL;
+}
+
+wxXmlNode *wxXmlResourceHandlerImpl::GetNodeChildren(const wxXmlNode *node) const
+{
+    return node ? node->GetChildren() : NULL;
+}
+
 
 
 wxString wxXmlResourceHandlerImpl::GetParamValue(const wxString& param)
@@ -2039,59 +2291,123 @@ wxString wxXmlResourceHandlerImpl::GetParamValue(const wxXmlNode* node)
     return GetNodeContent(node);
 }
 
+namespace
+{
+
+// Dimensions (linear or sizes/positions) can be expressed as absolute values
+// or as dialog units in XRC, define functions for parsing both of them.
+
+bool XRCConvertFromAbsValue(const wxString& s, int& value)
+{
+    long l;
+    if ( !s.ToLong(&l) )
+        return false;
+
+    if ( l > INT_MAX )
+        return false;
+
+    value = static_cast<int>(l);
+    return true;
+}
+
+template <typename T>
+inline
+bool XRCConvertFromAbsValue(const wxString& s, T& value)
+{
+    return XRCConvertFromAbsValue(s.BeforeFirst(','), value.x) &&
+            XRCConvertFromAbsValue(s.AfterLast(wxS(',')), value.y);
+}
+
+inline
+void XRCConvertFromDLU(wxWindow* w, int& value)
+{
+    value = w->ConvertDialogToPixels(wxPoint(value, 0)).x;
+}
+
+template <typename T>
+inline
+void XRCConvertFromDLU(wxWindow* w, T& value)
+{
+    value = w->ConvertDialogToPixels(value);
+}
+
+// Helper for parsing strings which contain values (of type T, for which
+// XRCConvertFromAbsValue() and XRCConvertFromDLU() functions must be defined)
+// which can be expressed either in pixels or dialog units.
+template <typename T>
+T
+ParseStringInPixels(wxXmlResourceHandlerImpl* impl,
+                   const wxString& param,
+                   const wxString& s,
+                   const T& defaultValue,
+                   wxWindow *windowToUse)
+{
+    if ( s.empty() )
+        return defaultValue;
+
+    const bool inDLU = s.Last() == 'd';
+
+    T value;
+    if ( !XRCConvertFromAbsValue(inDLU ? wxString(s).RemoveLast() : s, value) )
+    {
+        impl->ReportParamError
+              (
+               param,
+               wxString::Format("cannot parse dimension value \"%s\"", s)
+              );
+        return defaultValue;
+    }
+
+    if ( !windowToUse )
+        windowToUse = impl->GetParentAsWindow();
+
+    if ( inDLU )
+    {
+        if ( !windowToUse )
+        {
+            impl->ReportParamError
+                  (
+                   param,
+                   wxString::Format("cannot interpret dimension value \"%s\" "
+                                    "in dialog units without a window", s)
+                  );
+            return defaultValue;
+        }
+
+        XRCConvertFromDLU(windowToUse, value);
+    }
+    else // The value is in resolution-independent pixels.
+    {
+        value = wxWindow::FromDIP(value, windowToUse);
+    }
+
+    return value;
+}
+
+// Helper for parsing values which uses ParseStringInPixels() above.
+template <typename T>
+T
+ParseValueInPixels(wxXmlResourceHandlerImpl* impl,
+                   const wxString& param,
+                   const T& defaultValue,
+                   wxWindow *windowToUse = NULL)
+{
+    return ParseStringInPixels(impl, param, impl->GetParamValue(param), defaultValue, windowToUse);
+}
+
+} // anonymous namespace
 
 wxSize wxXmlResourceHandlerImpl::GetSize(const wxString& param,
                                      wxWindow *windowToUse)
 {
-    wxString s = GetParamValue(param);
-    if (s.empty()) s = wxT("-1,-1");
-    bool is_dlg;
-    long sx, sy = 0;
-
-    is_dlg = s[s.length()-1] == wxT('d');
-    if (is_dlg) s.RemoveLast();
-
-    if (!s.BeforeFirst(wxT(',')).ToLong(&sx) ||
-        !s.AfterLast(wxT(',')).ToLong(&sy))
-    {
-        ReportParamError
-        (
-            param,
-            wxString::Format("cannot parse coordinates value \"%s\"", s)
-        );
-        return wxDefaultSize;
-    }
-
-    if (is_dlg)
-    {
-        if (windowToUse)
-        {
-            return wxDLG_UNIT(windowToUse, wxSize(sx, sy));
-        }
-        else if (m_handler->m_parentAsWindow)
-        {
-            return wxDLG_UNIT(m_handler->m_parentAsWindow, wxSize(sx, sy));
-        }
-        else
-        {
-            ReportParamError
-            (
-                param,
-                "cannot convert dialog units: dialog unknown"
-            );
-            return wxDefaultSize;
-        }
-    }
-
-    return wxSize(sx, sy);
+    return ParseValueInPixels(this, param, wxDefaultSize, windowToUse);
 }
 
 
 
 wxPoint wxXmlResourceHandlerImpl::GetPosition(const wxString& param)
 {
-    wxSize sz = GetSize(param);
-    return wxPoint(sz.x, sz.y);
+    return ParseValueInPixels(this, param, wxDefaultPosition);
 }
 
 
@@ -2100,47 +2416,30 @@ wxCoord wxXmlResourceHandlerImpl::GetDimension(const wxString& param,
                                            wxCoord defaultv,
                                            wxWindow *windowToUse)
 {
-    wxString s = GetParamValue(param);
-    if (s.empty()) return defaultv;
-    bool is_dlg;
-    long sx;
+    return ParseValueInPixels(this, param, defaultv, windowToUse);
+}
 
-    is_dlg = s[s.length()-1] == wxT('d');
-    if (is_dlg) s.RemoveLast();
 
-    if (!s.ToLong(&sx))
+wxSize wxXmlResourceHandlerImpl::GetPairInts(const wxString& param)
+{
+    const wxString s = GetParamValue(param);
+    if ( s.empty() )
+        return wxDefaultSize;
+
+    wxSize sz;
+    if ( !XRCConvertFromAbsValue(s, sz) )
     {
         ReportParamError
-        (
-            param,
-            wxString::Format("cannot parse dimension value \"%s\"", s)
-        );
-        return defaultv;
+              (
+               param,
+               wxString::Format("cannot parse \"%s\" as pair of integers", s)
+              );
+        return wxDefaultSize;
     }
 
-    if (is_dlg)
-    {
-        if (windowToUse)
-        {
-            return wxDLG_UNIT(windowToUse, wxSize(sx, 0)).x;
-        }
-        else if (m_handler->m_parentAsWindow)
-        {
-            return wxDLG_UNIT(m_handler->m_parentAsWindow, wxSize(sx, 0)).x;
-        }
-        else
-        {
-            ReportParamError
-            (
-                param,
-                "cannot convert dialog units: dialog unknown"
-            );
-            return defaultv;
-        }
-    }
-
-    return sx;
+    return sz;
 }
+
 
 wxDirection
 wxXmlResourceHandlerImpl::GetDirection(const wxString& param, wxDirection dirDefault)
@@ -2213,21 +2512,21 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
     // font attributes:
 
     // size
-    int isize = -1;
+    float pointSize = -1.0f;
     bool hasSize = HasParam(wxT("size"));
     if (hasSize)
-        isize = GetLong(wxT("size"), -1);
+        pointSize = GetFloat(wxT("size"), -1.0f);
 
     // style
-    int istyle = wxNORMAL;
+    wxFontStyle istyle = wxFONTSTYLE_NORMAL;
     bool hasStyle = HasParam(wxT("style"));
     if (hasStyle)
     {
         wxString style = GetParamValue(wxT("style"));
         if (style == wxT("italic"))
-            istyle = wxITALIC;
+            istyle = wxFONTSTYLE_ITALIC;
         else if (style == wxT("slant"))
-            istyle = wxSLANT;
+            istyle = wxFONTSTYLE_SLANT;
         else if (style != wxT("normal"))
         {
             ReportParamError
@@ -2239,15 +2538,40 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
     }
 
     // weight
-    int iweight = wxNORMAL;
+    long iweight = wxFONTWEIGHT_NORMAL;
     bool hasWeight = HasParam(wxT("weight"));
     if (hasWeight)
     {
         wxString weight = GetParamValue(wxT("weight"));
-        if (weight == wxT("bold"))
-            iweight = wxBOLD;
+        if (weight.ToLong(&iweight))
+        {
+            if (iweight <= wxFONTWEIGHT_INVALID || iweight > wxFONTWEIGHT_MAX)
+            {
+                ReportParamError
+                (
+                    param,
+                    wxString::Format("invalid font weight value \"%d\"", iweight)
+                );
+            }
+        }
+        else if (weight == wxT("thin"))
+            iweight = wxFONTWEIGHT_THIN;
+        else if (weight == wxT("extralight"))
+            iweight = wxFONTWEIGHT_EXTRALIGHT;
         else if (weight == wxT("light"))
-            iweight = wxLIGHT;
+            iweight = wxFONTWEIGHT_LIGHT;
+        else if (weight == wxT("medium"))
+            iweight = wxFONTWEIGHT_MEDIUM;
+        else if (weight == wxT("semibold"))
+            iweight = wxFONTWEIGHT_SEMIBOLD;
+        else if (weight == wxT("bold"))
+            iweight = wxFONTWEIGHT_BOLD;
+        else if (weight == wxT("extrabold"))
+            iweight = wxFONTWEIGHT_EXTRABOLD;
+        else if (weight == wxT("heavy"))
+            iweight = wxFONTWEIGHT_HEAVY;
+        else if (weight == wxT("extraheavy"))
+            iweight = wxFONTWEIGHT_EXTRAHEAVY;
         else if (weight != wxT("normal"))
         {
             ReportParamError
@@ -2262,19 +2586,23 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
     bool hasUnderlined = HasParam(wxT("underlined"));
     bool underlined = hasUnderlined ? GetBool(wxT("underlined"), false) : false;
 
+    // strikethrough
+    bool hasStrikethrough = HasParam(wxT("strikethrough"));
+    bool strikethrough = hasStrikethrough ? GetBool(wxT("strikethrough"), false) : false;
+
     // family and facename
-    int ifamily = wxDEFAULT;
+    wxFontFamily ifamily = wxFONTFAMILY_DEFAULT;
     bool hasFamily = HasParam(wxT("family"));
     if (hasFamily)
     {
         wxString family = GetParamValue(wxT("family"));
         if (family == wxT("default")) ifamily = wxFONTFAMILY_DEFAULT;
-        else if (family == wxT("decorative")) ifamily = wxDECORATIVE;
-        else if (family == wxT("roman")) ifamily = wxROMAN;
-        else if (family == wxT("script")) ifamily = wxSCRIPT;
-        else if (family == wxT("swiss")) ifamily = wxSWISS;
-        else if (family == wxT("modern")) ifamily = wxMODERN;
-        else if (family == wxT("teletype")) ifamily = wxTELETYPE;
+        else if (family == wxT("decorative")) ifamily = wxFONTFAMILY_DECORATIVE;
+        else if (family == wxT("roman")) ifamily = wxFONTFAMILY_ROMAN;
+        else if (family == wxT("script")) ifamily = wxFONTFAMILY_SCRIPT;
+        else if (family == wxT("swiss")) ifamily = wxFONTFAMILY_SWISS;
+        else if (family == wxT("modern")) ifamily = wxFONTFAMILY_MODERN;
+        else if (family == wxT("teletype")) ifamily = wxFONTFAMILY_TELETYPE;
         else
         {
             ReportParamError
@@ -2357,9 +2685,9 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
 
     if (font.IsOk())
     {
-        if (hasSize && isize != -1)
+        if (pointSize > 0)
         {
-            font.SetPointSize(isize);
+            font.SetFractionalPointSize(double(pointSize));
             if (HasParam(wxT("relativesize")))
             {
                 ReportParamError
@@ -2376,9 +2704,11 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
         if (hasStyle)
             font.SetStyle(istyle);
         if (hasWeight)
-            font.SetWeight(iweight);
+            font.SetNumericWeight(iweight);
         if (hasUnderlined)
             font.SetUnderlined(underlined);
+        if (hasStrikethrough)
+            font.SetStrikethrough(strikethrough);
         if (hasFamily)
             font.SetFamily(ifamily);
         if (hasFacename)
@@ -2388,9 +2718,15 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
     }
     else // not based on system font
     {
-        font = wxFont(isize == -1 ? wxNORMAL_FONT->GetPointSize() : isize,
-                      ifamily, istyle, iweight,
-                      underlined, facename, enc);
+        font = wxFontInfo(double(pointSize))
+                .FaceName(facename)
+                .Family(ifamily)
+                .Style(istyle)
+                .Weight(iweight)
+                .Underlined(underlined)
+                .Strikethrough(strikethrough)
+                .Encoding(enc)
+                ;
     }
 
     m_handler->m_node = oldnode;
@@ -2400,6 +2736,16 @@ wxFont wxXmlResourceHandlerImpl::GetFont(const wxString& param, wxWindow* parent
 
 void wxXmlResourceHandlerImpl::SetupWindow(wxWindow *wnd)
 {
+    // This is called immediately after creating a window, so it's a convenient
+    // place to check that it was created successfully without duplicating this
+    // check in all handlers.
+    if ( !wnd->GetHandle() )
+    {
+        wxLogError(_("Creating %s \"%s\" failed."),
+                   m_handler->m_class, GetName());
+        return;
+    }
+
     //FIXME : add cursor
 
     const wxString variant = GetParamValue(wxS("variant"));
@@ -2444,18 +2790,16 @@ void wxXmlResourceHandlerImpl::SetupWindow(wxWindow *wnd)
         wnd->Enable(false);
     if (GetBool(wxT("focused"), 0) == 1)
         wnd->SetFocus();
-    if (GetBool(wxT("hidden"), 0) == 1)
-        wnd->Show(false);
 #if wxUSE_TOOLTIPS
     if (HasParam(wxT("tooltip")))
-        wnd->SetToolTip(GetText(wxT("tooltip")));
+        wnd->SetToolTip(GetNodeText(GetParamNode(wxT("tooltip"))));
 #endif
     if (HasParam(wxT("font")))
         wnd->SetFont(GetFont(wxT("font"), wnd));
     if (HasParam(wxT("ownfont")))
         wnd->SetOwnFont(GetFont(wxT("ownfont"), wnd));
     if (HasParam(wxT("help")))
-        wnd->SetHelpText(GetText(wxT("help")));
+        wnd->SetHelpText(GetNodeText(GetParamNode(wxT("help"))));
 }
 
 
@@ -2514,7 +2858,7 @@ void wxXmlResource::ReportError(const wxXmlNode *context, const wxString& messag
 {
     if ( !context )
     {
-        DoReportError("", NULL, message);
+        DoReportError(wxString(), NULL, message);
         return;
     }
 
@@ -2670,8 +3014,8 @@ void AddStdXRCID_Records()
     stdID(wxID_PREVIEW);
     stdID(wxID_ABOUT);
     stdID(wxID_HELP_CONTENTS);
-    stdID(wxID_HELP_INDEX),
-    stdID(wxID_HELP_SEARCH),
+    stdID(wxID_HELP_INDEX);
+    stdID(wxID_HELP_SEARCH);
     stdID(wxID_HELP_COMMANDS);
     stdID(wxID_HELP_PROCEDURES);
     stdID(wxID_HELP_CONTEXT);
@@ -2864,15 +3208,15 @@ static struct wxXRCStaticCleanup
 
 class wxXmlResourceModule: public wxModule
 {
-DECLARE_DYNAMIC_CLASS(wxXmlResourceModule)
+    wxDECLARE_DYNAMIC_CLASS(wxXmlResourceModule);
 public:
     wxXmlResourceModule() {}
-    bool OnInit()
+    bool OnInit() wxOVERRIDE
     {
         wxXmlResource::AddSubclassFactory(new wxXmlSubclassFactoryCXX);
         return true;
     }
-    void OnExit()
+    void OnExit() wxOVERRIDE
     {
         delete wxXmlResource::Set(NULL);
         delete wxIdRangeManager::Set(NULL);
@@ -2889,7 +3233,7 @@ public:
     }
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxXmlResourceModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxXmlResourceModule, wxModule);
 
 
 // When wxXml is loaded dynamically after the application is already running

@@ -37,7 +37,7 @@ public:
     */
     wxCheckListBox();
 
-    //@{
+    ///@{
     /**
         Constructor, creating and showing a list box.
 
@@ -49,7 +49,7 @@ public:
             Window position.
             If ::wxDefaultPosition is specified then a default position is chosen.
         @param size
-            Window size. 
+            Window size.
             If ::wxDefaultSize is specified then the window is sized appropriately.
         @param n
             Number of strings with which to initialise the control.
@@ -106,7 +106,7 @@ public:
                    long style = 0,
                    const wxValidator& validator = wxDefaultValidator,
                    const wxString& name = "listBox");
-    //@}
+    ///@}
 
     bool Create(wxWindow *parent,
                 wxWindowID id,

@@ -24,7 +24,7 @@ public:
    * Public interface
    */
 
-  wxImageList();
+  wxImageList() { Init(); }
 
   // Creates an image list.
   // Specify the width and height of the images in the list,
@@ -32,6 +32,7 @@ public:
   // from icons), and the initial size of the list.
   wxImageList(int width, int height, bool mask = true, int initialCount = 1)
   {
+    Init();
     Create(width, height, mask, initialCount);
   }
   virtual ~wxImageList();
@@ -46,6 +47,9 @@ public:
   // Returns the size (same for all images) of the images in the list
   bool GetSize(int index, int &width, int &height) const;
 
+  // Returns the overall size
+  wxSize GetSize() const { return m_size; }
+
   // Operations
   ////////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +58,9 @@ public:
   // mask specifies whether the images have masks or not.
   // initialNumber is the initial number of images to reserve.
   bool Create(int width, int height, bool mask = true, int initialNumber = 1);
+
+  // Destroys the image list, Create() may then be called again later.
+  void Destroy();
 
   // Adds a bitmap, and optionally a mask bitmap.
   // Note that wxImageList creates *new* bitmaps, so you may delete
@@ -72,13 +79,6 @@ public:
   // Note that wxImageList creates new bitmaps, so you may delete
   // 'bitmap' and 'mask' after calling Replace.
   bool Replace(int index, const wxBitmap& bitmap, const wxBitmap& mask = wxNullBitmap);
-
-/* Not supported by Win95
-  // Replacing a bitmap, using the specified colour to create the mask bitmap
-  // Note that wxImageList creates new bitmaps, so you may delete
-  // 'bitmap'.
-  bool Replace(int index, const wxBitmap& bitmap, const wxColour& maskColour);
-*/
 
   // Replaces a bitmap and mask from an icon.
   // You can delete 'icon' after calling Replace.
@@ -161,7 +161,7 @@ public:
   // window to be updated.
   static bool DragLeave( wxWindow *lockWindow );
 
-  /* Here's roughly how you'd use these functions if implemented in this Win95-like way:
+  /* Here's roughly how you'd use these functions:
 
   1) Starting to drag:
 
@@ -197,8 +197,26 @@ public:
 
 protected:
   WXHIMAGELIST m_hImageList;
+  wxSize m_size;
 
-  DECLARE_DYNAMIC_CLASS_NO_COPY(wxImageList)
+private:
+  // Private helper used by GetImageListBitmaps().
+  class wxMSWBitmaps;
+
+  // Fills the provided output "bitmaps" object with the actual bitmaps we need
+  // to use with the native control.
+  void GetImageListBitmaps(wxMSWBitmaps& bitmaps,
+                           const wxBitmap& bitmap, const wxBitmap& mask);
+
+  bool m_useMask;
+
+  void Init()
+  {
+    m_hImageList = NULL;
+    m_useMask = false;
+  }
+
+  wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxImageList);
 };
 
 #endif

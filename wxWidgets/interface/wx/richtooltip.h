@@ -51,7 +51,7 @@ enum wxTipKind
     wxTipKind_Auto
 };
 /**
-    Allows to show a tool tip with more customizations than wxToolTip.
+    Allows showing a tool tip with more customizations than wxToolTip.
 
     Using this class is very simple, to give a standard warning for a password
     text control if the password was entered correctly you could simply do:
@@ -84,7 +84,7 @@ enum wxTipKind
     The images below show some examples of rich tooltips on different
     platforms, with various customizations applied.
 
-    @library{wxadv}
+    @library{wxcore}
     @category{miscwnd}
     @appearance{richtooltip}
 
@@ -126,10 +126,10 @@ public:
         unsupported by the native MSW implementation of this class so the use
         of a standard icon is preferred.
      */
-    //@{
+    ///@{
     void SetIcon(int icon = wxICON_INFORMATION);
-    void SetIcon(const wxIcon& icon);
-    //@}
+    void SetIcon(const wxBitmapBundle& icon);
+    ///@}
 
     /**
         Set timeout after which the tooltip should disappear and

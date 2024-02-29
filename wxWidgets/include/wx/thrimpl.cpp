@@ -71,11 +71,11 @@ wxMutexError wxMutex::Unlock()
 // wxConditionInternal
 // --------------------------------------------------------------------------
 
-// Win32 and OS/2 don't have explicit support for the POSIX condition
-// variables and their events/event semaphores have quite different semantics,
+// Win32 doesn't have explicit support for the POSIX condition
+// variables and its events/event semaphores have quite different semantics,
 // so we reimplement the conditions from scratch using the mutexes and
 // semaphores
-#if defined(__WINDOWS__) || defined(__OS2__) || defined(__EMX__)
+#if defined(__WINDOWS__)
 
 class wxConditionInternal
 {
@@ -222,7 +222,7 @@ wxCondError wxConditionInternal::Broadcast()
     return wxCOND_NO_ERROR;
 }
 
-#endif // __WINDOWS__ || __OS2__ || __EMX__
+#endif // __WINDOWS__
 
 // ----------------------------------------------------------------------------
 // wxCondition
@@ -342,16 +342,14 @@ wxSemaError wxSemaphore::Post()
 // ----------------------------------------------------------------------------
 
 #include "wx/utils.h"
-#include "wx/private/threadinfo.h"
-#include "wx/scopeguard.h"
 
 void wxThread::Sleep(unsigned long milliseconds)
 {
     wxMilliSleep(milliseconds);
 }
 
+// This function exists only for backwards compatibility, don't call it.
 void *wxThread::CallEntry()
 {
-    wxON_BLOCK_EXIT0(wxThreadSpecificInfo::ThreadCleanUp);
     return Entry();
 }

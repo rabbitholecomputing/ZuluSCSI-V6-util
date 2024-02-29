@@ -28,7 +28,7 @@ class WXDLLIMPEXP_FWD_BASE wxFFile;
 
 // this symbol is defined for the platforms where file systems use volumes in
 // paths
-#if defined(__WINDOWS__) || defined(__DOS__) || defined(__OS2__)
+#if defined(__WINDOWS__)
     #define wxHAS_FILESYSTEM_VOLUMES
 #endif
 
@@ -70,9 +70,19 @@ enum wxPathNormalize
     wxPATH_NORM_TILDE    = 0x0004,  // Unix only: replace ~ and ~user
     wxPATH_NORM_CASE     = 0x0008,  // if case insensitive => tolower
     wxPATH_NORM_ABSOLUTE = 0x0010,  // make the path absolute
-    wxPATH_NORM_LONG =     0x0020,  // make the path the long form
+    wxPATH_NORM_LONG     = 0x0020,  // make the path the long form (MSW-only)
     wxPATH_NORM_SHORTCUT = 0x0040,  // resolve the shortcut, if it is a shortcut
-    wxPATH_NORM_ALL      = 0x00ff & ~wxPATH_NORM_CASE
+
+    // Don't use this constant, it used to correspond to the default
+    // Normalize() behaviour but this is deprecated now.
+    wxPATH_NORM_DEPR_OLD_DEFAULT= 0x00ff & ~wxPATH_NORM_CASE,
+
+    // This constant name is misleading, as it doesn't really include all the
+    // flags above, so its use is discouraged, please use the flags you want
+    // explicitly instead.
+    wxPATH_NORM_ALL
+    wxDEPRECATED_ATTR("specify the wanted flags explicitly to avoid surprises")
+        = wxPATH_NORM_DEPR_OLD_DEFAULT
 };
 
 // what exactly should GetPath() return?
@@ -105,8 +115,8 @@ enum
                                        // also sets wxFILE_EXISTS_NO_FOLLOW as
                                        // it would never be satisfied otherwise
     wxFILE_EXISTS_DEVICE    = 0x0008,  // check for existence of a device
-    wxFILE_EXISTS_FIFO      = 0x0016,  // check for existence of a FIFO
-    wxFILE_EXISTS_SOCKET    = 0x0032,  // check for existence of a socket
+    wxFILE_EXISTS_FIFO      = 0x0010,  // check for existence of a FIFO
+    wxFILE_EXISTS_SOCKET    = 0x0020,  // check for existence of a socket
                                        // gap for future types
     wxFILE_EXISTS_NO_FOLLOW = 0x1000,  // don't dereference a contained symlink
     wxFILE_EXISTS_ANY       = 0x1FFF   // check for existence of anything
@@ -133,7 +143,7 @@ public:
     wxFileName(const wxFileName& filepath) { Assign(filepath); }
 
         // from a full filename: if it terminates with a '/', a directory path
-        // is contructed (the name will be empty), otherwise a file name and
+        // is constructed (the name will be empty), otherwise a file name and
         // extension are extracted from it
     wxFileName( const wxString& fullpath, wxPathFormat format = wxPATH_NATIVE )
         { Assign( fullpath, format ); m_dontFollowLinks = false; }
@@ -258,6 +268,11 @@ public:
         // values
     bool SetPermissions(int permissions);
 
+    // Returns the native path for a file URL
+    static wxFileName URLToFileName(const wxString& url);
+
+    // Returns the file URL for a native path
+    static wxString FileNameToURL(const wxFileName& filename);
 
     // time functions
 #if wxUSE_DATETIME
@@ -284,17 +299,6 @@ public:
         return dtMod;
     }
 #endif // wxUSE_DATETIME
-
-#if defined( __WXOSX_MAC__ ) && wxOSX_USE_CARBON
-    bool MacSetTypeAndCreator( wxUint32 type , wxUint32 creator ) ;
-    bool MacGetTypeAndCreator( wxUint32 *type , wxUint32 *creator ) const;
-    // gets the 'common' type and creator for a certain extension
-    static bool MacFindDefaultTypeAndCreator( const wxString& ext , wxUint32 *type , wxUint32 *creator ) ;
-    // registers application defined extensions and their default type and creator
-    static void MacRegisterDefaultTypeAndCreator( const wxString& ext , wxUint32 type , wxUint32 creator ) ;
-    // looks up the appropriate type and creator from the registration and then sets
-    bool MacSetDefaultTypeAndCreator() ;
-#endif
 
     // various file/dir operations
 
@@ -347,14 +351,20 @@ public:
 
     // operations on the path
 
-        // normalize the path: with the default flags value, the path will be
-        // made absolute, without any ".." and "." and all environment
-        // variables will be expanded in it
+        // normalize the path using the specified normalizations, use
+        // MakeAbsolute() for a simpler form applying the standard ones
         //
         // this may be done using another (than current) value of cwd
-    bool Normalize(int flags = wxPATH_NORM_ALL,
+    bool Normalize(int flags,
                    const wxString& cwd = wxEmptyString,
                    wxPathFormat format = wxPATH_NATIVE);
+
+        // using wxPATH_NORM_ALL may give unexpected results, so avoid using
+        // this function and call Normalize(wxPATH_NORM_ENV_VARS | ...)
+        // explicitly if you really need environment variables expansion
+    wxDEPRECATED_MSG("specify the wanted flags explicitly to avoid surprises")
+    bool Normalize()
+        { return Normalize(wxPATH_NORM_DEPR_OLD_DEFAULT); }
 
         // get a path path relative to the given base directory, i.e. opposite
         // of Normalize
@@ -367,7 +377,7 @@ public:
     bool MakeRelativeTo(const wxString& pathBase = wxEmptyString,
                         wxPathFormat format = wxPATH_NATIVE);
 
-        // make the path absolute
+        // make the path absolute and resolve any "." and ".." in it
         //
         // this may be done using another (than current) value of cwd
     bool MakeAbsolute(const wxString& cwd = wxEmptyString,
@@ -375,6 +385,15 @@ public:
         { return Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE |
                            wxPATH_NORM_TILDE, cwd, format); }
 
+        // Convenient helper for returning the absolute path corresponding to
+        // the given one.
+    wxString GetAbsolutePath(const wxString& cwd = wxEmptyString,
+                             wxPathFormat format = wxPATH_NATIVE) const
+        {
+            wxFileName fn(*this);
+            fn.MakeAbsolute(cwd, format);
+            return fn.GetFullPath();
+        }
 
     // If the path is a symbolic link (Unix-only), indicate that all
     // filesystem operations on this path should be performed on the link
@@ -395,7 +414,10 @@ public:
         return !m_dontFollowLinks;
     }
 
-#if defined(__WIN32__) && !defined(__WXWINCE__) && wxUSE_OLE
+    // Resolve a wxFileName object representing a link to its target
+    wxFileName ResolveLink();
+
+#if defined(__WIN32__) && wxUSE_OLE
         // if the path is a shortcut, return the target and optionally,
         // the arguments
     bool GetShortcutTarget(const wxString& shortcutPath,
@@ -403,7 +425,6 @@ public:
                            wxString* arguments = NULL) const;
 #endif
 
-#ifndef __WXWINCE__
         // if the path contains the value of the environment variable named envname
         // then this function replaces it with the string obtained from
         //    wxString::Format(replacementFmtString, value_of_envname_variable)
@@ -413,9 +434,8 @@ public:
         //    fn.ReplaceEnvVariable("OPENWINHOME");
         //         // now fn.GetFullPath() == "$OPENWINHOME/lib/someFile"
     bool ReplaceEnvVariable(const wxString& envname,
-                            const wxString& replacementFmtString = "$%s",
+                            const wxString& replacementFmtString = wxS("$%s"),
                             wxPathFormat format = wxPATH_NATIVE);
-#endif
 
         // replaces, if present in the path, the home directory for the given user
         // (see wxGetHomeDir) with a tilde
@@ -475,7 +495,7 @@ public:
     // is the char a path separator for this format?
     static bool IsPathSeparator(wxChar ch, wxPathFormat format = wxPATH_NATIVE);
 
-    // is this is a DOS path which beings with a windows unique volume name
+    // is this is a DOS path which begins with a windows unique volume name
     // ('\\?\Volume{guid}\')?
     static bool IsMSWUniqueVolumeNamePath(const wxString& path,
                                           wxPathFormat format = wxPATH_NATIVE);
@@ -583,12 +603,12 @@ public:
 
         // returns the size in a human readable form
     wxString
-    GetHumanReadableSize(const wxString& nullsize = wxGetTranslation("Not available"),
+    GetHumanReadableSize(const wxString& nullsize = wxGetTranslation(wxASCII_STR("Not available")),
                          int precision = 1,
                          wxSizeConvention conv = wxSIZE_CONV_TRADITIONAL) const;
     static wxString
     GetHumanReadableSize(const wxULongLong& sz,
-                         const wxString& nullsize = wxGetTranslation("Not available"),
+                         const wxString& nullsize = wxGetTranslation(wxASCII_STR("Not available")),
                          int precision = 1,
                          wxSizeConvention conv = wxSIZE_CONV_TRADITIONAL);
 #endif // wxUSE_LONGLONG
@@ -597,10 +617,8 @@ public:
     // deprecated methods, don't use any more
     // --------------------------------------
 
-#ifndef __DIGITALMARS__
     wxString GetPath( bool withSep, wxPathFormat format = wxPATH_NATIVE ) const
         { return GetPath(withSep ? wxPATH_GET_SEPARATOR : 0, format); }
-#endif
     wxString GetPathWithSep(wxPathFormat format = wxPATH_NATIVE ) const
         { return GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR, format); }
 
@@ -608,7 +626,21 @@ private:
     // check whether this dir is valid for Append/Prepend/InsertDir()
     static bool IsValidDirComponent(const wxString& dir);
 
+    // flags used with DoSetPath()
+    enum
+    {
+        SetPath_PathOnly = 0,
+        SetPath_MayHaveVolume = 1
+    };
+
+    // helper of public SetPath() also used internally
+    void DoSetPath(const wxString& path, wxPathFormat format,
+                   int flags = SetPath_MayHaveVolume);
+
     // the drive/volume/device specification (always empty for Unix)
+    //
+    // for the drive letters, contains just the letter itself, but for MSW UNC
+    // and volume GUID paths, it starts with double backslash, e.g. "\\share"
     wxString        m_volume;
 
     // the path components of the file

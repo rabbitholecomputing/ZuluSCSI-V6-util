@@ -10,10 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-
 #if wxUSE_RICHMSGDLG
 
 #include "wx/richmsgdlg.h"
@@ -21,6 +17,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/msw/private.h"
+    #include "wx/utils.h"                   // for wxWindowDisabler
 #endif
 
 // This will define wxHAS_MSW_TASKDIALOG if we have support for it in the
@@ -40,6 +37,8 @@ int wxRichMessageDialog::ShowModal()
 
     if ( HasNativeTaskDialog() )
     {
+        wxWindowDisabler disableOthers(this, GetParentForModalDialog());
+
         // create a task dialog
         WinStruct<TASKDIALOGCONFIG> tdc;
         wxMSWTaskDialogConfig wxTdc(*this);
@@ -57,6 +56,27 @@ int wxRichMessageDialog::ShowModal()
         // add collapsible footer
         if ( !m_detailedText.empty() )
             tdc.pszExpandedInformation = m_detailedText.t_str();
+
+        // Add footer text
+        if ( !m_footerText.empty() )
+        {
+            tdc.pszFooter = m_footerText.t_str();
+            switch ( m_footerIcon )
+            {
+                case wxICON_INFORMATION:
+                    tdc.pszFooterIcon = TD_INFORMATION_ICON;
+                    break;
+                case wxICON_WARNING:
+                    tdc.pszFooterIcon = TD_WARNING_ICON;
+                    break;
+                case wxICON_ERROR:
+                    tdc.pszFooterIcon = TD_ERROR_ICON;
+                    break;
+                case wxICON_AUTH_NEEDED:
+                    tdc.pszFooterIcon = TD_SHIELD_ICON;
+                    break;
+            }
+        }
 
         TaskDialogIndirect_t taskDialogIndirect = GetTaskDialogIndirectFunc();
         if ( !taskDialogIndirect )

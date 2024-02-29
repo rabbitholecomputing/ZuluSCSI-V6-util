@@ -10,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_XRC && wxUSE_COMMANDLINKBUTTON
 
@@ -20,16 +17,11 @@
 
 #include "wx/commandlinkbutton.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxCommandLinkButtonXmlHandler, wxXmlResourceHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCommandLinkButtonXmlHandler, wxXmlResourceHandler);
 
 wxCommandLinkButtonXmlHandler::wxCommandLinkButtonXmlHandler()
     : wxXmlResourceHandler()
 {
-    XRC_ADD_STYLE(wxBU_LEFT);
-    XRC_ADD_STYLE(wxBU_RIGHT);
-    XRC_ADD_STYLE(wxBU_TOP);
-    XRC_ADD_STYLE(wxBU_BOTTOM);
-    XRC_ADD_STYLE(wxBU_EXACTFIT);
     AddWindowStyles();
 }
 
@@ -46,7 +38,29 @@ wxObject *wxCommandLinkButtonXmlHandler::DoCreateResource()
                     wxDefaultValidator,
                     GetName());
 
+    if (GetBool(wxT("default"), 0))
+        button->SetDefault();
+
+    if ( GetParamNode("bitmap") )
+    {
+        button->SetBitmap(GetBitmapBundle("bitmap", wxART_BUTTON),
+                          GetDirection("bitmapposition"));
+    }
+
     SetupWindow(button);
+
+    const wxXmlNode* node = GetParamNode("pressed");
+    if (node)
+        button->SetBitmapPressed(GetBitmapBundle(node));
+    node = GetParamNode("focus");
+    if (node)
+        button->SetBitmapFocus(GetBitmapBundle(node));
+    node = GetParamNode("disabled");
+    if (node)
+        button->SetBitmapDisabled(GetBitmapBundle(node));
+    node = GetParamNode("current");
+    if (node)
+        button->SetBitmapCurrent(GetBitmapBundle(node));
 
     return button;
 }

@@ -94,7 +94,7 @@ public:
         See the Convert(const char*,char*) const overload for more info.
     */
     wxString Convert(const wxString& input) const;
-    //@}
+    ///@}
 
 
     /**
@@ -112,7 +112,6 @@ public:
         Supported platforms:
         @li wxPLATFORM_UNIX
         @li wxPLATFORM_WINDOWS
-        @li wxPLATFORM_OS2
         @li wxPLATFORM_MAC
         @li wxPLATFORM_CURRENT
 
