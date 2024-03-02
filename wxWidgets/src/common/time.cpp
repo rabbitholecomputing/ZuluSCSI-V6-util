@@ -18,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/time.h"
 
@@ -40,22 +37,15 @@
     #endif
 #endif
 
-#if defined(__VISAGECPP__) && !defined(HAVE_FTIME)
-    #define HAVE_FTIME
-#  if __IBMCPP__ >= 400
-    #  define ftime(x) _ftime(x)
-#  endif
+#ifdef WX_GMTOFF_IN_TM
+    #include <atomic>
 #endif
 
-#ifndef __WXWINCE__
 #include <time.h>
-#else
-#include "wx/msw/private.h"
-#include "wx/msw/wince/time.h"
-#endif
 
+wxDECL_FOR_STRICT_MINGW32(void, tzset, (void));
 
-#if !defined(__WXMAC__) && !defined(__WXWINCE__)
+#if !defined(__WXMAC__)
     #include <sys/types.h>      // for time_t
 #endif
 
@@ -66,7 +56,7 @@
     #include <sys/timeb.h>
 #endif
 
-#if defined(__DJGPP__) || defined(__WINE__)
+#if defined(__WINE__)
     #include <sys/timeb.h>
     #include <values.h>
 #endif
@@ -75,31 +65,18 @@ namespace
 {
 
 const int MILLISECONDS_PER_SECOND = 1000;
+#if !defined(__WINDOWS__)
 const int MICROSECONDS_PER_MILLISECOND = 1000;
+#ifdef HAVE_GETTIMEOFDAY
 const int MICROSECONDS_PER_SECOND = 1000*1000;
+#endif
+#endif
 
 } // anonymous namespace
 
 // ============================================================================
 // implementation
 // ============================================================================
-
-// NB: VC8 safe time functions could/should be used for wxMSW as well probably
-#if defined(__WXWINCE__) && defined(__VISUALC8__)
-
-struct tm *wxLocaltime_r(const time_t *t, struct tm* tm)
-{
-    __time64_t t64 = *t;
-    return _localtime64_s(tm, &t64) == 0 ? tm : NULL;
-}
-
-struct tm *wxGmtime_r(const time_t* t, struct tm* tm)
-{
-    __time64_t t64 = *t;
-    return _gmtime64_s(tm, &t64) == 0 ? tm : NULL;
-}
-
-#else // !wxWinCE with VC8
 
 #if (!defined(HAVE_LOCALTIME_R) || !defined(HAVE_GMTIME_R)) && wxUSE_THREADS && !defined(__WINDOWS__)
 static wxMutex timeLock;
@@ -114,15 +91,9 @@ struct tm *wxLocaltime_r(const time_t* ticks, struct tm* temp)
   wxMutexLocker locker(timeLock);
 #endif
 
-  // Borland CRT crashes when passed 0 ticks for some reason, see SF bug 1704438
-#ifdef __BORLANDC__
-  if ( !*ticks )
-      return NULL;
-#endif
-
   const tm * const t = localtime(ticks);
   if ( !t )
-      return NULL;
+      return nullptr;
 
   memcpy(temp, t, sizeof(struct tm));
   return temp;
@@ -138,80 +109,72 @@ struct tm *wxGmtime_r(const time_t* ticks, struct tm* temp)
   wxMutexLocker locker(timeLock);
 #endif
 
-#ifdef __BORLANDC__
-  if ( !*ticks )
-      return NULL;
-#endif
-
   const tm * const t = gmtime(ticks);
   if ( !t )
-      return NULL;
+      return nullptr;
 
   memcpy(temp, gmtime(ticks), sizeof(struct tm));
   return temp;
 }
 #endif // !HAVE_GMTIME_R
 
-#endif // wxWinCE with VC8/other platforms
-
 // returns the time zone in the C sense, i.e. the difference UTC - local
 // (in seconds)
 int wxGetTimeZone()
 {
 #ifdef WX_GMTOFF_IN_TM
-    // set to true when the timezone is set
-    static bool s_timezoneSet = false;
-    static long gmtoffset = LONG_MAX; // invalid timezone
+    static std::atomic<int> s_gmtoffset{INT_MAX}; // invalid timezone
 
     // ensure that the timezone variable is set by calling wxLocaltime_r
-    if ( !s_timezoneSet )
+    if ( s_gmtoffset == INT_MAX )
     {
         // just call wxLocaltime_r() instead of figuring out whether this
         // system supports tzset(), _tzset() or something else
-        time_t t = time(NULL);
+        time_t t = time(nullptr);
         struct tm tm;
 
         wxLocaltime_r(&t, &tm);
-        s_timezoneSet = true;
 
         // note that GMT offset is the opposite of time zone and so to return
         // consistent results in both WX_GMTOFF_IN_TM and !WX_GMTOFF_IN_TM
         // cases we have to negate it
-        gmtoffset = -tm.tm_gmtoff;
+        int gmtoffset = static_cast<int>(-tm.tm_gmtoff);
 
         // this function is supposed to return the same value whether DST is
         // enabled or not, so we need to use an additional offset if DST is on
         // as tm_gmtoff already does include it
         if ( tm.tm_isdst )
             gmtoffset += 3600;
+
+        s_gmtoffset = gmtoffset;
     }
-    return (int)gmtoffset;
-#elif defined(__DJGPP__) || defined(__WINE__)
+    return s_gmtoffset;
+#elif defined(__WINE__)
     struct timeb tb;
     ftime(&tb);
     return tb.timezone*60;
 #elif defined(__VISUALC__)
-    // We must initialize the time zone information before using it (this will
-    // be done only once internally).
-    _tzset();
+    // We must initialize the time zone information before using it. It's not a
+    // problem if we do it twice due to a race condition, as it's idempotent
+    // anyhow, so don't bother with any locks here.
+    static bool s_tzSet = (_tzset(), true);
+    wxUnusedVar(s_tzSet);
 
-    // Starting with VC++ 8 timezone variable is deprecated and is not even
-    // available in some standard library version so use the new function for
-    // accessing it instead.
-    #if wxCHECK_VISUALC_VERSION(8)
-        long t;
-        _get_timezone(&t);
-        return t;
-    #else // VC++ < 8
-        return timezone;
-    #endif
+    long t;
+    _get_timezone(&t);
+    return t;
 #else // Use some kind of time zone variable.
     // In any case we must initialize the time zone before using it.
-    tzset();
+    static bool s_tzSet = (tzset(), true);
+    wxUnusedVar(s_tzSet);
 
     #if defined(WX_TIMEZONE) // If WX_TIMEZONE was defined by configure, use it.
         return WX_TIMEZONE;
-    #elif defined(__BORLANDC__) || defined(__MINGW32__) || defined(__VISAGECPP__)
+    #elif defined(__MINGW32__)
+        #if defined(__MINGW32_TOOLCHAIN__) && defined(__STRICT_ANSI__)
+            extern long _timezone;
+        #endif
+
         return _timezone;
     #else // unknown platform -- assume it has timezone
         return timezone;
@@ -253,7 +216,7 @@ long wxGetLocalTime()
 // Get UTC time as seconds since 00:00:00, Jan 1st 1970
 long wxGetUTCTime()
 {
-    return (long)time(NULL);
+    return (long)time(nullptr);
 }
 
 #if wxUSE_LONGLONG
@@ -331,10 +294,8 @@ wxLongLong wxGetUTCTimeMillis()
     // do NOT just shut off these warnings, drop me a line instead at
     // <guille@iies.es>
 
-    #if defined(__VISUALC__) || defined (__WATCOMC__)
+    #if defined(__VISUALC__)
         #pragma message("wxStopWatch will be up to second resolution!")
-    #elif defined(__BORLANDC__)
-        #pragma message "wxStopWatch will be up to second resolution!"
     #else
         #warning "wxStopWatch will be up to second resolution!"
     #endif // compiler
@@ -353,9 +314,9 @@ wxLongLong wxGetLocalTimeMillis()
 
 #else // !wxUSE_LONGLONG
 
-double wxGetLocalTimeMillis(void)
+double wxGetLocalTimeMillis()
 {
-    return (double(clock()) / double(CLOCKS_PER_SEC)) * 1000.0;
+    return (double(clock()) / double(CLOCKS_PER_SEC)) * MILLISECONDS_PER_SECOND;
 }
 
 #endif // wxUSE_LONGLONG/!wxUSE_LONGLONG

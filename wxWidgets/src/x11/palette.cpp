@@ -2,7 +2,6 @@
 // Name:        src/x11/palette.cpp
 // Purpose:     wxPalette
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -53,8 +52,8 @@ not the functionality that wxPalette::Create() aims to provide.
 #endif
 #include "wx/x11/private.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxPalette, wxGDIObject)
-IMPLEMENT_DYNAMIC_CLASS(wxXPalette, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPalette, wxGDIObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxXPalette, wxObject);
 
 /*
 * Palette
@@ -63,10 +62,10 @@ IMPLEMENT_DYNAMIC_CLASS(wxXPalette, wxObject)
 
 wxXPalette::wxXPalette()
 {
-    m_cmap = (WXColormap) 0;
+    m_cmap = (WXColormap) nullptr;
     m_pix_array_n = 0;
-    m_pix_array = (unsigned long*) 0;
-    m_display = (WXDisplay*) 0;
+    m_pix_array = (unsigned long*) nullptr;
+    m_display = (WXDisplay*) nullptr;
     m_destroyable = false;
 }
 
@@ -76,13 +75,16 @@ wxPaletteRefData::wxPaletteRefData()
 
 wxPaletteRefData::~wxPaletteRefData()
 {
-    Display *display = NULL;
+    Display *display = nullptr;
 
     wxList::compatibility_iterator node, next;
 
     for (node = m_palettes.GetFirst(); node; node = next) {
         wxXPalette *c = (wxXPalette *)node->GetData();
         unsigned long *pix_array = c->m_pix_array;
+        unsigned char *col_red = c->m_red;
+        unsigned char *col_green = c->m_green;
+        unsigned char *col_blue = c->m_blue;
         Colormap cmap = (Colormap) c->m_cmap;
         bool destroyable = c->m_destroyable;
         int pix_array_n = c->m_pix_array_n;
@@ -101,6 +103,9 @@ wxPaletteRefData::~wxPaletteRefData()
             }
 #endif
             delete [] pix_array;
+            delete [] col_red;
+            delete [] col_green;
+            delete [] col_blue;
         }
 
         if (destroyable)
@@ -121,8 +126,16 @@ wxPalette::wxPalette(int n, const unsigned char *red, const unsigned char *green
     Create(n, red, green, blue);
 }
 
-wxPalette::~wxPalette()
+int wxPalette::GetColoursCount() const
 {
+    if (m_refData)
+    {
+        wxList::compatibility_iterator node = M_PALETTEDATA->m_palettes.GetFirst();
+        wxXPalette* p = (wxXPalette*) node->GetData();
+        return p->m_pix_array_n;
+    }
+
+    return 0;
 }
 
 bool wxPalette::Create(int n, const unsigned char *red, const unsigned char *green, const unsigned char *blue)
@@ -139,12 +152,20 @@ bool wxPalette::Create(int n, const unsigned char *red, const unsigned char *gre
     Display* display = (Display*) wxGetDisplay();
 
     unsigned long *pix_array;
+    unsigned char *col_red;
+    unsigned char *col_green;
+    unsigned char *col_blue;
+
+    pix_array = new unsigned long[n];
+    col_red = new unsigned char[n];
+    col_green = new unsigned char[n];
+    col_blue = new unsigned char[n];
+
     Colormap cmap;
     int pix_array_n;
 
     cmap = (Colormap) wxTheApp->GetMainColormap(display);
 
-    pix_array = new unsigned long[n];
     if (!pix_array)
         return false;
 
@@ -155,12 +176,21 @@ bool wxPalette::Create(int n, const unsigned char *red, const unsigned char *gre
         xcol.green = (unsigned short)green[i] << 8;
         xcol.blue = (unsigned short)blue[i] << 8;
         pix_array[i] = (XAllocColor(display, cmap, &xcol) == 0) ? 0 : xcol.pixel;
+
+        // store the RGB value(0-255) to palette directly, 
+        // no need to calculate the color again in GetRGB()
+        col_red[i] = red[i];
+        col_green[i] = green[i];
+        col_blue[i] = blue[i];
     }
 
     wxXPalette *c = new wxXPalette;
 
     c->m_pix_array_n = pix_array_n;
     c->m_pix_array = pix_array;
+    c->m_red = col_red;
+    c->m_green = col_green;
+    c->m_blue = col_blue;
     c->m_cmap = (WXColormap) cmap;
     c->m_display = (WXDisplay*) display;
     c->m_destroyable = false;
@@ -193,16 +223,31 @@ int wxPalette::GetPixel(unsigned char WXUNUSED(red),
     return wxNOT_FOUND;
 }
 
-bool wxPalette::GetRGB(int index, unsigned char *WXUNUSED(red), unsigned char *WXUNUSED(green), unsigned char *WXUNUSED(blue)) const
+// In all wx ports, when declaring GetRGB, the first parameter is "int pixel."
+// The docs said the function is used to "Returns RGB values for a given
+// palette index." And in GetRGB implementation, all ports name the first
+// parameter to "int index". I don't know whether that is intended, but "index"
+// is more meaningful, and to be consistent with other ports, I renamed
+// the first parameter from pixel to index.
+bool wxPalette::GetRGB(int index,
+                       unsigned char *red,
+                       unsigned char *green,
+                       unsigned char *blue) const
 {
     if ( !m_refData )
         return false;
 
-    if (index < 0 || index > 255)
+    if ( index < 0 || index >= GetColoursCount() )
         return false;
 
-    // TODO
-    return false;
+    wxList::compatibility_iterator node = M_PALETTEDATA->m_palettes.GetFirst();
+    wxXPalette* p = (wxXPalette*) node->GetData();
+
+    if (red) *red = p->m_red[index];
+    if (green) *green = p->m_green[index];
+    if (blue) *blue = p->m_blue[index];
+
+    return true;
 }
 
 WXColormap wxPalette::GetXColormap(WXDisplay* display) const
@@ -334,7 +379,7 @@ bool wxPalette::TransferBitmap8(unsigned char *data, unsigned long sz,
 unsigned long *wxPalette::GetXPixArray(WXDisplay *display, int *n)
 {
     if (!M_PALETTEDATA)
-        return (unsigned long*) 0;
+        return (unsigned long*) nullptr;
     wxList::compatibility_iterator node;
 
     for (node = M_PALETTEDATA->m_palettes.GetFirst(); node; node = node->GetNext())
@@ -352,7 +397,7 @@ unsigned long *wxPalette::GetXPixArray(WXDisplay *display, int *n)
     if (GetXColormap(display))
         return GetXPixArray(display, n);
     else
-        return (unsigned long*) 0;
+        return (unsigned long*) nullptr;
 }
 
 void wxPalette::PutXColormap(WXDisplay* display, WXColormap cm, bool dp)
@@ -364,7 +409,7 @@ void wxPalette::PutXColormap(WXDisplay* display, WXColormap cm, bool dp)
     wxXPalette *c = new wxXPalette;
 
     c->m_pix_array_n = 0;
-    c->m_pix_array = (unsigned long*) NULL;
+    c->m_pix_array = (unsigned long*) nullptr;
     c->m_display = display;
     c->m_cmap = cm;
     c->m_destroyable = dp;

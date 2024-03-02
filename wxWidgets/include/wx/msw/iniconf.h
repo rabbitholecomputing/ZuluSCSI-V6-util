@@ -2,7 +2,6 @@
 // Name:        wx/msw/iniconf.h
 // Purpose:     INI-file based wxConfigBase implementation
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     27.07.98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -51,41 +50,45 @@ public:
   virtual ~wxIniConfig();
 
   // implement inherited pure virtual functions
-  virtual void SetPath(const wxString& strPath);
-  virtual const wxString& GetPath() const;
+  virtual void SetPath(const wxString& strPath) override;
+  virtual const wxString& GetPath() const override;
 
-  virtual bool GetFirstGroup(wxString& str, long& lIndex) const;
-  virtual bool GetNextGroup (wxString& str, long& lIndex) const;
-  virtual bool GetFirstEntry(wxString& str, long& lIndex) const;
-  virtual bool GetNextEntry (wxString& str, long& lIndex) const;
+  virtual bool GetFirstGroup(wxString& str, long& lIndex) const override;
+  virtual bool GetNextGroup (wxString& str, long& lIndex) const override;
+  virtual bool GetFirstEntry(wxString& str, long& lIndex) const override;
+  virtual bool GetNextEntry (wxString& str, long& lIndex) const override;
 
-  virtual size_t GetNumberOfEntries(bool bRecursive = false) const;
-  virtual size_t GetNumberOfGroups(bool bRecursive = false) const;
+  virtual size_t GetNumberOfEntries(bool bRecursive = false) const override;
+  virtual size_t GetNumberOfGroups(bool bRecursive = false) const override;
 
-  virtual bool HasGroup(const wxString& strName) const;
-  virtual bool HasEntry(const wxString& strName) const;
+  virtual bool HasGroup(const wxString& strName) const override;
+  virtual bool HasEntry(const wxString& strName) const override;
 
   // return true if the current group is empty
   bool IsEmpty() const;
 
-  virtual bool Flush(bool bCurrentOnly = false);
+  virtual bool Flush(bool bCurrentOnly = false) override;
 
-  virtual bool RenameEntry(const wxString& oldName, const wxString& newName);
-  virtual bool RenameGroup(const wxString& oldName, const wxString& newName);
+  virtual bool RenameEntry(const wxString& oldName, const wxString& newName) override;
+  virtual bool RenameGroup(const wxString& oldName, const wxString& newName) override;
 
-  virtual bool DeleteEntry(const wxString& Key, bool bGroupIfEmptyAlso = true);
-  virtual bool DeleteGroup(const wxString& szKey);
-  virtual bool DeleteAll();
+  virtual bool DeleteEntry(const wxString& Key, bool bGroupIfEmptyAlso = true) override;
+  virtual bool DeleteGroup(const wxString& szKey) override;
+  virtual bool DeleteAll() override;
 
 protected:
   // read/write
-  bool DoReadString(const wxString& key, wxString *pStr) const;
-  bool DoReadLong(const wxString& key, long *plResult) const;
-  bool DoReadBinary(const wxString& key, wxMemoryBuffer *buf) const;
+  bool DoReadString(const wxString& key, wxString *pStr) const override;
+  bool DoReadLong(const wxString& key, long *plResult) const override;
+#if wxUSE_BASE64
+  bool DoReadBinary(const wxString& key, wxMemoryBuffer *buf) const override;
+#endif // wxUSE_BASE64
 
-  bool DoWriteString(const wxString& key, const wxString& szValue);
-  bool DoWriteLong(const wxString& key, long lValue);
-  bool DoWriteBinary(const wxString& key, const wxMemoryBuffer& buf);
+  bool DoWriteString(const wxString& key, const wxString& szValue) override;
+  bool DoWriteLong(const wxString& key, long lValue) override;
+#if wxUSE_BASE64
+  bool DoWriteBinary(const wxString& key, const wxMemoryBuffer& buf) override;
+#endif // wxUSE_BASE64
 
 private:
   // helpers
@@ -97,7 +100,7 @@ private:
            m_strPath;     // the rest of the path (no trailing '_'!)
 
   wxDECLARE_NO_COPY_CLASS(wxIniConfig);
-  DECLARE_ABSTRACT_CLASS(wxIniConfig)
+  wxDECLARE_ABSTRACT_CLASS(wxIniConfig);
 };
 
 #endif // wxUSE_CONFIG && wxUSE_INICONF

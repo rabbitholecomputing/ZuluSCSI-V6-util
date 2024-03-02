@@ -29,7 +29,7 @@ public:
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
                  long style = 0,
-                 const wxString& name = wxStaticTextNameStr)
+                 const wxString& name = wxASCII_STR(wxStaticTextNameStr))
     {
         Init();
 
@@ -42,32 +42,32 @@ public:
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
-                const wxString& name = wxStaticTextNameStr);
+                const wxString& name = wxASCII_STR(wxStaticTextNameStr));
 
     virtual ~wxGenericStaticText();
 
 
     // overridden base class virtual methods
-    virtual void SetLabel(const wxString& label);
-    virtual bool SetFont(const wxFont &font);
+    virtual void SetLabel(const wxString& label) override;
+    virtual bool SetFont(const wxFont &font) override;
 
 protected:
-    virtual wxSize DoGetBestClientSize() const;
+    virtual wxSize DoGetBestClientSize() const override;
 
-    virtual wxString DoGetLabel() const { return m_label; }
-    virtual void DoSetLabel(const wxString& label);
+    virtual wxString WXGetVisibleLabel() const override { return m_label; }
+    virtual void WXSetVisibleLabel(const wxString& label) override;
 
-    void DoSetSize(int x, int y, int width, int height, int sizeFlags);
+    void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
 
 #if wxUSE_MARKUP
-    virtual bool DoSetLabelMarkup(const wxString& markup);
+    virtual bool DoSetLabelMarkup(const wxString& markup) override;
 #endif // wxUSE_MARKUP
 
 private:
     void Init()
     {
 #if wxUSE_MARKUP
-        m_markupText = NULL;
+        m_markupText = nullptr;
 #endif // wxUSE_MARKUP
     }
 
@@ -75,7 +75,7 @@ private:
 
     void DoDrawLabel(wxDC& dc, const wxRect& rect);
 
-    // These fields are only used if m_markupText == NULL.
+    // These fields are only used if m_markupText == nullptr.
     wxString m_label;
     int m_mnemonic;
 
@@ -83,7 +83,7 @@ private:
     class wxMarkupText *m_markupText;
 #endif // wxUSE_MARKUP
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxGenericStaticText)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxGenericStaticText);
 };
 
 #endif // _WX_GENERIC_STATTEXTG_H_

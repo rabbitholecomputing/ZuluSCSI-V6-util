@@ -16,12 +16,12 @@
 
 class WXDLLIMPEXP_XRC wxCheckListBoxXmlHandler : public wxXmlResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxCheckListBoxXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxCheckListBoxXmlHandler);
 
 public:
     wxCheckListBoxXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 
 private:
     bool m_insideBox;

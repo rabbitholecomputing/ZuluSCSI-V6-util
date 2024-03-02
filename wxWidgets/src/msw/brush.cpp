@@ -2,7 +2,6 @@
 // Name:        src/msw/brush.cpp
 // Purpose:     wxBrush
 // Author:      Julian Smart
-// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -19,14 +18,10 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/brush.h"
 
 #ifndef WX_PRECOMP
-    #include "wx/list.h"
     #include "wx/utils.h"
     #include "wx/app.h"
     #include "wx/bitmap.h"
@@ -78,7 +73,7 @@ private:
 // wxBrushRefData implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxBrush, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBrush, wxGDIObject);
 
 // ----------------------------------------------------------------------------
 // wxBrushRefData ctors/dtor
@@ -89,14 +84,14 @@ wxBrushRefData::wxBrushRefData(const wxColour& colour, wxBrushStyle style)
 {
     m_style = style;
 
-    m_hBrush = NULL;
+    m_hBrush = nullptr;
 }
 
 wxBrushRefData::wxBrushRefData(const wxBitmap& stipple)
 {
     DoSetStipple(stipple);
 
-    m_hBrush = NULL;
+    m_hBrush = nullptr;
 }
 
 wxBrushRefData::wxBrushRefData(const wxBrushRefData& data)
@@ -107,7 +102,7 @@ wxBrushRefData::wxBrushRefData(const wxBrushRefData& data)
     m_style = data.m_style;
 
     // we can't share HBRUSH, we'd need to create another one ourselves
-    m_hBrush = NULL;
+    m_hBrush = nullptr;
 }
 
 wxBrushRefData::~wxBrushRefData()
@@ -144,11 +139,9 @@ void wxBrushRefData::Free()
     {
         ::DeleteObject(m_hBrush);
 
-        m_hBrush = NULL;
+        m_hBrush = nullptr;
     }
 }
-
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
 
 static int TranslateHatchStyle(int style)
 {
@@ -164,16 +157,12 @@ static int TranslateHatchStyle(int style)
     }
 }
 
-#endif // !__WXMICROWIN__ && !__WXWINCE__
-
 HBRUSH wxBrushRefData::GetHBRUSH()
 {
     if ( !m_hBrush )
     {
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
         int hatchStyle = TranslateHatchStyle(m_style);
         if ( hatchStyle == -1 )
-#endif // !__WXMICROWIN__ && !__WXWINCE__
         {
             switch ( m_style )
             {
@@ -192,19 +181,17 @@ HBRUSH wxBrushRefData::GetHBRUSH()
 
                 default:
                     wxFAIL_MSG( wxT("unknown brush style") );
-                    // fall through
+                    wxFALLTHROUGH;
 
                 case wxBRUSHSTYLE_SOLID:
                     m_hBrush = ::CreateSolidBrush(m_colour.GetPixel());
                     break;
             }
         }
-#ifndef __WXWINCE__
         else // create a hatched brush
         {
             m_hBrush = ::CreateHatchBrush(hatchStyle, m_colour.GetPixel());
         }
-#endif
 
         if ( !m_hBrush )
         {
@@ -232,20 +219,14 @@ wxBrush::wxBrush(const wxColour& col, wxBrushStyle style)
     m_refData = new wxBrushRefData(col, style);
 }
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 wxBrush::wxBrush(const wxColour& col, int style)
 {
     m_refData = new wxBrushRefData(col, (wxBrushStyle)style);
 }
-#endif
 
 wxBrush::wxBrush(const wxBitmap& stipple)
 {
     m_refData = new wxBrushRefData(stipple);
-}
-
-wxBrush::~wxBrush()
-{
 }
 
 // ----------------------------------------------------------------------------
@@ -290,14 +271,14 @@ wxBrushStyle wxBrush::GetStyle() const
 
 wxBitmap *wxBrush::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), NULL, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid brush") );
 
     return M_BRUSHDATA->GetStipple();
 }
 
 WXHANDLE wxBrush::GetResourceHandle() const
 {
-    wxCHECK_MSG( IsOk(), FALSE, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid brush") );
 
     return (WXHANDLE)M_BRUSHDATA->GetHBRUSH();
 }

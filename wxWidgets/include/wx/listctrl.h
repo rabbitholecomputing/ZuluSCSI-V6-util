@@ -2,7 +2,6 @@
 // Name:        wx/listctrl.h
 // Purpose:     wxListCtrl class
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     04.12.99
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -29,8 +28,8 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxListCtrlNameStr[];
 
 #if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
     #include "wx/msw/listctrl.h"
-#elif defined(__WXMAC__) && !defined(__WXUNIVERSAL__) && wxOSX_USE_CARBON
-    #include "wx/osx/listctrl.h"
+#elif defined(__WXQT__) && !defined(__WXUNIVERSAL__)
+    #include "wx/qt/listctrl.h"
 #else
     #include "wx/generic/listctrl.h"
 #endif
@@ -42,14 +41,14 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxListCtrlNameStr[];
 class WXDLLIMPEXP_CORE wxListView : public wxListCtrl
 {
 public:
-    wxListView() { }
+    wxListView() = default;
     wxListView( wxWindow *parent,
                 wxWindowID winid = wxID_ANY,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxLC_REPORT,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString &name = wxListCtrlNameStr)
+                const wxString &name = wxASCII_STR(wxListCtrlNameStr))
     {
         Create(parent, winid, pos, size, style, validator, name);
     }
@@ -100,7 +99,7 @@ public:
     void ClearColumnImage(int col) { SetColumnImage(col, -1); }
 
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxListView)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxListView);
 };
 
 #endif // wxUSE_LISTCTRL

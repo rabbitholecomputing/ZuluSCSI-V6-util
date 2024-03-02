@@ -2,7 +2,6 @@
 // Name:        client.cpp
 // Purpose:     Client for wxSocket demo
 // Author:      Guillermo Rodriguez Garcia <guille@iies.es>
-// Modified by:
 // Created:     1999/09/19
 // Copyright:   (c) 1999 Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
@@ -19,10 +18,6 @@
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-#  pragma hdrstop
-#endif
-
 // for all others, include the necessary headers
 #ifndef WX_PRECOMP
 #  include "wx/wx.h"
@@ -31,6 +26,8 @@
 #include "wx/socket.h"
 #include "wx/url.h"
 #include "wx/sstream.h"
+#include "wx/thread.h"
+
 #include <memory>
 
 // --------------------------------------------------------------------------
@@ -50,7 +47,7 @@
 class MyApp : public wxApp
 {
 public:
-  virtual bool OnInit();
+  virtual bool OnInit() override;
 };
 
 // Define a new frame type: this is going to be our main frame
@@ -171,7 +168,7 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
   EVT_SOCKET(SOCKET_ID,     MyFrame::OnSocketEvent)
 wxEND_EVENT_TABLE()
 
-IMPLEMENT_APP(MyApp)
+wxIMPLEMENT_APP(MyApp);
 
 // ==========================================================================
 // implementation
@@ -201,7 +198,7 @@ bool MyApp::OnInit()
 // --------------------------------------------------------------------------
 
 // frame constructor
-MyFrame::MyFrame() : wxFrame((wxFrame *)NULL, wxID_ANY,
+MyFrame::MyFrame() : wxFrame(nullptr, wxID_ANY,
                              _("wxSocket demo: Client"),
                              wxDefaultPosition, wxSize(300, 200))
 {
@@ -224,7 +221,7 @@ MyFrame::MyFrame() : wxFrame((wxFrame *)NULL, wxID_ANY,
   m_menuSocket->Append(CLIENT_TEST2, _("Test &2\tCtrl-F2"), _("Test ReadMsg and WriteMsg"));
   m_menuSocket->Append(CLIENT_TEST3, _("Test &3\tCtrl-F3"), _("Test large data transfer"));
   m_menuSocket->AppendSeparator();
-  m_menuSocket->Append(CLIENT_CLOSE, _("&Close session\tCtrl-Q"), _("Close connection"));
+  m_menuSocket->Append(CLIENT_CLOSE, _("&Close session\tCtrl-C"), _("Close connection"));
 
   m_menuDatagramSocket = new wxMenu();
   m_menuDatagramSocket->Append(CLIENT_DGRAM, _("&Datagram test\tCtrl-D"), _("Test UDP sockets"));
@@ -327,7 +324,7 @@ void MyFrame::OpenConnection(wxSockAddress::Family family)
   wxString hostname = wxGetTextFromUser(
     _("Enter the address of the wxSocket demo server:"),
     _("Connect ..."),
-    _("localhost"));
+    "localhost");
   if ( hostname.empty() )
     return;
 
@@ -575,6 +572,47 @@ void MyFrame::OnDatagram(wxCommandEvent& WXUNUSED(event))
 
 #if wxUSE_URL
 
+void DoDownload(const wxString& urlname)
+{
+    wxString testname("URL");
+    if ( !wxIsMainThread() )
+        testname += " in worker thread";
+
+    TestLogger logtest(testname);
+
+    // Parse the URL
+    wxURL url(urlname);
+    if ( url.GetError() != wxURL_NOERR )
+    {
+        wxLogError("Failed to parse URL \"%s\"", urlname);
+        return;
+    }
+
+    // Try to get the input stream (connects to the given URL)
+    wxLogMessage("Establishing connection to \"%s\"...", urlname);
+    const std::unique_ptr<wxInputStream> data(url.GetInputStream());
+    if ( !data.get() )
+    {
+        wxLogError("Failed to retrieve URL \"%s\"", urlname);
+        return;
+    }
+
+    // Print the contents type and file size
+    wxLogMessage("Contents type: %s\nFile size: %s\nStarting to download...",
+                 url.GetProtocol().GetContentType(),
+                 data->GetSize() != (size_t)-1 ? wxString::Format("%zu", data->GetSize()) : "n/a");
+
+    // Get the data
+    wxStringOutputStream sout;
+    if ( data->Read(sout).GetLastError() != wxSTREAM_EOF )
+    {
+        wxLogError("Error reading the input stream.");
+    }
+
+    wxLogMessage("Text retrieved from URL \"%s\" follows:\n%s",
+                 urlname, sout.GetString());
+}
+
 void MyFrame::OnTestURL(wxCommandEvent& WXUNUSED(event))
 {
     // Ask for the URL
@@ -590,40 +628,34 @@ void MyFrame::OnTestURL(wxCommandEvent& WXUNUSED(event))
 
     s_urlname = urlname;
 
+    // First do it in this thread.
+    DoDownload(urlname);
 
-    TestLogger logtest("URL");
-
-    // Parse the URL
-    wxURL url(urlname);
-    if ( url.GetError() != wxURL_NOERR )
+    // And then also in a worker thread.
+#if wxUSE_THREADS
+    class DownloadThread : public wxThread
     {
-        wxLogError("Failed to parse URL \"%s\"", urlname);
-        return;
-    }
+    public:
+        explicit DownloadThread(const wxString& url): m_url(url)
+        {
+            Run();
+        }
 
-    // Try to get the input stream (connects to the given URL)
-    wxLogMessage("Establishing connection to \"%s\"...", urlname);
-    const std::auto_ptr<wxInputStream> data(url.GetInputStream());
-    if ( !data.get() )
-    {
-        wxLogError("Failed to retrieve URL \"%s\"", urlname);
-        return;
-    }
+        virtual void* Entry() override
+        {
+            DoDownload(m_url);
 
-    // Print the contents type and file size
-    wxLogMessage("Contents type: %s\nFile size: %lu\nStarting to download...",
-                 url.GetProtocol().GetContentType(),
-                 static_cast<unsigned long>( data->GetSize() ));
+            return nullptr;
+        }
 
-    // Get the data
-    wxStringOutputStream sout;
-    if ( data->Read(sout).GetLastError() != wxSTREAM_EOF )
-    {
-        wxLogError("Error reading the input stream.");
-    }
+    private:
+        const wxString m_url;
+    };
 
-    wxLogMessage("Text retrieved from URL \"%s\" follows:\n%s",
-                 urlname, sout.GetString());
+    // NB: there is a race condition here, we don't check for this thread
+    // termination before exiting the application, don't do this in real code!
+    new DownloadThread(urlname);
+#endif // wxUSE_THREADS
 }
 
 #endif // wxUSE_URL

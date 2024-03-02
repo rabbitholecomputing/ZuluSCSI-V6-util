@@ -2,7 +2,6 @@
 // Name:        dialogs.h
 // Purpose:     Life! dialogs
 // Author:      Guillermo Rodriguez Garcia, <guille@iies.es>
-// Modified by:
 // Created:     Jan/2000
 // Copyright:   (c) 2000, Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
@@ -34,7 +33,7 @@ public:
 
 private:
     // any class wishing to process wxWidgets events must use this macro
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
     int         m_value;
     wxListBox  *m_list;

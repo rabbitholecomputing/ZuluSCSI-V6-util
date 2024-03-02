@@ -2,7 +2,6 @@
 // Name:        wx/x11/colour.h
 // Purpose:     wxColour class
 // Author:      Julian Smart, Robert Roebling
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
@@ -39,8 +38,6 @@ public:
     // ------------
     DEFINE_STD_WXCOLOUR_CONSTRUCTORS
 
-    virtual ~wxColour();
-
     bool operator==(const wxColour& col) const;
     bool operator!=(const wxColour& col) const { return !(*this == col); }
 
@@ -64,7 +61,7 @@ protected:
     virtual bool FromString(const wxString& str);
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxColour)
+    wxDECLARE_DYNAMIC_CLASS(wxColour);
 };
 
 #endif // _WX_COLOUR_H_

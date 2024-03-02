@@ -11,6 +11,8 @@
 #define _WX_GTK_TEXTCTRL_H_
 
 typedef struct _GtkTextMark GtkTextMark;
+typedef struct _GTKGetTextBuffer GTKGetTextBuffer;
+typedef struct _GTKGetEditable GTKGetEditable;
 
 //-----------------------------------------------------------------------------
 // wxTextCtrl
@@ -27,7 +29,7 @@ public:
                const wxSize &size = wxDefaultSize,
                long style = 0,
                const wxValidator& validator = wxDefaultValidator,
-               const wxString &name = wxTextCtrlNameStr);
+               const wxString &name = wxASCII_STR(wxTextCtrlNameStr));
 
     virtual ~wxTextCtrl();
 
@@ -38,64 +40,78 @@ public:
                 const wxSize &size = wxDefaultSize,
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString &name = wxTextCtrlNameStr);
+                const wxString &name = wxASCII_STR(wxTextCtrlNameStr));
 
     // implement base class pure virtuals
     // ----------------------------------
 
-    virtual void WriteText(const wxString& text);
-    virtual wxString GetValue() const;
+    virtual void WriteText(const wxString& text) override;
+    virtual wxString GetValue() const override;
     virtual bool IsEmpty() const;
 
-    virtual int GetLineLength(long lineNo) const;
-    virtual wxString GetLineText(long lineNo) const;
-    virtual int GetNumberOfLines() const;
+    virtual int GetLineLength(long lineNo) const override;
+    virtual wxString GetLineText(long lineNo) const override;
+    virtual int GetNumberOfLines() const override;
 
-    virtual bool IsModified() const;
-    virtual bool IsEditable() const;
+    virtual bool IsModified() const override;
+    virtual bool IsEditable() const override;
 
-    virtual void GetSelection(long* from, long* to) const;
+    virtual void GetSelection(long* from, long* to) const override;
 
-    virtual void Remove(long from, long to);
+    virtual void Remove(long from, long to) override;
 
-    virtual void MarkDirty();
-    virtual void DiscardEdits();
+    virtual void MarkDirty() override;
+    virtual void DiscardEdits() override;
 
-    virtual bool SetStyle(long start, long end, const wxTextAttr& style);
-    virtual bool GetStyle(long position, wxTextAttr& style);
+    virtual bool SetStyle(long start, long end, const wxTextAttr& style) override;
+    virtual bool GetStyle(long position, wxTextAttr& style) override;
 
     // translate between the position (which is just an index in the text ctrl
     // considering all its contents as a single strings) and (x, y) coordinates
     // which represent column and line.
-    virtual long XYToPosition(long x, long y) const;
-    virtual bool PositionToXY(long pos, long *x, long *y) const;
+    virtual long XYToPosition(long x, long y) const override;
+    virtual bool PositionToXY(long pos, long *x, long *y) const override;
 
-    virtual void ShowPosition(long pos);
+    virtual void ShowPosition(long pos) override;
 
-    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt, long *pos) const;
+    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt, long *pos) const override;
     virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt,
                                             wxTextCoord *col,
-                                            wxTextCoord *row) const
+                                            wxTextCoord *row) const override
     {
         return wxTextCtrlBase::HitTest(pt, col, row);
     }
 
     // Clipboard operations
-    virtual void Copy();
-    virtual void Cut();
-    virtual void Paste();
+    virtual void Copy() override;
+    virtual void Cut() override;
+    virtual void Paste() override;
 
     // Insertion point
-    virtual void SetInsertionPoint(long pos);
-    virtual long GetInsertionPoint() const;
-    virtual wxTextPos GetLastPosition() const;
+    virtual void SetInsertionPoint(long pos) override;
+    virtual long GetInsertionPoint() const override;
+    virtual wxTextPos GetLastPosition() const override;
 
-    virtual void SetSelection(long from, long to);
-    virtual void SetEditable(bool editable);
+    virtual void SetSelection(long from, long to) override;
+    virtual void SetEditable(bool editable) override;
 
     // Overridden wxWindow methods
-    virtual void SetWindowStyleFlag( long style );
-    virtual bool Enable( bool enable = true );
+    virtual void SetWindowStyleFlag( long style ) override;
+
+#if wxUSE_SPELLCHECK && defined(__WXGTK3__)
+    // Use native spelling and grammar checking functions.
+    virtual bool EnableProofCheck(const wxTextProofOptions& options
+                                    = wxTextProofOptions::Default()) override;
+    virtual wxTextProofOptions GetProofCheckOptions() const override;
+#endif // wxUSE_SPELLCHECK && __WXGTK3__
+
+    // GTK-specific functions
+
+    // Get the underlying text buffer for multi-line controls.
+    GtkTextBuffer *GTKGetTextBuffer() { return IsMultiLine() ? m_buffer : nullptr; }
+    // Get the underlying text control.
+    GtkEditable *GTKGetEditable() const { return GetEditable(); }
+
 
     // Implementation from now on
     void OnDropFiles( wxDropFilesEvent &event );
@@ -113,11 +129,11 @@ public:
     void OnUpdateUndo(wxUpdateUIEvent& event);
     void OnUpdateRedo(wxUpdateUIEvent& event);
 
-    bool SetFont(const wxFont& font);
-    bool SetForegroundColour(const wxColour& colour);
-    bool SetBackgroundColour(const wxColour& colour);
+    bool SetFont(const wxFont& font) override;
+    bool SetForegroundColour(const wxColour& colour) override;
+    bool SetBackgroundColour(const wxColour& colour) override;
 
-    GtkWidget* GetConnectWidget();
+    GtkWidget* GetConnectWidget() override;
 
     void SetUpdateFont(bool WXUNUSED(update)) { }
 
@@ -137,34 +153,39 @@ public:
     bool MarkDirtyOnChange();
 
     // always let GTK have mouse release events for multiline controls
-    virtual bool GTKProcessEvent(wxEvent& event) const;
+    virtual bool GTKProcessEvent(wxEvent& event) const override;
 
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
+    void GTKOnTextChanged() override;
+    void GTKAfterLayout();
+
 protected:
     // overridden wxWindow virtual methods
-    virtual wxSize DoGetBestSize() const;
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style);
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
+    virtual wxSize DoGetBestSize() const override;
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) override;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const override;
 
-    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const override;
 
-    virtual void DoFreeze();
-    virtual void DoThaw();
+    virtual void DoFreeze() override;
+    virtual void DoThaw() override;
+
+    virtual void DoEnable(bool enable) override;
 
     // Widgets that use the style->base colour for the BG colour should
     // override this and return true.
-    virtual bool UseGTKStyleBase() const { return true; }
+    virtual bool UseGTKStyleBase() const override { return true; }
 
-    virtual void DoSetValue(const wxString &value, int flags = 0);
+    virtual wxString DoGetValue() const override;
 
     // Override this to use either GtkEntry or GtkTextView IME depending on the
     // kind of control we are.
-    virtual int GTKIMFilterKeypress(GdkEventKey* event) const;
+    virtual int GTKIMFilterKeypress(GdkEventKey* event) const override;
 
-    virtual wxPoint DoPositionToCoords(long pos) const;
+    virtual wxPoint DoPositionToCoords(long pos) const override;
 
     // wrappers hiding the differences between functions doing the same thing
     // for GtkTextView and GtkEntry (all of them use current window style to
@@ -179,9 +200,8 @@ private:
     void Init();
 
     // overridden wxTextEntry virtual methods
-    virtual GtkEditable *GetEditable() const;
-    virtual GtkEntry *GetEntry() const;
-    virtual void EnableTextChangedEvents(bool enable);
+    virtual GtkEditable *GetEditable() const override;
+    virtual GtkEntry *GetEntry() const override;
 
     // change the font for everything in this control
     void ChangeFontGlobally();
@@ -195,7 +215,7 @@ private:
     // returns either m_text or m_buffer depending on whether the control is
     // single- or multi-line; convenient for the GTK+ functions which work with
     // both
-    void *GetTextObject() const
+    void *GetTextObject() const override
     {
         return IsMultiLine() ? static_cast<void *>(m_buffer)
                              : static_cast<void *>(m_text);
@@ -205,8 +225,8 @@ private:
     // the widget used for single line controls
     GtkWidget  *m_text;
 
-    bool        m_modified:1;
-    bool        m_dontMarkDirty:1;
+    bool m_modified;
+    bool m_dontMarkDirty;
 
     int         m_countUpdatesToIgnore;
 
@@ -214,14 +234,15 @@ private:
     // a dummy one when frozen
     GtkTextBuffer *m_buffer;
 
-    GtkTextMark* m_showPositionOnThaw;
+    GtkTextMark* m_showPositionDefer;
     GSList* m_anonymousMarkList;
+    unsigned m_afterLayoutId;
 
     // For wxTE_AUTO_URL
     void OnUrlMouseEvent(wxMouseEvent&);
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxTextCtrl)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxTextCtrl);
 };
 
 #endif // _WX_GTK_TEXTCTRL_H_

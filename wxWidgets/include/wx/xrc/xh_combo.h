@@ -16,12 +16,12 @@
 
 class WXDLLIMPEXP_XRC wxComboBoxXmlHandler : public wxXmlResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxComboBoxXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxComboBoxXmlHandler);
 
 public:
     wxComboBoxXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 
 private:
     bool m_insideBox;

@@ -2,7 +2,6 @@
 // Name:        src/osx/toplevel_osx.cpp
 // Purpose:     implements wxTopLevelWindow for Mac
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     24.09.01
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/toplevel.h"
 
@@ -50,8 +46,8 @@
 // wxTopLevelWindowMac implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxTopLevelWindowMac, wxTopLevelWindowBase)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxTopLevelWindowMac, wxTopLevelWindowBase)
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // wxTopLevelWindowMac creation
@@ -76,7 +72,7 @@ bool wxTopLevelWindowMac::Create(wxWindow *parent,
         return false;
 
     wxWindow::SetLabel( title ) ;
-    m_nowpeer->SetTitle(title, GetFont().GetEncoding() );
+    m_nowpeer->SetTitle(title);
     wxTopLevelWindows.Append(this);
 
     return true;
@@ -99,12 +95,6 @@ wxTopLevelWindowMac::~wxTopLevelWindowMac()
 
 bool wxTopLevelWindowMac::Destroy()
 {
-    // NB: this will get called during destruction if we don't do it now,
-    // and may fire a kill focus event on a control being destroyed
-#if wxOSX_USE_CARBON
-    if (m_nowpeer && m_nowpeer->GetWXWindow())
-        ClearKeyboardFocus( (WindowRef)m_nowpeer->GetWXWindow() );
-#endif
     // delayed destruction: the tlw will be deleted during the next idle
     // loop iteration
     if ( !wxPendingDelete.Member(this) )
@@ -127,7 +117,7 @@ void wxTopLevelWindowMac::Maximize(bool maximize)
 
 bool wxTopLevelWindowMac::IsMaximized() const
 {
-    if ( m_nowpeer == NULL )
+    if ( m_nowpeer == nullptr )
         return false;
 
     return m_nowpeer->IsMaximized();
@@ -141,7 +131,7 @@ void wxTopLevelWindowMac::Iconize(bool iconize)
 
 bool wxTopLevelWindowMac::IsIconized() const
 {
-    if ( m_nowpeer == NULL )
+    if ( m_nowpeer == nullptr )
         return false;
 
     return m_nowpeer->IsIconized();
@@ -169,7 +159,7 @@ void wxTopLevelWindowMac::SetTitle(const wxString& title)
     m_label = title ;
 
     if ( m_nowpeer )
-        m_nowpeer->SetTitle(title, GetFont().GetEncoding() );
+        m_nowpeer->SetTitle(title);
 }
 
 wxString wxTopLevelWindowMac::GetTitle() const
@@ -190,6 +180,11 @@ void wxTopLevelWindowMac::ShowWithoutActivating()
     SendSizeEvent();
 }
 
+bool wxTopLevelWindowMac::EnableFullScreenView(bool enable, long style)
+{
+    return m_nowpeer->EnableFullScreenView(enable, style);
+}
+
 bool wxTopLevelWindowMac::ShowFullScreen(bool show, long style)
 {
     return m_nowpeer->ShowFullScreen(show, style);
@@ -198,6 +193,43 @@ bool wxTopLevelWindowMac::ShowFullScreen(bool show, long style)
 bool wxTopLevelWindowMac::IsFullScreen() const
 {
     return m_nowpeer->IsFullScreen();
+}
+
+wxContentProtection wxTopLevelWindowMac::GetContentProtection() const
+{
+    return m_nowpeer->GetContentProtection();
+}
+
+bool wxTopLevelWindowMac::SetContentProtection(wxContentProtection contentProtection)
+{
+    return m_nowpeer->SetContentProtection(contentProtection);
+}
+
+bool wxTopLevelWindowMac::EnableCloseButton(bool enable)
+{
+    // Unlike in wxMSW, wxSYSTEM_MENU is not sufficient to show
+    // a close button unless combined with one of the resize buttons.
+    if ( HasFlag(wxCLOSE_BOX) )
+        return m_nowpeer->EnableCloseButton( enable);
+
+    return false;
+}
+
+bool wxTopLevelWindowMac::EnableMaximizeButton(bool enable)
+{
+    // Both wxRESIZE_BORDER and wxMAXIMIZE_BOX create a resize border and
+    // add a maximize button.
+    if ( HasFlag(wxMAXIMIZE_BOX) || HasFlag(wxRESIZE_BORDER) )
+        return m_nowpeer->EnableMaximizeButton( enable);
+    return false;
+}
+
+bool wxTopLevelWindowMac::EnableMinimizeButton(bool enable)
+{
+    if ( HasFlag(wxMINIMIZE_BOX) )
+        return m_nowpeer->EnableMinimizeButton( enable);
+
+    return false;
 }
 
 void wxTopLevelWindowMac::RequestUserAttention(int flags)
@@ -223,4 +255,13 @@ bool wxTopLevelWindowMac::OSXIsModified() const
 void wxTopLevelWindowMac::SetRepresentedFilename(const wxString& filename)
 {
     m_nowpeer->SetRepresentedFilename(filename);
+}
+
+void wxTopLevelWindowMac::OSXSetIconizeState(bool iconize)
+{
+    if ( iconize != m_iconized )
+    {
+        m_iconized = iconize;
+        (void)SendIconizeEvent(iconize);
+    }
 }

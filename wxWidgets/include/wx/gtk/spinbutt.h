@@ -2,7 +2,6 @@
 // Name:        wx/gtk/spinbutt.h
 // Purpose:     wxSpinButton class
 // Author:      Robert Roebling
-// Modified by:
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,16 +34,14 @@ public:
                 long style = wxSP_VERTICAL,
                 const wxString& name = wxSPIN_BUTTON_NAME);
 
-    virtual int GetValue() const;
-    virtual void SetValue( int value );
-    virtual void SetRange( int minVal, int maxVal );
-    virtual int GetMin() const;
-    virtual int GetMax() const;
+    virtual int GetValue() const override;
+    virtual void SetValue( int value ) override;
+    virtual void SetRange( int minVal, int maxVal ) override;
+    virtual int GetMin() const override;
+    virtual int GetMax() const override;
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
-
-    virtual bool Enable( bool enable = true );
 
     // implementation
     int m_pos;
@@ -53,13 +50,15 @@ protected:
     void GtkDisableEvents() const;
     void GtkEnableEvents() const;
 
-    virtual wxSize DoGetBestSize() const;
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
+    virtual wxSize DoGetBestSize() const override;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const override;
+
+    virtual void DoEnable(bool enable) override;
 
 private:
     typedef wxSpinButtonBase base_type;
 
-    DECLARE_DYNAMIC_CLASS(wxSpinButton)
+    wxDECLARE_DYNAMIC_CLASS(wxSpinButton);
 };
 
 #endif // _WX_GTK_SPINBUTT_H_

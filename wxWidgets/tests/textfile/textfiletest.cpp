@@ -12,9 +12,6 @@
 
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_TEXTFILE
 
@@ -37,10 +34,10 @@ class TextFileTestCase : public CppUnit::TestCase
 public:
     TextFileTestCase()
     {
-        srand((unsigned)time(NULL));
+        srand((unsigned)time(nullptr));
     }
 
-    virtual void tearDown() { unlink(GetTestFileName()); }
+    virtual void tearDown() override { unlink(GetTestFileName()); }
 
 private:
     CPPUNIT_TEST_SUITE( TextFileTestCase );
@@ -54,10 +51,8 @@ private:
         CPPUNIT_TEST( ReadMixed );
         CPPUNIT_TEST( ReadMixedWithFuzzing );
         CPPUNIT_TEST( ReadCRCRLF );
-#if wxUSE_UNICODE
         CPPUNIT_TEST( ReadUTF8 );
         CPPUNIT_TEST( ReadUTF16 );
-#endif // wxUSE_UNICODE
         CPPUNIT_TEST( ReadBig );
     CPPUNIT_TEST_SUITE_END();
 
@@ -71,10 +66,8 @@ private:
     void ReadMixed();
     void ReadMixedWithFuzzing();
     void ReadCRCRLF();
-#if wxUSE_UNICODE
     void ReadUTF8();
     void ReadUTF16();
-#endif // wxUSE_UNICODE
     void ReadBig();
 
     // return the name of the test file we use
@@ -91,7 +84,7 @@ private:
     static void CreateTestFile(size_t len, const char *contents);
 
 
-    DECLARE_NO_COPY_CLASS(TextFileTestCase)
+    wxDECLARE_NO_COPY_CLASS(TextFileTestCase);
 };
 
 // register in the unnamed registry so that these tests are run by default
@@ -117,6 +110,9 @@ void TextFileTestCase::ReadEmpty()
     CPPUNIT_ASSERT( f.Open(wxString::FromAscii(GetTestFileName())) );
 
     CPPUNIT_ASSERT_EQUAL( (size_t)0, f.GetLineCount() );
+    CPPUNIT_ASSERT( f.Eof() );
+    CPPUNIT_ASSERT_EQUAL( "", f.GetFirstLine() );
+    CPPUNIT_ASSERT_EQUAL( "", f.GetLastLine() );
 }
 
 void TextFileTestCase::ReadDOS()
@@ -252,7 +248,7 @@ void TextFileTestCase::ReadMixedWithFuzzing()
 void TextFileTestCase::ReadCRCRLF()
 {
     // Notepad may create files with CRCRLF line endings (see
-    // http://stackoverflow.com/questions/6998506/text-file-with-0d-0d-0a-line-breaks).
+    // https://stackoverflow.com/questions/6998506/text-file-with-0d-0d-0a-line-breaks).
     // Older versions of wx would loose all data when reading such files.
     // Test that the data are read, but don't worry about empty lines in between or
     // line endings. Also include a longer streak of CRs, because they can
@@ -268,8 +264,6 @@ void TextFileTestCase::ReadCRCRLF()
 
     CPPUNIT_ASSERT_EQUAL( "foobarbaz", all );
 }
-
-#if wxUSE_UNICODE
 
 void TextFileTestCase::ReadUTF8()
 {
@@ -310,8 +304,6 @@ void TextFileTestCase::ReadUTF16()
 #endif // wxHAVE_U_ESCAPE
 }
 
-#endif // wxUSE_UNICODE
-
 void TextFileTestCase::ReadBig()
 {
     static const size_t NUM_LINES = 10000;
@@ -335,5 +327,35 @@ void TextFileTestCase::ReadBig()
                           f[NUM_LINES - 1] );
 }
 
-#endif // wxUSE_TEXTFILE
+#ifdef __LINUX__
 
+// Check if using wxTextFile with special files, whose reported size doesn't
+// correspond to the real amount of data in them, works.
+TEST_CASE("wxTextFile::Special", "[textfile][linux][special-file]")
+{
+    SECTION("/proc")
+    {
+        wxTextFile f;
+        REQUIRE( f.Open("/proc/cpuinfo") );
+        CHECK( f.GetLineCount() > 1 );
+    }
+
+    SECTION("/sys")
+    {
+        if ( wxFile::Exists("/sys/power/state") )
+        {
+            WARN("/sys/power/state doesn't exist, skipping test");
+            return;
+        }
+
+        wxTextFile f;
+        CHECK( f.Open("/sys/power/state") );
+        REQUIRE( f.GetLineCount() == 1 );
+        INFO( "/sys/power/state contains \"" << f[0] << "\"" );
+        CHECK( (f[0].find("mem") != wxString::npos || f[0].find("disk") != wxString::npos) );
+    }
+}
+
+#endif // __LINUX__
+
+#endif // wxUSE_TEXTFILE

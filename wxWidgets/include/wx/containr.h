@@ -2,7 +2,6 @@
 // Name:        wx/containr.h
 // Purpose:     wxControlContainer and wxNavigationEnabled declarations
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     06.08.01
 // Copyright:   (c) 2001, 2011 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -39,18 +38,15 @@ public:
     // default ctor, SetContainerWindow() must be called later
     wxControlContainerBase()
     {
-        m_winParent = NULL;
+        m_winParent = nullptr;
 
         // By default, we accept focus ourselves.
         m_acceptsFocusSelf = true;
 
-        // But we don't have any children accepting it yet.
-        m_acceptsFocusChildren = false;
-
         m_inSetFocus = false;
-        m_winLastFocused = NULL;
+        m_winLastFocused = nullptr;
     }
-    virtual ~wxControlContainerBase() {}
+    virtual ~wxControlContainerBase() = default;
 
     void SetContainerWindow(wxWindow *winParent)
     {
@@ -79,8 +75,7 @@ public:
 
     // Returns whether we or one of our children accepts focus.
     bool AcceptsFocusRecursively() const
-        { return AcceptsFocus() ||
-            (m_acceptsFocusChildren && HasAnyChildrenAcceptingFocus()); }
+        { return AcceptsFocus() || HasAnyChildrenAcceptingFocus(); }
 
     // We accept focus from keyboard if we accept it at all.
     bool AcceptsFocusFromKeyboard() const { return AcceptsFocusRecursively(); }
@@ -89,6 +84,16 @@ public:
     //
     // Returns true if we have any focusable children, false otherwise.
     bool UpdateCanFocusChildren();
+
+#ifdef __WXMSW__
+    // This is not strictly related to navigation, but all windows containing
+    // more than one children controls need to return from this method if any
+    // of their parents has an inheritable background, so do this automatically
+    // for all of them (another alternative could be to do it in wxWindow
+    // itself but this would be potentially more backwards incompatible and
+    // could conceivably break some custom windows).
+    bool HasTransparentBackground() const;
+#endif // __WXMSW__
 
 protected:
     // set the focus to the child which had it the last time
@@ -109,7 +114,11 @@ protected:
 
 private:
     // Update the window status to reflect whether it is getting focus or not.
-    void UpdateParentCanFocus();
+    void UpdateParentCanFocus(bool acceptsFocusChildren);
+    void UpdateParentCanFocus()
+    {
+        UpdateParentCanFocus(HasAnyFocusableChildren());
+    }
 
     // Indicates whether the associated window can ever have focus itself.
     //
@@ -118,9 +127,6 @@ private:
     // focused. But sometimes, e.g. for wxStaticBox, we can never have focus
     // ourselves and can only get it if we have any focusable children.
     bool m_acceptsFocusSelf;
-
-    // Cached value remembering whether we have any children accepting focus.
-    bool m_acceptsFocusChildren;
 
     // a guard against infinite recursion
     bool m_inSetFocus;
@@ -137,7 +143,7 @@ class WXDLLIMPEXP_CORE wxControlContainer : public wxControlContainerBase
 {
 protected:
     // set the focus to the child which had it the last time
-    virtual bool SetFocusToChild();
+    virtual bool SetFocusToChild() override;
 };
 
 #else // !wxHAS_NATIVE_TAB_TRAVERSAL
@@ -189,33 +195,32 @@ public:
         m_container.SetContainerWindow(this);
 
 #ifndef wxHAS_NATIVE_TAB_TRAVERSAL
-        BaseWindowClass::Connect(wxEVT_NAVIGATION_KEY,
-                wxNavigationKeyEventHandler(wxNavigationEnabled::OnNavigationKey));
+        BaseWindowClass::Bind(wxEVT_NAVIGATION_KEY,
+                              &wxNavigationEnabled::OnNavigationKey, this);
 
-        BaseWindowClass::Connect(wxEVT_SET_FOCUS,
-                wxFocusEventHandler(wxNavigationEnabled::OnFocus));
-
-        BaseWindowClass::Connect(wxEVT_CHILD_FOCUS,
-                wxChildFocusEventHandler(wxNavigationEnabled::OnChildFocus));
+        BaseWindowClass::Bind(wxEVT_SET_FOCUS,
+                              &wxNavigationEnabled::OnFocus, this);
+        BaseWindowClass::Bind(wxEVT_CHILD_FOCUS,
+                              &wxNavigationEnabled::OnChildFocus, this);
 #endif // !wxHAS_NATIVE_TAB_TRAVERSAL
     }
 
-    WXDLLIMPEXP_INLINE_CORE virtual bool AcceptsFocus() const
+    WXDLLIMPEXP_INLINE_CORE virtual bool AcceptsFocus() const override
     {
         return m_container.AcceptsFocus();
     }
 
-    WXDLLIMPEXP_INLINE_CORE virtual bool AcceptsFocusRecursively() const
+    WXDLLIMPEXP_INLINE_CORE virtual bool AcceptsFocusRecursively() const override
     {
         return m_container.AcceptsFocusRecursively();
     }
 
-    WXDLLIMPEXP_INLINE_CORE virtual bool AcceptsFocusFromKeyboard() const
+    WXDLLIMPEXP_INLINE_CORE virtual bool AcceptsFocusFromKeyboard() const override
     {
         return m_container.AcceptsFocusFromKeyboard();
     }
 
-    WXDLLIMPEXP_INLINE_CORE virtual void AddChild(wxWindowBase *child)
+    WXDLLIMPEXP_INLINE_CORE virtual void AddChild(wxWindowBase *child) override
     {
         BaseWindowClass::AddChild(child);
 
@@ -228,7 +233,7 @@ public:
         }
     }
 
-    WXDLLIMPEXP_INLINE_CORE virtual void RemoveChild(wxWindowBase *child)
+    WXDLLIMPEXP_INLINE_CORE virtual void RemoveChild(wxWindowBase *child) override
     {
 #ifndef wxHAS_NATIVE_TAB_TRAVERSAL
         m_container.HandleOnWindowDestroy(child);
@@ -241,7 +246,7 @@ public:
         m_container.UpdateCanFocusChildren();
     }
 
-    WXDLLIMPEXP_INLINE_CORE virtual void SetFocus()
+    WXDLLIMPEXP_INLINE_CORE virtual void SetFocus() override
     {
         if ( !m_container.DoSetFocus() )
             BaseWindowClass::SetFocus();
@@ -251,6 +256,19 @@ public:
     {
         BaseWindowClass::SetFocus();
     }
+
+#ifdef __WXMSW__
+    WXDLLIMPEXP_INLINE_CORE virtual bool HasTransparentBackground() override
+    {
+        return m_container.HasTransparentBackground();
+    }
+
+    WXDLLIMPEXP_INLINE_CORE
+    virtual void WXSetPendingFocus(wxWindow* win) override
+    {
+        return m_container.SetLastFocus(win);
+    }
+#endif // __WXMSW__
 
 protected:
 #ifndef wxHAS_NATIVE_TAB_TRAVERSAL
@@ -276,139 +294,5 @@ protected:
 
     wxDECLARE_NO_COPY_TEMPLATE_CLASS(wxNavigationEnabled, W);
 };
-
-// ----------------------------------------------------------------------------
-// Compatibility macros from now on, do NOT use them and preferably do not even
-// look at them.
-// ----------------------------------------------------------------------------
-
-#if WXWIN_COMPATIBILITY_2_8
-
-// common part of WX_DECLARE_CONTROL_CONTAINER in the native and generic cases,
-// it should be used in the wxWindow-derived class declaration
-#define WX_DECLARE_CONTROL_CONTAINER_BASE()                                   \
-public:                                                                       \
-    virtual bool AcceptsFocus() const;                                        \
-    virtual bool AcceptsFocusRecursively() const;                             \
-    virtual bool AcceptsFocusFromKeyboard() const;                            \
-    virtual void AddChild(wxWindowBase *child);                               \
-    virtual void RemoveChild(wxWindowBase *child);                            \
-    virtual void SetFocus();                                                  \
-    void SetFocusIgnoringChildren();                                          \
-                                                                              \
-protected:                                                                    \
-    wxControlContainer m_container
-
-// this macro must be used in the derived class ctor
-#define WX_INIT_CONTROL_CONTAINER() \
-    m_container.SetContainerWindow(this)
-
-// common part of WX_DELEGATE_TO_CONTROL_CONTAINER in the native and generic
-// cases, must be used in the wxWindow-derived class implementation
-#define WX_DELEGATE_TO_CONTROL_CONTAINER_BASE(classname, basename)            \
-    void classname::AddChild(wxWindowBase *child)                             \
-    {                                                                         \
-        basename::AddChild(child);                                            \
-                                                                              \
-        m_container.UpdateCanFocusChildren();                                 \
-    }                                                                         \
-                                                                              \
-    bool classname::AcceptsFocusRecursively() const                           \
-    {                                                                         \
-        return m_container.AcceptsFocusRecursively();                         \
-    }                                                                         \
-                                                                              \
-    void classname::SetFocus()                                                \
-    {                                                                         \
-        if ( !m_container.DoSetFocus() )                                      \
-            basename::SetFocus();                                             \
-    }                                                                         \
-                                                                              \
-    bool classname::AcceptsFocus() const                                      \
-    {                                                                         \
-        return m_container.AcceptsFocus();                                    \
-    }                                                                         \
-                                                                              \
-    bool classname::AcceptsFocusFromKeyboard() const                          \
-    {                                                                         \
-        return m_container.AcceptsFocusFromKeyboard();                        \
-    }
-
-
-#ifdef wxHAS_NATIVE_TAB_TRAVERSAL
-
-#define WX_EVENT_TABLE_CONTROL_CONTAINER(classname)
-
-#define WX_DECLARE_CONTROL_CONTAINER WX_DECLARE_CONTROL_CONTAINER_BASE
-
-#define WX_DELEGATE_TO_CONTROL_CONTAINER(classname, basename)                 \
-    WX_DELEGATE_TO_CONTROL_CONTAINER_BASE(classname, basename)                \
-                                                                              \
-    void classname::RemoveChild(wxWindowBase *child)                          \
-    {                                                                         \
-        basename::RemoveChild(child);                                         \
-                                                                              \
-        m_container.UpdateCanFocusChildren();                                 \
-    }                                                                         \
-                                                                              \
-    void classname::SetFocusIgnoringChildren()                                \
-    {                                                                         \
-        basename::SetFocus();                                                 \
-    }
-
-#else // !wxHAS_NATIVE_TAB_TRAVERSAL
-
-// declare the methods to be forwarded
-#define WX_DECLARE_CONTROL_CONTAINER()                                        \
-    WX_DECLARE_CONTROL_CONTAINER_BASE();                                      \
-                                                                              \
-public:                                                                       \
-    void OnNavigationKey(wxNavigationKeyEvent& event);                        \
-    void OnFocus(wxFocusEvent& event);                                        \
-    virtual void OnChildFocus(wxChildFocusEvent& event)
-
-// implement the event table entries for wxControlContainer
-#define WX_EVENT_TABLE_CONTROL_CONTAINER(classname) \
-    EVT_SET_FOCUS(classname::OnFocus) \
-    EVT_CHILD_FOCUS(classname::OnChildFocus) \
-    EVT_NAVIGATION_KEY(classname::OnNavigationKey)
-
-// implement the methods forwarding to the wxControlContainer
-#define WX_DELEGATE_TO_CONTROL_CONTAINER(classname, basename)                 \
-    WX_DELEGATE_TO_CONTROL_CONTAINER_BASE(classname, basename)                \
-                                                                              \
-    void classname::RemoveChild(wxWindowBase *child)                          \
-    {                                                                         \
-        m_container.HandleOnWindowDestroy(child);                             \
-                                                                              \
-        basename::RemoveChild(child);                                         \
-                                                                              \
-        m_container.UpdateCanFocusChildren();                                 \
-    }                                                                         \
-                                                                              \
-    void classname::OnNavigationKey( wxNavigationKeyEvent& event )            \
-    {                                                                         \
-        m_container.HandleOnNavigationKey(event);                             \
-    }                                                                         \
-                                                                              \
-    void classname::SetFocusIgnoringChildren()                                \
-    {                                                                         \
-        basename::SetFocus();                                                 \
-    }                                                                         \
-                                                                              \
-    void classname::OnChildFocus(wxChildFocusEvent& event)                    \
-    {                                                                         \
-        m_container.SetLastFocus(event.GetWindow());                          \
-        event.Skip();                                                         \
-    }                                                                         \
-                                                                              \
-    void classname::OnFocus(wxFocusEvent& event)                              \
-    {                                                                         \
-        m_container.HandleOnFocus(event);                                     \
-    }
-
-#endif // wxHAS_NATIVE_TAB_TRAVERSAL/!wxHAS_NATIVE_TAB_TRAVERSAL
-
-#endif // WXWIN_COMPATIBILITY_2_8
 
 #endif // _WX_CONTAINR_H_

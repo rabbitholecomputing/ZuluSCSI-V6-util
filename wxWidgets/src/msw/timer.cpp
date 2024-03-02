@@ -11,40 +11,39 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_TIMER
 
 #include "wx/msw/private/timer.h"
 
 #ifndef WX_PRECOMP
-    #include "wx/list.h"
     #include "wx/event.h"
     #include "wx/app.h"
     #include "wx/intl.h"
     #include "wx/log.h"
-    #include "wx/hashmap.h"
     #include "wx/module.h"
 #endif
 
 #include "wx/msw/private.h"
 #include "wx/msw/private/hiddenwin.h"
 
+#include <unordered_map>
+
 // ----------------------------------------------------------------------------
 // private globals
 // ----------------------------------------------------------------------------
 
+namespace
+{
+
 // define a hash containing all the timers: it is indexed by timer id and
 // contains the corresponding timer
-WX_DECLARE_HASH_MAP(WPARAM, wxMSWTimerImpl *, wxIntegerHash, wxIntegerEqual,
-                    wxTimerMap);
+using wxTimerMap = std::unordered_map<WPARAM, wxMSWTimerImpl*>;
 
 // instead of using a global here, wrap it in a static function as otherwise it
 // could have been used before being initialized if a timer object were created
 // globally
-static wxTimerMap& TimerMap()
+wxTimerMap& TimerMap()
 {
     static wxTimerMap s_timerMap;
 
@@ -67,14 +66,14 @@ UINT_PTR GetNewTimerId(wxMSWTimerImpl *t)
     return lastTimerId;
 }
 
-
+} // anonymous namespace
 
 // ----------------------------------------------------------------------------
 // private functions
 // ----------------------------------------------------------------------------
 
-LRESULT APIENTRY _EXPORT wxTimerWndProc(HWND hWnd, UINT message,
-                                        WPARAM wParam, LPARAM lParam);
+LRESULT APIENTRY
+wxTimerWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 // ----------------------------------------------------------------------------
 // wxTimerHiddenWindowModule: used to manage the hidden window used for
@@ -86,8 +85,8 @@ class wxTimerHiddenWindowModule : public wxModule
 {
 public:
     // module init/finalize
-    virtual bool OnInit();
-    virtual void OnExit();
+    virtual bool OnInit() override;
+    virtual void OnExit() override;
 
     // get the hidden window (creates on demand)
     static HWND GetHWND();
@@ -99,10 +98,10 @@ private:
     // the class used to create it
     static const wxChar *ms_className;
 
-    DECLARE_DYNAMIC_CLASS(wxTimerHiddenWindowModule)
+    wxDECLARE_DYNAMIC_CLASS(wxTimerHiddenWindowModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxTimerHiddenWindowModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTimerHiddenWindowModule, wxModule);
 
 // ============================================================================
 // implementation
@@ -126,7 +125,7 @@ bool wxMSWTimerImpl::Start(int milliseconds, bool oneShot)
               wxTimerHiddenWindowModule::GetHWND(),  // window for WM_TIMER
               m_id,                                  // timer ID to create
               (UINT)m_milli,                         // delay
-              NULL                                   // timer proc (unused)
+              nullptr                                // timer proc (unused)
              );
 
     if ( ret == 0 )
@@ -161,8 +160,8 @@ void wxProcessTimer(wxMSWTimerImpl& timer)
 }
 
 
-LRESULT APIENTRY _EXPORT wxTimerWndProc(HWND hWnd, UINT message,
-                                        WPARAM wParam, LPARAM lParam)
+LRESULT APIENTRY
+wxTimerWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if ( message == WM_TIMER )
     {
@@ -186,13 +185,13 @@ LRESULT APIENTRY _EXPORT wxTimerWndProc(HWND hWnd, UINT message,
 // ----------------------------------------------------------------------------
 
 
-HWND wxTimerHiddenWindowModule::ms_hwnd = NULL;
+HWND wxTimerHiddenWindowModule::ms_hwnd = nullptr;
 
-const wxChar *wxTimerHiddenWindowModule::ms_className = NULL;
+const wxChar *wxTimerHiddenWindowModule::ms_className = nullptr;
 
 bool wxTimerHiddenWindowModule::OnInit()
 {
-    // do not initialize ms_hwnd to ms_className to NULL here: it may happen
+    // do not initialize ms_hwnd to ms_className to nullptr here: it may happen
     // that our GetHWND() is called before the modules are initialized if a
     // timer is created from wxApp-derived class ctor and in this case we
     // shouldn't overwrite it
@@ -209,7 +208,7 @@ void wxTimerHiddenWindowModule::OnExit()
             wxLogLastError(wxT("DestroyWindow(wxTimerHiddenWindow)"));
         }
 
-        ms_hwnd = NULL;
+        ms_hwnd = nullptr;
     }
 
     if ( ms_className )
@@ -219,7 +218,7 @@ void wxTimerHiddenWindowModule::OnExit()
             wxLogLastError(wxT("UnregisterClass(\"wxTimerHiddenWindow\")"));
         }
 
-        ms_className = NULL;
+        ms_className = nullptr;
     }
 }
 

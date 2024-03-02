@@ -2,7 +2,6 @@
 // Name:        wx/region.h
 // Purpose:     Base header for wxRegion
 // Author:      Julian Smart
-// Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
@@ -181,8 +180,7 @@ protected:
 // implement individual wxRegion operations, factor out the common code for the
 // ports with Combine() in this class
 #if defined(__WXMSW__) || \
-    ( defined(__WXMAC__) && wxOSX_USE_COCOA_OR_CARBON ) || \
-    defined(__WXPM__)
+    ( defined(__WXMAC__) && wxOSX_USE_COCOA_OR_CARBON )
 
 #define wxHAS_REGION_COMBINE
 
@@ -202,31 +200,27 @@ protected:
     virtual bool DoCombine(const wxRegion& region, wxRegionOp op) = 0;
 
     // implement some wxRegionBase pure virtuals in terms of Combine()
-    virtual bool DoUnionWithRect(const wxRect& rect);
-    virtual bool DoUnionWithRegion(const wxRegion& region);
-    virtual bool DoIntersect(const wxRegion& region);
-    virtual bool DoSubtract(const wxRegion& region);
-    virtual bool DoXor(const wxRegion& region);
+    virtual bool DoUnionWithRect(const wxRect& rect) override;
+    virtual bool DoUnionWithRegion(const wxRegion& region) override;
+    virtual bool DoIntersect(const wxRegion& region) override;
+    virtual bool DoSubtract(const wxRegion& region) override;
+    virtual bool DoXor(const wxRegion& region) override;
 };
 
 #endif // ports with wxRegion::Combine()
 
 #if defined(__WXMSW__)
     #include "wx/msw/region.h"
-#elif defined(__WXGTK20__)
-    #include "wx/gtk/region.h"
 #elif defined(__WXGTK__)
-    #include "wx/gtk1/region.h"
-#elif defined(__WXMOTIF__) || defined(__WXX11__)
+    #include "wx/gtk/region.h"
+#elif defined(__WXX11__)
     #include "wx/x11/region.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/region.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/region.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/region.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/region.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/region.h"
 #endif
 
 // ----------------------------------------------------------------------------

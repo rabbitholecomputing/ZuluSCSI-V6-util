@@ -18,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_MARKUP
 
@@ -282,7 +279,7 @@ bool wxMarkupParser::Parse(const wxString& text)
                     // and doesn't need to be defined if they're not compiled
                     // at all (it actually would result in unused variable
                     // messages in this case).
-#if wxUSE_LOG_DEBUG || !defined(HAVE_VARIADIC_MACROS)
+#if wxUSE_LOG_DEBUG
                     // Remember the tag starting position for the error
                     // messages.
                     const size_t pos = it - text.begin();
@@ -297,7 +294,7 @@ bool wxMarkupParser::Parse(const wxString& text)
                     const wxString tag = ExtractUntil('>', it, end);
                     if ( tag.empty() )
                     {
-                        wxLogDebug("%s at %lu.",
+                        wxLogDebug("%s at %zu.",
                                    it == end ? "Unclosed tag starting"
                                              : "Empty tag",
                                    pos);
@@ -314,7 +311,7 @@ bool wxMarkupParser::Parse(const wxString& text)
                         if ( !err.empty() )
                         {
                             wxLogDebug("Bad attributes for \"%s\" "
-                                       "at %lu: %s.",
+                                       "at %zu: %s.",
                                        name, pos, err);
                             return false;
                         }
@@ -325,7 +322,7 @@ bool wxMarkupParser::Parse(const wxString& text)
                     {
                         if ( tags.empty() || tags.top().name != tag )
                         {
-                            wxLogDebug("Unmatched closing tag \"%s\" at %lu.",
+                            wxLogDebug("Unmatched closing tag \"%s\" at %zu.",
                                        tag, pos);
                             return false;
                         }
@@ -333,7 +330,7 @@ bool wxMarkupParser::Parse(const wxString& text)
 
                     if ( !OutputTag(tags.top(), start) )
                     {
-                        wxLogDebug("Unknown tag at %lu.", pos);
+                        wxLogDebug("Unknown tag at %zu.", pos);
                         return false;
                     }
 
@@ -343,7 +340,7 @@ bool wxMarkupParser::Parse(const wxString& text)
                 break;
 
             case '>':
-                wxLogDebug("'>' should be escaped as \"&gt\"; at %lu.",
+                wxLogDebug("'>' should be escaped as \"&gt\"; at %zu.",
                            it - text.begin());
                 break;
 
@@ -371,12 +368,7 @@ bool wxMarkupParser::Parse(const wxString& text)
                         if ( text.compare(pos, xmlEnt.len, xmlEnt.name) == 0
                                 && text[pos + xmlEnt.len] == ';' )
                         {
-                            // Escape the ampersands if needed to protect them
-                            // from being interpreted as mnemonics indicators.
-                            if ( xmlEnt.value == '&' )
-                                current += "&&";
-                            else
-                                current += xmlEnt.value;
+                            current += xmlEnt.value;
 
                             it += xmlEnt.len + 1; // +1 for '&' itself
 
@@ -386,7 +378,7 @@ bool wxMarkupParser::Parse(const wxString& text)
 
                     if ( n < WXSIZEOF(xmlEntities) )
                         break;
-                    //else: fall through, '&' is not special
+                    wxFALLTHROUGH;//else: fall through, '&' is not special
                 }
 
             default:
@@ -442,31 +434,31 @@ wxString wxMarkupParser::Strip(const wxString& text)
 
         const wxString& GetText() const { return m_text; }
 
-        virtual void OnText(const wxString& text) { m_text += text; }
+        virtual void OnText(const wxString& string) override { m_text += string; }
 
-        virtual void OnBoldStart() { }
-        virtual void OnBoldEnd() { }
+        virtual void OnBoldStart() override { }
+        virtual void OnBoldEnd() override { }
 
-        virtual void OnItalicStart() { }
-        virtual void OnItalicEnd() { }
+        virtual void OnItalicStart() override { }
+        virtual void OnItalicEnd() override { }
 
-        virtual void OnUnderlinedStart() { }
-        virtual void OnUnderlinedEnd() { }
+        virtual void OnUnderlinedStart() override { }
+        virtual void OnUnderlinedEnd() override { }
 
-        virtual void OnStrikethroughStart() { }
-        virtual void OnStrikethroughEnd() { }
+        virtual void OnStrikethroughStart() override { }
+        virtual void OnStrikethroughEnd() override { }
 
-        virtual void OnBigStart() { }
-        virtual void OnBigEnd() { }
+        virtual void OnBigStart() override { }
+        virtual void OnBigEnd() override { }
 
-        virtual void OnSmallStart() { }
-        virtual void OnSmallEnd() { }
+        virtual void OnSmallStart() override { }
+        virtual void OnSmallEnd() override { }
 
-        virtual void OnTeletypeStart() { }
-        virtual void OnTeletypeEnd() { }
+        virtual void OnTeletypeStart() override { }
+        virtual void OnTeletypeEnd() override { }
 
-        virtual void OnSpanStart(const wxMarkupSpanAttributes& WXUNUSED(a)) { }
-        virtual void OnSpanEnd(const wxMarkupSpanAttributes& WXUNUSED(a)) { }
+        virtual void OnSpanStart(const wxMarkupSpanAttributes& WXUNUSED(a)) override { }
+        virtual void OnSpanEnd(const wxMarkupSpanAttributes& WXUNUSED(a)) override { }
 
     private:
         wxString m_text;

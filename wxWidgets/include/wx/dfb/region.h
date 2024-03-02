@@ -17,6 +17,7 @@ public:
     wxRegion(wxCoord x, wxCoord y, wxCoord w, wxCoord h);
     wxRegion(const wxPoint& topLeft, const wxPoint& bottomRight);
     wxRegion(const wxRect& rect);
+    wxRegion(size_t n, const wxPoint *points, wxPolygonFillMode fillStyle = wxODDEVEN_RULE);
     wxRegion(const wxBitmap& bmp)
     {
         Union(bmp);
@@ -58,14 +59,14 @@ protected:
 
     friend class WXDLLIMPEXP_FWD_CORE wxRegionIterator;
 
-    DECLARE_DYNAMIC_CLASS(wxRegion);
+    wxDECLARE_DYNAMIC_CLASS(wxRegion);
 };
 
 
 class WXDLLIMPEXP_CORE wxRegionIterator : public wxObject
 {
 public:
-    wxRegionIterator() {}
+    wxRegionIterator() = default;
     wxRegionIterator(const wxRegion& region) { Reset(region); }
 
     void Reset() { m_rect = wxRect(); }
@@ -88,7 +89,7 @@ public:
 private:
     wxRect m_rect;
 
-    DECLARE_DYNAMIC_CLASS(wxRegionIterator);
+    wxDECLARE_DYNAMIC_CLASS(wxRegionIterator);
 };
 
 #endif // _WX_DFB_REGION_H_

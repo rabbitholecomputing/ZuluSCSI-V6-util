@@ -17,16 +17,16 @@
 class WXDLLIMPEXP_CORE wxPopupWindow: public wxPopupWindowBase
 {
 public:
-    wxPopupWindow() { }
+    wxPopupWindow() = default;
     virtual ~wxPopupWindow();
 
     wxPopupWindow(wxWindow *parent, int flags = wxBORDER_NONE)
         { (void)Create(parent, flags); }
     bool Create(wxWindow *parent, int flags = wxBORDER_NONE);
 
-    virtual bool Show(bool show = true);
+    virtual bool Show(bool show = true) override;
 
-    virtual void SetFocus();
+    virtual void SetFocus() override;
 
     // implementation
     // --------------
@@ -37,14 +37,14 @@ public:
 protected:
     virtual void DoSetSize(int x, int y,
                            int width, int height,
-                           int sizeFlags = wxSIZE_AUTO);
+                           int sizeFlags = wxSIZE_AUTO) override;
 
-    virtual void DoMoveWindow(int x, int y, int width, int height);
+    virtual void DoMoveWindow(int x, int y, int width, int height) override;
 
 #ifdef __WXUNIVERSAL__
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 #endif
-    DECLARE_DYNAMIC_CLASS(wxPopupWindow)
+    wxDECLARE_DYNAMIC_CLASS(wxPopupWindow);
 };
 
 #endif // _WX_GTK_POPUPWIN_H_

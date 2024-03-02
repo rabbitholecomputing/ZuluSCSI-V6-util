@@ -29,8 +29,6 @@ enum wxDateTimeWidgetKind
 class wxDateTimeWidgetImpl
 #if wxOSX_USE_COCOA
     : public wxWidgetCocoaImpl
-#elif wxOSX_USE_CARBON
-    : public wxMacControl
 #else
     #error "Unsupported platform"
 #endif
@@ -50,7 +48,7 @@ public:
     virtual void SetDateRange(const wxDateTime& dt1, const wxDateTime& dt2) = 0;
     virtual bool GetDateRange(wxDateTime* dt1, wxDateTime* dt2) = 0;
 
-    virtual ~wxDateTimeWidgetImpl() { }
+    virtual ~wxDateTimeWidgetImpl() = default;
 
 protected:
 #if wxOSX_USE_COCOA
@@ -58,10 +56,6 @@ protected:
         : wxWidgetCocoaImpl(wxpeer, view)
     {
     }
-#elif wxOSX_USE_CARBON
-    // There is no Carbon implementation of this control yet so we don't need
-    // any ctor for it yet but it should be added here if Carbon version is
-    // written later.
 #endif
 };
 

@@ -2,7 +2,6 @@
 // Name:        wx/univ/gauge.h
 // Purpose:     wxUniversal wxGauge declaration
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     20.02.01
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -27,7 +26,7 @@ public:
             const wxSize& size = wxDefaultSize,
             long style = wxGA_HORIZONTAL,
             const wxValidator& validator = wxDefaultValidator,
-            const wxString& name = wxGaugeNameStr)
+            const wxString& name = wxASCII_STR(wxGaugeNameStr))
     {
         Init();
 
@@ -41,11 +40,11 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = wxGA_HORIZONTAL,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxGaugeNameStr);
+                const wxString& name = wxASCII_STR(wxGaugeNameStr));
 
     // implement base class virtuals
-    virtual void SetRange(int range);
-    virtual void SetValue(int pos);
+    virtual void SetRange(int range) override;
+    virtual void SetValue(int pos) override;
 
     // wxUniv-specific methods
 
@@ -60,15 +59,15 @@ protected:
     void Init();
 
     // return the def border for a progress bar
-    virtual wxBorder GetDefaultBorder() const;
+    virtual wxBorder GetDefaultBorder() const override;
 
     // return the default size
-    virtual wxSize DoGetBestClientSize() const;
+    virtual wxSize DoGetBestClientSize() const override;
 
     // draw the control
-    virtual void DoDraw(wxControlRenderer *renderer);
+    virtual void DoDraw(wxControlRenderer *renderer) override;
 
-    DECLARE_DYNAMIC_CLASS(wxGauge)
+    wxDECLARE_DYNAMIC_CLASS(wxGauge);
 };
 
 #endif // _WX_UNIV_GAUGE_H_

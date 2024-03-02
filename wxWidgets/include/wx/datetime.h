@@ -3,7 +3,6 @@
 // Purpose:     declarations of time/date related classes (wxDateTime,
 //              wxTimeSpan)
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     10.02.99
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -16,11 +15,9 @@
 
 #if wxUSE_DATETIME
 
-#ifdef __WXWINCE__
-    #include "wx/msw/wince/time.h"
-#else
-    #include <time.h>
-#endif // OS
+#include <time.h>
+
+#include <vector>
 
 #include <limits.h>             // for INT_MIN
 
@@ -49,7 +46,7 @@ struct _SYSTEMTIME;
  * ? 2. getdate() function like under Solaris
  * + 3. text conversion for wxDateSpan
  * + 4. pluggable modules for the workdays calculations
- *   5. wxDateTimeHolidayAuthority for Easter and other christian feasts
+ *   5. wxDateTimeHolidayAuthority Christian feasts outside of US
  */
 
 /*
@@ -120,8 +117,8 @@ extern WXDLLIMPEXP_DATA_BASE(const wxDateTime) wxDefaultDateTime;
 // if configure detected strftime(), we have it too
 #ifdef HAVE_STRFTIME
     #define wxHAS_STRFTIME
-// suppose everyone else has strftime except Win CE unless VC8 is used
-#elif !defined(__WXWINCE__) || defined(__VISUALC8__)
+// suppose everyone else has strftime
+#else
     #define wxHAS_STRFTIME
 #endif
 
@@ -227,11 +224,6 @@ public:
         //
         // TODO move this to intl.h
 
-// Required for WinCE
-#ifdef USA
-#undef USA
-#endif
-
     enum Country
     {
         Country_Unknown, // no special information for this country
@@ -274,11 +266,19 @@ public:
         // flags for GetWeekDayName and GetMonthName
     enum NameFlags
     {
-        Name_Full = 0x01,       // return full name
-        Name_Abbr = 0x02        // return abbreviated name
+        Name_Full = 0x01,        // return full name
+        Name_Abbr = 0x02,        // return abbreviated name
+        Name_Shortest = 0x03     // return shortest name
     };
 
-        // flags for GetWeekOfYear and GetWeekOfMonth
+    // context for GetWeekDayName and GetMonthName
+    enum NameContext
+    {
+        Context_Formatting,      // return name for date formatting context
+        Context_Standalone       // return name for standalone context
+    };
+
+    // flags for GetWeekOfYear and GetWeekOfMonth
     enum WeekFlags
     {
         Default_First,   // Sunday_First for US, Monday_First for the rest
@@ -286,8 +286,39 @@ public:
         Sunday_First     // week starts with a Sunday
     };
 
+    // Currently we assume that DST is always shifted by 1 hour, this seems to
+    // be always true in practice. If this ever needs to change, search for all
+    // places using DST_OFFSET and update them.
+    enum
+    {
+        DST_OFFSET = 3600
+    };
+
+
     // helper classes
     // ------------------------------------------------------------------------
+
+        // Describes the form of the month or week-day name.
+    class NameForm
+    {
+    public:
+        // Ctor is non-explicit for compatibility.
+        NameForm(NameFlags flags = Name_Full) : m_flags(flags) {}
+
+        // Chainable methods allowing to set various fields.
+        NameForm& Full() { m_flags = Name_Full; return *this; }
+        NameForm& Abbr() { m_flags = Name_Abbr; return *this; }
+        NameForm& Shortest() { m_flags = Name_Shortest; return *this; }
+        NameForm& Formatting() { m_context = Context_Formatting; return *this; }
+        NameForm& Standalone() { m_context = Context_Standalone; return *this; }
+
+        NameFlags GetFlags() const { return m_flags; }
+        NameContext GetContext() const { return m_context; }
+
+    private:
+        NameFlags m_flags;
+        NameContext m_context = Context_Formatting;
+    };
 
         // a class representing a time zone: basically, this is just an offset
         // (in seconds) from GMT
@@ -306,7 +337,9 @@ public:
             return tz;
         }
 
-        long GetOffset() const { return m_offset; }
+        bool IsLocal() const { return m_offset == -1; }
+
+        long GetOffset() const;
 
     private:
         // offset for this timezone from GMT in seconds
@@ -392,6 +425,9 @@ public:
         // returns true if the given year is a leap year in the given calendar
     static bool IsLeapYear(int year = Inv_Year, Calendar cal = Gregorian);
 
+        // acquires the first day of week based on locale and/or OS settings
+    static bool GetFirstWeekDay(WeekDay *firstDay);
+
         // get the century (19 for 1999, 20 for 2000 and -5 for 492 BC)
     static int GetCentury(int year);
 
@@ -406,23 +442,23 @@ public:
                                         Calendar cal = Gregorian);
 
 
-        // get the full (default) or abbreviated month name in the current
+        // get the full (default), abbreviated or shortest month name in the current
         // locale, returns empty string on error
     static wxString GetMonthName(Month month,
-                                 NameFlags flags = Name_Full);
+                                 const NameForm& form = {});
 
-        // get the standard English full (default) or abbreviated month name
+        // get the standard English full (default), abbreviated or shortest month name
     static wxString GetEnglishMonthName(Month month,
-                                        NameFlags flags = Name_Full);
+                                        const NameForm& form = {});
 
-        // get the full (default) or abbreviated weekday name in the current
+        // get the full (default), abbreviated or shortest weekday name in the current
         // locale, returns empty string on error
     static wxString GetWeekDayName(WeekDay weekday,
-                                   NameFlags flags = Name_Full);
+                                   const NameForm& form = {});
 
-        // get the standard English full (default) or abbreviated weekday name
+        // get the standard English full (default), abbreviated or shortest weekday name
     static wxString GetEnglishWeekDayName(WeekDay weekday,
-                                          NameFlags flags = Name_Full);
+                                          const NameForm& form = {});
 
         // get the AM and PM strings in the current locale (may be empty)
     static void GetAmPmStrings(wxString *am, wxString *pm);
@@ -459,13 +495,10 @@ public:
     // ------------------------------------------------------------------------
 
         // default ctor does not initialize the object, use Set()!
-    wxDateTime() { m_time = wxLongLong(wxINT32_MIN, 0); }
+    wxDateTime() : m_time(wxINT64_MIN) { }
 
         // from time_t: seconds since the Epoch 00:00:00 UTC, Jan 1, 1970)
-#if (!(defined(__VISAGECPP__) && __IBMCPP__ >= 400))
-// VA C++ confuses this with wxDateTime(double jdn) thinking it is a duplicate declaration
     inline wxDateTime(time_t timet);
-#endif
         // from broken down time/date (only for standard Unix range)
     inline wxDateTime(const struct tm& tm);
         // from broken down time/date (any range)
@@ -506,11 +539,8 @@ public:
         // set to the current time
     inline wxDateTime& SetToCurrent();
 
-#if (!(defined(__VISAGECPP__) && __IBMCPP__ >= 400))
-// VA C++ confuses this with wxDateTime(double jdn) thinking it is a duplicate declaration
         // set to given time_t value
     inline wxDateTime& Set(time_t timet);
-#endif
 
         // set to given broken down time/date
     wxDateTime& Set(const struct tm& tm);
@@ -612,21 +642,6 @@ public:
     inline wxDateTime GetLastWeekDay(WeekDay weekday,
                                      Month month = Inv_Month,
                                      int year = Inv_Year);
-
-#if WXWIN_COMPATIBILITY_2_6
-        // sets the date to the given day of the given week in the year,
-        // returns true on success and false if given date doesn't exist (e.g.
-        // numWeek is > 53)
-        //
-        // these functions are badly defined as they're not the reverse of
-        // GetWeekOfYear(), use SetToTheWeekOfYear() instead
-    wxDEPRECATED( bool SetToTheWeek(wxDateTime_t numWeek,
-                                    WeekDay weekday = Mon,
-                                    WeekFlags flags = Monday_First) );
-    wxDEPRECATED( wxDateTime GetWeek(wxDateTime_t numWeek,
-                                     WeekDay weekday = Mon,
-                                     WeekFlags flags = Monday_First) const );
-#endif // WXWIN_COMPATIBILITY_2_6
 
         // returns the date corresponding to the given week day of the given
         // week (in ISO notation) of the specified year
@@ -734,12 +749,12 @@ public:
     // ------------------------------------------------------------------------
 
         // is the date valid?
-    inline bool IsValid() const { return m_time != wxInvalidDateTime.m_time; }
+    inline bool IsValid() const { return m_time != wxLongLong(wxINT64_MIN); }
 
         // get the broken down date/time representation in the given timezone
         //
         // If you wish to get several time components (day, month and year),
-        // consider getting the whole Tm strcuture first and retrieving the
+        // consider getting the whole Tm structure first and retrieving the
         // value from it - this is much more efficient
     Tm GetTm(const TimeZone& tz = Local) const;
 
@@ -781,6 +796,9 @@ public:
         // invalid)
     wxDateTime_t GetWeekOfYear(WeekFlags flags = Monday_First,
                                const TimeZone& tz = Local) const;
+        // get the year to which the number returned from GetWeekOfYear()
+        // belongs
+    int GetWeekBasedYear(const TimeZone& tz = Local) const;
         // get the week number since the month start (1..5, 0 if date is
         // invalid)
     wxDateTime_t GetWeekOfMonth(WeekFlags flags = Monday_First,
@@ -843,41 +861,38 @@ public:
 
     inline bool operator<(const wxDateTime& dt) const
     {
-        wxASSERT_MSG( IsValid() && dt.IsValid(), wxT("invalid wxDateTime") );
         return GetValue() < dt.GetValue();
     }
 
     inline bool operator<=(const wxDateTime& dt) const
     {
-        wxASSERT_MSG( IsValid() && dt.IsValid(), wxT("invalid wxDateTime") );
         return GetValue() <= dt.GetValue();
     }
 
     inline bool operator>(const wxDateTime& dt) const
     {
-        wxASSERT_MSG( IsValid() && dt.IsValid(), wxT("invalid wxDateTime") );
         return GetValue() > dt.GetValue();
     }
 
     inline bool operator>=(const wxDateTime& dt) const
     {
-        wxASSERT_MSG( IsValid() && dt.IsValid(), wxT("invalid wxDateTime") );
         return GetValue() >= dt.GetValue();
     }
 
     inline bool operator==(const wxDateTime& dt) const
     {
-        wxASSERT_MSG( IsValid() && dt.IsValid(), wxT("invalid wxDateTime") );
-        return GetValue() == dt.GetValue();
+        // Intentionally do not call GetValue() here, in order that
+        // invalid wxDateTimes may be compared for equality
+        return m_time == dt.m_time;
     }
 
     inline bool operator!=(const wxDateTime& dt) const
     {
-        wxASSERT_MSG( IsValid() && dt.IsValid(), wxT("invalid wxDateTime") );
-        return GetValue() != dt.GetValue();
+        // As above, don't use GetValue() here.
+        return m_time != dt.m_time;
     }
 
-    // arithmetics with dates (see also below for more operators)
+    // arithmetic with dates (see also below for more operators)
     // ------------------------------------------------------------------------
 
         // return the sum of the date with a time span (positive or negative)
@@ -943,7 +958,7 @@ public:
 
     // all conversions functions return true to indicate whether parsing
     // succeeded or failed and fill in the provided end iterator, which must
-    // not be NULL, with the location of the character where the parsing
+    // not be null, with the location of the character where the parsing
     // stopped (this will be end() of the passed string if everything was
     // parsed)
 
@@ -971,7 +986,7 @@ public:
     bool ParseFormat(const wxString& date,
                      wxString::const_iterator *end)
     {
-        return ParseFormat(date, wxDefaultDateTimeFormat, wxDefaultDateTime, end);
+        return ParseFormat(date, wxASCII_STR(wxDefaultDateTimeFormat), wxDefaultDateTime, end);
     }
 
         // parse a string containing date, time or both in ISO 8601 format
@@ -1016,7 +1031,7 @@ public:
         // argument corresponds to the preferred date and time representation
         // for the current locale) and returns the string containing the
         // resulting text representation
-    wxString Format(const wxString& format = wxDefaultDateTimeFormat,
+    wxString Format(const wxString& format = wxASCII_STR(wxDefaultDateTimeFormat),
                     const TimeZone& tz = Local) const;
         // preferred date representation for the current locale
     wxString FormatDate() const { return Format(wxS("%x")); }
@@ -1037,7 +1052,7 @@ public:
 
     // backwards compatible versions of the parsing functions: they return an
     // object representing the next character following the date specification
-    // (i.e. the one where the scan had to stop) or a special NULL-like object
+    // (i.e. the one where the scan had to stop) or a special nullptr-like object
     // on failure
     //
     // they're not deprecated because a lot of existing code uses them and
@@ -1051,7 +1066,7 @@ public:
     }
 
     wxAnyStrPtr ParseFormat(const wxString& date,
-                            const wxString& format = wxDefaultDateTimeFormat,
+                            const wxString& format = wxASCII_STR(wxDefaultDateTimeFormat),
                             const wxDateTime& dateDef = wxDefaultDateTime)
     {
         wxString::const_iterator end;
@@ -1086,7 +1101,7 @@ public:
     // if the overloads above were used.
     //
     // And then we also have to provide the overloads for wxCStrData, as usual.
-    // Unfortunately those ones can't return anything as we don't have any
+    // Unfortunately those can't return anything as we don't have any
     // sufficiently long-lived wxAnyStrPtr to return from them: any temporary
     // strings it would point to would be destroyed when this function returns
     // making it impossible to dereference the return value. So we just don't
@@ -1100,14 +1115,14 @@ public:
     const wchar_t* ParseRfc822Date(const wchar_t* date);
 
     void ParseFormat(const wxCStrData& date,
-                     const wxString& format = wxDefaultDateTimeFormat,
+                     const wxString& format = wxASCII_STR(wxDefaultDateTimeFormat),
                      const wxDateTime& dateDef = wxDefaultDateTime)
         { ParseFormat(wxString(date), format, dateDef); }
     const char* ParseFormat(const char* date,
-                            const wxString& format = wxDefaultDateTimeFormat,
+                            const wxString& format = wxASCII_STR(wxDefaultDateTimeFormat),
                             const wxDateTime& dateDef = wxDefaultDateTime);
     const wchar_t* ParseFormat(const wchar_t* date,
-                               const wxString& format = wxDefaultDateTimeFormat,
+                               const wxString& format = wxASCII_STR(wxDefaultDateTimeFormat),
                                const wxDateTime& dateDef = wxDefaultDateTime);
 
     void ParseDateTime(const wxCStrData& datetime)
@@ -1130,13 +1145,13 @@ public:
     // ------------------------------------------------------------------------
 
         // construct from internal representation
-    wxDateTime(const wxLongLong& time) { m_time = time; }
+    wxDateTime(const wxLongLong& time) : m_time(time) { }
 
         // get the internal representation
     inline wxLongLong GetValue() const;
 
     // a helper function to get the current time_t
-    static time_t GetTimeNow() { return time(NULL); }
+    static time_t GetTimeNow() { return time(nullptr); }
 
     // another one to get the current time broken down
     static struct tm *GetTmNow()
@@ -1162,6 +1177,13 @@ private:
     // returns true if we fall in range in which we can use standard ANSI C
     // functions
     inline bool IsInStdRange() const;
+
+    // assign the preferred first day of a week to flags, if necessary
+    void UseEffectiveWeekDayFlags(WeekFlags &flags) const;
+
+    // parse time zone (e.g. "+0100") between [iterator,dateEnd)
+    bool ParseRFC822TimeZone(wxString::const_iterator* iterator,
+                             const wxString::const_iterator& dateEnd);
 
     // the internal representation of the time is the amount of milliseconds
     // elapsed since the origin which is set by convention to the UNIX/C epoch
@@ -1206,7 +1228,7 @@ public:
     static wxTimeSpan Week() { return Weeks(1); }
 
         // default ctor constructs the 0 time span
-    wxTimeSpan() { }
+    wxTimeSpan() = default;
 
         // from separate values for each component, date set to 0 (hours are
         // not restricted to 0..24 range, neither are minutes, seconds or
@@ -1220,7 +1242,7 @@ public:
 
         // no dtor
 
-    // arithmetics with time spans (see also below for more operators)
+    // arithmetic with time spans (see also below for more operators)
     // ------------------------------------------------------------------------
 
         // return the sum of two timespans
@@ -1240,7 +1262,7 @@ public:
     inline wxTimeSpan& Subtract(const wxTimeSpan& diff);
         // subtract another timespan
     wxTimeSpan& operator-=(const wxTimeSpan& diff) { return Subtract(diff); }
-    inline wxTimeSpan operator-(const wxTimeSpan& ts)
+    inline wxTimeSpan operator-(const wxTimeSpan& ts) const
     {
         return wxTimeSpan(GetValue() - ts.GetValue());
     }
@@ -1256,6 +1278,8 @@ public:
         return wxTimeSpan(*this).Multiply(n);
     }
 
+    friend WXDLLIMPEXP_BASE wxTimeSpan operator*(int n, const wxTimeSpan& ts);
+
         // return this timespan with opposite sign
     wxTimeSpan Negate() const { return wxTimeSpan(-GetValue()); }
         // negate the value of the timespan
@@ -1270,7 +1294,7 @@ public:
         // there is intentionally no division because we don't want to
         // introduce rounding errors in time calculations
 
-    // comparaison (see also operator versions below)
+    // comparison (see also operator versions below)
     // ------------------------------------------------------------------------
 
         // is the timespan null?
@@ -1350,13 +1374,13 @@ public:
         // resulting text representation. Notice that only some of format
         // specifiers valid for wxDateTime are valid for wxTimeSpan: hours,
         // minutes and seconds make sense, but not "PM/AM" string for example.
-    wxString Format(const wxString& format = wxDefaultTimeSpanFormat) const;
+    wxString Format(const wxString& format = wxASCII_STR(wxDefaultTimeSpanFormat)) const;
 
     // implementation
     // ------------------------------------------------------------------------
 
         // construct from internal representation
-    wxTimeSpan(const wxLongLong& diff) { m_diff = diff; }
+    wxTimeSpan(const wxLongLong& diff) : m_diff(diff) { }
 
         // get the internal representation
     wxLongLong GetValue() const { return m_diff; }
@@ -1461,7 +1485,7 @@ public:
         // returns 7*GetWeeks() + GetDays()
     int GetTotalDays() const { return 7*m_weeks + m_days; }
 
-    // arithmetics with date spans (see also below for more operators)
+    // arithmetic with date spans (see also below for more operators)
     // ------------------------------------------------------------------------
 
         // return sum of two date spans
@@ -1509,6 +1533,7 @@ public:
     {
         return wxDateSpan(*this).Multiply(n);
     }
+    friend WXDLLIMPEXP_BASE wxDateSpan operator*(int n, const wxDateSpan& ds);
 
     // ds1 == d2 if and only if for every wxDateTime t t + ds1 == t + ds2
     inline bool operator==(const wxDateSpan& ds) const
@@ -1534,7 +1559,7 @@ private:
 // wxDateTimeArray: array of dates.
 // ----------------------------------------------------------------------------
 
-WX_DECLARE_USER_EXPORTED_OBJARRAY(wxDateTime, wxDateTimeArray, WXDLLIMPEXP_BASE);
+using wxDateTimeArray = wxBaseArray<wxDateTime>;
 
 // ----------------------------------------------------------------------------
 // wxDateTimeHolidayAuthority: an object of this class will decide whether a
@@ -1579,13 +1604,7 @@ protected:
     virtual bool DoIsHoliday(const wxDateTime& dt) const = 0;
 
     // this function should fill the array with all holidays between the two
-    // given dates - it is implemented in the base class, but in a very
-    // inefficient way (it just iterates over all days and uses IsHoliday() for
-    // each of them), so it must be overridden in the derived class where the
-    // base class version may be explicitly used if needed
-    //
-    // returns the number of holidays in the given range and fills holidays
-    // array
+    // given dates
     virtual size_t DoGetHolidaysInRange(const wxDateTime& dtStart,
                                         const wxDateTime& dtEnd,
                                         wxDateTimeArray& holidays) const = 0;
@@ -1599,10 +1618,89 @@ private:
 class WXDLLIMPEXP_BASE wxDateTimeWorkDays : public wxDateTimeHolidayAuthority
 {
 protected:
-    virtual bool DoIsHoliday(const wxDateTime& dt) const;
+    virtual bool DoIsHoliday(const wxDateTime& dt) const override;
     virtual size_t DoGetHolidaysInRange(const wxDateTime& dtStart,
                                         const wxDateTime& dtEnd,
-                                        wxDateTimeArray& holidays) const;
+                                        wxDateTimeArray& holidays) const override;
+};
+
+// https://marian.org/mary/feast-days
+// https://www.omvusa.org/blog/catholic-holy-days-of-obligation/
+class WXDLLIMPEXP_BASE wxDateTimeUSCatholicFeasts : public wxDateTimeHolidayAuthority
+{
+public:
+    // Easter for a given year.
+    // Based on https://www.geeksforgeeks.org/how-to-calculate-the-easter-date-for-a-given-year-using-gauss-algorithm/
+    // Validated against 1600 to 2099, using data from:
+    // https://www.assa.org.au/edm (Astronomical Society of South Australia)
+    // https://www.census.gov/data/software/x13as/genhol/easter-dates.html (US Census Bureau)
+    static wxDateTime GetEaster(int year);
+
+    // Ascension for a given year.
+    // Celebrated on the 40th day of Easter/
+    // the sixth Thursday after Easter Sunday.
+    static wxDateTime GetThursdayAscension(int year)
+    {
+        const wxDateTime ascension = GetEaster(year) + wxDateSpan::Days(39);
+        wxASSERT_MSG(
+            ascension.GetWeekDay() == wxDateTime::WeekDay::Thu,
+            "Error in Ascension calculation!");
+        return ascension;
+    }
+
+    // Ascension for a given year.
+    // Same as traditional Ascension, but moved to the following Sunday.
+    static wxDateTime GetSundayAscension(int year)
+    {
+        const wxDateTime ascension = GetEaster(year) + wxDateSpan::Weeks(6);
+        wxASSERT_MSG(
+            ascension.GetWeekDay() == wxDateTime::WeekDay::Sun,
+            "Error in Ascension calculation!");
+        return ascension;
+    }
+protected:
+    bool DoIsHoliday(const wxDateTime& dt) const override
+    {
+        if (dt.IsSameDate(GetEaster(dt.GetYear())) ||
+            dt.IsSameDate(GetThursdayAscension(dt.GetYear())) )
+        {
+            return true;
+        }
+        for (const auto& feast : m_holyDaysOfObligation)
+        {
+            if (feast.GetMonth() == dt.GetMonth() &&
+                feast.GetDay() == dt.GetDay())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    size_t DoGetHolidaysInRange(const wxDateTime& dtStart,
+                                const wxDateTime& dtEnd,
+                                wxDateTimeArray& holidays) const override;
+private:
+    static std::vector<wxDateTime> m_holyDaysOfObligation;
+};
+
+// Christmas and Easter
+class WXDLLIMPEXP_BASE wxDateTimeChristianHolidays : public wxDateTimeUSCatholicFeasts
+{
+protected:
+    bool DoIsHoliday(const wxDateTime& dt) const override
+    {
+        if (dt.IsSameDate(GetEaster(dt.GetYear())) ||
+            (dt.GetMonth() == 12 && dt.GetDay() == 25))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    size_t DoGetHolidaysInRange(const wxDateTime& dtStart,
+                                const wxDateTime& dtEnd,
+                                wxDateTimeArray& holidays) const override;
 };
 
 // ============================================================================
@@ -1651,7 +1749,6 @@ inline wxDateTime wxDateTime::Today()
     return dt;
 }
 
-#if (!(defined(__VISAGECPP__) && __IBMCPP__ >= 400))
 inline wxDateTime& wxDateTime::Set(time_t timet)
 {
     if ( timet == (time_t)-1 )
@@ -1667,7 +1764,6 @@ inline wxDateTime& wxDateTime::Set(time_t timet)
 
     return *this;
 }
-#endif
 
 inline wxDateTime& wxDateTime::SetToCurrent()
 {
@@ -1675,12 +1771,10 @@ inline wxDateTime& wxDateTime::SetToCurrent()
     return *this;
 }
 
-#if (!(defined(__VISAGECPP__) && __IBMCPP__ >= 400))
 inline wxDateTime::wxDateTime(time_t timet)
 {
     Set(timet);
 }
-#endif
 
 inline wxDateTime::wxDateTime(const struct tm& tm)
 {
@@ -1805,23 +1899,17 @@ inline wxDateTime wxDateTime::GetYearDay(wxDateTime_t yday) const
 
 inline bool wxDateTime::IsEqualTo(const wxDateTime& datetime) const
 {
-    wxASSERT_MSG( IsValid() && datetime.IsValid(), wxT("invalid wxDateTime"));
-
-    return m_time == datetime.m_time;
+    return *this == datetime;
 }
 
 inline bool wxDateTime::IsEarlierThan(const wxDateTime& datetime) const
 {
-    wxASSERT_MSG( IsValid() && datetime.IsValid(), wxT("invalid wxDateTime"));
-
-    return m_time < datetime.m_time;
+    return *this < datetime;
 }
 
 inline bool wxDateTime::IsLaterThan(const wxDateTime& datetime) const
 {
-    wxASSERT_MSG( IsValid() && datetime.IsValid(), wxT("invalid wxDateTime"));
-
-    return m_time > datetime.m_time;
+    return *this > datetime;
 }
 
 inline bool wxDateTime::IsStrictlyBetween(const wxDateTime& t1,
@@ -1871,7 +1959,7 @@ inline bool wxDateTime::IsEqualUpTo(const wxDateTime& dt,
 }
 
 // ----------------------------------------------------------------------------
-// wxDateTime arithmetics
+// wxDateTime arithmetic
 // ----------------------------------------------------------------------------
 
 inline wxDateTime wxDateTime::Add(const wxTimeSpan& diff) const
@@ -2020,7 +2108,7 @@ inline int wxTimeSpan::GetWeeks() const
 }
 
 // ----------------------------------------------------------------------------
-// wxTimeSpan arithmetics
+// wxTimeSpan arithmetic
 // ----------------------------------------------------------------------------
 
 inline wxTimeSpan wxTimeSpan::Add(const wxTimeSpan& diff) const
@@ -2157,22 +2245,6 @@ inline wxDateSpan wxDateSpan::Subtract(const wxDateSpan& other) const
 #undef MILLISECONDS_PER_DAY
 
 #undef MODIFY_AND_RETURN
-
-// ============================================================================
-// binary operators
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// wxTimeSpan operators
-// ----------------------------------------------------------------------------
-
-wxTimeSpan WXDLLIMPEXP_BASE operator*(int n, const wxTimeSpan& ts);
-
-// ----------------------------------------------------------------------------
-// wxDateSpan
-// ----------------------------------------------------------------------------
-
-wxDateSpan WXDLLIMPEXP_BASE operator*(int n, const wxDateSpan& ds);
 
 // ============================================================================
 // other helper functions

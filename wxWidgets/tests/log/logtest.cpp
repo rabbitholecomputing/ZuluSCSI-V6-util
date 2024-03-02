@@ -12,9 +12,6 @@
 
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/log.h"
@@ -23,13 +20,13 @@
 
 #include "wx/scopeguard.h"
 
-#if WXWIN_COMPATIBILITY_2_8
-    // we override deprecated DoLog() and DoLogString() in this test, suppress
-    // warnings about it
-    #if wxCHECK_VISUALC_VERSION(7)
-        #pragma warning(disable: 4996)
-    #endif // VC++ 7+
-#endif // WXWIN_COMPATIBILITY_2_8
+#if wxUSE_LOG
+
+#ifdef __WINDOWS__
+    #include "wx/msw/wrapwin.h"
+#else
+    #include <errno.h>
+#endif
 
 // all calls to wxLogXXX() functions from this file will use this log component
 #define wxLOG_COMPONENT "test"
@@ -80,7 +77,7 @@ public:
 protected:
     virtual void DoLogRecord(wxLogLevel level,
                              const wxString& msg,
-                             const wxLogRecordInfo& info)
+                             const wxLogRecordInfo& info) override
     {
         m_logs[level] = msg;
         m_logsInfo[level] = info;
@@ -89,60 +86,6 @@ protected:
 private:
     wxDECLARE_NO_COPY_CLASS(TestLog);
 };
-
-#if WXWIN_COMPATIBILITY_2_8
-
-// log sink overriding the old DoLogXXX() functions should still work too
-
-// this one overrides DoLog(char*)
-class CompatTestLog : public TestLogBase
-{
-public:
-    CompatTestLog() { }
-
-protected:
-    virtual void DoLog(wxLogLevel level, const char *str, time_t WXUNUSED(t))
-    {
-        m_logs[level] = str;
-    }
-
-    // get rid of the warning about hiding the other overload
-    virtual void DoLog(wxLogLevel WXUNUSED(level),
-                       const wchar_t *WXUNUSED(str),
-                       time_t WXUNUSED(t))
-    {
-    }
-
-private:
-    wxDECLARE_NO_COPY_CLASS(CompatTestLog);
-};
-
-// and this one overload DoLogString(wchar_t*)
-class CompatTestLog2 : public wxLog
-{
-public:
-    CompatTestLog2() { }
-
-    const wxString& Get() const { return m_msg; }
-
-protected:
-    virtual void DoLogString(const wchar_t *msg, time_t WXUNUSED(t))
-    {
-        m_msg = msg;
-    }
-
-    // get rid of the warning
-    virtual void DoLogString(const char *WXUNUSED(msg), time_t WXUNUSED(t))
-    {
-    }
-
-private:
-    wxString m_msg;
-
-    wxDECLARE_NO_COPY_CLASS(CompatTestLog2);
-};
-
-#endif // WXWIN_COMPATIBILITY_2_8
 
 // ----------------------------------------------------------------------------
 // test class
@@ -153,8 +96,8 @@ class LogTestCase : public CppUnit::TestCase
 public:
     LogTestCase() { }
 
-    virtual void setUp();
-    virtual void tearDown();
+    virtual void setUp() override;
+    virtual void tearDown() override;
 
 private:
     CPPUNIT_TEST_SUITE( LogTestCase );
@@ -164,10 +107,6 @@ private:
 #if wxDEBUG_LEVEL
         CPPUNIT_TEST( Trace );
 #endif // wxDEBUG_LEVEL
-#if WXWIN_COMPATIBILITY_2_8
-        CPPUNIT_TEST( CompatLogger );
-        CPPUNIT_TEST( CompatLogger2 );
-#endif // WXWIN_COMPATIBILITY_2_8
         CPPUNIT_TEST( SysError );
         CPPUNIT_TEST( NoWarnings );
     CPPUNIT_TEST_SUITE_END();
@@ -178,10 +117,6 @@ private:
 #if wxDEBUG_LEVEL
     void Trace();
 #endif // wxDEBUG_LEVEL
-#if WXWIN_COMPATIBILITY_2_8
-    void CompatLogger();
-    void CompatLogger2();
-#endif // WXWIN_COMPATIBILITY_2_8
     void SysError();
     void NoWarnings();
 
@@ -242,7 +177,7 @@ void LogTestCase::Null()
 void LogTestCase::Component()
 {
     wxLogMessage("Message");
-    CPPUNIT_ASSERT_EQUAL( wxLOG_COMPONENT,
+    CPPUNIT_ASSERT_EQUAL( std::string(wxLOG_COMPONENT),
                           m_log->GetInfo(wxLOG_Message).component );
 
     // completely disable logging for this component
@@ -316,30 +251,6 @@ void LogTestCase::Trace()
 
 #endif // wxDEBUG_LEVEL
 
-#if WXWIN_COMPATIBILITY_2_8
-
-void LogTestCase::CompatLogger()
-{
-    CompatTestLog log;
-    wxLog * const logOld = wxLog::SetActiveTarget(&log);
-    wxON_BLOCK_EXIT1( wxLog::SetActiveTarget, logOld );
-
-    wxLogError("Old error");
-    CPPUNIT_ASSERT_EQUAL( "Old error", log.GetLog(wxLOG_Error) );
-}
-
-void LogTestCase::CompatLogger2()
-{
-    CompatTestLog2 log;
-    wxLog * const logOld = wxLog::SetActiveTarget(&log);
-    wxON_BLOCK_EXIT1( wxLog::SetActiveTarget, logOld );
-
-    wxLogWarning("Old warning");
-    CPPUNIT_ASSERT_EQUAL( "Old warning", log.Get() );
-}
-
-#endif // WXWIN_COMPATIBILITY_2_8
-
 void LogTestCase::SysError()
 {
     wxString s;
@@ -348,11 +259,13 @@ void LogTestCase::SysError()
     CPPUNIT_ASSERT( m_log->GetLog(wxLOG_Error).StartsWith("Error (", &s) );
     WX_ASSERT_MESSAGE( ("Error message is \"(%s\"", s), s.StartsWith("error 17") );
 
-    // The last error code seems to be set somewhere in MinGW CRT as its value
-    // is just not what we expect (ERROR_INVALID_PARAMETER instead of 0 and 0
-    // instead of ERROR_FILE_NOT_FOUND) so exclude the tests which rely on last
-    // error being preserved for this compiler.
-#ifndef __MINGW32__
+    // Try to ensure that the system error is 0.
+#ifdef __WINDOWS__
+    ::SetLastError(0);
+#else
+    errno = 0;
+#endif
+
     wxLogSysError("Success");
     CPPUNIT_ASSERT( m_log->GetLog(wxLOG_Error).StartsWith("Success (", &s) );
     WX_ASSERT_MESSAGE( ("Error message is \"(%s\"", s), s.StartsWith("error 0") );
@@ -361,7 +274,6 @@ void LogTestCase::SysError()
     wxLogSysError("Not found");
     CPPUNIT_ASSERT( m_log->GetLog(wxLOG_Error).StartsWith("Not found (", &s) );
     WX_ASSERT_MESSAGE( ("Error message is \"(%s\"", s), s.StartsWith("error 2") );
-#endif // __MINGW32__
 }
 
 void LogTestCase::NoWarnings()
@@ -384,3 +296,80 @@ void LogTestCase::NoWarnings()
 
     CPPUNIT_ASSERT_EQUAL( "If", m_log->GetLog(wxLOG_Error) );
 }
+
+// The following two functions (v, macroCompilabilityTest) are not run by
+// any test, and their purpose is merely to guarantee that the wx(V)LogXXX
+// macros compile without 'dangling else' warnings.
+#if defined(__clang__) || defined(__GNUC__)
+    // gcc 7 split -Wdangling-else from the much older -Wparentheses, so use
+    // the new warning if it's available or the old one otherwise.
+    #if wxCHECK_GCC_VERSION(7, 0)
+        #pragma GCC diagnostic error "-Wdangling-else"
+    #else
+        #pragma GCC diagnostic error "-Wparentheses"
+    #endif
+#endif
+
+static void v(int x, ...)
+{
+    va_list list;
+    va_start(list, x);
+
+    if (true)
+        wxVLogGeneric(Info, "vhello generic %d", list);
+    if (true)
+        wxVLogTrace(wxTRACE_Messages, "vhello trace %d", list);
+    if (true)
+        wxVLogError("vhello error %d", list);
+    if (true)
+        wxVLogMessage("vhello message %d", list);
+    if (true)
+        wxVLogVerbose("vhello verbose %d", list);
+    if (true)
+        wxVLogWarning("vhello warning %d", list);
+    if (true)
+        wxVLogFatalError("vhello fatal %d", list);
+    if (true)
+        wxVLogSysError("vhello syserror %d", list);
+    if (true)
+        wxVLogDebug("vhello debug %d", list);
+
+    va_end(list);
+}
+
+void macroCompilabilityTest()
+{
+    v(123, 456);
+    if (true)
+        wxLogGeneric(wxLOG_Info, "hello generic %d", 42);
+    if (true)
+        wxLogTrace(wxTRACE_Messages, "hello trace %d", 42);
+    if (true)
+        wxLogError("hello error %d", 42);
+    if (true)
+        wxLogMessage("hello message %d", 42);
+    if (true)
+        wxLogVerbose("hello verbose %d", 42);
+    if (true)
+        wxLogWarning("hello warning %d", 42);
+    if (true)
+        wxLogFatalError("hello fatal %d", 42);
+    if (true)
+        wxLogSysError("hello syserror %d", 42);
+    if (true)
+        wxLogDebug("hello debug %d", 42);
+}
+
+// This allows to check wxLogTrace() interactively by running this test with
+// WXTRACE=logtest.
+TEST_CASE("wxLog::Trace", "[log][.]")
+{
+    // Running this test without setting WXTRACE is useless.
+    REQUIRE( wxGetEnv("WXTRACE", nullptr) );
+
+    wxLogTrace("logtest", "Starting test");
+    wxMilliSleep(250);
+    wxLogTrace("logtest", "Ending test 1/4s later");
+}
+
+#endif // wxUSE_LOG

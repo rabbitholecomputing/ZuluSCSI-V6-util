@@ -13,6 +13,7 @@
 #define _WX_SAMPLES_DOCVIEW_DOCVIEW_H_
 
 #include "wx/docview.h"
+#include "wx/vector.h"
 
 class MyCanvas;
 
@@ -26,25 +27,34 @@ public:
 #if wxUSE_MDI_ARCHITECTURE
         Mode_MDI,   // MDI mode: multiple documents, single top level window
 #endif // wxUSE_MDI_ARCHITECTURE
+#if wxUSE_AUI
+        Mode_AUI,   // MDI AUI mode
+#endif // wxUSE_AUI
         Mode_SDI,   // SDI mode: multiple documents, multiple top level windows
         Mode_Single // single document mode (and hence single top level window)
     };
 
     MyApp();
+    MyApp(const MyApp&) = delete;
+    MyApp& operator=(const MyApp&) = delete;
 
     // override some wxApp virtual methods
-    virtual bool OnInit();
-    virtual int OnExit();
+    virtual bool OnInit() override;
+    virtual int OnExit() override;
 
-    virtual void OnInitCmdLine(wxCmdLineParser& parser);
-    virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
+    virtual void OnInitCmdLine(wxCmdLineParser& parser) override;
+    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) override;
+
+#ifdef __WXMAC__
+    virtual void MacNewFile() override;
+#endif // __WXMAC__
 
     // our specific methods
     Mode GetMode() const { return m_mode; }
     wxFrame *CreateChildFrame(wxView *view, bool isCanvas);
 
     // these accessors should only be called in single document mode, otherwise
-    // the pointers are NULL and an assert is triggered
+    // the pointers are null and an assert is triggered
     MyCanvas *GetMainWindowCanvas() const
         { wxASSERT(m_canvas); return m_canvas; }
     wxMenu *GetMainWindowEditMenu() const
@@ -58,16 +68,21 @@ private:
     wxMenu *CreateDrawingEditMenu();
 
     // create and associate with the given frame the menu bar containing the
-    // given file and edit (possibly NULL) menus as well as the standard help
+    // given file and edit (possibly null) menus as well as the standard help
     // one
     void CreateMenuBarForFrame(wxFrame *frame, wxMenu *file, wxMenu *edit);
 
+
+    // force close all windows
+    void OnForceCloseAll(wxCommandEvent& event);
 
     // show the about box: as we can have different frames it's more
     // convenient, even if somewhat less usual, to handle this in the
     // application object itself
     void OnAbout(wxCommandEvent& event);
 
+    // contains the file names given on the command line, possibly empty
+    wxVector<wxString> m_filesFromCmdLine;
 
     // the currently used mode
     Mode m_mode;
@@ -77,9 +92,8 @@ private:
     wxMenu *m_menuEdit;
 
     wxDECLARE_EVENT_TABLE();
-    wxDECLARE_NO_COPY_CLASS(MyApp);
 };
 
-DECLARE_APP(MyApp)
+wxDECLARE_APP(MyApp);
 
 #endif // _WX_SAMPLES_DOCVIEW_DOCVIEW_H_

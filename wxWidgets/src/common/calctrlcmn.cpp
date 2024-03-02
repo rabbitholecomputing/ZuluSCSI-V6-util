@@ -8,9 +8,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
 #endif //WX_PRECOMP
@@ -18,7 +15,7 @@
 #if wxUSE_CALENDARCTRL || wxUSE_DATEPICKCTRL || wxUSE_TIMEPICKCTRL
 
 #include "wx/dateevt.h"
-IMPLEMENT_DYNAMIC_CLASS(wxDateEvent, wxCommandEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDateEvent, wxCommandEvent);
 wxDEFINE_EVENT(wxEVT_DATE_CHANGED, wxDateEvent);
 wxDEFINE_EVENT(wxEVT_TIME_CHANGED, wxDateEvent);
 
@@ -55,7 +52,6 @@ wxFLAGS_MEMBER(wxBORDER)
 // standard window styles
 wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
 wxFLAGS_MEMBER(wxCLIP_CHILDREN)
-wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
 wxFLAGS_MEMBER(wxWANTS_CHARS)
 wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
 wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
@@ -72,7 +68,7 @@ wxFLAGS_MEMBER(wxCAL_SHOW_SURROUNDING_WEEKS)
 
 wxEND_FLAGS( wxCalendarCtrlStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxCalendarCtrl, wxControl, "wx/calctrl.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxCalendarCtrl, wxControl, "wx/calctrl.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxCalendarCtrl)
 wxEVENT_RANGE_PROPERTY( Updated, wxEVT_CALENDAR_SEL_CHANGED, \
@@ -96,7 +92,7 @@ wxCONSTRUCTOR_6( wxCalendarCtrl, wxWindow*, Parent, wxWindowID, Id, \
 // ----------------------------------------------------------------------------
 // events
 // ----------------------------------------------------------------------------
-IMPLEMENT_DYNAMIC_CLASS(wxCalendarEvent, wxDateEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCalendarEvent, wxDateEvent);
 
 wxDEFINE_EVENT( wxEVT_CALENDAR_SEL_CHANGED, wxCalendarEvent );
 wxDEFINE_EVENT( wxEVT_CALENDAR_PAGE_CHANGED, wxCalendarEvent );
@@ -186,13 +182,33 @@ bool wxCalendarCtrlBase::SetHolidayAttrs()
     wxDateTimeArray hol;
     wxDateTimeHolidayAuthority::GetHolidaysInRange(dtStart, dtEnd, hol);
 
-    const size_t count = hol.GetCount();
-    for ( size_t n = 0; n < count; n++ )
+    for ( const auto dt : hol )
     {
-        SetHoliday(hol[n].GetDay());
+        SetHoliday(dt.GetDay());
     }
 
     return true;
+}
+
+bool wxCalendarCtrlBase::WeekStartsOnMonday() const
+{
+    if ( HasFlag(wxCAL_MONDAY_FIRST) )
+    {
+        return true;
+    }
+    else if ( HasFlag(wxCAL_SUNDAY_FIRST) )
+    {
+        return false;
+    }
+    else
+    {
+        // Neither flag was explicitly given, let's make a best guess
+        // based on locale and/or OS settings.
+
+        wxDateTime::WeekDay firstDay;
+        wxDateTime::GetFirstWeekDay(&firstDay);
+        return firstDay == wxDateTime::Mon;
+    }
 }
 
 #endif // wxUSE_CALENDARCTRL

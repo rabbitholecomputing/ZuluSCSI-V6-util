@@ -2,7 +2,6 @@
 // Name:        src/common/lboxcmn.cpp
 // Purpose:     wxListBox class methods common to all platforms
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     22.10.99
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_LISTBOX
 
@@ -31,6 +27,7 @@
     #include "wx/dynarray.h"
     #include "wx/arrstr.h"
     #include "wx/log.h"
+    #include "wx/dcclient.h"
 #endif
 
 extern WXDLLEXPORT_DATA(const char) wxListBoxNameStr[] = "listBox";
@@ -70,7 +67,6 @@ wxFLAGS_MEMBER(wxBORDER)
 // standard window styles
 wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
 wxFLAGS_MEMBER(wxCLIP_CHILDREN)
-wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
 wxFLAGS_MEMBER(wxWANTS_CHARS)
 wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
 wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
@@ -86,7 +82,7 @@ wxFLAGS_MEMBER(wxLB_NEEDED_SB)
 wxFLAGS_MEMBER(wxLB_SORT)
 wxEND_FLAGS( wxListBoxStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListBox, wxControl, "wx/listbox.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListBox, wxControl, "wx/listbox.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxListBox)
 wxEVENT_PROPERTY( Select, wxEVT_LISTBOX, wxCommandEvent )
@@ -339,5 +335,4 @@ void wxListBoxBase::EnsureVisible(int WXUNUSED(n))
     // the base class version does nothing (the only alternative would be to
     // call SetFirstItem() but this is probably even more stupid)
 }
-
 #endif // wxUSE_LISTBOX

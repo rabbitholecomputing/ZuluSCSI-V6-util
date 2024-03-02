@@ -9,8 +9,6 @@
 #ifndef _WX_GTK_PEN_H_
 #define _WX_GTK_PEN_H_
 
-typedef signed char wxGTKDash;
-
 //-----------------------------------------------------------------------------
 // wxPen
 //-----------------------------------------------------------------------------
@@ -18,47 +16,46 @@ typedef signed char wxGTKDash;
 class WXDLLIMPEXP_CORE wxPen: public wxPenBase
 {
 public:
-    wxPen() { }
+    wxPen() = default;
 
     wxPen( const wxColour &colour, int width = 1, wxPenStyle style = wxPENSTYLE_SOLID );
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED_FUTURE( wxPen(const wxColour& col, int width, int style) );
-#endif
 
-    virtual ~wxPen();
+    wxPen( const wxPenInfo& info );
 
     bool operator==(const wxPen& pen) const;
     bool operator!=(const wxPen& pen) const { return !(*this == pen); }
 
-    void SetColour( const wxColour &colour );
-    void SetColour( unsigned char red, unsigned char green, unsigned char blue );
-    void SetCap( wxPenCap capStyle );
-    void SetJoin( wxPenJoin joinStyle );
-    void SetStyle( wxPenStyle style );
-    void SetWidth( int width );
-    void SetDashes( int number_of_dashes, const wxDash *dash );
-    void SetStipple(const wxBitmap& stipple);
+    void SetColour( const wxColour &colour ) override;
+    void SetColour( unsigned char red, unsigned char green, unsigned char blue ) override;
+    void SetCap( wxPenCap capStyle ) override;
+    void SetJoin( wxPenJoin joinStyle ) override;
+    void SetStyle( wxPenStyle style ) override;
+    void SetWidth( int width ) override;
+    void SetDashes( int number_of_dashes, const wxDash *dash ) override;
+    void SetStipple(const wxBitmap& stipple) override;
 
-    wxColour GetColour() const;
-    wxPenCap GetCap() const;
-    wxPenJoin GetJoin() const;
-    wxPenStyle GetStyle() const;
-    int GetWidth() const;
-    int GetDashes(wxDash **ptr) const;
+    wxColour GetColour() const override;
+    wxPenCap GetCap() const override;
+    wxPenJoin GetJoin() const override;
+    wxPenStyle GetStyle() const override;
+    int GetWidth() const override;
+    int GetDashes(wxDash **ptr) const override;
     int GetDashCount() const;
     wxDash* GetDash() const;
-    wxBitmap *GetStipple() const;
+    wxBitmap *GetStipple() const override;
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED_FUTURE( void SetStyle(int style) )
-        { SetStyle((wxPenStyle)style); }
-#endif
+
+    wxDEPRECATED_MSG("use wxPENSTYLE_XXX constants")
+    wxPen(const wxColour& col, int width, int style);
+
+    wxDEPRECATED_MSG("use wxPENSTYLE_XXX constants")
+    void SetStyle(int style) { SetStyle((wxPenStyle)style); }
 
 protected:
-    virtual wxGDIRefData *CreateGDIRefData() const;
-    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
+    virtual wxGDIRefData *CreateGDIRefData() const override;
+    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const override;
 
-    DECLARE_DYNAMIC_CLASS(wxPen)
+    wxDECLARE_DYNAMIC_CLASS(wxPen);
 };
 
 #endif // _WX_GTK_PEN_H_

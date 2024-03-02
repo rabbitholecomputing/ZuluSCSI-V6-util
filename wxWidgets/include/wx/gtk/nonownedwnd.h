@@ -19,22 +19,22 @@ class wxNonOwnedWindowShapeImpl;
 class WXDLLIMPEXP_CORE wxNonOwnedWindow : public wxNonOwnedWindowBase
 {
 public:
-    wxNonOwnedWindow() { m_shapeImpl = NULL; }
+    wxNonOwnedWindow() { m_shapeImpl = nullptr; }
     virtual ~wxNonOwnedWindow();
 
     // Overridden to actually set the shape when the window becomes realized.
-    virtual void GTKHandleRealized();
+    virtual void GTKHandleRealized() override;
 
 protected:
-    virtual bool DoClearShape();
-    virtual bool DoSetRegionShape(const wxRegion& region);
+    virtual bool DoClearShape() override;
+    virtual bool DoSetRegionShape(const wxRegion& region) override;
 #if wxUSE_GRAPHICS_CONTEXT
-    virtual bool DoSetPathShape(const wxGraphicsPath& path);
+    virtual bool DoSetPathShape(const wxGraphicsPath& path) override;
 #endif // wxUSE_GRAPHICS_CONTEXT
 
 
 private:
-    // If non-NULL, contains information about custom window shape.
+    // If non-null, contains information about custom window shape.
     wxNonOwnedWindowShapeImpl* m_shapeImpl;
 
     wxDECLARE_NO_COPY_CLASS(wxNonOwnedWindow);

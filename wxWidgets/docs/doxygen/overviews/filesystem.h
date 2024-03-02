@@ -42,7 +42,8 @@ Locations (aka filenames aka addresses) are constructed from four parts:
 @li @b protocol - handler can recognize if it is able to open a
     file by checking its protocol. Examples are "http", "file" or "ftp".
 @li <b>right location</b> - is the name of file within the protocol.
-    In "http://www.wxwidgets.org/index.html" the right location is "//www.wxwidgets.org/index.html".
+    In "https://www.wxwidgets.org/index.html" the right location is
+    "//www.wxwidgets.org/index.html".
 @li @b anchor - an anchor is optional and is usually not present.
     In "index.htm#chapter2" the anchor is "chapter2".
 @li <b>left location</b> - this is usually an empty string.
@@ -72,6 +73,10 @@ The following virtual file system handlers are part of wxWidgets so far:
     A handler for archives such as zip
     and tar. Include file is wx/fs_arc.h. URLs examples:
     "archive.zip#zip:filename", "archive.tar.gz#gzip:#tar:filename".
+@li @b wxDataSchemeFSHandler:
+    A handler for accessing data inlined in URI according to RFC 2397.
+    URI example: "data:text/plain;base64,d3hXaWRnZXRzIGV4YW1wbGU=".
+    Include file is wx/fs_data.h.
 @li @b wxFilterFSHandler:
     A handler for compression schemes such
     as gzip. Header is wx/fs_filter.h. URLs are in the form, e.g.:

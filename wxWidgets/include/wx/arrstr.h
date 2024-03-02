@@ -2,7 +2,6 @@
 // Name:        wx/arrstr.h
 // Purpose:     wxArrayString class
 // Author:      Mattia Barbon and Vadim Zeitlin
-// Modified by:
 // Created:     07/07/03
 // Copyright:   (c) 2003 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -13,68 +12,116 @@
 
 #include "wx/defs.h"
 #include "wx/string.h"
+#include "wx/dynarray.h"
 
 // these functions are only used in STL build now but we define them in any
 // case for compatibility with the existing code outside of the library which
 // could be using them
-inline int wxCMPFUNC_CONV wxStringSortAscending(wxString* s1, wxString* s2)
+inline int wxCMPFUNC_CONV wxStringSortAscending(const wxString& s1, const wxString& s2)
 {
-    return s1->Cmp(*s2);
+    return s1.Cmp(s2);
 }
 
-inline int wxCMPFUNC_CONV wxStringSortDescending(wxString* s1, wxString* s2)
+inline int wxCMPFUNC_CONV wxStringSortDescending(const wxString& s1, const wxString& s2)
 {
     return wxStringSortAscending(s2, s1);
 }
 
+// This comparison function ignores case when comparing strings differing not
+// in case only, i.e. this ensures that "Aa" comes before "AB", unlike with
+// wxStringSortAscending().
+inline int wxCMPFUNC_CONV
+wxDictionaryStringSortAscending(const wxString& s1, const wxString& s2)
+{
+    const int cmp = s1.CmpNoCase(s2);
+    return cmp ? cmp : s1.Cmp(s2);
+}
+
+
+inline int wxCMPFUNC_CONV
+wxDictionaryStringSortDescending(const wxString& s1, const wxString& s2)
+{
+    return wxDictionaryStringSortAscending(s2, s1);
+}
+
+WXDLLIMPEXP_BASE
+int wxCMPFUNC_CONV wxCmpNatural(const wxString& s1, const wxString& s2);
+
+WXDLLIMPEXP_BASE
+int wxCMPFUNC_CONV wxCmpNaturalGeneric(const wxString& s1, const wxString& s2);
+
+inline int wxCMPFUNC_CONV wxNaturalStringSortAscending(const wxString& s1, const wxString& s2)
+{
+    return wxCmpNatural(s1, s2);
+}
+
+inline int wxCMPFUNC_CONV wxNaturalStringSortDescending(const wxString& s1, const wxString& s2)
+{
+    return wxCmpNatural(s2, s1);
+}
+
+
 #if wxUSE_STD_CONTAINERS
 
-#include "wx/dynarray.h"
-
 typedef int (wxCMPFUNC_CONV *CMPFUNCwxString)(wxString*, wxString*);
-typedef wxString _wxArraywxBaseArrayStringBase;
-_WX_DECLARE_BASEARRAY_2(_wxArraywxBaseArrayStringBase, wxBaseArrayStringBase,
-                        wxArray_SortFunction<wxString>,
-                        class WXDLLIMPEXP_BASE);
-WX_DEFINE_USER_EXPORTED_TYPEARRAY(wxString, wxArrayStringBase,
-                                  wxBaseArrayStringBase, WXDLLIMPEXP_BASE);
-_WX_DEFINE_SORTED_TYPEARRAY_2(wxString, wxSortedArrayStringBase,
-                              wxBaseArrayStringBase, = wxStringSortAscending,
-                              class WXDLLIMPEXP_BASE, CMPFUNCwxString);
 
-class WXDLLIMPEXP_BASE wxArrayString : public wxArrayStringBase
+class WXDLLIMPEXP_BASE wxArrayString : public wxBaseArray<wxString>
 {
 public:
     // type of function used by wxArrayString::Sort()
     typedef int (wxCMPFUNC_CONV *CompareFunction)(const wxString& first,
                                                   const wxString& second);
 
-    wxArrayString() { }
-    wxArrayString(const wxArrayString& a) : wxArrayStringBase(a) { }
+    wxArrayString() = default;
     wxArrayString(size_t sz, const char** a);
     wxArrayString(size_t sz, const wchar_t** a);
     wxArrayString(size_t sz, const wxString* a);
+    template<typename U>
+    wxArrayString(std::initializer_list<U> list) : wxBaseArray<wxString>(list) { }
+    wxArrayString(const std::vector<wxString>& vec) : wxBaseArray<wxString>(vec) { }
+    wxArrayString(std::vector<wxString>&& vec) : wxBaseArray<wxString>(std::move(vec)) { }
+    template<typename U>
+    wxArrayString(const std::vector<U>& vec) : wxBaseArray<wxString>(vec.begin(), vec.end()) { }
 
     int Index(const wxString& str, bool bCase = true, bool bFromEnd = false) const;
 
     void Sort(bool reverseOrder = false);
     void Sort(CompareFunction function);
-    void Sort(CMPFUNCwxString function) { wxArrayStringBase::Sort(function); }
+    void Sort(CMPFUNCwxString function) { wxBaseArray<wxString>::Sort(function); }
 
     size_t Add(const wxString& string, size_t copies = 1)
     {
-        wxArrayStringBase::Add(string, copies);
+        wxBaseArray<wxString>::Add(string, copies);
         return size() - copies;
     }
+
+    const std::vector<wxString>& AsVector() const { return *this; }
 };
+
+// Unlike all the other sorted arrays, this one uses a comparison function
+// taking objects by reference rather than value, so define a special functor
+// wrapping it.
+class wxSortedArrayString_SortFunction
+{
+public:
+    typedef int (wxCMPFUNC_CONV *CMPFUNC)(const wxString&, const wxString&);
+
+    explicit wxSortedArrayString_SortFunction(CMPFUNC f) : m_f(f) { }
+
+    bool operator()(const wxString& s1, const wxString& s2)
+      { return m_f(s1, s2) < 0; }
+
+private:
+    CMPFUNC m_f;
+};
+
+typedef wxBaseSortedArray<wxString, wxSortedArrayString_SortFunction>
+    wxSortedArrayStringBase;
 
 class WXDLLIMPEXP_BASE wxSortedArrayString : public wxSortedArrayStringBase
 {
 public:
     wxSortedArrayString() : wxSortedArrayStringBase(wxStringSortAscending)
-        { }
-    wxSortedArrayString(const wxSortedArrayString& array)
-        : wxSortedArrayStringBase(array)
         { }
     wxSortedArrayString(const wxArrayString& src)
         : wxSortedArrayStringBase(wxStringSortAscending)
@@ -84,6 +131,9 @@ public:
         for ( size_t n = 0; n < src.size(); n++ )
             Add(src[n]);
     }
+    explicit wxSortedArrayString(wxArrayString::CompareFunction compareFunction)
+        : wxSortedArrayStringBase(compareFunction)
+        { }
 
     int Index(const wxString& str, bool bCase = true, bool bFromEnd = false) const;
 
@@ -101,21 +151,9 @@ private:
 
 #else // if !wxUSE_STD_CONTAINERS
 
-// this shouldn't be defined for compilers not supporting template methods or
-// without std::distance()
-//
-// FIXME-VC6: currently it's only not defined for VC6 in DLL build as it
-//            doesn't export template methods from DLL correctly so even though
-//            it compiles them fine, we get link errors when using wxArrayString
-#if !defined(__VISUALC6__) || !(defined(WXMAKINGDLL) || defined(WXUSINGDLL))
-    #define wxHAS_VECTOR_TEMPLATE_ASSIGN
-#endif
-
-#ifdef wxHAS_VECTOR_TEMPLATE_ASSIGN
-    #include "wx/beforestd.h"
-    #include <iterator>
-    #include "wx/afterstd.h"
-#endif // wxHAS_VECTOR_TEMPLATE_ASSIGN
+#include "wx/beforestd.h"
+#include <iterator>
+#include "wx/afterstd.h"
 
 class WXDLLIMPEXP_BASE wxArrayString
 {
@@ -130,7 +168,7 @@ public:
 
   // constructors and destructor
     // default ctor
-  wxArrayString() { Init(false); }
+  wxArrayString() = default;
     // if autoSort is true, the array is always sorted (in alphabetical order)
     //
     // NB: the reason for using int and not bool is that like this we can avoid
@@ -139,7 +177,11 @@ public:
     //     wouldn't be needed if the 'explicit' keyword was supported by all
     //     compilers, or if this was protected ctor for wxSortedArrayString,
     //     but we're stuck with it now.
-  wxEXPLICIT wxArrayString(int autoSort) { Init(autoSort != 0); }
+  explicit wxArrayString(int autoSort)
+  {
+      if ( autoSort )
+          m_autoSort = true;
+  }
     // C string array ctor
   wxArrayString(size_t sz, const char** a);
   wxArrayString(size_t sz, const wchar_t** a);
@@ -147,6 +189,12 @@ public:
   wxArrayString(size_t sz, const wxString* a);
     // copy ctor
   wxArrayString(const wxArrayString& array);
+    // list constructor
+  template<typename U>
+  wxArrayString(std::initializer_list<U> list) { assign(list.begin(), list.end()); }
+    // ctor from a std::vector
+  template<typename U>
+  wxArrayString(const std::vector<U>& vec) { assign(vec.begin(), vec.end()); }
     // assignment operator
   wxArrayString& operator=(const wxArrayString& src);
     // not virtual, this class should not be derived from
@@ -159,7 +207,7 @@ public:
   void Clear();
     // preallocates memory for given number of items
   void Alloc(size_t nCount);
-    // minimzes the memory usage (by freeing all extra memory)
+    // minimizes the memory usage (by freeing all extra memory)
   void Shrink();
 
   // simple accessors
@@ -193,6 +241,8 @@ public:
   }
   const wxString& Last() const { return const_cast<wxArrayString*>(this)->Last(); }
 
+    // get all items as a vector
+  std::vector<wxString> AsVector() const;
 
   // item management
     // Search the element in the array, starting from the beginning if
@@ -250,16 +300,16 @@ public:
     friend difference_type operator -(const itor& i1, const itor& i2);
   public:
     pointer m_ptr;
-    reverse_iterator() : m_ptr(NULL) { }
-    wxEXPLICIT reverse_iterator(pointer ptr) : m_ptr(ptr) { }
+    reverse_iterator() : m_ptr(nullptr) { }
+    explicit reverse_iterator(pointer ptr) : m_ptr(ptr) { }
     reverse_iterator(const itor& it) : m_ptr(it.m_ptr) { }
     reference operator*() const { return *m_ptr; }
     pointer operator->() const { return m_ptr; }
     itor& operator++() { --m_ptr; return *this; }
     const itor operator++(int)
-      { reverse_iterator tmp = *this; --m_ptr; return tmp; }
+      { const reverse_iterator tmp = *this; --m_ptr; return tmp; }
     itor& operator--() { ++m_ptr; return *this; }
-    const itor operator--(int) { itor tmp = *this; ++m_ptr; return tmp; }
+    const itor operator--(int) { const itor tmp = *this; ++m_ptr; return tmp; }
     bool operator ==(const itor& it) const { return m_ptr == it.m_ptr; }
     bool operator !=(const itor& it) const { return m_ptr != it.m_ptr; }
   };
@@ -276,26 +326,25 @@ public:
     friend difference_type operator -(const itor& i1, const itor& i2);
   public:
     pointer m_ptr;
-    const_reverse_iterator() : m_ptr(NULL) { }
-    wxEXPLICIT const_reverse_iterator(pointer ptr) : m_ptr(ptr) { }
+    const_reverse_iterator() : m_ptr(nullptr) { }
+    explicit const_reverse_iterator(pointer ptr) : m_ptr(ptr) { }
     const_reverse_iterator(const itor& it) : m_ptr(it.m_ptr) { }
     const_reverse_iterator(const reverse_iterator& it) : m_ptr(it.m_ptr) { }
     reference operator*() const { return *m_ptr; }
     pointer operator->() const { return m_ptr; }
     itor& operator++() { --m_ptr; return *this; }
     const itor operator++(int)
-      { itor tmp = *this; --m_ptr; return tmp; }
+      { const itor tmp = *this; --m_ptr; return tmp; }
     itor& operator--() { ++m_ptr; return *this; }
-    const itor operator--(int) { itor tmp = *this; ++m_ptr; return tmp; }
+    const itor operator--(int) { const itor tmp = *this; ++m_ptr; return tmp; }
     bool operator ==(const itor& it) const { return m_ptr == it.m_ptr; }
     bool operator !=(const itor& it) const { return m_ptr != it.m_ptr; }
   };
 
   wxArrayString(const_iterator first, const_iterator last)
-    { Init(false); assign(first, last); }
-  wxArrayString(size_type n, const_reference v) { Init(false); assign(n, v); }
+    { assign(first, last); }
+  wxArrayString(size_type n, const_reference v) { assign(n, v); }
 
-#ifdef wxHAS_VECTOR_TEMPLATE_ASSIGN
   template <class Iterator>
   void assign(Iterator first, Iterator last)
   {
@@ -304,15 +353,6 @@ public:
       for(; first != last; ++first)
           push_back(*first);
   }
-#else // !wxHAS_VECTOR_TEMPLATE_ASSIGN
-  void assign(const_iterator first, const_iterator last)
-  {
-      clear();
-      reserve(last - first);
-      for(; first != last; ++first)
-          push_back(*first);
-  }
-#endif // wxHAS_VECTOR_TEMPLATE_ASSIGN/!wxHAS_VECTOR_TEMPLATE_ASSIGN
 
   void assign(size_type n, const_reference v)
     { clear(); Add(v, n); }
@@ -360,21 +400,27 @@ public:
   }
 
 protected:
-  void Init(bool autoSort);             // common part of all ctors
   void Copy(const wxArrayString& src);  // copies the contents of another array
+
+  CompareFunction m_compareFunction = nullptr; // set only from wxSortedArrayString
 
 private:
   // Allocate the new buffer big enough to hold m_nCount + nIncrement items and
   // return the pointer to the old buffer, which must be deleted by the caller
-  // (if the old buffer is big enough, just return NULL).
+  // (if the old buffer is big enough, just return nullptr).
   wxString *Grow(size_t nIncrement);
 
-  size_t  m_nSize,    // current size of the array
-          m_nCount;   // current number of elements
+  // Binary search in the sorted array: return the index of the string if it's
+  // present, otherwise, if lowerBound is true, return the position at which
+  // the string should be inserted and if it's false return wxNOT_FOUND.
+  size_t BinarySearch(const wxString& str, bool lowerBound) const;
 
-  wxString *m_pItems; // pointer to data
+  size_t  m_nSize = 0,    // current size of the array
+          m_nCount = 0;   // current number of elements
 
-  bool    m_autoSort; // if true, keep the array always sorted
+  wxString *m_pItems = nullptr; // pointer to data
+
+  bool    m_autoSort = false; // if true, keep the array always sorted
 };
 
 class WXDLLIMPEXP_BASE wxSortedArrayString : public wxArrayString
@@ -384,6 +430,10 @@ public:
     { }
   wxSortedArrayString(const wxArrayString& array) : wxArrayString(true)
     { Copy(array); }
+
+  explicit wxSortedArrayString(CompareFunction compareFunction)
+      : wxArrayString(true)
+    { m_compareFunction = compareFunction; }
 };
 
 #endif // !wxUSE_STD_CONTAINERS
@@ -394,7 +444,7 @@ class WXDLLIMPEXP_BASE wxCArrayString
 {
 public:
     wxCArrayString( const wxArrayString& array )
-        : m_array( array ), m_strings( NULL )
+        : m_array( array ), m_strings( nullptr )
     { }
     ~wxCArrayString() { delete[] m_strings; }
 
@@ -402,7 +452,7 @@ public:
     wxString* GetStrings()
     {
         if( m_strings ) return m_strings;
-        size_t count = m_array.GetCount();
+        const size_t count = m_array.GetCount();
         m_strings = new wxString[count];
         for( size_t i = 0; i < count; ++i )
             m_strings[i] = m_array[i];
@@ -412,7 +462,7 @@ public:
     wxString* Release()
     {
         wxString *r = GetStrings();
-        m_strings = NULL;
+        m_strings = nullptr;
         return r;
     }
 
@@ -468,6 +518,13 @@ public:
         : m_type(wxSTRING_POINTER), m_size(n)
     {
         m_data.ptr = strings;
+    }
+
+    // construct an adapter from a vector of strings
+    wxArrayStringsAdapter(const std::vector<wxString>& strings)
+        : m_type(wxSTRING_POINTER), m_size(strings.size())
+    {
+        m_data.ptr = m_size == 0 ? nullptr : &strings[0];
     }
 
     // construct an adapter from a single wxString

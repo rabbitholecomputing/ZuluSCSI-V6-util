@@ -10,9 +10,6 @@
 
 #if wxUSE_SEARCHCTRL
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"
@@ -20,50 +17,109 @@
 
 #include "wx/srchctrl.h"
 
-class SearchCtrlTestCase : public CppUnit::TestCase
+#include "testwindow.h"
+
+class SearchCtrlTestCase
 {
 public:
-    SearchCtrlTestCase() { }
+    SearchCtrlTestCase()
+        : m_search(new wxSearchCtrl(wxTheApp->GetTopWindow(), wxID_ANY))
+    {
+    }
 
-    virtual void setUp();
-    virtual void tearDown();
+    ~SearchCtrlTestCase()
+    {
+        delete m_search;
+    }
 
-private:
-    CPPUNIT_TEST_SUITE( SearchCtrlTestCase );
-        CPPUNIT_TEST( Focus );
-    CPPUNIT_TEST_SUITE_END();
+    void CheckStringSelection(const char *sel)
+    {
+        wxTextEntry * const entry = m_search;
+        CHECK( sel == entry->GetStringSelection() );
+    }
 
-    void Focus();
+    void AssertSelection(int from, int to, const char *sel)
+    {
+        wxTextEntry * const entry = m_search;
 
-    wxSearchCtrl* m_search;
+        CHECK( entry->HasSelection() );
 
-    DECLARE_NO_COPY_CLASS(SearchCtrlTestCase)
+        long fromReal,
+             toReal;
+        entry->GetSelection(&fromReal, &toReal);
+        CHECK( from == fromReal );
+        CHECK( to == toReal );
+
+        CHECK( from == entry->GetInsertionPoint() );
+
+        CheckStringSelection(sel);
+    }
+
+protected:
+    wxSearchCtrl* const m_search;
 };
 
-// register in the unnamed registry so that these tests are run by default
-CPPUNIT_TEST_SUITE_REGISTRATION( SearchCtrlTestCase );
+#define SEARCH_CTRL_TEST_CASE(name, tags) \
+    TEST_CASE_METHOD(SearchCtrlTestCase, name, tags)
 
-// also include in its own registry so that these tests can be run alone
-CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( SearchCtrlTestCase, "SearchCtrlTestCase" );
-
-void SearchCtrlTestCase::setUp()
-{
-    m_search = new wxSearchCtrl(wxTheApp->GetTopWindow(), wxID_ANY);
-}
-
-void SearchCtrlTestCase::tearDown()
-{
-    delete m_search;
-    m_search = NULL;
-}
-
-void SearchCtrlTestCase::Focus()
-{
-    // TODO OS X test only passes when run solo ...
+// TODO OS X test only passes when run solo ...
 #ifndef __WXOSX__
+SEARCH_CTRL_TEST_CASE("wxSearchCtrl::Focus", "[wxSearchCtrl][focus]")
+{
     m_search->SetFocus();
-    CPPUNIT_ASSERT( m_search->HasFocus() );
+    CHECK_FOCUS_IS( m_search );
+}
+#endif // !__WXOSX__
+
+SEARCH_CTRL_TEST_CASE("wxSearchCtrl::ChangeValue", "[wxSearchCtrl][text]")
+{
+    CHECK( m_search->GetValue() == wxString() );
+
+    m_search->ChangeValue("foo");
+    CHECK( m_search->GetValue() == "foo" );
+
+    m_search->Clear();
+    CHECK( m_search->GetValue() == "" );
+}
+
+SEARCH_CTRL_TEST_CASE("wxSearchCtrl::SetValue", "[wxSearchCtrl][set_value]")
+{
+  // Work around bug with hint implementation in wxGTK2.
+#if defined(__WXGTK__) && !defined(__WXGTK3__)
+  m_search->Clear();
 #endif
+  CHECK( m_search->IsEmpty() );
+
+  m_search->SetValue("foo");
+  CHECK( m_search->GetValue() == "foo" );
+
+  m_search->SetValue("");
+  CHECK( m_search->IsEmpty() );
+
+  m_search->SetValue("hi");
+  CHECK( "hi" ==  m_search->GetValue() );
+
+  m_search->SetValue("bye");
+  CHECK( "bye" == m_search->GetValue() );
+}
+
+SEARCH_CTRL_TEST_CASE("wxSearchCtrl::Selection", "[wxSearchCtrl][selection]")
+{
+  wxTextEntry * const entry = m_search;
+
+  entry->SetValue("0123456789");
+
+  entry->SetSelection(2, 4);
+  AssertSelection(2, 4, "23"); // not "234"!
+
+  entry->SetSelection(3, -1);
+  AssertSelection(3, 10, "3456789");
+
+  entry->SelectAll();
+  AssertSelection(0, 10, "0123456789");
+
+  entry->SetSelection(0, 0);
+  CHECK( !entry->HasSelection() );
 }
 
 #endif // wxUSE_SEARCHCTRL

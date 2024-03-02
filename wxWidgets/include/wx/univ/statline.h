@@ -14,7 +14,7 @@ class WXDLLIMPEXP_CORE wxStaticLine : public wxStaticLineBase
 {
 public:
     // constructors and pseudo-constructors
-    wxStaticLine() { }
+    wxStaticLine() = default;
 
     wxStaticLine(wxWindow *parent,
                  const wxPoint &pos,
@@ -32,7 +32,7 @@ public:
                  const wxPoint &pos = wxDefaultPosition,
                  const wxSize &size = wxDefaultSize,
                  long style = wxLI_HORIZONTAL,
-                 const wxString &name = wxStaticLineNameStr )
+                 const wxString &name = wxASCII_STR(wxStaticLineNameStr) )
     {
         Create(parent, id, pos, size, style, name);
     }
@@ -42,13 +42,13 @@ public:
                 const wxPoint &pos = wxDefaultPosition,
                 const wxSize &size = wxDefaultSize,
                 long style = wxLI_HORIZONTAL,
-                const wxString &name = wxStaticLineNameStr );
+                const wxString &name = wxASCII_STR(wxStaticLineNameStr) );
 
 protected:
-    virtual void DoDraw(wxControlRenderer *renderer);
+    virtual void DoDraw(wxControlRenderer *renderer) override;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxStaticLine)
+    wxDECLARE_DYNAMIC_CLASS(wxStaticLine);
 };
 
 #endif // _WX_UNIV_STATLINE_H_

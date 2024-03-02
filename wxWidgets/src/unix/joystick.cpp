@@ -2,7 +2,6 @@
 // Name:        src/unix/joystick.cpp
 // Purpose:     wxJoystick class
 // Author:      Ported to Linux by Guilhem Lavaux
-// Modified by:
 // Created:     05/23/98
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
@@ -52,7 +51,7 @@ enum {
 };
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxJoystick, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxJoystick, wxObject);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -63,7 +62,7 @@ class wxJoystickThread : public wxThread
 {
 public:
     wxJoystickThread(int device, int joystick);
-    void* Entry();
+    void* Entry() override;
 
 private:
     void      SendEvent(wxEventType type, long ts, int change = 0);
@@ -85,7 +84,7 @@ wxJoystickThread::wxJoystickThread(int device, int joystick)
       m_joystick(joystick),
       m_lastposition(wxDefaultPosition),
       m_buttons(0),
-      m_catchwin(NULL),
+      m_catchwin(nullptr),
       m_polling(0),
       m_threshold(0)
 {
@@ -125,25 +124,22 @@ void* wxJoystickThread::Entry()
             time_out.tv_usec = 10 * 1000; // check at least every 10 msec in blocking case
 
         wxFD_SET(m_device, &read_fds);
-        select(m_device+1, &read_fds, NULL, NULL, &time_out);
+        select(m_device+1, &read_fds, nullptr, nullptr, &time_out);
         if (wxFD_ISSET(m_device, &read_fds))
         {
             memset(&j_evt, 0, sizeof(j_evt));
-            read(m_device, &j_evt, sizeof(j_evt));
+            if ( read(m_device, &j_evt, sizeof(j_evt)) == -1 )
+            {
+                // We can hardly do anything other than ignoring the error and
+                // hope that we read the next event successfully.
+                continue;
+            }
 
             //printf("time: %d\t value: %d\t type: %d\t number: %d\n",
             //       j_evt.time, j_evt.value, j_evt.type, j_evt.number);
 
             if ((j_evt.type & JS_EVENT_AXIS) && (j_evt.number < wxJS_MAX_AXES))
             {
-                // Ignore invalid axis.
-                if ( j_evt.number >= wxJS_MAX_AXES )
-                {
-                    wxLogDebug(wxS("Invalid axis index %d in joystick message."),
-                               j_evt.number);
-                    continue;
-                }
-
                 if (   (m_axe[j_evt.number] + m_threshold < j_evt.value)
                     || (m_axe[j_evt.number] - m_threshold > j_evt.value) )
             {
@@ -176,19 +172,18 @@ void* wxJoystickThread::Entry()
                 if (j_evt.value)
                 {
                     m_buttons |= (1 << j_evt.number);
-                    SendEvent(wxEVT_JOY_BUTTON_DOWN, j_evt.time, j_evt.number);
+                    SendEvent(wxEVT_JOY_BUTTON_DOWN, j_evt.time, 1 << j_evt.number);
                 }
                 else
                 {
                     m_buttons &= ~(1 << j_evt.number);
-                    SendEvent(wxEVT_JOY_BUTTON_UP, j_evt.time, j_evt.number);
+                    SendEvent(wxEVT_JOY_BUTTON_UP, j_evt.time, 1 << j_evt.number);
                 }
             }
         }
     }
 
-    close(m_device);
-    return NULL;
+    return nullptr;
 }
 
 
@@ -197,7 +192,7 @@ void* wxJoystickThread::Entry()
 wxJoystick::wxJoystick(int joystick)
     : m_device(-1),
       m_joystick(joystick),
-      m_thread(NULL)
+      m_thread(nullptr)
 {
     wxString dev_name;
 
@@ -226,7 +221,8 @@ wxJoystick::~wxJoystick()
     ReleaseCapture();
     if (m_thread)
         m_thread->Delete();  // It's detached so it will delete itself
-    m_device = -1;
+    if (m_device != -1)
+        close(m_device);
 }
 
 
@@ -265,7 +261,7 @@ int wxJoystick::GetButtonState() const
 bool wxJoystick::GetButtonState(unsigned id) const
 {
     if (m_thread && (id < wxJS_MAX_BUTTONS))
-        return (m_thread->m_buttons & (1 << id)) != 0;
+        return (m_thread->m_buttons & (1u << id)) != 0;
     return false;
 }
 
@@ -527,7 +523,7 @@ bool wxJoystick::ReleaseCapture()
 {
     if (m_thread)
     {
-        m_thread->m_catchwin = NULL;
+        m_thread->m_catchwin = nullptr;
         m_thread->m_polling = 0;
         return true;
     }

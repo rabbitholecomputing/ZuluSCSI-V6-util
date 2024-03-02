@@ -24,7 +24,7 @@ public:
         Initializes the library.
         Calls wxInitialize().
     */
-    wxInitializer(int argc = 0, wxChar **argv = NULL);
+    wxInitializer(int argc = 0, wxChar **argv = nullptr);
 
     /**
         Has the initialization been successful? (explicit test)
@@ -41,7 +41,7 @@ public:
 
 
 /** @addtogroup group_funcmacro_appinitterm */
-//@{
+///@{
 
 /**
     This function can be used to perform the initialization of wxWidgets if you
@@ -66,16 +66,15 @@ bool wxEntryStart(int& argc, wxChar** argv);
     This is an additional overload of wxEntryStart() provided under MSW only.
     It is meant to be called with the parameters passed to WinMain().
 
-    @note Under Windows CE platform, and only there, the type of @a pCmdLine is
-    @c wchar_t *, otherwise it is @c char *, even in Unicode build.
+    @note The type of @a pCmdLine is @c char *, even in Unicode build.
 
     @onlyfor{wxmsw}
 
     @header{wx/init.h}
 */
 bool wxEntryStart(HINSTANCE hInstance,
-                  HINSTANCE hPrevInstance = NULL,
-                  char* pCmdLine = NULL,
+                  HINSTANCE hPrevInstance = nullptr,
+                  char* pCmdLine = nullptr,
                   int nCmdShow = SW_SHOWNORMAL);
 
 /**
@@ -95,7 +94,7 @@ void wxEntryCleanup();
 
     @header{wx/init.h}
 */
-bool wxInitialize(int argc = 0, wxChar **argv = NULL);
+bool wxInitialize(int argc = 0, wxChar **argv = nullptr);
 
 /**
     Clean up; the library can't be used any more after the last call to
@@ -107,5 +106,5 @@ bool wxInitialize(int argc = 0, wxChar **argv = NULL);
 */
 void wxUninitialize();
 
-//@}
+///@}
 

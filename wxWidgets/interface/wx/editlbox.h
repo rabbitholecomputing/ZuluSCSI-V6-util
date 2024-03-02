@@ -19,7 +19,7 @@
 
     @beginStyleTable
     @style{wxEL_ALLOW_NEW}
-           Allows the user to enter new strings.
+           Allows the user to enter new strings (implies wxEL_ALLOW_EDIT as well).
     @style{wxEL_ALLOW_EDIT}
            Allows the user to edit existing strings.
     @style{wxEL_ALLOW_DELETE}
@@ -32,7 +32,7 @@
 
     The control uses a wxListCtrl internally and emit its events.
 
-    @library{wxadv}
+    @library{wxcore}
     @category{ctrl}
 
     @see wxListBox, wxListCtrl
@@ -58,7 +58,7 @@ public:
             Window position.
             If ::wxDefaultPosition is specified then a default position is chosen.
         @param size
-            Window size. 
+            Window size.
             If ::wxDefaultSize is specified then the window is sized appropriately.
         @param style
             Window style. See wxEditableListBox.

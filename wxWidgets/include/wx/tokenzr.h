@@ -47,6 +47,9 @@ public:
     wxStringTokenizer(const wxString& str,
                       const wxString& delims = wxDEFAULT_DELIMITERS,
                       wxStringTokenizerMode mode = wxTOKEN_DEFAULT);
+        // copy ctor and assignment operator
+    wxStringTokenizer(const wxStringTokenizer& src);
+    wxStringTokenizer& operator=(const wxStringTokenizer& src);
 
         // args are same as for the non default ctor above
     void SetString(const wxString& str,
@@ -112,6 +115,8 @@ protected:
 
     bool DoHasMoreTokens() const;
 
+    void DoCopyFrom(const wxStringTokenizer& src);
+
     enum MoreTokensState
     {
         MoreTokens_Unknown,
@@ -123,8 +128,7 @@ protected:
 
     wxString m_string;              // the string we tokenize
     wxString::const_iterator m_stringEnd;
-    // FIXME-UTF8: use wxWcharBuffer
-    wxWxCharBuffer m_delims;        // all possible delimiters
+    wxWCharBuffer m_delims;         // all possible delimiters
     size_t m_delimsLen;
 
     wxString::const_iterator m_pos; // the current position in m_string

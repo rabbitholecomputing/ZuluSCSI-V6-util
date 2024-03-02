@@ -26,7 +26,7 @@ public:
         Creates shared pointer from the raw pointer @a ptr and takes ownership
         of it.
     */
-    wxEXPLICIT wxSharedPtr(T* ptr = NULL);
+    explicit wxSharedPtr(T* ptr = nullptr);
 
     /**
         Constructor.
@@ -42,7 +42,7 @@ public:
         @since 3.0
     */
     template<typename Deleter>
-    wxEXPLICIT wxSharedPtr(T* ptr, Deleter d);
+    explicit wxSharedPtr(T* ptr, Deleter d);
 
     /**
         Copy constructor.
@@ -102,7 +102,7 @@ public:
 
         If the reference count of the previously owned pointer was 1 it will be deleted.
     */
-    void reset(T* ptr = NULL);
+    void reset(T* ptr = nullptr);
 
     /**
         Reset pointer to @a ptr.

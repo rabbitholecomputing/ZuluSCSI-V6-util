@@ -2,7 +2,6 @@
 // Name:        src/common/ownerdrwcmn.cpp
 // Purpose:     wxOwnerDrawn class methods common to all platforms
 // Author:      Marcin Malich
-// Modified by:
 // Created:     2009-09-22
 // Copyright:   (c) 2009 Marcin Malich <me@malcom.pl>
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_OWNER_DRAWN
 
@@ -35,6 +31,12 @@
     #include "wx/settings.h"
     #include "wx/utils.h"
 #endif
+
+// ----------------------------------------------------------------------------
+// constants for base class
+// ----------------------------------------------------------------------------
+
+int wxOwnerDrawnBase::ms_defaultMargin = 3;
 
 // ============================================================================
 // implementation

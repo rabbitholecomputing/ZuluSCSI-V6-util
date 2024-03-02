@@ -2,7 +2,6 @@
 // Name:        wx/gtk/fontpicker.h
 // Purpose:     wxFontButton header
 // Author:      Francesco Montorsi
-// Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
@@ -21,7 +20,7 @@ class WXDLLIMPEXP_CORE wxFontButton : public wxButton,
                                       public wxFontPickerWidgetBase
 {
 public:
-    wxFontButton() {}
+    wxFontButton() { Init(); }
     wxFontButton(wxWindow *parent,
                  wxWindowID id,
                  const wxFont& initial = wxNullFont,
@@ -29,9 +28,11 @@ public:
                  const wxSize& size = wxDefaultSize,
                  long style = wxFONTBTN_DEFAULT_STYLE,
                  const wxValidator& validator = wxDefaultValidator,
-                 const wxString& name = wxFontPickerWidgetNameStr)
+                 const wxString& name = wxASCII_STR(wxFontPickerWidgetNameStr))
     {
-       Create(parent, id, initial, pos, size, style, validator, name);
+        Init();
+
+        Create(parent, id, initial, pos, size, style, validator, name);
     }
 
     bool Create(wxWindow *parent,
@@ -41,21 +42,35 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = wxFONTBTN_DEFAULT_STYLE,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxFontPickerWidgetNameStr);
+                const wxString& name = wxASCII_STR(wxFontPickerWidgetNameStr));
+
+    virtual wxColour GetSelectedColour() const override
+        { return m_selectedColour; }
+
+    void SetSelectedColour(const wxColour &colour) override
+        { m_selectedColour = colour; }
 
     virtual ~wxFontButton();
 
 protected:
-    void UpdateFont();
+    void UpdateFont() override;
 
 
 public:     // used by the GTK callback only
-
-    void SetNativeFontInfo(const char *gtkdescription)
-        { m_selectedFont.SetNativeFontInfo(wxString::FromAscii(gtkdescription)); }
+    void SetNativeFontInfo(const char* gtkdescription);
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxFontButton)
+    // Common part of both ctors.
+    void Init()
+    {
+        m_selectedColour = *wxBLACK;
+    }
+
+    // This can't be changed by the user, but is provided to
+    // satisfy the wxFontPickerWidgetBase interface.
+    wxColour m_selectedColour;
+
+    wxDECLARE_DYNAMIC_CLASS(wxFontButton);
 };
 
 #endif // _WX_GTK_FONTPICKER_H_

@@ -2,7 +2,6 @@
 // Name:        wx/msw/printwin.h
 // Purpose:     wxWindowsPrinter, wxWindowsPrintPreview classes
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -19,17 +18,17 @@
 
 class WXDLLIMPEXP_CORE wxWindowsPrinter : public wxPrinterBase
 {
-    DECLARE_DYNAMIC_CLASS(wxWindowsPrinter)
+    wxDECLARE_DYNAMIC_CLASS(wxWindowsPrinter);
 
 public:
-    wxWindowsPrinter(wxPrintDialogData *data = NULL);
+    wxWindowsPrinter(wxPrintDialogData *data = nullptr);
 
     virtual bool Print(wxWindow *parent,
                        wxPrintout *printout,
-                       bool prompt = true);
+                       bool prompt = true) override;
 
-    virtual wxDC *PrintDialog(wxWindow *parent);
-    virtual bool Setup(wxWindow *parent);
+    virtual wxDC *PrintDialog(wxWindow *parent) override;
+    virtual bool Setup(wxWindow *parent) override;
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxWindowsPrinter);
@@ -44,22 +43,22 @@ class WXDLLIMPEXP_CORE wxWindowsPrintPreview : public wxPrintPreviewBase
 {
 public:
     wxWindowsPrintPreview(wxPrintout *printout,
-                          wxPrintout *printoutForPrinting = NULL,
-                          wxPrintDialogData *data = NULL);
+                          wxPrintout *printoutForPrinting = nullptr,
+                          wxPrintDialogData *data = nullptr);
     wxWindowsPrintPreview(wxPrintout *printout,
                           wxPrintout *printoutForPrinting,
                           wxPrintData *data);
     virtual ~wxWindowsPrintPreview();
 
-    virtual bool Print(bool interactive);
-    virtual void DetermineScaling();
+    virtual bool Print(bool interactive) override;
+    virtual void DetermineScaling() override;
 
 protected:
 #if wxUSE_ENH_METAFILE
-    virtual bool RenderPageIntoBitmap(wxBitmap& bmp, int pageNum);
+    virtual bool RenderPageIntoBitmap(wxBitmap& bmp, int pageNum) override;
 #endif
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxWindowsPrintPreview)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxWindowsPrintPreview);
 };
 
 #endif

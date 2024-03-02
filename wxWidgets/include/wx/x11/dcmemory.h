@@ -2,7 +2,6 @@
 // Name:        wx/x11/dcmemory.h
 // Purpose:     wxMemoryDC class
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -37,7 +36,7 @@ private:
     void Init();
 
 private:
-    DECLARE_CLASS(wxMemoryDCImpl)
+    wxDECLARE_CLASS(wxMemoryDCImpl);
 };
 
 #endif

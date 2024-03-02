@@ -3,7 +3,6 @@
 // Purpose:     wxGDIImage class: base class for wxBitmap, wxIcon, wxCursor
 //              under MSW
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     20.11.99
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -36,7 +35,9 @@ public:
     {
         m_width = m_height = m_depth = 0;
 
-        m_handle = 0;
+        m_scaleFactor = 1.0;
+
+        m_handle = nullptr;
     }
 
     wxGDIImageRefData(const wxGDIImageRefData& data) : wxGDIRefData()
@@ -45,16 +46,18 @@ public:
         m_height = data.m_height;
         m_depth = data.m_depth;
 
+        m_scaleFactor = data.m_scaleFactor;
+
         // can't copy handles like this, derived class copy ctor must do it!
-        m_handle = NULL;
+        m_handle = nullptr;
     }
 
     // accessors
-    virtual bool IsOk() const { return m_handle != 0; }
+    virtual bool IsOk() const override { return m_handle != nullptr; }
 
     void SetSize(int w, int h) { m_width = w; m_height = h; }
 
-    // free the ressources we allocated
+    // free the resources we allocated
     virtual void Free() = 0;
 
     // for compatibility, the member fields are public
@@ -64,6 +67,9 @@ public:
 
     // the depth of the image
     int m_depth;
+
+    // scale factor of the image
+    double m_scaleFactor;
 
     // the handle to it
     union
@@ -104,7 +110,7 @@ public:
 
     // accessors
     WXHANDLE GetHandle() const
-        { return IsNull() ? 0 : GetGDIImageData()->m_handle; }
+        { return IsNull() ? nullptr : GetGDIImageData()->m_handle; }
     void SetHandle(WXHANDLE handle)
         { AllocExclusive(); GetGDIImageData()->m_handle = handle; }
 
@@ -112,41 +118,52 @@ public:
     int GetHeight() const { return IsNull() ? 0 : GetGDIImageData()->m_height; }
     int GetDepth() const { return IsNull() ? 0 : GetGDIImageData()->m_depth; }
 
+    // allow setting and storing the scale factor
+    void SetScaleFactor(double scale);
+    double GetScaleFactor() const;
+
+    // return the size divided by scale factor
+    wxSize GetDIPSize() const;
+
+    // logical metrics accessors return the same thing as physical ones, just
+    // as in all the other ports without wxHAS_DPI_INDEPENDENT_PIXELS.
+    double GetLogicalWidth() const;
+    double GetLogicalHeight() const;
+    wxSize GetLogicalSize() const;
+
     wxSize GetSize() const
     {
         return IsNull() ? wxSize(0,0) :
                wxSize(GetGDIImageData()->m_width, GetGDIImageData()->m_height);
     }
 
-    void SetWidth(int w) { AllocExclusive(); GetGDIImageData()->m_width = w; }
-    void SetHeight(int h) { AllocExclusive(); GetGDIImageData()->m_height = h; }
-    void SetDepth(int d) { AllocExclusive(); GetGDIImageData()->m_depth = d; }
+#if WXWIN_COMPATIBILITY_3_0
+    wxDEPRECATED_INLINE(void SetWidth(int w), AllocExclusive(); GetGDIImageData()->m_width = w; )
+    wxDEPRECATED_INLINE(void SetHeight(int h), AllocExclusive(); GetGDIImageData()->m_height = h; )
+    wxDEPRECATED_INLINE(void SetDepth(int d), AllocExclusive(); GetGDIImageData()->m_depth = d; )
 
-    void SetSize(int w, int h)
-    {
-        AllocExclusive();
-        GetGDIImageData()->SetSize(w, h);
-    }
-    void SetSize(const wxSize& size) { SetSize(size.x, size.y); }
+    wxDEPRECATED_INLINE(void SetSize(int w, int h), AllocExclusive(); GetGDIImageData()->SetSize(w, h); )
+    wxDEPRECATED_INLINE(void SetSize(const wxSize& size), AllocExclusive(); GetGDIImageData()->SetSize(size.x, size.y); )
+#endif // WXWIN_COMPATIBILITY_3_0
 
     // forward some of base class virtuals to wxGDIImageRefData
-    bool FreeResource(bool force = false);
-    virtual WXHANDLE GetResourceHandle() const;
+    bool FreeResource(bool force = false) override;
+    virtual WXHANDLE GetResourceHandle() const override;
 
 protected:
     // create the data for the derived class here
     virtual wxGDIImageRefData *CreateData() const = 0;
 
     // implement the wxGDIObject method in terms of our, more specific, one
-    virtual wxGDIRefData *CreateGDIRefData() const { return CreateData(); }
+    virtual wxGDIRefData *CreateGDIRefData() const override { return CreateData(); }
 
     // we can't [efficiently] clone objects of this class
     virtual wxGDIRefData *
-    CloneGDIRefData(const wxGDIRefData *WXUNUSED(data)) const
+    CloneGDIRefData(const wxGDIRefData *WXUNUSED(data)) const override
     {
         wxFAIL_MSG( wxT("must be implemented if used") );
 
-        return NULL;
+        return nullptr;
     }
 
     static wxGDIImageHandlerList ms_handlers;

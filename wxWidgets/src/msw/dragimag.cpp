@@ -2,7 +2,6 @@
 // Name:        src/msw/dragimag.cpp
 // Purpose:     wxDragImage
 // Author:      Julian Smart
-// Modified by:
 // Created:     08/04/99
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_DRAGIMAGE
 
@@ -44,10 +40,6 @@
 #include "wx/msw/dragimag.h"
 #include "wx/msw/private.h"
 
-#ifdef __WXWINCE__  // for SM_CXCURSOR and SM_CYCURSOR
-#include "wx/msw/wince/missing.h"
-#endif // __WXWINCE__
-
 // Wine doesn't have this yet
 #ifndef ListView_CreateDragImage
 #define ListView_CreateDragImage(hwnd, i, lpptUpLeft) \
@@ -58,7 +50,7 @@
 // macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxDragImage, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDragImage, wxObject);
 
 #define GetHimageList() ((HIMAGELIST) m_hImageList)
 
@@ -91,47 +83,9 @@ void wxDragImage::Init()
 #if !wxUSE_SIMPLER_DRAGIMAGE
     m_hCursorImageList = 0;
 #endif
-    m_window = NULL;
+    m_window = nullptr;
     m_fullScreen = false;
 }
-
-#if WXWIN_COMPATIBILITY_2_8
-wxDragImage::wxDragImage(const wxBitmap& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
-{
-    Init();
-
-    Create(image, cursor);
-}
-
-wxDragImage::wxDragImage(const wxIcon& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
-{
-    Init();
-
-    Create(image, cursor);
-}
-
-wxDragImage::wxDragImage(const wxString& str, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
-{
-    Init();
-
-    Create(str, cursor);
-}
-
-bool wxDragImage::Create(const wxBitmap& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
-{
-    return Create(image, cursor);
-}
-
-bool wxDragImage::Create(const wxIcon& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
-{
-    return Create(image, cursor);
-}
-
-bool wxDragImage::Create(const wxString& str, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
-{
-    return Create(str, cursor);
-}
-#endif // WXWIN_COMPATIBILITY_2_8
 
 // Attributes
 ////////////////////////////////////////////////////////////////////////////
@@ -147,9 +101,6 @@ bool wxDragImage::Create(const wxBitmap& image, const wxCursor& cursor)
         ImageList_Destroy(GetHimageList());
     m_hImageList = 0;
 
-#ifdef __WXWINCE__
-    UINT flags = ILC_COLOR;
-#else
     UINT flags wxDUMMY_INITIALIZE(0) ;
     if (image.GetDepth() <= 4)
         flags = ILC_COLOR4;
@@ -161,9 +112,8 @@ bool wxDragImage::Create(const wxBitmap& image, const wxCursor& cursor)
         flags = ILC_COLOR24;
     else
         flags = ILC_COLOR32;
-#endif
 
-    bool mask = (image.GetMask() != 0);
+    bool mask = image.GetMask() != nullptr;
 
     // Curiously, even if the image doesn't have a mask,
     // we still have to use ILC_MASK or the image won't show
@@ -204,9 +154,6 @@ bool wxDragImage::Create(const wxIcon& image, const wxCursor& cursor)
         ImageList_Destroy(GetHimageList());
     m_hImageList = 0;
 
-#ifdef __WXWINCE__
-    UINT flags = ILC_COLOR;
-#else
     UINT flags wxDUMMY_INITIALIZE(0) ;
     if (image.GetDepth() <= 4)
         flags = ILC_COLOR4;
@@ -218,7 +165,6 @@ bool wxDragImage::Create(const wxIcon& image, const wxCursor& cursor)
         flags = ILC_COLOR24;
     else
         flags = ILC_COLOR32;
-#endif
 
     flags |= ILC_MASK;
 
@@ -325,6 +271,10 @@ bool wxDragImage::BeginDrag(const wxPoint& hotspot, wxWindow* window, bool fullS
     wxASSERT_MSG( (m_hImageList != 0), wxT("Image list must not be null in BeginDrag."));
     wxASSERT_MSG( (window != 0), wxT("Window must not be null in BeginDrag."));
 
+    // Using ImageList_BeginDrag() doesn't work with composited windows,
+    // nothing gets shown, so reset WS_EX_COMPOSITED to make it work.
+    window->MSWDisableComposited();
+
     m_fullScreen = fullScreen;
     if (rect)
         m_boundingRect = * rect;
@@ -346,14 +296,8 @@ bool wxDragImage::BeginDrag(const wxPoint& hotspot, wxWindow* window, bool fullS
 #else
         if (!m_hCursorImageList)
         {
-#ifndef SM_CXCURSOR
-            // Smartphone may not have these metric symbol
-            int cxCursor = 16;
-            int cyCursor = 16;
-#else
-            int cxCursor = ::GetSystemMetrics(SM_CXCURSOR);
-            int cyCursor = ::GetSystemMetrics(SM_CYCURSOR);
-#endif
+            int cxCursor = wxGetSystemMetrics(SM_CXCURSOR, window);
+            int cyCursor = wxGetSystemMetrics(SM_CYCURSOR, window);
             m_hCursorImageList = (WXHIMAGELIST) ImageList_Create(cxCursor, cyCursor, ILC_MASK, 1, 1);
         }
 
@@ -440,13 +384,13 @@ bool wxDragImage::EndDrag()
     ::ShowCursor(TRUE);
 #endif
 
-    m_window = NULL;
+    m_window = nullptr;
 
     return true;
 }
 
 // Move the image: call from OnMouseMove. Pt is in window client coordinates if window
-// is non-NULL, or in screen coordinates if NULL.
+// is non-null, or in screen coordinates if null.
 bool wxDragImage::Move(const wxPoint& pt)
 {
     wxASSERT_MSG( (m_hImageList != 0), wxT("Image list must not be null in Move."));
@@ -460,12 +404,8 @@ bool wxDragImage::Move(const wxPoint& pt)
         rect.left = 0; rect.top = 0;
         rect.right = 0; rect.bottom = 0;
         DWORD style = ::GetWindowLong((HWND) m_window->GetHWND(), GWL_STYLE);
-#ifdef __WIN32__
         DWORD exStyle = ::GetWindowLong((HWND) m_window->GetHWND(), GWL_EXSTYLE);
         ::AdjustWindowRectEx(& rect, style, FALSE, exStyle);
-#else
-        ::AdjustWindowRect(& rect, style, FALSE);
-#endif
         // Subtract the (negative) values, i.e. add a small increment
         pt2.x -= rect.left; pt2.y -= rect.top;
     }

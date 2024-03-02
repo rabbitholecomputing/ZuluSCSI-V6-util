@@ -2,7 +2,6 @@
 // Name:        wx/dcmemory.h
 // Purpose:     wxMemoryDC base header
 // Author:      Julian Smart
-// Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
@@ -36,7 +35,7 @@ public:
     wxBitmap& GetSelectedBitmap();
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxMemoryDC)
+    wxDECLARE_DYNAMIC_CLASS(wxMemoryDC);
 };
 
 

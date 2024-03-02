@@ -10,6 +10,10 @@
 #ifndef _WX_CUSTOMBGWIN_H_
 #define _WX_CUSTOMBGWIN_H_
 
+#include "wx/defs.h"
+
+class WXDLLIMPEXP_FWD_CORE wxBitmap;
+
 // ----------------------------------------------------------------------------
 // wxCustomBackgroundWindow: Adds support for custom backgrounds to any
 //                           wxWindow-derived class.
@@ -19,10 +23,10 @@ class wxCustomBackgroundWindowBase
 {
 public:
     // Trivial default ctor.
-    wxCustomBackgroundWindowBase() { }
+    wxCustomBackgroundWindowBase() = default;
 
     // Also a trivial but virtual -- to suppress g++ warnings -- dtor.
-    virtual ~wxCustomBackgroundWindowBase() { }
+    virtual ~wxCustomBackgroundWindowBase() = default;
 
     // Use the given bitmap to tile the background of this window. This bitmap
     // will show through any transparent children.

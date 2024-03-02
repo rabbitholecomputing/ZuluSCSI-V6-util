@@ -1,8 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx/clipbrd.h
-// Purpose:     wxClipboad class and clipboard functions
+// Purpose:     wxClipboard class and clipboard functions
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     19.10.99
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
@@ -92,7 +91,7 @@ public:
 
 
     // don't use this directly, it is public for compatibility with some ports
-    // (wxX11, wxMotif, ...) only
+    // (wxX11) only
     bool m_usePrimary;
 };
 
@@ -117,7 +116,7 @@ public:
     bool SupportsFormat(const wxDataFormat& format) const;
     void AddFormat(const wxDataFormat& format);
 
-    virtual wxEvent *Clone() const
+    virtual wxEvent *Clone() const override
     {
         return new wxClipboardEvent(*this);
     }
@@ -126,7 +125,7 @@ public:
 protected:
     wxVector<wxDataFormat> m_formats;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxClipboardEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxClipboardEvent);
 };
 
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_CLIPBOARD_CHANGED, wxClipboardEvent );
@@ -151,20 +150,14 @@ typedef void (wxEvtHandler::*wxClipboardEventFunction)(wxClipboardEvent&);
 
 #if defined(__WXMSW__)
     #include "wx/msw/clipbrd.h"
-#elif defined(__WXMOTIF__)
-    #include "wx/motif/clipbrd.h"
-#elif defined(__WXGTK20__)
-    #include "wx/gtk/clipbrd.h"
 #elif defined(__WXGTK__)
-    #include "wx/gtk1/clipbrd.h"
+    #include "wx/gtk/clipbrd.h"
 #elif defined(__WXX11__)
     #include "wx/x11/clipbrd.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/clipbrd.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/clipbrd.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/clipbrd.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/clipbrd.h"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -174,7 +167,7 @@ typedef void (wxEvtHandler::*wxClipboardEventFunction)(wxClipboardEvent&);
 class WXDLLIMPEXP_CORE wxClipboardLocker
 {
 public:
-    wxClipboardLocker(wxClipboard *clipboard = NULL)
+    wxClipboardLocker(wxClipboard *clipboard = nullptr)
     {
         m_clipboard = clipboard ? clipboard : wxTheClipboard;
         if ( m_clipboard )

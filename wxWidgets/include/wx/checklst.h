@@ -2,7 +2,6 @@
 // Name:        wx/checklst.h
 // Purpose:     wxCheckListBox class interface
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     12.09.00
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -21,16 +20,10 @@
 // wxCheckListBox: a listbox whose items may be checked
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxCheckListBoxBase : public
-                                              #ifdef __WXWINCE__
-                                                  // keep virtuals synchronised
-                                                  wxListBoxBase
-                                              #else
-                                                  wxListBox
-                                              #endif
+class WXDLLIMPEXP_CORE wxCheckListBoxBase : public wxListBox
 {
 public:
-    wxCheckListBoxBase() { }
+    wxCheckListBoxBase() = default;
 
     // check list box specific methods
     virtual bool IsChecked(unsigned int item) const = 0;
@@ -43,22 +36,14 @@ public:
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/checklst.h"
-#elif defined(__WXWINCE__)
-    #include "wx/msw/wince/checklst.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/checklst.h"
-#elif defined(__WXMOTIF__)
-    #include "wx/motif/checklst.h"
-#elif defined(__WXGTK20__)
-    #include "wx/gtk/checklst.h"
 #elif defined(__WXGTK__)
-    #include "wx/gtk1/checklst.h"
+    #include "wx/gtk/checklst.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/checklst.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/checklst.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/checklst.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/checklst.h"
 #endif
 
 #endif // wxUSE_CHECKLISTBOX

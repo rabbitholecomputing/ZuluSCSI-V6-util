@@ -2,7 +2,6 @@
 // Name:        src/generic/msgdlgg.cpp
 // Purpose:     wxGenericMessageDialog
 // Author:      Julian Smart, Robert Roebling
-// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
@@ -10,10 +9,6 @@
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
 
 #if wxUSE_MSGDLG
 
@@ -57,7 +52,7 @@ public:
     }
 
 protected:
-    virtual wxWindow *OnCreateLine(const wxString& s)
+    virtual wxWindow *OnCreateLine(const wxString& s) override
     {
         wxWindow * const win = wxTextSizerWrapper::OnCreateLine(s);
 
@@ -71,14 +66,14 @@ protected:
 // icons
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxGenericMessageDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxGenericMessageDialog, wxDialog)
         EVT_BUTTON(wxID_YES, wxGenericMessageDialog::OnYes)
         EVT_BUTTON(wxID_NO, wxGenericMessageDialog::OnNo)
         EVT_BUTTON(wxID_HELP, wxGenericMessageDialog::OnHelp)
         EVT_BUTTON(wxID_CANCEL, wxGenericMessageDialog::OnCancel)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
-IMPLEMENT_CLASS(wxGenericMessageDialog, wxDialog)
+wxIMPLEMENT_CLASS(wxGenericMessageDialog, wxDialog);
 
 wxGenericMessageDialog::wxGenericMessageDialog( wxWindow *parent,
                                                 const wxString& message,
@@ -96,12 +91,11 @@ wxGenericMessageDialog::wxGenericMessageDialog( wxWindow *parent,
 
 wxSizer *wxGenericMessageDialog::CreateMsgDlgButtonSizer()
 {
-#ifndef __SMARTPHONE__
     if ( HasCustomLabels() )
     {
         wxStdDialogButtonSizer * const sizerStd = new wxStdDialogButtonSizer;
 
-        wxButton *btnDef = NULL;
+        wxButton *btnDef = nullptr;
 
         if ( m_dialogStyle & wxOK )
         {
@@ -151,7 +145,6 @@ wxSizer *wxGenericMessageDialog::CreateMsgDlgButtonSizer()
 
         return CreateSeparatedSizer(sizerStd);
     }
-#endif // !__SMARTPHONE__
 
     // Use standard labels for all buttons
     return CreateSeparatedButtonSizer
@@ -223,11 +216,9 @@ void wxGenericMessageDialog::DoCreateMsgdialog()
     if ( sizerBtn )
         topsizer->Add(sizerBtn, 0, wxEXPAND | wxALL, 10 );
 
-    SetAutoLayout( true );
     SetSizer( topsizer );
 
     topsizer->SetSizeHints( this );
-    topsizer->Fit( this );
     wxSize size( GetSize() );
     if (size.x < size.y*3/2)
     {

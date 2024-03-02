@@ -26,32 +26,32 @@ public:
     virtual ~wxMemoryDCImpl();
 
     // these get reimplemented for mono-bitmaps to behave
-    // more like their Win32 couterparts. They now interpret
+    // more like their Win32 counterparts. They now interpret
     // wxWHITE, wxWHITE_BRUSH and wxWHITE_PEN as drawing 0
     // and everything else as drawing 1.
-    virtual void SetPen( const wxPen &pen );
-    virtual void SetBrush( const wxBrush &brush );
-    virtual void SetBackground( const wxBrush &brush );
-    virtual void SetTextForeground( const wxColour &col );
-    virtual void SetTextBackground( const wxColour &col );
+    virtual void SetPen( const wxPen &pen ) override;
+    virtual void SetBrush( const wxBrush &brush ) override;
+    virtual void SetBackground( const wxBrush &brush ) override;
+    virtual void SetTextForeground( const wxColour &col ) override;
+    virtual void SetTextBackground( const wxColour &col ) override;
 
     // overridden from wxDCImpl
-    virtual void DoGetSize( int *width, int *height ) const;
-    virtual wxBitmap DoGetAsBitmap(const wxRect *subrect) const;
-    virtual void* GetHandle() const;
-    
-    // overridden for wxMemoryDC Impl
-    virtual void DoSelect(const wxBitmap& bitmap);
+    virtual void DoGetSize( int *width, int *height ) const override;
+    virtual wxBitmap DoGetAsBitmap(const wxRect *subrect) const override;
+    virtual void* GetHandle() const override;
 
-    virtual const wxBitmap& GetSelectedBitmap() const;
-    virtual wxBitmap& GetSelectedBitmap();
+    // overridden for wxMemoryDC Impl
+    virtual void DoSelect(const wxBitmap& bitmap) override;
+
+    virtual const wxBitmap& GetSelectedBitmap() const override;
+    virtual wxBitmap& GetSelectedBitmap() override;
 
 private:
     wxBitmap  m_selected;
 
     void Init();
 
-    DECLARE_ABSTRACT_CLASS(wxMemoryDCImpl)
+    wxDECLARE_ABSTRACT_CLASS(wxMemoryDCImpl);
 };
 
 #endif

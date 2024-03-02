@@ -18,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_PREFERENCES_EDITOR
 
@@ -32,10 +29,9 @@
 #include "wx/dialog.h"
 #include "wx/notebook.h"
 #include "wx/sizer.h"
-#include "wx/sharedptr.h"
-#include "wx/scopedptr.h"
 #include "wx/scopeguard.h"
-#include "wx/vector.h"
+
+#include <memory>
 
 namespace
 {
@@ -48,11 +44,9 @@ public:
                    wxDefaultPosition, wxDefaultSize,
                    wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX))
     {
-        SetExtraStyle(wxWS_EX_VALIDATE_RECURSIVELY);
-
         wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-        m_notebook = new wxNotebook(this, wxID_ANY);
+        m_notebook = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_MULTILINE);
         sizer->Add(m_notebook, wxSizerFlags(1).Expand().DoubleBorder());
 
 #ifdef __WXGTK__
@@ -63,6 +57,8 @@ public:
                    wxSizerFlags().Expand().DoubleBorder(wxLEFT|wxRIGHT|wxBOTTOM));
 #endif
         SetSizer(sizer);
+
+        m_notebook->SetFocus();
     }
 
     void AddPage(wxPreferencesPage *page)
@@ -81,10 +77,15 @@ public:
         m_notebook->ChangeSelection(page);
     }
 
-    bool ShouldPreventAppExit() const
-    {
-        return false;
-    }
+     bool ShouldPreventAppExit() const override
+     {
+         return false;
+     }
+
+     void FitPages()
+     {
+        SetClientSize(GetSizer()->GetMinSize());
+     }
 
 private:
     wxNotebook *m_notebook;
@@ -99,9 +100,9 @@ public:
         m_title = title;
     }
 
-    virtual void AddPage(wxPreferencesPage* page)
+    virtual void AddPage(wxPreferencesPage* page) override
     {
-        m_pages.push_back(wxSharedPtr<wxPreferencesPage>(page));
+        m_pages.emplace_back(page);
     }
 
 protected:
@@ -124,20 +125,17 @@ protected:
         //       can determine its best size. We'll need to extend
         //       wxPreferencesPage with a GetBestSize() virtual method to make
         //       it possible to defer the creation.
-        for ( Pages::const_iterator i = m_pages.begin();
-              i != m_pages.end();
-              ++i )
+        for ( const auto& page : m_pages )
         {
-            dlg->AddPage(i->get());
+            dlg->AddPage(page.get());
         }
 
-        dlg->Fit();
+        dlg->FitPages();
 
         return dlg;
     }
 
-    typedef wxVector< wxSharedPtr<wxPreferencesPage> > Pages;
-    Pages m_pages;
+    std::vector<std::unique_ptr<wxPreferencesPage>> m_pages;
 
 private:
     wxString m_title;
@@ -158,7 +156,7 @@ public:
             m_win->Destroy();
     }
 
-    virtual void Show(wxWindow* parent)
+    virtual void Show(wxWindow* parent) override
     {
         if ( !m_win )
         {
@@ -176,12 +174,12 @@ public:
         }
     }
 
-    virtual void Dismiss()
+    virtual void Dismiss() override
     {
         if ( m_win )
         {
             m_win->Close(/*force=*/true);
-            m_win = NULL;
+            m_win = nullptr;
         }
     }
 
@@ -202,15 +200,15 @@ class wxModalPreferencesEditorImpl : public wxGenericPreferencesEditorImplBase
 public:
     wxModalPreferencesEditorImpl()
     {
-        m_dlg = NULL;
+        m_dlg = nullptr;
         m_currentPage = -1;
     }
 
-    virtual void Show(wxWindow* parent)
+    virtual void Show(wxWindow* parent) override
     {
-        wxScopedPtr<wxGenericPrefsDialog> dlg(CreateDialog(parent));
+        std::unique_ptr<wxGenericPrefsDialog> dlg(CreateDialog(parent));
 
-        // Store it for Dismiss() but ensure that the pointer is reset to NULL
+        // Store it for Dismiss() but ensure that the pointer is reset to nullptr
         // when the dialog is destroyed on leaving this function.
         m_dlg = dlg.get();
         wxON_BLOCK_EXIT_NULL(m_dlg);
@@ -224,12 +222,12 @@ public:
             m_currentPage = dlg->GetSelectedPage();
     }
 
-    virtual void Dismiss()
+    virtual void Dismiss() override
     {
         if ( m_dlg )
         {
             m_dlg->EndModal(wxID_CANCEL);
-            m_dlg = NULL;
+            m_dlg = nullptr;
         }
     }
 

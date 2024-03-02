@@ -2,7 +2,6 @@
 // Name:        wx/generic/propdlg.h
 // Purpose:     wxPropertySheetDialog
 // Author:      Julian Smart
-// Modified by:
 // Created:     2005-03-12
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -21,11 +20,8 @@ class WXDLLIMPEXP_FWD_CORE wxBookCtrlBase;
 
 //-----------------------------------------------------------------------------
 // wxPropertySheetDialog
-// A platform-independent properties dialog.
-//
-//   * on PocketPC, a flat-look 'property sheet' notebook will be used, with
-//     no OK/Cancel/Help buttons
-//   * on other platforms, a normal notebook will be used, with standard buttons
+// A platform-independent properties dialog with a notebook and standard
+// buttons.
 //
 // To use this class, call Create from your derived class.
 // Then create pages and add to the book control. Finally call CreateButtons and
@@ -86,7 +82,7 @@ public:
                        const wxPoint& pos = wxDefaultPosition,
                        const wxSize& sz = wxDefaultSize,
                        long style = wxDEFAULT_DIALOG_STYLE,
-                       const wxString& name = wxDialogNameStr)
+                       const wxString& name = wxASCII_STR(wxDialogNameStr))
     {
         Init();
         Create(parent, id, title, pos, sz, style, name);
@@ -97,7 +93,7 @@ public:
                        const wxPoint& pos = wxDefaultPosition,
                        const wxSize& sz = wxDefaultSize,
                        long style = wxDEFAULT_DIALOG_STYLE,
-                       const wxString& name = wxDialogNameStr);
+                       const wxString& name = wxASCII_STR(wxDialogNameStr));
 
 //// Accessors
 
@@ -106,10 +102,10 @@ public:
     wxBookCtrlBase* GetBookCtrl() const { return m_bookCtrl; }
 
     // Override function in base
-    virtual wxWindow* GetContentWindow() const;
+    virtual wxWindow* GetContentWindow() const override;
 
     // Set and get the inner sizer
-    void SetInnerSize(wxSizer* sizer) { m_innerSizer = sizer; }
+    void SetInnerSizer(wxSizer* sizer) { m_innerSizer = sizer; }
     wxSizer* GetInnerSizer() const { return m_innerSizer ; }
 
     // Set and get the book style
@@ -126,7 +122,7 @@ public:
 
 /// Operations
 
-    // Creates the buttons (none on PocketPC)
+    // Creates the buttons
     virtual void CreateButtons(int flags = wxOK|wxCANCEL);
 
     // Lay out the dialog, to be called after pages have been created
@@ -140,9 +136,6 @@ public:
 
     // Adds the book control to the inner sizer.
     virtual void AddBookCtrl(wxSizer* sizer);
-
-    // Set the focus
-    void OnActivate(wxActivateEvent& event);
 
     // Resize dialog if necessary
     void OnIdle(wxIdleEvent& event);
@@ -158,8 +151,8 @@ protected:
     int             m_sheetInnerBorder;
     int             m_selectedPage;
 
-    DECLARE_DYNAMIC_CLASS(wxPropertySheetDialog)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxPropertySheetDialog);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // wxUSE_BOOKCTRL

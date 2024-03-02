@@ -2,7 +2,6 @@
 // Name:        wx/propgrid/property.h
 // Purpose:     wxPGProperty and related support classes
 // Author:      Jaakko Salli
-// Modified by:
 // Created:     2008-08-23
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
@@ -16,59 +15,45 @@
 #if wxUSE_PROPGRID
 
 #include "wx/propgrid/propgriddefs.h"
+#include "wx/bitmap.h"
+#include "wx/bmpbndl.h"
+#include "wx/font.h"
+#include "wx/validate.h"
+
+#include <unordered_map>
+#include <vector>
 
 // -----------------------------------------------------------------------
 
-#define wxNullProperty  ((wxPGProperty*)NULL)
+constexpr wxPGProperty* wxNullProperty = nullptr;
 
 
-/** @class wxPGPaintData
-
-    Contains information relayed to property's OnCustomPaint.
-*/
+// Contains information relayed to property's OnCustomPaint.
 struct wxPGPaintData
 {
-    /** wxPropertyGrid. */
+    // wxPropertyGrid
     const wxPropertyGrid*   m_parent;
 
-    /**
-        Normally -1, otherwise index to drop-down list item that has to be
-        drawn.
-     */
+    // Normally -1, otherwise index to drop-down list item
+    // that has to be drawn.
     int                     m_choiceItem;
 
-    /** Set to drawn width in OnCustomPaint (optional). */
+    // Set to drawn width in OnCustomPaint (optional).
     int                     m_drawnWidth;
 
-    /**
-        In a measure item call, set this to the height of item at m_choiceItem
-        index.
-     */
+    // In a measure item call, set this to the height of item
+    // at m_choiceItem index.
     int                     m_drawnHeight;
 };
 
 
-// space between vertical sides of a custom image
-#define wxPG_CUSTOM_IMAGE_SPACINGY      1
-
-// space between caption and selection rectangle,
-#define wxPG_CAPRECTXMARGIN             2
-
-// horizontally and vertically
-#define wxPG_CAPRECTYMARGIN             1
-
-
-/** @class wxPGCellRenderer
-
-    Base class for wxPropertyGrid cell renderers.
-*/
+// Base class for wxPropertyGrid cell renderers.
 class WXDLLIMPEXP_PROPGRID wxPGCellRenderer : public wxObjectRefData
 {
 public:
 
-    wxPGCellRenderer()
-        : wxObjectRefData() { }
-    virtual ~wxPGCellRenderer() { }
+    wxPGCellRenderer() = default;
+    virtual ~wxPGCellRenderer() = default;
 
     // Render flags
     enum
@@ -96,10 +81,8 @@ public:
                               DontUseCellBgCol
     };
 
-    /**
-        Returns @true if rendered something in the foreground (text or
-        bitmap.
-    */
+    // Returns true if rendered something in the foreground
+    // (text or bitmap).
     virtual bool Render( wxDC& dc,
                          const wxRect& rect,
                          const wxPropertyGrid* propertyGrid,
@@ -108,55 +91,49 @@ public:
                          int item,
                          int flags ) const = 0;
 
-    /** Returns size of the image in front of the editable area.
-        @remarks
-        If property is NULL, then this call is for a custom value. In that case
-        the item is index to wxPropertyGrid's custom values.
-    */
+    // Returns size of the image in front of the editable area.
+    // If property is null, then this call is for a custom value.
+    // In that case the item is index to wxPropertyGrid's custom values.
     virtual wxSize GetImageSize( const wxPGProperty* property,
                                  int column,
                                  int item ) const;
 
-    /** Paints property category selection rectangle.
-    */
+    // Paints property category selection rectangle.
+#if WXWIN_COMPATIBILITY_3_0
+    wxDEPRECATED_BUT_USED_INTERNALLY_MSG("Use DrawCaptionSelectionRect(wxWindow*, wxDC&, ...) instead")
     virtual void DrawCaptionSelectionRect( wxDC& dc,
                                            int x, int y,
                                            int w, int h ) const;
+#endif // WXWIN_COMPATIBILITY_3_0
+    virtual void DrawCaptionSelectionRect(wxWindow *win, wxDC& dc,
+                                          int x, int y, int w, int h) const;
 
-    /** Utility to draw vertically centered text.
-    */
+    // Utility to draw vertically centered text.
     void DrawText( wxDC& dc,
                    const wxRect& rect,
                    int imageWidth,
                    const wxString& text ) const;
 
-    /**
-        Utility to draw editor's value, or vertically aligned text if editor is
-        NULL.
-    */
+    // Utility to draw editor's value, or vertically
+    // aligned text if editor is null.
     void DrawEditorValue( wxDC& dc, const wxRect& rect,
                           int xOffset, const wxString& text,
                           wxPGProperty* property,
                           const wxPGEditor* editor ) const;
 
-    /** Utility to render cell bitmap and set text colour plus bg brush
-        colour.
-
-        @return Returns image width, which, for instance, can be passed to
-                DrawText.
-    */
+    // Utility to render cell bitmap and set text
+    // colour plus bg brush colour.
+    // Returns image width, which, for instance,
+    // can be passed to DrawText.
     int PreDrawCell( wxDC& dc,
                      const wxRect& rect,
+                     const wxPropertyGrid* propGrid,
                      const wxPGCell& cell,
                      int flags ) const;
 
-    /**
-        Utility to be called after drawing is done, to revert whatever
-        changes PreDrawCell() did.
-
-        @param flags
-            Same as those passed to PreDrawCell().
-    */
+    // Utility to be called after drawing is done, to revert
+    // whatever changes PreDrawCell() did.
+    // Flags are the same as those passed to PreDrawCell().
     void PostDrawCell( wxDC& dc,
                        const wxPropertyGrid* propGrid,
                        const wxPGCell& cell,
@@ -164,12 +141,8 @@ public:
 };
 
 
-/**
-    @class wxPGDefaultRenderer
-
-    Default cell renderer, that can handles the common
-    scenarios.
-*/
+// Default cell renderer, that can handles the common
+// scenarios.
 class WXDLLIMPEXP_PROPGRID wxPGDefaultRenderer : public wxPGCellRenderer
 {
 public:
@@ -179,11 +152,11 @@ public:
                          wxPGProperty* property,
                          int column,
                          int item,
-                         int flags ) const;
+                         int flags ) const override;
 
     virtual wxSize GetImageSize( const wxPGProperty* property,
                                  int column,
-                                 int item ) const;
+                                 int item ) const override;
 
 protected:
 };
@@ -200,16 +173,16 @@ public:
         m_text = text;
         m_hasValidText = true;
     }
-    void SetBitmap( const wxBitmap& bitmap ) { m_bitmap = bitmap; }
+    void SetBitmap( const wxBitmapBundle& bitmap ) { m_bitmapBundle = bitmap; }
     void SetFgCol( const wxColour& col ) { m_fgCol = col; }
     void SetBgCol( const wxColour& col ) { m_bgCol = col; }
     void SetFont( const wxFont& font ) { m_font = font; }
 
 protected:
-    virtual ~wxPGCellData() { }
+    virtual ~wxPGCellData() = default;
 
     wxString    m_text;
-    wxBitmap    m_bitmap;
+    wxBitmapBundle m_bitmapBundle;
     wxColour    m_fgCol;
     wxColour    m_bgCol;
     wxFont      m_font;
@@ -219,26 +192,22 @@ protected:
 };
 
 
-/**
-    @class wxPGCell
-
-    Base class for wxPropertyGrid cell information.
-*/
+// Base class for wxPropertyGrid cell information.
 class WXDLLIMPEXP_PROPGRID wxPGCell : public wxObject
 {
 public:
-    wxPGCell();
+    wxPGCell() = default;
     wxPGCell(const wxPGCell& other)
         : wxObject(other)
     {
     }
 
     wxPGCell( const wxString& text,
-              const wxBitmap& bitmap = wxNullBitmap,
+              const wxBitmapBundle& bitmap = wxBitmapBundle(),
               const wxColour& fgCol = wxNullColour,
               const wxColour& bgCol = wxNullColour );
 
-    virtual ~wxPGCell() { }
+    virtual ~wxPGCell() = default;
 
     wxPGCellData* GetData()
     {
@@ -255,43 +224,34 @@ public:
         return (m_refData && GetData()->m_hasValidText);
     }
 
-    /**
-        Sets empty but valid data to this cell object.
-    */
+    // Sets empty but valid data to this cell object.
     void SetEmptyData();
 
-    /**
-        Merges valid data from srcCell into this.
-    */
+    // Merges valid data from srcCell into this.
     void MergeFrom( const wxPGCell& srcCell );
 
     void SetText( const wxString& text );
-    void SetBitmap( const wxBitmap& bitmap );
+    void SetBitmap( const wxBitmapBundle& bitmap );
     void SetFgCol( const wxColour& col );
 
-    /**
-        Sets font of the cell.
-
-        @remarks Because wxPropertyGrid does not support rows of
-                 different height, it makes little sense to change
-                 size of the font. Therefore it is recommended
-                 to use return value of wxPropertyGrid::GetFont()
-                 or wxPropertyGrid::GetCaptionFont() as a basis
-                 for the font that, after modifications, is passed
-                 to this member function.
-    */
+    // Sets font of the cell.
+    // Because wxPropertyGrid does not support rows of
+    // different height, it makes little sense to change
+    // size of the font. Therefore it is recommended
+    // to use return value of wxPropertyGrid::GetFont()
+    // or wxPropertyGrid::GetCaptionFont() as a basis
+    // for the font that, after modifications, is passed
+    // to this member function.
     void SetFont( const wxFont& font );
 
     void SetBgCol( const wxColour& col );
 
     const wxString& GetText() const { return GetData()->m_text; }
-    const wxBitmap& GetBitmap() const { return GetData()->m_bitmap; }
+    const wxBitmapBundle& GetBitmap() const { return GetData()->m_bitmapBundle; }
     const wxColour& GetFgCol() const { return GetData()->m_fgCol; }
 
-    /**
-        Returns font of the cell. If no specific font is set for this
-        cell, then the font will be invalid.
-    */
+    // Returns font of the cell. If no specific font is set for this
+    // cell, then the font will be invalid.
     const wxFont& GetFont() const { return GetData()->m_font; }
 
     const wxColour& GetBgCol() const { return GetData()->m_bgCol; }
@@ -309,458 +269,451 @@ public:
     // to have default values when attached to a grid.
     bool IsInvalid() const
     {
-        return ( m_refData == NULL );
+        return ( m_refData == nullptr );
     }
 
 private:
-    virtual wxObjectRefData *CreateRefData() const
+    virtual wxObjectRefData *CreateRefData() const override
         { return new wxPGCellData(); }
 
-    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;
+    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const override;
 };
 
 // -----------------------------------------------------------------------
 
-/** @class wxPGAttributeStorage
-
-    wxPGAttributeStorage is somewhat optimized storage for
-      key=variant pairs (ie. a map).
-*/
+// wxPGAttributeStorage is somewhat optimized storage for
+// key=variant pairs (ie. a map).
 class WXDLLIMPEXP_PROPGRID wxPGAttributeStorage
 {
 public:
-    wxPGAttributeStorage();
+    wxPGAttributeStorage() = default;
+    wxPGAttributeStorage(const wxPGAttributeStorage& other);
     ~wxPGAttributeStorage();
+
+    wxPGAttributeStorage& operator=(const wxPGAttributeStorage& rhs);
 
     void Set( const wxString& name, const wxVariant& value );
     unsigned int GetCount() const { return (unsigned int) m_map.size(); }
-    wxVariant FindValue( const wxString& name ) const
-    {
-        wxPGHashMapS2P::const_iterator it = m_map.find(name);
-        if ( it != m_map.end() )
-        {
-            wxVariantData* data = (wxVariantData*) it->second;
-            data->IncRef();
-            return wxVariant(data, it->first);
-        }
-        return wxVariant();
-    }
+    wxVariant FindValue(const wxString& name) const;
 
-    typedef wxPGHashMapS2P::const_iterator const_iterator;
-    const_iterator StartIteration() const
-    {
-        return m_map.begin();
-    }
-    bool GetNext( const_iterator& it, wxVariant& variant ) const
-    {
-        if ( it == m_map.end() )
-            return false;
-
-        wxVariantData* data = (wxVariantData*) it->second;
-        data->IncRef();
-        variant.SetData(data);
-        variant.SetName(it->first);
-        ++it;
-        return true;
-    }
+    typedef std::unordered_map<wxString, wxVariantData*>::const_iterator const_iterator;
+    const_iterator StartIteration() const;
+    bool GetNext(const_iterator& it, wxVariant& variant) const;
 
 protected:
-    wxPGHashMapS2P  m_map;
+    std::unordered_map<wxString, wxVariantData*> m_map;
 };
 
-
-// -----------------------------------------------------------------------
-
-/** @section propgrid_propflags wxPGProperty Flags
-    @{
-*/
-
-enum wxPGPropertyFlags
+enum class wxPGPropertyFlags : int
 {
+    // No flags.
+    Null = 0,
 
-/** Indicates bold font.
-*/
-wxPG_PROP_MODIFIED                  = 0x0001,
+    // Indicates bold font.
+    Modified = 0x0001,
 
-/** Disables ('greyed' text and editor does not activate) property.
-*/
-wxPG_PROP_DISABLED                  = 0x0002,
+    // Disables ('greyed' text and editor does not activate) property.
+    Disabled = 0x0002,
 
-/** Hider button will hide this property.
-*/
-wxPG_PROP_HIDDEN                    = 0x0004,
+    // Hider button will hide this property.
+    Hidden = 0x0004,
 
-/** This property has custom paint image just in front of its value.
-    If property only draws custom images into a popup list, then this
-    flag should not be set.
-*/
-wxPG_PROP_CUSTOMIMAGE               = 0x0008,
+    // This property has custom paint image just in front of its value.
+    // If property only draws custom images into a popup list, then this
+    // flag should not be set.
+    CustomImage = 0x0008,
 
-/** Do not create text based editor for this property (but button-triggered
-    dialog and choice are ok).
-*/
-wxPG_PROP_NOEDITOR                  = 0x0010,
+    // Do not create text based editor for this property (but button-triggered
+    // dialog and choice are ok).
+    NoEditor = 0x0010,
 
-/** Property is collapsed, ie. it's children are hidden.
-*/
-wxPG_PROP_COLLAPSED                 = 0x0020,
+    // Property is collapsed, ie. it's children are hidden.
+    Collapsed = 0x0020,
 
-/**
-    If property is selected, then indicates that validation failed for pending
-    value.
+    // If property is selected, then indicates that validation failed for pending
+    // value.
+    // If property is not selected, that indicates that the actual property
+    // value has failed validation (NB: this behaviour is not currently supported,
+    // but may be used in future).
+    InvalidValue = 0x0040,
 
-    If property is not selected, that indicates that the actual property
-    value has failed validation (NB: this behaviour is not currently supported,
-    but may be used in future).
-*/
-wxPG_PROP_INVALID_VALUE             = 0x0040,
+    // 0x0080,
 
-// 0x0080,
+    // Switched via SetWasModified(). Temporary flag - only used when
+    // setting/changing property value.
+    WasModified = 0x0200,
 
-/** Switched via SetWasModified(). Temporary flag - only used when
-    setting/changing property value.
-*/
-wxPG_PROP_WAS_MODIFIED              = 0x0200,
+    // If set, then child properties (if any) are private, and should be
+    // "invisible" to the application.
+    Aggregate = 0x0400,
 
-/**
-    If set, then child properties (if any) are private, and should be
-    "invisible" to the application.
-*/
-wxPG_PROP_AGGREGATE                 = 0x0400,
+    // If set, then child properties (if any) are copies and should not
+    // be deleted in dtor.
+    ChildrenAreCopies = 0x0800,
 
-/** If set, then child properties (if any) are copies and should not
-    be deleted in dtor.
-*/
-wxPG_PROP_CHILDREN_ARE_COPIES       = 0x0800,
+    // Classifies this item as a non-category.
+    //    Used for faster item type identification.
+    Property = 0x1000,
 
-/**
-    Classifies this item as a non-category.
+    // Classifies this item as a category.
+    // Used for faster item type identification.
+    Category = 0x2000,
 
-    Used for faster item type identification.
-*/
-wxPG_PROP_PROPERTY                  = 0x1000,
+    // Classifies this item as a property that has children,
+    //but is not aggregate (i.e. children are not private).
+    MiscParent = 0x4000,
 
-/**
-    Classifies this item as a category.
+    // Property is read-only. Editor is still created for wxTextCtrl-based
+    // property editors. For others, editor is not usually created because
+    // they do implement wxTE_READONLY style or equivalent.
+    ReadOnly = 0x8000,
 
-    Used for faster item type identification.
-*/
-wxPG_PROP_CATEGORY                  = 0x2000,
+    //
+    // NB: FLAGS ABOVE 0x8000 CANNOT BE USED WITH PROPERTY ITERATORS
+    //
 
-/** Classifies this item as a property that has children, but is not aggregate
-    (ie children are not private).
-*/
-wxPG_PROP_MISC_PARENT               = 0x4000,
+    // Property's value is composed from values of child properties.
+    // This flag cannot be used with property iterators.
+    ComposedValue = 0x00010000,
 
-/** Property is read-only. Editor is still created for wxTextCtrl-based
-    property editors. For others, editor is not usually created because
-    they do implement wxTE_READONLY style or equivalent.
-*/
-wxPG_PROP_READONLY                  = 0x8000,
+    // Common value of property is selectable in editor.
+    // This flag cannot be used with property iterators.
+    UsesCommonValue = 0x00020000,
 
-//
-// NB: FLAGS ABOVE 0x8000 CANNOT BE USED WITH PROPERTY ITERATORS
-//
+    // Property can be set to unspecified value via editor.
+    // Currently, this applxPGies to following properties:
+    // - wxIntProperty, wxUIntProperty, wxFloatProperty, wxEditEnumProperty:
+    // Clear the text field
+    // This flag cannot be used with property iterators.
+    // See wxPGProperty::SetAutoUnspecified().
+    AutoUnspecified = 0x00040000,
 
-/** Property's value is composed from values of child properties.
-    @remarks
-    This flag cannot be used with property iterators.
-*/
-wxPG_PROP_COMPOSED_VALUE            = 0x00010000,
+    // Indicates that the property is being deleted and should be ignored.
+    BeingDeleted = 0x00080000,
 
-/** Common value of property is selectable in editor.
-    @remarks
-    This flag cannot be used with property iterators.
-*/
-wxPG_PROP_USES_COMMON_VALUE         = 0x00020000,
+    // If set, full path is shown in wxFileProperty.
+    ShowFullFileName = 0x00100000,
 
-/** Property can be set to unspecified value via editor.
-    Currently, this applies to following properties:
-    - wxIntProperty, wxUIntProperty, wxFloatProperty, wxEditEnumProperty:
-      Clear the text field
+    // For internal use only.
+    Reserved_1 = 0x10000000,
 
-    @remarks
-    This flag cannot be used with property iterators.
+    // For internal use only.
+    Reserved_2 = 0x20000000,
 
-    @see wxPGProperty::SetAutoUnspecified()
-*/
-wxPG_PROP_AUTO_UNSPECIFIED          = 0x00040000,
+    // For internal use only.
+    Reserved_3 = 0x40000000,
 
-/** Indicates the bit useable by derived properties.
-*/
-wxPG_PROP_CLASS_SPECIFIC_1          = 0x00080000,
+    // Topmost flag.
+    Max = ShowFullFileName,
 
-/** Indicates the bit useable by derived properties.
-*/
-wxPG_PROP_CLASS_SPECIFIC_2          = 0x00100000,
+    // Property with children must have one of these set, otherwise iterators
+    // will not work correctly.
+    // Code should automatically take care of this, however.
+    ParentalFlags = Aggregate | Category | MiscParent,
 
-/** Indicates that the property is being deleted and should be ignored.
-*/
-wxPG_PROP_BEING_DELETED             = 0x00200000
-
+    // Combination of flags that can be stored by GetFlagsAsString
+    StringStoredFlags = Disabled | Hidden | NoEditor | Collapsed
 };
 
-/** Topmost flag.
-*/
-#define wxPG_PROP_MAX               wxPG_PROP_AUTO_UNSPECIFIED
+constexpr wxPGPropertyFlags operator|(wxPGPropertyFlags a, wxPGPropertyFlags b)
+{
+    return static_cast<wxPGPropertyFlags>(static_cast<int>(a) | static_cast<int>(b));
+}
 
-/** Property with children must have one of these set, otherwise iterators
-    will not work correctly.
-    Code should automatically take care of this, however.
-*/
-#define wxPG_PROP_PARENTAL_FLAGS \
-    ((wxPGPropertyFlags)(wxPG_PROP_AGGREGATE | \
-                         wxPG_PROP_CATEGORY | \
-                         wxPG_PROP_MISC_PARENT))
+inline wxPGPropertyFlags operator|=(wxPGPropertyFlags & a, wxPGPropertyFlags b)
+{
+    return a = a | b;
+}
 
-/** @}
-*/
+constexpr wxPGPropertyFlags operator&(wxPGPropertyFlags a, wxPGPropertyFlags b)
+{
+    return static_cast<wxPGPropertyFlags>(static_cast<int>(a) & static_cast<int>(b));
+}
 
-// Combination of flags that can be stored by GetFlagsAsString
-#define wxPG_STRING_STORED_FLAGS \
-    (wxPG_PROP_DISABLED|wxPG_PROP_HIDDEN|wxPG_PROP_NOEDITOR|wxPG_PROP_COLLAPSED)
+inline wxPGPropertyFlags operator&=(wxPGPropertyFlags & a, wxPGPropertyFlags b)
+{
+    return a = a & b;
+}
+
+constexpr wxPGPropertyFlags operator^(wxPGPropertyFlags a, wxPGPropertyFlags b)
+{
+    return static_cast<wxPGPropertyFlags>(static_cast<int>(a) ^ static_cast<int>(b));
+}
+
+constexpr wxPGPropertyFlags operator~(wxPGPropertyFlags a)
+{
+    return static_cast<wxPGPropertyFlags>(~static_cast<int>(a));
+}
+
+constexpr bool operator!(wxPGPropertyFlags a)
+{
+    return static_cast<int>(a) == 0;
+}
+
+// We need these operators with int arguments for interoperability
+// with wxPG_ITERATOR_FLAGS as plain enumeration).
+// =====
+constexpr int operator<<(wxPGPropertyFlags a, int n)
+{
+    return static_cast<int>(a) << n;
+}
+
+constexpr int operator|(wxPGPropertyFlags a, int b)
+{
+    return static_cast<int>(a) | b;
+}
+
+constexpr int operator|(int a, wxPGPropertyFlags b)
+{
+    return a | static_cast<int>(b);
+}
+
+constexpr int operator&(int a, wxPGPropertyFlags b)
+{
+    return a & static_cast<int>(b);
+}
+// =====
+
+#if WXWIN_COMPATIBILITY_3_2
+wxDEPRECATED_MSG("use wxPGPropertyFlags::Modified instead")
+constexpr wxPGPropertyFlags wxPG_PROP_MODIFIED = wxPGPropertyFlags::Modified;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::Disabled instead")
+constexpr wxPGPropertyFlags wxPG_PROP_DISABLED = wxPGPropertyFlags::Disabled;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::Hidden instead")
+constexpr wxPGPropertyFlags wxPG_PROP_HIDDEN = wxPGPropertyFlags::Hidden;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::CustomImage instead")
+constexpr wxPGPropertyFlags wxPG_PROP_CUSTOMIMAGE = wxPGPropertyFlags::CustomImage;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::NoEditor instead")
+constexpr wxPGPropertyFlags wxPG_PROP_NOEDITOR = wxPGPropertyFlags::NoEditor;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::Collapsed instead")
+constexpr wxPGPropertyFlags wxPG_PROP_COLLAPSED = wxPGPropertyFlags::Collapsed;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::InvalidValue instead")
+constexpr wxPGPropertyFlags wxPG_PROP_INVALID_VALUE = wxPGPropertyFlags::InvalidValue;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::WasModified instead")
+constexpr wxPGPropertyFlags wxPG_PROP_WAS_MODIFIED = wxPGPropertyFlags::WasModified;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::Aggregate instead")
+constexpr wxPGPropertyFlags wxPG_PROP_AGGREGATE = wxPGPropertyFlags::Aggregate;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::ChildrenAreCopies instead")
+constexpr wxPGPropertyFlags wxPG_PROP_CHILDREN_ARE_COPIES = wxPGPropertyFlags::ChildrenAreCopies;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::Property instead")
+constexpr wxPGPropertyFlags wxPG_PROP_PROPERTY = wxPGPropertyFlags::Property;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::Category instead")
+constexpr wxPGPropertyFlags wxPG_PROP_CATEGORY = wxPGPropertyFlags::Category;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::MiscParent instead")
+constexpr wxPGPropertyFlags wxPG_PROP_MISC_PARENT = wxPGPropertyFlags::MiscParent;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::ReadOnly instead")
+constexpr wxPGPropertyFlags wxPG_PROP_READONLY = wxPGPropertyFlags::ReadOnly;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::ComposedValue instead")
+constexpr wxPGPropertyFlags wxPG_PROP_COMPOSED_VALUE = wxPGPropertyFlags::ComposedValue;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::UsesCommonValue instead")
+constexpr wxPGPropertyFlags wxPG_PROP_USES_COMMON_VALUE = wxPGPropertyFlags::UsesCommonValue;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::AutoUnspecified instead")
+constexpr wxPGPropertyFlags wxPG_PROP_AUTO_UNSPECIFIED = wxPGPropertyFlags::AutoUnspecified;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::BeingDeleted instead")
+constexpr wxPGPropertyFlags wxPG_PROP_BEING_DELETED = wxPGPropertyFlags::BeingDeleted;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::ParentalFlags instead")
+constexpr wxPGPropertyFlags wxPG_PROP_PARENTAL_FLAGS = wxPGPropertyFlags::ParentalFlags;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::StringStoredFlags instead")
+constexpr wxPGPropertyFlags wxPG_STRING_STORED_FLAGS = wxPGPropertyFlags::StringStoredFlags;
+wxDEPRECATED_MSG("use wxPGPropertyFlags::Max instead")
+constexpr wxPGPropertyFlags wxPG_PROP_MAX = wxPGPropertyFlags::Max;
+
+// Indicates bits usable by derived properties.
+wxDEPRECATED_BUT_USED_INTERNALLY_MSG("wxPG_PROP_CLASS_SPECIFIC_1 in intended for internal use only.")
+constexpr wxPGPropertyFlags wxPG_PROP_CLASS_SPECIFIC_1 = wxPGPropertyFlags::Reserved_1;
+wxDEPRECATED_BUT_USED_INTERNALLY_MSG("wxPG_PROP_CLASS_SPECIFIC_2 in intended for internal use only.")
+constexpr wxPGPropertyFlags wxPG_PROP_CLASS_SPECIFIC_2 = wxPGPropertyFlags::Reserved_2;
+wxDEPRECATED_BUT_USED_INTERNALLY_MSG("wxPG_PROP_CLASS_SPECIFIC_3 in intended for internal use only.")
+constexpr wxPGPropertyFlags wxPG_PROP_CLASS_SPECIFIC_3 = wxPGPropertyFlags::Reserved_3;
+#endif // WXWIN_COMPATIBILITY_3_2
 
 // -----------------------------------------------------------------------
 
-/**
-    @section propgrid_property_attributes wxPropertyGrid Property Attribute
-    Identifiers.
+// Helpers to mark macros as deprecated
+//
+// Note that we don't do it when building wx itself if 3.0 compatibility is on,
+// as these macros are still used in our own code in this case.
+#if (defined(__clang__) || defined(__GNUC__)) && \
+        (!defined(WXBUILDING) || !WXWIN_COMPATIBILITY_3_0)
+#define wxPG_STRINGIFY(X) #X
+#define wxPG_DEPRECATED_MACRO_VALUE(value, msg) \
+        _Pragma(wxPG_STRINGIFY(GCC warning msg)) value
+#else
+#define wxPG_DEPRECATED_MACRO_VALUE(value, msg) value
+#endif // clang || GCC
 
-    wxPGProperty::SetAttribute() and
-    wxPropertyGridInterface::SetPropertyAttribute() accept one of these as
-    attribute name argument.
+#if defined(__VISUALC__)
+#define wxPG_MUST_DEPRECATE_MACRO_NAME
+#endif
 
-    You can use strings instead of constants. However, some of these
-    constants are redefined to use cached strings which may reduce
-    your binary size by some amount.
+// wxPGProperty::SetAttribute() and
+// wxPropertyGridInterface::SetPropertyAttribute() accept one of these as
+// attribute name argument.
+// You can use strings instead of constants. However, some of these
+// constants are redefined to use cached strings which may reduce
+// your binary size by some amount.
 
-    @{
-*/
-
-/** Set default value for property.
-*/
+// Set default value for property.
 #define wxPG_ATTR_DEFAULT_VALUE           wxS("DefaultValue")
 
-/** Universal, int or double. Minimum value for numeric properties.
-*/
+// Universal, int or double. Minimum value for numeric properties.
 #define wxPG_ATTR_MIN                     wxS("Min")
 
-/** Universal, int or double. Maximum value for numeric properties.
-*/
+// Universal, int or double. Maximum value for numeric properties.
 #define wxPG_ATTR_MAX                     wxS("Max")
 
-/** Universal, string. When set, will be shown as text after the displayed
-    text value. Alternatively, if third column is enabled, text will be shown
-    there (for any type of property).
-*/
+// Universal, string. When set, will be shown as text after the displayed
+// text value. Alternatively, if third column is enabled, text will be shown
+// there (for any type of property).
 #define wxPG_ATTR_UNITS                     wxS("Units")
 
-/** When set, will be shown as 'greyed' text in property's value cell when
-    the actual displayed value is blank.
-*/
+// When set, will be shown as 'greyed' text in property's value cell when
+// the actual displayed value is blank.
 #define wxPG_ATTR_HINT                      wxS("Hint")
 
-#if wxPG_COMPATIBILITY_1_4
-/**
-    @deprecated Use "Hint" (wxPG_ATTR_HINT) instead.
-*/
-#define wxPG_ATTR_INLINE_HELP               wxS("InlineHelp")
-#endif
-
-/** Universal, wxArrayString. Set to enable auto-completion in any
-    wxTextCtrl-based property editor.
-*/
+// Universal, wxArrayString. Set to enable auto-completion in any
+// wxTextCtrl-based property editor.
 #define wxPG_ATTR_AUTOCOMPLETE              wxS("AutoComplete")
 
-/** wxBoolProperty and wxFlagsProperty specific. Value type is bool.
-    Default value is False.
-
-    When set to True, bool property will use check box instead of a
-    combo box as its editor control. If you set this attribute
-    for a wxFlagsProperty, it is automatically applied to child
-    bool properties.
-*/
+// wxBoolProperty and wxFlagsProperty specific. Value type is bool.
+// Default value is False.
+// When set to True, bool property will use check box instead of a
+// combo box as its editor control. If you set this attribute
+// for a wxFlagsProperty, it is automatically applied to child
+// bool properties.
 #define wxPG_BOOL_USE_CHECKBOX              wxS("UseCheckbox")
 
-/** wxBoolProperty and wxFlagsProperty specific. Value type is bool.
-    Default value is False.
-
-    Set to True for the bool property to cycle value on double click
-    (instead of showing the popup listbox). If you set this attribute
-    for a wxFlagsProperty, it is automatically applied to child
-    bool properties.
-*/
+// wxBoolProperty and wxFlagsProperty specific. Value type is bool.
+// Default value is False.
+// Set to True for the bool property to cycle value on double click
+// (instead of showing the popup listbox). If you set this attribute
+// for a wxFlagsProperty, it is automatically applied to child
+// bool properties.
 #define wxPG_BOOL_USE_DOUBLE_CLICK_CYCLING  wxS("UseDClickCycling")
 
-/**
-    wxFloatProperty (and similar) specific, int, default -1.
-
-    Sets the (max) precision used when floating point value is rendered as
-    text. The default -1 means infinite precision.
-*/
+// wxFloatProperty (and similar) specific, int, default -1.
+// Sets the (max) precision used when floating point value is rendered as
+// text. The default -1 means infinite precision.
 #define wxPG_FLOAT_PRECISION                wxS("Precision")
 
-/**
-    The text will be echoed as asterisks (wxTE_PASSWORD will be passed to
-    textctrl etc).
-*/
+// The text will be echoed as asterisks (wxTE_PASSWORD will be passed
+// to textctrl etc.).
 #define wxPG_STRING_PASSWORD                wxS("Password")
 
-/** Define base used by a wxUIntProperty. Valid constants are
-    wxPG_BASE_OCT, wxPG_BASE_DEC, wxPG_BASE_HEX and wxPG_BASE_HEXL
-    (lowercase characters).
-*/
+// Define base used by a wxUIntProperty. Valid constants are
+// wxPG_BASE_OCT, wxPG_BASE_DEC, wxPG_BASE_HEX and wxPG_BASE_HEXL
+// (lowercase characters).
 #define wxPG_UINT_BASE                      wxS("Base")
 
-/** Define prefix rendered to wxUIntProperty. Accepted constants
-    wxPG_PREFIX_NONE, wxPG_PREFIX_0x, and wxPG_PREFIX_DOLLAR_SIGN.
-    <b>Note:</b> Only wxPG_PREFIX_NONE works with Decimal and Octal
-    numbers.
-*/
+// Define prefix rendered to wxUIntProperty. Accepted constants
+// wxPG_PREFIX_NONE, wxPG_PREFIX_0x, and wxPG_PREFIX_DOLLAR_SIGN.
+// Note:
+// Only wxPG_PREFIX_NONE works with Decimal and Octal numbers.
 #define wxPG_UINT_PREFIX                    wxS("Prefix")
 
-/**
-    wxFileProperty/wxImageFileProperty specific, wxChar*, default is
-    detected/varies.
-    Sets the wildcard used in the triggered wxFileDialog. Format is the same.
-*/
+// Specific to wxEditorDialogProperty and derivatives, wxString, default is empty.
+// Sets a specific title for the editor dialog.
+#define wxPG_DIALOG_TITLE                   wxS("DialogTitle")
+
+// wxFileProperty/wxImageFileProperty specific, wxChar*, default is
+// detected/varies.
+// Sets the wildcard used in the triggered wxFileDialog. Format is the same.
 #define wxPG_FILE_WILDCARD                  wxS("Wildcard")
 
-/** wxFileProperty/wxImageFileProperty specific, int, default 1.
-    When 0, only the file name is shown (i.e. drive and directory are hidden).
-*/
+// wxFileProperty/wxImageFileProperty specific, int, default 1.
+// When 0, only the file name is shown (i.e. drive and directory are hidden).
 #define wxPG_FILE_SHOW_FULL_PATH            wxS("ShowFullPath")
 
-/** Specific to wxFileProperty and derived properties, wxString, default empty.
-    If set, then the filename is shown relative to the given path string.
-*/
+// Specific to wxFileProperty and derived properties, wxString, default empty.
+// If set, then the filename is shown relative to the given path string.
 #define wxPG_FILE_SHOW_RELATIVE_PATH        wxS("ShowRelativePath")
 
-/**
-    Specific to wxFileProperty and derived properties, wxString, default is
-    empty.
-
-    Sets the initial path of where to look for files.
-*/
+// Specific to wxFileProperty and derived properties, wxString,
+// default is empty.
+// Sets the initial path of where to look for files.
 #define wxPG_FILE_INITIAL_PATH              wxS("InitialPath")
 
-/** Specific to wxFileProperty and derivatives, wxString, default is empty.
-    Sets a specific title for the dir dialog.
-*/
-#define wxPG_FILE_DIALOG_TITLE              wxS("DialogTitle")
+#if WXWIN_COMPATIBILITY_3_0
+#ifdef wxPG_MUST_DEPRECATE_MACRO_NAME
+#pragma deprecated(wxPG_FILE_DIALOG_TITLE)
+#endif
+// Specific to wxFileProperty and derivatives, wxString, default is empty.
+// Sets a specific title for the dir dialog.
+#define wxPG_FILE_DIALOG_TITLE wxPG_DEPRECATED_MACRO_VALUE(wxS("DialogTitle"),\
+    "wxPG_FILE_DIALOG_TITLE is deprecated. Use wxPG_DIALOG_TITLE instead.")
+#endif // WXWIN_COMPATIBILITY_3_0
 
-/** Specific to wxFileProperty and derivatives, long, default is 0.
-    Sets a specific wxFileDialog style for the file dialog.
-*/
+// Specific to wxFileProperty and derivatives, long, default is 0.
+// Sets a specific wxFileDialog style for the file dialog, e.g. ::wxFD_SAVE.
 #define wxPG_FILE_DIALOG_STYLE              wxS("DialogStyle")
 
-/** Specific to wxDirProperty, wxString, default is empty.
-    Sets a specific message for the dir dialog.
-*/
-#define wxPG_DIR_DIALOG_MESSAGE             wxS("DialogMessage")
+#if WXWIN_COMPATIBILITY_3_0
+#ifdef wxPG_MUST_DEPRECATE_MACRO_NAME
+#pragma deprecated(wxPG_DIR_DIALOG_MESSAGE)
+#endif
+// Specific to wxDirProperty, wxString, default is empty.
+// Sets a specific message for the dir dialog.
+#define wxPG_DIR_DIALOG_MESSAGE wxPG_DEPRECATED_MACRO_VALUE(wxS("DialogMessage"),\
+    "wxPG_DIR_DIALOG_MESSAGE is deprecated. Use wxPG_DIALOG_TITLE instead.")
+#endif // WXWIN_COMPATIBILITY_3_0
 
-/**
-    wxArrayStringProperty's string delimiter character. If this is a quotation
-    mark or hyphen, then strings will be quoted instead (with given
-    character).
-
-    Default delimiter is quotation mark.
-*/
+// wxArrayStringProperty's string delimiter character. If this is
+// a quotation mark or hyphen, then strings will be quoted instead
+// (with given character).
+// Default delimiter is quotation mark.
 #define wxPG_ARRAY_DELIMITER                wxS("Delimiter")
 
-/** Sets displayed date format for wxDateProperty.
-*/
+// Sets displayed date format for wxDateProperty.
 #define wxPG_DATE_FORMAT                    wxS("DateFormat")
 
-/** Sets wxDatePickerCtrl window style used with wxDateProperty. Default
-    is wxDP_DEFAULT | wxDP_SHOWCENTURY.
-*/
+// Sets wxDatePickerCtrl window style used with wxDateProperty. Default
+// is wxDP_DEFAULT | wxDP_SHOWCENTURY. Using wxDP_ALLOWNONE will enable
+// better unspecified value support in the editor
 #define wxPG_DATE_PICKER_STYLE              wxS("PickerStyle")
 
-/** SpinCtrl editor, int or double. How much number changes when button is
-    pressed (or up/down on keyboard).
-*/
+#if wxUSE_SPINBTN
+// SpinCtrl editor, int or double. How much number changes when button is
+// pressed (or up/down on keyboard).
 #define wxPG_ATTR_SPINCTRL_STEP             wxS("Step")
 
-/** SpinCtrl editor, bool. If true, value wraps at Min/Max.
-*/
+// SpinCtrl editor, bool. If true, value wraps at Min/Max.
 #define wxPG_ATTR_SPINCTRL_WRAP             wxS("Wrap")
 
-/**
-    wxMultiChoiceProperty, int.
-    If 0, no user strings allowed. If 1, user strings appear before list
-    strings. If 2, user strings appear after list string.
-*/
+// SpinCtrl editor, bool. If true, moving mouse when one of the spin
+//    buttons is depressed rapidly changing "spin" value.
+#define wxPG_ATTR_SPINCTRL_MOTION           wxS("MotionSpin")
+#endif  // wxUSE_SPINBTN
+
+// wxMultiChoiceProperty, int.
+// If 0, no user strings allowed. If 1, user strings appear before list
+// strings. If 2, user strings appear after list string.
 #define wxPG_ATTR_MULTICHOICE_USERSTRINGMODE    wxS("UserStringMode")
 
-/**
-    wxColourProperty and its kind, int, default 1.
-
-    Setting this attribute to 0 hides custom colour from property's list of
-    choices.
-*/
+// wxColourProperty and its kind, int, default 1.
+// Setting this attribute to 0 hides custom colour from property's list of
+// choices.
 #define wxPG_COLOUR_ALLOW_CUSTOM            wxS("AllowCustom")
 
-/**
-    wxColourProperty and its kind: Set to True in order to support editing
-    alpha colour component.
-*/
+// wxColourProperty and its kind: Set to True in order to support editing
+// alpha colour component.
 #define wxPG_COLOUR_HAS_ALPHA               wxS("HasAlpha")
-
-/** @}
-*/
-
-// Redefine attribute macros to use cached strings
-#undef wxPG_ATTR_DEFAULT_VALUE
-#define wxPG_ATTR_DEFAULT_VALUE           wxPGGlobalVars->m_strDefaultValue
-#undef wxPG_ATTR_MIN
-#define wxPG_ATTR_MIN                     wxPGGlobalVars->m_strMin
-#undef wxPG_ATTR_MAX
-#define wxPG_ATTR_MAX                     wxPGGlobalVars->m_strMax
-#undef wxPG_ATTR_UNITS
-#define wxPG_ATTR_UNITS                   wxPGGlobalVars->m_strUnits
-#undef wxPG_ATTR_HINT
-#define wxPG_ATTR_HINT                    wxPGGlobalVars->m_strHint
-#if wxPG_COMPATIBILITY_1_4
-#undef wxPG_ATTR_INLINE_HELP
-#define wxPG_ATTR_INLINE_HELP             wxPGGlobalVars->m_strInlineHelp
-#endif
 
 // -----------------------------------------------------------------------
 
-/** @class wxPGChoiceEntry
-    Data of a single wxPGChoices choice.
-*/
+// Data of a single wxPGChoices choice.
 class WXDLLIMPEXP_PROPGRID wxPGChoiceEntry : public wxPGCell
 {
 public:
     wxPGChoiceEntry();
-    wxPGChoiceEntry(const wxPGChoiceEntry& other)
-        : wxPGCell(other)
-    {
-        m_value = other.m_value;
-    }
-    wxPGChoiceEntry( const wxString& label,
-                     int value = wxPG_INVALID_VALUE )
-        : wxPGCell(), m_value(value)
-    {
-        SetText(label);
-    }
+    wxPGChoiceEntry(const wxPGChoiceEntry& other);
+    wxPGChoiceEntry(const wxString& label, int value = wxPG_INVALID_VALUE);
 
-    virtual ~wxPGChoiceEntry() { }
+    virtual ~wxPGChoiceEntry() = default;
 
     void SetValue( int value ) { m_value = value; }
     int GetValue() const { return m_value; }
 
-    wxPGChoiceEntry& operator=( const wxPGChoiceEntry& other )
-    {
-        if ( this != &other )
-        {
-            Ref(other);
-        }
-        m_value = other.m_value;
-        return *this;
-    }
+    wxPGChoiceEntry& operator=(const wxPGChoiceEntry& other);
 
 protected:
     int m_value;
@@ -774,7 +727,7 @@ class WXDLLIMPEXP_PROPGRID wxPGChoicesData : public wxObjectRefData
     friend class wxPGChoices;
 public:
     // Constructor sets m_refCount to 1.
-    wxPGChoicesData();
+    wxPGChoicesData() = default;
 
     void CopyDataFrom( wxPGChoicesData* data );
 
@@ -790,56 +743,47 @@ public:
 
     const wxPGChoiceEntry& Item( unsigned int i ) const
     {
-        wxASSERT_MSG( i < GetCount(), "invalid index" );
+        wxASSERT_MSG( i < GetCount(), wxS("invalid index") );
         return m_items[i];
     }
 
     wxPGChoiceEntry& Item( unsigned int i )
     {
-        wxASSERT_MSG( i < GetCount(), "invalid index" );
+        wxASSERT_MSG( i < GetCount(), wxS("invalid index") );
         return m_items[i];
     }
 
 private:
-    wxVector<wxPGChoiceEntry>   m_items;
+    std::vector<wxPGChoiceEntry> m_items;
 
+protected:
     virtual ~wxPGChoicesData();
 };
 
-#define wxPGChoicesEmptyData    ((wxPGChoicesData*)NULL)
+constexpr wxPGChoicesData* wxPGChoicesEmptyData = nullptr;
 
 
-/** @class wxPGChoices
-
-    Helper class for managing choices of wxPropertyGrid properties.
-    Each entry can have label, value, bitmap, text colour, and background
-    colour.
-
-    wxPGChoices uses reference counting, similar to other wxWidgets classes.
-    This means that assignment operator and copy constructor only copy the
-    reference and not the actual data. Use Copy() member function to create a
-    real copy.
-
-    @remarks If you do not specify value for entry, index is used.
-
-    @library{wxpropgrid}
-    @category{propgrid}
-*/
+// Helper class for managing choices of wxPropertyGrid properties.
+// Each entry can have label, value, bitmap, text colour, and background
+// colour.
+// wxPGChoices uses reference counting, similar to other wxWidgets classes.
+// This means that assignment operator and copy constructor only copy the
+// reference and not the actual data. Use Copy() member function to create
+// a real copy.
+// If you do not specify value for entry, index is used.
 class WXDLLIMPEXP_PROPGRID wxPGChoices
 {
 public:
     typedef long ValArrItem;
 
-    /** Default constructor. */
+    // Default constructor.
     wxPGChoices()
     {
         Init();
     }
 
-    /**
-        Copy constructor, uses reference counting. To create a real copy,
-        use Copy() member function instead.
-    */
+    // Copy constructor, uses reference counting. To create a real copy,
+    // use Copy() member function instead.
     wxPGChoices( const wxPGChoices& a )
     {
         if ( a.m_data != wxPGChoicesEmptyData )
@@ -847,114 +791,104 @@ public:
             m_data = a.m_data;
             m_data->IncRef();
         }
+        else
+        {
+            Init();
+        }
     }
 
-    /**
-        Constructor.
-
-        @param labels
-            Labels for choices
-
-        @param values
-            Values for choices. If NULL, indexes are used.
-    */
-    wxPGChoices( const wxChar* const* labels, const long* values = NULL )
+    // Constructor.
+    // count - Number of labels.
+    // labels - Labels themselves.
+    // values - Values for choices. If nullptr, indexes are used.
+    wxPGChoices(size_t count, const wxString* labels, const long* values = nullptr)
     {
         Init();
-        Set(labels,values);
+        Add(count, labels, values);
     }
 
-    /**
-        Constructor.
+    // Constructor overload taking wxChar strings, provided mostly for
+    // compatibility.
+    // labels - Labels for choices, nullptr-terminated.
+    // values - Values for choices. If nullptr, indexes are used.
+    wxPGChoices( const wxChar* const* labels, const long* values = nullptr )
+    {
+        Init();
+        Add(labels,values);
+    }
 
-        @param labels
-            Labels for choices
-
-        @param values
-            Values for choices. If empty, indexes are used.
-    */
+    // Constructor.
+    // labels - Labels for choices.
+    // values - Values for choices. If empty, indexes are used.
     wxPGChoices( const wxArrayString& labels,
                  const wxArrayInt& values = wxArrayInt() )
     {
         Init();
-        Set(labels,values);
+        Add(labels,values);
     }
 
-    /** Simple interface constructor. */
+    // Simple interface constructor.
     wxPGChoices( wxPGChoicesData* data )
+        : m_data(data)
     {
-        wxASSERT(data);
-        m_data = data;
-        data->IncRef();
+        wxCHECK_RET(data, "Data pointer cannot be null");
+        m_data->IncRef();
     }
 
-    /** Destructor. */
+    // Destructor.
     ~wxPGChoices()
     {
         Free();
     }
 
-    /**
-        Adds to current.
+    // Adds to current.
+    // If did not have own copies, creates them now. If was empty, identical
+    // to set except that creates copies.
+    void Add(size_t count, const wxString* labels, const long* values = nullptr);
 
-        If did not have own copies, creates them now. If was empty, identical
-        to set except that creates copies.
+    // Overload taking wxChar strings, provided mostly for compatibility.
+    // labels - Labels for added choices, nullptr-terminated.
+    // values - Values for added choices. If empty, relevant entry indexes are used.
+    void Add( const wxChar* const* labels, const ValArrItem* values = nullptr );
 
-        @param labels
-            Labels for added choices.
-
-        @param values
-            Values for added choices. If empty, relevant entry indexes are used.
-    */
-    void Add( const wxChar* const* labels, const ValArrItem* values = NULL );
-
-    /** Version that works with wxArrayString and wxArrayInt. */
+    // Version that works with wxArrayString and wxArrayInt.
     void Add( const wxArrayString& arr, const wxArrayInt& arrint = wxArrayInt() );
 
-    /**
-        Adds a single choice.
-
-        @param label
-            Label for added choice.
-
-        @param value
-            Value for added choice. If unspecified, index is used.
-    */
+    // Adds a single choice.
+    // label - Label for added choice.
+    // value - Value for added choice. If unspecified, index is used.
     wxPGChoiceEntry& Add( const wxString& label,
                           int value = wxPG_INVALID_VALUE );
 
-    /** Adds a single item, with bitmap. */
+    // Adds a single item, with bitmap.
     wxPGChoiceEntry& Add( const wxString& label,
-                          const wxBitmap& bitmap,
+                          const wxBitmapBundle& bitmap,
                           int value = wxPG_INVALID_VALUE );
 
-    /** Adds a single item with full entry information. */
+    // Adds a single item with full entry information.
     wxPGChoiceEntry& Add( const wxPGChoiceEntry& entry )
     {
         return Insert(entry, -1);
     }
 
-    /** Adds single item. */
+    // Adds a single item, sorted.
     wxPGChoiceEntry& AddAsSorted( const wxString& label,
                                   int value = wxPG_INVALID_VALUE );
 
-    /**
-        Assigns choices data, using reference counting. To create a real copy,
-        use Copy() member function instead.
-    */
+    // Assigns choices data, using reference counting. To create a real copy,
+    // use Copy() member function instead.
     void Assign( const wxPGChoices& a )
     {
         AssignData(a.m_data);
     }
 
+    // Assigns data from another set of choices.
     void AssignData( wxPGChoicesData* data );
 
-    /** Delete all choices. */
+    // Delete all choices.
     void Clear();
 
-    /**
-        Returns a real copy of the choices.
-    */
+    // Returns a real copy of the choices.
     wxPGChoices Copy() const
     {
         wxPGChoices dst;
@@ -969,49 +903,48 @@ public:
             m_data = new wxPGChoicesData();
     }
 
-    /** Gets a unsigned number identifying this list. */
+    // Gets a unsigned number identifying this list.
     wxPGChoicesId GetId() const { return (wxPGChoicesId) m_data; }
 
+    // Returns label of item.
     const wxString& GetLabel( unsigned int ind ) const
     {
         return Item(ind).GetText();
     }
 
+    // Returns number of items.
     unsigned int GetCount () const
     {
-        if ( !m_data )
-            return 0;
-
-        return m_data->GetCount();
+        return m_data ? m_data->GetCount() : 0;
     }
 
+    // Returns value of item.
     int GetValue( unsigned int ind ) const { return Item(ind).GetValue(); }
 
-    /** Returns array of values matching the given strings. Unmatching strings
-        result in wxPG_INVALID_VALUE entry in array.
-    */
+    // Returns array of values matching the given strings. Unmatching strings
+    // result in wxPG_INVALID_VALUE entry in array.
     wxArrayInt GetValuesForStrings( const wxArrayString& strings ) const;
 
-    /** Returns array of indices matching given strings. Unmatching strings
-        are added to 'unmatched', if not NULL.
-    */
+    // Returns array of indices matching given strings. Unmatching strings
+    // are added to 'unmatched', if not null.
     wxArrayInt GetIndicesForStrings( const wxArrayString& strings,
-                                     wxArrayString* unmatched = NULL ) const;
+                                     wxArrayString* unmatched = nullptr ) const;
 
+    // Returns index of item with given label.
     int Index( const wxString& str ) const;
+    // Returns index of item with given value.
     int Index( int val ) const;
 
-    /** Inserts single item. */
+    // Inserts a single item.
     wxPGChoiceEntry& Insert( const wxString& label,
                              int index,
                              int value = wxPG_INVALID_VALUE );
 
-    /** Inserts a single item with full entry information. */
+    // Inserts a single item with full entry information.
     wxPGChoiceEntry& Insert( const wxPGChoiceEntry& entry, int index );
 
-    /** Returns false if this is a constant empty set of choices,
-        which should not be modified.
-    */
+    // Returns false if this is a constant empty set of choices,
+    // which should not be modified.
     bool IsOk() const
     {
         return ( m_data != wxPGChoicesEmptyData );
@@ -1023,33 +956,38 @@ public:
         return m_data->Item(i);
     }
 
+    // Returns item at given index.
     wxPGChoiceEntry& Item( unsigned int i )
     {
         wxASSERT( IsOk() );
         return m_data->Item(i);
     }
 
-    /** Removes count items starting at position nIndex. */
+    // Removes count items starting at position nIndex.
     void RemoveAt(size_t nIndex, size_t count = 1);
 
-    /** Does not create copies for itself.
-        TODO: Deprecate.
-    */
-    void Set( const wxChar* const* labels, const long* values = NULL )
+    // Sets contents from lists of strings and values.
+    // Does not create copies for itself.
+    // TODO: Deprecate.
+    void Set(size_t count, const wxString* labels, const long* values = nullptr)
+    {
+        Free();
+        Add(count, labels, values);
+    }
+
+    void Set( const wxChar* const* labels, const long* values = nullptr )
     {
         Free();
         Add(labels,values);
     }
 
-    /** Version that works with wxArrayString and wxArrayInt. */
+    // Sets contents from lists of strings and values.
+    // Version that works with wxArrayString and wxArrayInt.
     void Set( const wxArrayString& labels,
               const wxArrayInt& values = wxArrayInt() )
     {
         Free();
-        if ( &values )
-            Add(labels,values);
-        else
-            Add(labels);
+        Add(labels,values);
     }
 
     // Creates exclusive copy of current choices
@@ -1074,6 +1012,7 @@ public:
         return data;
     }
 
+    // Returns array of choice labels.
     wxArrayString GetLabels() const;
 
     void operator= (const wxPGChoices& a)
@@ -1101,476 +1040,337 @@ protected:
 
 // -----------------------------------------------------------------------
 
-/** @class wxPGProperty
-
-    wxPGProperty is base class for all wxPropertyGrid properties.
-
-    NB: Full class overview is now only present in
-        interface/wx/propgrid/property.h.
-
-    @library{wxpropgrid}
-    @category{propgrid}
-*/
+// wxPGProperty is base class for all wxPropertyGrid properties.
 class WXDLLIMPEXP_PROPGRID wxPGProperty : public wxObject
 {
     friend class wxPropertyGrid;
     friend class wxPropertyGridInterface;
     friend class wxPropertyGridPageState;
     friend class wxPropertyGridPopulator;
-    friend class wxStringProperty;  // Proper "<composed>" support requires this
 
-    DECLARE_ABSTRACT_CLASS(wxPGProperty)
+    wxDECLARE_ABSTRACT_CLASS(wxPGProperty);
 public:
+#if WXWIN_COMPATIBILITY_3_0
     typedef wxUint32 FlagType;
+#elif WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use wxPGPropertyFlags type instead")
+    typedef wxUint32 FlagType;
+#endif // WXWIN_COMPATIBILITY_3_0, WXWIN_COMPATIBILITY_3_2
 
-    /**
-        Default constructor.
-    */
-    wxPGProperty();
-
-    /**
-        Constructor.
-
-        All non-abstract property classes should have a constructor with
-        the same first two arguments as this one.
-    */
-    wxPGProperty( const wxString& label, const wxString& name );
-
-    /**
-        Virtual destructor.
-        It is customary for derived properties to implement this.
-    */
+    // Virtual destructor.
+    // It is customary for derived properties to implement this.
     virtual ~wxPGProperty();
 
-    /** This virtual function is called after m_value has been set.
-
-        @remarks
-        - If m_value was set to Null variant (ie. unspecified value),
-          OnSetValue() will not be called.
-        - m_value may be of any variant type. Typically properties internally
-          support only one variant type, and as such OnSetValue() provides a
-          good opportunity to convert
-          supported values into internal type.
-        - Default implementation does nothing.
-    */
+    // This virtual function is called after m_value has been set.
+    // Remarks:
+    // - If m_value was set to Null variant (i.e. unspecified value),
+    //   OnSetValue() will not be called.
+    // - m_value may be of any variant type. Typically properties internally
+    //   support only one variant type, and as such OnSetValue() provides a
+    //   good opportunity to convert
+    //   supported values into internal type.
+    // - Default implementation does nothing.
     virtual void OnSetValue();
 
-    /** Override this to return something else than m_value as the value.
-    */
+    // Override this to return something else than m_value as the value.
     virtual wxVariant DoGetValue() const { return m_value; }
 
-    /** Implement this function in derived class to check the value.
-        Return true if it is ok. Returning false prevents property change events
-        from occurring.
-
-        @remarks
-        - Default implementation always returns true.
-    */
+    // Implement this function in derived class to check the value.
+    // Return true if it is ok. Returning false prevents property change
+    // events from occurring.
+    // Remark: Default implementation always returns true.
     virtual bool ValidateValue( wxVariant& value,
                                 wxPGValidationInfo& validationInfo ) const;
 
-    /**
-        Converts text into wxVariant value appropriate for this property.
+    // Converts text into wxVariant value appropriate for this property.
+    // Parameters:
+    // variant - On function entry this is the old value (should not be
+    //   null wxVariant in normal cases). Translated value must be assigned
+    //   back to it.
+    // text - Text to be translated into variant.
+    // flags - If wxPGPropValFormatFlags::FullValue is set, returns complete, storable value instead
+    //   of displayable one (they may be different).
+    //   If wxPGPropValFormatFlags::CompositeFragment is set, text is interpreted as a part of
+    //   composite property string value (as generated by ValueToString()
+    //   called with this same flag).
+    // Returns true if resulting wxVariant value was different.
+    // Default implementation converts semicolon delimited tokens into
+    // child values. Only works for properties with children.
+    // You might want to take into account that m_value is Null variant
+    // if property value is unspecified (which is usually only case if
+    // you explicitly enabled that sort behaviour).
+#if WXWIN_COMPATIBILITY_3_2
+    mutable bool m_oldStringToValueCalled = false;
+    bool StringToValueWithCheck(wxVariant& variant, const wxString& text, wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
+    wxDEPRECATED_BUT_USED_INTERNALLY_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
+    virtual bool StringToValue( wxVariant& variant, const wxString& text,
+                                int flags ) const
+    {
+        m_oldStringToValueCalled = true;
+        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    virtual bool StringToValue(wxVariant& variant, const wxString& text,
+                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
 
-        @param variant
-            On function entry this is the old value (should not be wxNullVariant
-            in normal cases). Translated value must be assigned back to it.
+    // Converts integer (possibly a choice selection) into wxVariant value
+    // appropriate for this property.
+    // Parameters:
+    // variant - On function entry this is the old value (should not be null wxVariant
+    //   in normal cases). Translated value must be assigned back to it.
+    // number - Integer to be translated into variant.
+    // flags - If wxPGPropValFormatFlags::FullValue is set, returns complete, storable value
+    //   instead of displayable one.
+    // Returns true if resulting wxVariant value was different.
+    // Remarks
+    // - If property is not supposed to use choice or spinctrl or other editor
+    //   with int-based value, it is not necessary to implement this method.
+    // - Default implementation simply assign given int to m_value.
+    // - If property uses choice control, and displays a dialog on some choice
+    //   items, then it is preferred to display that dialog in IntToValue
+    //   instead of OnEvent.
+    // - You might want to take into account that m_value is Null variant
+    //   if property value is unspecified (which is usually only case if
+    //   you explicitly enabled that sort behaviour).
+#if WXWIN_COMPATIBILITY_3_2
+    mutable bool m_oldIntToValueCalled = false;
+    bool IntToValueWithCheck(wxVariant& variant, int number, wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
+    wxDEPRECATED_BUT_USED_INTERNALLY_MSG("use IntToValue with 'flags' argument as wxPGPropValFormatFlags")
+    virtual bool IntToValue(wxVariant& value, int number, int flags) const
+    {
+        m_oldIntToValueCalled = true;
+        return IntToValue(value, number, static_cast<wxPGPropValFormatFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    virtual bool IntToValue(wxVariant& value, int number,
+                            wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
 
-        @param text
-            Text to be translated into variant.
+    // Converts property value into a text representation.
+    // Parameters:
+    // value - Value to be converted.
+    // flags - If wxPGPropValFormatFlags::Null (default value), then displayed string is returned.
+    //   If wxPGPropValFormatFlags::FullValue is set, returns complete, storable string value
+    //   instead of displayable. If wxPGPropValFormatFlags::EditableValue is set, returns
+    //   string value that must be editable in textctrl. If
+    //   wxPGPropValFormatFlags::CompositeFragment is set, returns text that is appropriate to
+    //   display as a part of string property's composite text
+    //   representation.
+    // Default implementation calls GenerateComposedValue().
+#if WXWIN_COMPATIBILITY_3_2
+    mutable bool m_oldValueToStringCalled = false;
+    wxString ValueToStringWithCheck(wxVariant& variant, wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
+    wxDEPRECATED_BUT_USED_INTERNALLY_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
+    virtual wxString ValueToString(wxVariant& value, int flags) const
+    {
+        m_oldValueToStringCalled = true;
+        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    virtual wxString ValueToString(wxVariant& value, wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
 
-        @param argFlags
-            If wxPG_FULL_VALUE is set, returns complete, storable value instead
-            of displayable one (they may be different).
-            If wxPG_COMPOSITE_FRAGMENT is set, text is interpreted as a part of
-            composite property string value (as generated by ValueToString()
-            called with this same flag).
+    // Converts string to a value, and if successful, calls SetValue() on it.
+    // Default behaviour is to do nothing.
+    // Returns true if value was changed.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use SetValueFromString with 'flags' argument as wxPGPropValFormatFlags")
+    bool SetValueFromString(const wxString& text, int flags)
+    {
+        return SetValueFromString(text, static_cast<wxPGPropValFormatFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    bool SetValueFromString(const wxString& text, wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::ProgrammaticValue);
 
-        @return Returns @true if resulting wxVariant value was different.
+    // Converts integer to a value, and if successful, calls SetValue() on it.
+    // Default behaviour is to do nothing.
+    // Parameters:
+    //   value - Int to get the value from.
+    //   flags - If has wxPGPropValFormatFlags::FullValue, then the value given is a actual value
+    //     and not an index.
+    // Returns true if value was changed.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use SetValueFromInt with 'flags' argument as wxPGPropValFormatFlags")
+    bool SetValueFromInt(long value, int flags)
+    {
+        return SetValueFromInt(value, static_cast<wxPGPropValFormatFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    bool SetValueFromInt(long value, wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null);
 
-        @remarks Default implementation converts semicolon delimited tokens into
-                child values. Only works for properties with children.
-
-                You might want to take into account that m_value is Null variant
-                if property value is unspecified (which is usually only case if
-                you explicitly enabled that sort behaviour).
-    */
-    virtual bool StringToValue( wxVariant& variant,
-                                const wxString& text,
-                                int argFlags = 0 ) const;
-
-    /**
-        Converts integer (possibly a choice selection) into wxVariant value
-        appropriate for this property.
-
-        @param variant
-            On function entry this is the old value (should not be wxNullVariant
-            in normal cases). Translated value must be assigned back to it.
-
-        @param number
-            Integer to be translated into variant.
-
-        @param argFlags
-            If wxPG_FULL_VALUE is set, returns complete, storable value instead
-            of displayable one.
-
-        @return Returns @true if resulting wxVariant value was different.
-
-        @remarks
-        - If property is not supposed to use choice or spinctrl or other editor
-          with int-based value, it is not necessary to implement this method.
-        - Default implementation simply assign given int to m_value.
-        - If property uses choice control, and displays a dialog on some choice
-          items, then it is preferred to display that dialog in IntToValue
-          instead of OnEvent.
-        - You might want to take into account that m_value is Null variant if
-          property value is unspecified (which is usually only case if you
-          explicitly enabled that sort behaviour).
-    */
-    virtual bool IntToValue( wxVariant& value,
-                             int number,
-                             int argFlags = 0 ) const;
-
-    /**
-        Converts property value into a text representation.
-
-        @param value
-            Value to be converted.
-
-        @param argFlags
-            If 0 (default value), then displayed string is returned.
-            If wxPG_FULL_VALUE is set, returns complete, storable string value
-            instead of displayable. If wxPG_EDITABLE_VALUE is set, returns
-            string value that must be editable in textctrl. If
-            wxPG_COMPOSITE_FRAGMENT is set, returns text that is appropriate to
-            display as a part of string property's composite text
-            representation.
-
-        @remarks Default implementation calls GenerateComposedValue().
-    */
-    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const;
-
-    /** Converts string to a value, and if successful, calls SetValue() on it.
-        Default behaviour is to do nothing.
-        @param text
-        String to get the value from.
-        @return
-        true if value was changed.
-    */
-    bool SetValueFromString( const wxString& text, int flags = wxPG_PROGRAMMATIC_VALUE );
-
-    /** Converts integer to a value, and if successful, calls SetValue() on it.
-        Default behaviour is to do nothing.
-        @param value
-            Int to get the value from.
-        @param flags
-            If has wxPG_FULL_VALUE, then the value given is a actual value and
-            not an index.
-        @return
-            True if value was changed.
-    */
-    bool SetValueFromInt( long value, int flags = 0 );
-
-    /**
-        Returns size of the custom painted image in front of property.
-
-        This method must be overridden to return non-default value if
-        OnCustomPaint is to be called.
-        @param item
-            Normally -1, but can be an index to the property's list of items.
-        @remarks
-        - Default behaviour is to return wxSize(0,0), which means no image.
-        - Default image width or height is indicated with dimension -1.
-        - You can also return wxPG_DEFAULT_IMAGE_SIZE, i.e. wxSize(-1, -1).
-    */
+    // Returns size of the custom painted image in front of property.
+    // This method must be overridden to return non-default value if
+    // OnCustomPaint is to be called.
+    // item - Normally -1, but can be an index to the property's list of items.
+    // Remarks:
+    // - Default behaviour is to return wxSize(0,0), which means no image.
+    // - Default image width or height is indicated with dimension -1.
+    // - You can also return wxPG_DEFAULT_IMAGE_SIZE, i.e. wxDefaultSize.
     virtual wxSize OnMeasureImage( int item = -1 ) const;
 
-    /**
-        Events received by editor widgets are processed here.
-
-        Note that editor class usually processes most events. Some, such as
-        button press events of TextCtrlAndButton class, can be handled here.
-        Also, if custom handling for regular events is desired, then that can
-        also be done (for example, wxSystemColourProperty custom handles
-        wxEVT_CHOICE to display colour picker dialog when
-        'custom' selection is made).
-
-        If the event causes value to be changed, SetValueInEvent()
-        should be called to set the new value.
-
-        @param event
-        Associated wxEvent.
-        @return
-        Should return true if any changes in value should be reported.
-        @remarks
-        If property uses choice control, and displays a dialog on some choice
-        items, then it is preferred to display that dialog in IntToValue
-        instead of OnEvent.
-    */
+    // Events received by editor widgets are processed here.
+    // Note that editor class usually processes most events. Some, such as
+    // button press events of TextCtrlAndButton class, can be handled here.
+    // Also, if custom handling for regular events is desired, then that can
+    // also be done (for example, wxSystemColourProperty custom handles
+    // wxEVT_CHOICE to display colour picker dialog when
+    // 'custom' selection is made).
+    // If the event causes value to be changed, SetValueInEvent()
+    // should be called to set the new value.
+    // event - Associated wxEvent.
+    // Should return true if any changes in value should be reported.
+    // If property uses choice control, and displays a dialog on some choice
+    // items, then it is preferred to display that dialog in IntToValue
+    // instead of OnEvent.
     virtual bool OnEvent( wxPropertyGrid* propgrid,
                           wxWindow* wnd_primary,
                           wxEvent& event );
 
-    /**
-        Called after value of a child property has been altered. Must return
-        new value of the whole property (after any alterations warranted by
-        child's new value).
-
-        Note that this function is usually called at the time that value of
-        this property, or given child property, is still pending for change,
-        and as such, result of GetValue() or m_value should not be relied
-        on.
-
-        Sample pseudo-code implementation:
-
-        @code
-        wxVariant MyProperty::ChildChanged( wxVariant& thisValue,
-                                            int childIndex,
-                                            wxVariant& childValue ) const
-        {
-            // Acquire reference to actual type of data stored in variant
-            // (TFromVariant only exists if wxPropertyGrid's wxVariant-macros
-            // were used to create the variant class).
-            T& data = TFromVariant(thisValue);
-
-            // Copy childValue into data.
-            switch ( childIndex )
-            {
-                case 0:
-                    data.SetSubProp1( childvalue.GetLong() );
-                    break;
-                case 1:
-                    data.SetSubProp2( childvalue.GetString() );
-                    break;
-                ...
-            }
-
-            // Return altered data
-            return data;
-        }
-        @endcode
-
-        @param thisValue
-            Value of this property. Changed value should be returned (in
-            previous versions of wxPropertyGrid it was only necessary to
-            write value back to this argument).
-        @param childIndex
-            Index of child changed (you can use Item(childIndex) to get
-            child property).
-        @param childValue
-            (Pending) value of the child property.
-
-        @return
-            Modified value of the whole property.
-    */
+    // Called after value of a child property has been altered. Must return
+    // new value of the whole property (after any alterations warranted by
+    // child's new value).
+    // Note that this function is usually called at the time that value of
+    // this property, or given child property, is still pending for change,
+    // and as such, result of GetValue() or m_value should not be relied
+    // on.
+    // Parameters:
+    //   thisValue - Value of this property. Changed value should be returned
+    //     (in previous versions of wxPropertyGrid it was only necessary to
+    //     write value back to this argument).
+    //   childIndex - Index of child changed (you can use Item(childIndex)
+    //     to get child property).
+    //   childValue - (Pending) value of the child property.
+    // Returns modified value of the whole property.
     virtual wxVariant ChildChanged( wxVariant& thisValue,
                                     int childIndex,
                                     wxVariant& childValue ) const;
 
-    /** Returns pointer to an instance of used editor.
-    */
+    // Returns pointer to an instance of used editor.
     virtual const wxPGEditor* DoGetEditorClass() const;
 
-    /** Returns pointer to the wxValidator that should be used
-        with the editor of this property (NULL for no validator).
-        Setting validator explicitly via SetPropertyValidator
-        will override this.
-
-        In most situations, code like this should work well
-        (macros are used to maintain one actual validator instance,
-        so on the second call the function exits within the first
-        macro):
-
-        @code
-
-        wxValidator* wxMyPropertyClass::DoGetValidator () const
-        {
-            WX_PG_DOGETVALIDATOR_ENTRY()
-
-            wxMyValidator* validator = new wxMyValidator(...);
-
-            ... prepare validator...
-
-            WX_PG_DOGETVALIDATOR_EXIT(validator)
-        }
-
-        @endcode
-
-        @remarks
-        You can get common filename validator by returning
-        wxFileProperty::GetClassValidator(). wxDirProperty,
-        for example, uses it.
-    */
+    // Returns pointer to the wxValidator that should be used
+    // with the editor of this property (nullptr for no validator).
+    // Setting validator explicitly via SetPropertyValidator
+    // will override this.
+    // You can get common filename validator by returning
+    // wxFileProperty::GetClassValidator(). wxDirProperty,
+    // for example, uses it.
     virtual wxValidator* DoGetValidator () const;
 
-    /**
-        Override to paint an image in front of the property value text or
-        drop-down list item (but only if wxPGProperty::OnMeasureImage is
-        overridden as well).
-
-        If property's OnMeasureImage() returns size that has height != 0 but
-        less than row height ( < 0 has special meanings), wxPropertyGrid calls
-        this method to draw a custom image in a limited area in front of the
-        editor control or value text/graphics, and if control has drop-down
-        list, then the image is drawn there as well (even in the case
-        OnMeasureImage() returned higher height than row height).
-
-        NOTE: Following applies when OnMeasureImage() returns a "flexible"
-        height ( using wxPG_FLEXIBLE_SIZE(W,H) macro), which implies variable
-        height items: If rect.x is < 0, then this is a measure item call, which
-        means that dc is invalid and only thing that should be done is to set
-        paintdata.m_drawnHeight to the height of the image of item at index
-        paintdata.m_choiceItem. This call may be done even as often as once
-        every drop-down popup show.
-
-        @param dc
-            wxDC to paint on.
-        @param rect
-            Box reserved for custom graphics. Includes surrounding rectangle,
-            if any. If x is < 0, then this is a measure item call (see above).
-        @param paintdata
-            wxPGPaintData structure with much useful data.
-
-        @remarks
-            - You can actually exceed rect width, but if you do so then
-              paintdata.m_drawnWidth must be set to the full width drawn in
-              pixels.
-            - Due to technical reasons, rect's height will be default even if
-              custom height was reported during measure call.
-            - Brush is guaranteed to be default background colour. It has been
-              already used to clear the background of area being painted. It
-              can be modified.
-            - Pen is guaranteed to be 1-wide 'black' (or whatever is the proper
-              colour) pen for drawing framing rectangle. It can be changed as
-              well.
-
-        @see ValueToString()
-    */
+    // Override to paint an image in front of the property value text or
+    // drop-down list item (but only if wxPGProperty::OnMeasureImage is
+    // overridden as well).
+    // If property's OnMeasureImage() returns size that has height != 0 but
+    // less than row height ( < 0 has special meanings), wxPropertyGrid calls
+    // this method to draw a custom image in a limited area in front of the
+    // editor control or value text/graphics, and if control has drop-down
+    // list, then the image is drawn there as well (even in the case
+    // OnMeasureImage() returned higher height than row height).
+    // NOTE: Following applies when OnMeasureImage() returns a "flexible"
+    // height ( using wxPG_FLEXIBLE_SIZE(W,H) macro), which implies variable
+    // height items: If rect.x is < 0, then this is a measure item call, which
+    // means that dc is invalid and only thing that should be done is to set
+    // paintdata.m_drawnHeight to the height of the image of item at index
+    // paintdata.m_choiceItem. This call may be done even as often as once
+    // every drop-down popup show.
+    // Parameters:
+    //   dc - wxDC to paint on.
+    //   rect - Box reserved for custom graphics. Includes surrounding rectangle,
+    //     if any. If x is < 0, then this is a measure item call (see above).
+    //   paintdata - wxPGPaintData structure with much useful data.
+    // Remarks:
+    // - You can actually exceed rect width, but if you do so then
+    //   paintdata.m_drawnWidth must be set to the full width drawn in
+    //   pixels.
+    // - Due to technical reasons, rect's height will be default even if
+    //   custom height was reported during measure call.
+    // - Brush is guaranteed to be default background colour. It has been
+    //   already used to clear the background of area being painted. It
+    //   can be modified.
+    // - Pen is guaranteed to be 1-wide 'black' (or whatever is the proper
+    //   colour) pen for drawing framing rectangle. It can be changed as
+    //   well.
+    // See ValueToString()
     virtual void OnCustomPaint( wxDC& dc,
                                 const wxRect& rect,
                                 wxPGPaintData& paintdata );
 
-    /**
-        Returns used wxPGCellRenderer instance for given property column
-        (label=0, value=1).
-
-        Default implementation returns editor's renderer for all columns.
-    */
+    // Returns used wxPGCellRenderer instance for given property column
+    // (label=0, value=1).
+    // Default implementation returns editor's renderer for all columns.
     virtual wxPGCellRenderer* GetCellRenderer( int column ) const;
 
-    /** Returns which choice is currently selected. Only applies to properties
-        which have choices.
-
-        Needs to reimplemented in derived class if property value does not
-        map directly to a choice. Integer as index, bool, and string usually do.
-    */
+    // Returns which choice is currently selected. Only applies to properties
+    // which have choices.
+    // Needs to be reimplemented in derived class if property value does not
+    // map directly to a choice. Integer as index, bool, and string usually do.
     virtual int GetChoiceSelection() const;
 
-    /**
-        Refresh values of child properties.
-
-        Automatically called after value is set.
-    */
+    // Refresh values of child properties.
+    // Automatically called after value is set.
     virtual void RefreshChildren();
 
-    /**
-        Reimplement this member function to add special handling for
-        attributes of this property.
-
-        @return Return @false to have the attribute automatically stored in
-                m_attributes. Default implementation simply does that and
-                nothing else.
-
-        @remarks To actually set property attribute values from the
-                 application, use wxPGProperty::SetAttribute() instead.
-    */
+    // Reimplement this member function to add special handling for
+    // attributes of this property.
+    // Return false to have the attribute automatically stored in
+    // m_attributes. Default implementation simply does that and
+    // nothing else.
+    // To actually set property attribute values from the
+    // application, use wxPGProperty::SetAttribute() instead.
     virtual bool DoSetAttribute( const wxString& name, wxVariant& value );
 
-    /** Returns value of an attribute.
-
-        Override if custom handling of attributes is needed.
-
-        Default implementation simply return NULL variant.
-    */
+    // Returns value of an attribute.
+    // Override if custom handling of attributes is needed.
+    // Default implementation simply return nullptr variant.
     virtual wxVariant DoGetAttribute( const wxString& name ) const;
 
-    /** Returns instance of a new wxPGEditorDialogAdapter instance, which is
-        used when user presses the (optional) button next to the editor control;
-
-        Default implementation returns NULL (ie. no action is generated when
-        button is pressed).
-    */
+    // Returns instance of a new wxPGEditorDialogAdapter instance, which is
+    // used when user presses the (optional) button next to the editor control;
+    // Default implementation returns nullptr (ie. no action is generated when
+    // button is pressed).
     virtual wxPGEditorDialogAdapter* GetEditorDialog() const;
 
-    /**
-        Called whenever validation has failed with given pending value.
-
-        @remarks If you implement this in your custom property class, please
-                 remember to call the baser implementation as well, since they
-                 may use it to revert property into pre-change state.
-    */
+    // Called whenever validation has failed with given pending value.
+    // If you implement this in your custom property class, please
+    // remember to call the baser implementation as well, since they
+    // may use it to revert property into pre-change state.
     virtual void OnValidationFailure( wxVariant& pendingValue );
 
-    /** Append a new choice to property's list of choices.
-    */
+    // Append a new choice to property's list of choices.
     int AddChoice( const wxString& label, int value = wxPG_INVALID_VALUE )
     {
         return InsertChoice(label, wxNOT_FOUND, value);
     }
 
-    /**
-        Returns true if children of this property are component values (for
-        instance, points size, face name, and is_underlined are component
-        values of a font).
-    */
+    // Returns true if children of this property are component values (for
+    // instance, points size, face name, and is_underlined are component
+    // values of a font).
     bool AreChildrenComponents() const
     {
-        if ( m_flags & (wxPG_PROP_COMPOSED_VALUE|wxPG_PROP_AGGREGATE) )
-            return true;
-
-        return false;
+        return !!(m_flags & (wxPGPropertyFlags::ComposedValue|wxPGPropertyFlags::Aggregate));
     }
 
-    /**
-        Deletes children of the property.
-    */
+    // Deletes children of the property.
     void DeleteChildren();
 
-    /**
-        Removes entry from property's wxPGChoices and editor control (if it is
-        active).
-
-        If selected item is deleted, then the value is set to unspecified.
-    */
+    // Removes entry from property's wxPGChoices and editor control (if it is
+    // active).
+    // If selected item is deleted, then the value is set to unspecified.
     void DeleteChoice( int index );
 
-    /**
-        Enables or disables the property. Disabled property usually appears
-        as having grey text.
-
-        @param enable
-            If @false, property is disabled instead.
-
-        @see wxPropertyGridInterface::EnableProperty()
-    */
+    // Enables or disables the property. Disabled property usually appears
+    // as having grey text.
+    // See wxPropertyGridInterface::EnableProperty()
     void Enable( bool enable = true );
 
-    /**
-        Call to enable or disable usage of common value (integer value that can
-        be selected for properties instead of their normal values) for this
-        property.
-
-        Common values are disabled by the default for all properties.
-    */
+    // Call to enable or disable usage of common value (integer value that can
+    // be selected for properties instead of their normal values) for this
+    // property.
+    // Common values are disabled by the default for all properties.
     void EnableCommonValue( bool enable = true )
     {
-        if ( enable ) SetFlag( wxPG_PROP_USES_COMMON_VALUE );
-        else ClearFlag( wxPG_PROP_USES_COMMON_VALUE );
+        ChangeFlag(wxPGPropertyFlags::UsesCommonValue, enable);
     }
 
-    /**
-        Composes text from values of child properties.
-    */
+    // Composes text from values of child properties.
     wxString GenerateComposedValue() const
     {
         wxString s;
@@ -1578,39 +1378,35 @@ public:
         return s;
     }
 
-    /** Returns property's label. */
+    // Returns property's label.
     const wxString& GetLabel() const { return m_label; }
 
-    /** Returns property's name with all (non-category, non-root) parents. */
+    // Returns property's name with all (non-category, non-root) parents.
     wxString GetName() const;
 
-    /**
-        Returns property's base name (ie parent's name is not added in any
-        case)
-     */
+    // Returns property's base name (i.e. parent's name is not added
+    // in any case).
     const wxString& GetBaseName() const { return m_name; }
 
-    /** Returns read-only reference to property's list of choices.
-    */
+    // Returns read-only reference to property's list of choices.
     const wxPGChoices& GetChoices() const
     {
         return m_choices;
     }
 
-    /** Returns coordinate to the top y of the property. Note that the
-        position of scrollbars is not taken into account.
-    */
+    // Returns coordinate to the top y of the property. Note that the
+    // position of scrollbars is not taken into account.
     int GetY() const;
 
+    // Returns property's value.
     wxVariant GetValue() const
     {
         return DoGetValue();
     }
 
-    /** Returns reference to the internal stored value. GetValue is preferred
-        way to get the actual value, since GetValueRef ignores DoGetValue,
-        which may override stored value.
-    */
+    // Returns reference to the internal stored value. GetValue is preferred
+    // way to get the actual value, since GetValueRef ignores DoGetValue,
+    // which may override stored value.
     wxVariant& GetValueRef()
     {
         return m_value;
@@ -1628,462 +1424,441 @@ public:
         return m_value;
     }
 
-    /** Returns text representation of property's value.
+    // Returns text representation of property's value.
+    // flags - If wxPGPropValFormatFlags::Null (default value), then displayed string is returned.
+    //   If wxPGPropValFormatFlags::FullValue is set, returns complete, storable string value
+    //   instead of displayable. If wxPGPropValFormatFlags::EditableValue is set, returns
+    //   string value that must be editable in textctrl. If
+    //   wxPGPropValFormatFlags::CompositeFragment is set, returns text that is appropriate to
+    //   display as a part of string property's composite text
+    //   representation.
+    // In older versions, this function used to be overridden to convert
+    // property's value into a string representation. This function is
+    // now handled by ValueToString(), and overriding this function now
+    // will result in run-time assertion failure.
+#if WXWIN_COMPATIBILITY_3_2
+    mutable bool m_oldGetValueAsString = false;
+    wxString GetValueAsStringWithCheck(wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
+    wxDEPRECATED_BUT_USED_INTERNALLY_MSG("use GetValueAsString with 'flags' argument as wxPGPropValFormatFlags")
+    virtual wxString GetValueAsString(int flags) const
+    {
+        m_oldGetValueAsString = true;
+        return GetValueAsString(static_cast<wxPGPropValFormatFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    virtual wxString GetValueAsString(wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
 
-        @param argFlags
-            If 0 (default value), then displayed string is returned.
-            If wxPG_FULL_VALUE is set, returns complete, storable string value
-            instead of displayable. If wxPG_EDITABLE_VALUE is set, returns
-            string value that must be editable in textctrl. If
-            wxPG_COMPOSITE_FRAGMENT is set, returns text that is appropriate to
-            display as a part of string property's composite text
-            representation.
-
-        @remarks In older versions, this function used to be overridden to convert
-                 property's value into a string representation. This function is
-                 now handled by ValueToString(), and overriding this function now
-                 will result in run-time assertion failure.
-    */
-    virtual wxString GetValueAsString( int argFlags = 0 ) const;
-
-    /** Synonymous to GetValueAsString().
-
-        @deprecated Use GetValueAsString() instead.
-
-        @see GetValueAsString()
-    */
-    wxDEPRECATED( wxString GetValueString( int argFlags = 0 ) const );
-
-    /**
-        Returns wxPGCell of given column.
-
-        @remarks const version of this member function returns 'default'
-                 wxPGCell object if the property itself didn't hold
-                 cell data.
-    */
+    // Returns wxPGCell of given column.
+    // Const version of this member function returns 'default'
+    // wxPGCell object if the property itself didn't hold
+    // cell data.
     const wxPGCell& GetCell( unsigned int column ) const;
 
-    /**
-        Returns wxPGCell of given column, creating one if necessary.
-    */
+    // Returns wxPGCell of given column, creating one if necessary.
     wxPGCell& GetCell( unsigned int column )
     {
         return GetOrCreateCell(column);
     }
 
-    /**
-        Returns wxPGCell of given column, creating one if necessary.
-    */
+    // Returns wxPGCell of given column, creating one if necessary.
     wxPGCell& GetOrCreateCell( unsigned int column );
 
-    /** Return number of displayed common values for this property.
-    */
+    // Return number of displayed common values for this property.
     int GetDisplayedCommonValueCount() const;
 
+    // Returns property's displayed text.
     wxString GetDisplayedString() const
     {
-        return GetValueAsString(0);
+#if WXWIN_COMPATIBILITY_3_2
+        // Special implementation with check if user-overriden obsolete function is still in use
+        return GetValueAsStringWithCheck(wxPGPropValFormatFlags::Null);
+#else
+        return GetValueAsString(wxPGPropValFormatFlags::Null);
+#endif // WXWIN_COMPATIBILITY_3_2 | !WXWIN_COMPATIBILITY_3_2
     }
 
-    /**
-        Returns property's hint text (shown in empty value cell).
-    */
-    inline wxString GetHintText() const;
+    // Returns property's hint text (shown in empty value cell).
+    wxString GetHintText() const;
 
-    /** Returns property grid where property lies. */
+    // Returns property grid where property lies.
     wxPropertyGrid* GetGrid() const;
 
-    /** Returns owner wxPropertyGrid, but only if one is currently on a page
-        displaying this property. */
+    // Returns owner wxPropertyGrid, but only if one is currently
+    // on a page displaying this property.
     wxPropertyGrid* GetGridIfDisplayed() const;
 
-    /** Returns highest level non-category, non-root parent. Useful when you
-        have nested wxCustomProperties/wxParentProperties.
-        @remarks
-        Thus, if immediate parent is root or category, this will return the
-        property itself.
-    */
+    // Returns highest level non-category, non-root parent. Useful when you
+    // have nested properties with children.
+    // Thus, if immediate parent is root or category, this will return the
+    // property itself.
     wxPGProperty* GetMainParent() const;
 
-    /** Return parent of property */
+    // Return parent of property.
     wxPGProperty* GetParent() const { return m_parent; }
 
-    /** Returns true if property has editable wxTextCtrl when selected.
-
-        @remarks
-        Although disabled properties do not displayed editor, they still
-        return True here as being disabled is considered a temporary
-        condition (unlike being read-only or having limited editing enabled).
-    */
+    // Returns true if property has editable wxTextCtrl when selected.
+    // Although disabled properties do not displayed editor, they still
+    // Returns true here as being disabled is considered a temporary
+    // condition (unlike being read-only or having limited editing enabled).
     bool IsTextEditable() const;
 
+    // Returns true if property's value is considered unspecified.
+    // This usually means that value is Null variant.
     bool IsValueUnspecified() const
     {
         return m_value.IsNull();
     }
 
-    /**
-        Returns non-zero if property has given flag set.
-
-        @see propgrid_propflags
-    */
-    FlagType HasFlag( wxPGPropertyFlags flag ) const
+#if WXWIN_COMPATIBILITY_3_0
+    // Returns non-zero if property has given flag set.
+    wxDEPRECATED_MSG("use HasFlag() with 'flag' argument as wxPGPropertyFlags")
+    FlagType HasFlag( FlagType flag ) const
     {
-        return ( m_flags & flag );
+        return ( static_cast<FlagType>(m_flags) & flag );
+    }
+#endif
+    // Returns true if property has given flag set.
+    bool HasFlag(wxPGPropertyFlags flag) const
+    {
+        return !!(m_flags & flag);
+    }
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use HasFlag() with 'flag' argument as wxPGPropertyFlags")
+    // Returns true if property has given flag set.
+    bool HasFlag(int flag) const
+    {
+        return HasFlag(static_cast<wxPGPropertyFlags>(flag));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+
+    // Returns true if property has all given flags set.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use HasFlagExact() with 'flags' argument as wxPGPropertyFlags")
+    bool HasFlagsExact(int flags) const
+    {
+        return HasFlagsExact(static_cast<wxPGPropertyFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    bool HasFlagsExact(wxPGPropertyFlags flags) const
+    {
+        return (m_flags & flags) == flags;
     }
 
-    /** Returns comma-delimited string of property attributes.
-    */
+    // Returns comma-delimited string of property attributes.
     const wxPGAttributeStorage& GetAttributes() const
     {
         return m_attributes;
     }
 
-    /** Returns m_attributes as list wxVariant.
-    */
+    // Returns m_attributes as list wxVariant.
     wxVariant GetAttributesAsList() const;
 
-    /**
-        Returns property flags.
-    */
+#if WXWIN_COMPATIBILITY_3_0
+    // Returns property flags.
+    wxDEPRECATED_MSG("Use HasFlag or HasFlagsExact functions instead.")
     FlagType GetFlags() const
     {
-        return m_flags;
+        return static_cast<FlagType>(m_flags);
     }
+#endif
 
+    // Returns wxPGEditor that will be used and created when
+    // property becomes selected. Returns more accurate value
+    // than DoGetEditorClass().
     const wxPGEditor* GetEditorClass() const;
 
+    // Returns value type used by this property.
     wxString GetValueType() const
     {
         return m_value.GetType();
     }
 
-    /** Returns editor used for given column. NULL for no editor.
-    */
+    // Returns editor used for given column. nullptr for no editor.
     const wxPGEditor* GetColumnEditor( int column ) const
     {
-        if ( column == 1 )
-            return GetEditorClass();
-
-        return NULL;
+        return column == 1 ? GetEditorClass() : nullptr;
     }
 
-    /** Returns common value selected for this property. -1 for none.
-    */
+    // Returns common value selected for this property. -1 for none.
     int GetCommonValue() const
     {
         return m_commonValue;
     }
 
-    /** Returns true if property has even one visible child.
-    */
+    // Returns true if property has even one visible child.
     bool HasVisibleChildren() const;
 
-    /**
-        Use this member function to add independent (ie. regular) children to
-        a property.
-
-        @return Inserted childProperty.
-
-        @remarks wxPropertyGrid is not automatically refreshed by this
-                 function.
-
-        @see AddPrivateChild()
-    */
+    // Use this member function to add independent (i.e. regular) children to
+    // a property.
+    // Returns inserted childProperty.
+    // wxPropertyGrid is not automatically refreshed by this function.
     wxPGProperty* InsertChild( int index, wxPGProperty* childProperty );
 
-    /** Inserts a new choice to property's list of choices.
-    */
+    // Inserts a new choice to property's list of choices.
     int InsertChoice( const wxString& label, int index, int value = wxPG_INVALID_VALUE );
 
-    /**
-        Returns true if this property is actually a wxPropertyCategory.
-    */
-    bool IsCategory() const { return HasFlag(wxPG_PROP_CATEGORY)?true:false; }
+    // Returns true if this property is actually a wxPropertyCategory.
+    bool IsCategory() const { return !!(m_flags & wxPGPropertyFlags::Category); }
 
-    /** Returns true if this property is actually a wxRootProperty.
-    */
-    bool IsRoot() const { return (m_parent == NULL); }
+    // Returns true if this property is actually a wxRootProperty.
+    bool IsRoot() const { return (m_parent == nullptr); }
 
-    /** Returns true if this is a sub-property. */
+    // Returns true if this is a sub-property.
     bool IsSubProperty() const
     {
-        wxPGProperty* parent = (wxPGProperty*)m_parent;
+        wxPGProperty* parent = m_parent;
         if ( parent && !parent->IsCategory() )
             return true;
         return false;
     }
 
-    /** Returns last visible sub-property, recursively.
-    */
+    // Returns last visible sub-property, recursively.
     const wxPGProperty* GetLastVisibleSubItem() const;
 
+    // Returns property's default value. If property's value type is not
+    // a built-in one, and "DefaultValue" attribute is not defined, then
+    // this function usually returns Null variant.
     wxVariant GetDefaultValue() const;
 
+    // Returns maximum allowed length of the text the user can enter in
+    // the property text editor.
     int GetMaxLength() const
     {
-        return (int) m_maxLen;
+        return m_maxLen;
     }
 
-    /**
-        Determines, recursively, if all children are not unspecified.
+    // Determines, recursively, if all children are not unspecified.
+    // pendingList - Assumes members in this wxVariant list as pending
+    //   replacement values.
+    bool AreAllChildrenSpecified( const wxVariant* pendingList = nullptr ) const;
 
-        @param pendingList
-            Assumes members in this wxVariant list as pending
-            replacement values.
-    */
-    bool AreAllChildrenSpecified( wxVariant* pendingList = NULL ) const;
-
-    /** Updates composed values of parent non-category properties, recursively.
-        Returns topmost property updated.
-
-        @remarks
-        - Must not call SetValue() (as can be called in it).
-    */
+    // Updates composed values of parent non-category properties, recursively.
+    // Returns topmost property updated.
+    // Must not call SetValue() (as can be called in it).
     wxPGProperty* UpdateParentValues();
 
-    /** Returns true if containing grid uses wxPG_EX_AUTO_UNSPECIFIED_VALUES.
-    */
+    // Returns true if containing grid uses wxPG_EX_AUTO_UNSPECIFIED_VALUES.
     bool UsesAutoUnspecified() const
     {
-        return HasFlag(wxPG_PROP_AUTO_UNSPECIFIED)?true:false;
+        return !!(m_flags & wxPGPropertyFlags::AutoUnspecified);
     }
 
-    wxBitmap* GetValueImage() const
-    {
-        return m_valueBitmap;
-    }
+    // Returns bitmap that appears next to value text. Only returns non-null
+    // bitmap if one was set with SetValueImage().
+    wxBitmap* GetValueImage() const;
 
+    // Returns property attribute value, null variant if not found.
     wxVariant GetAttribute( const wxString& name ) const;
 
-    /**
-        Returns named attribute, as string, if found.
-
-        Otherwise defVal is returned.
-    */
+    // Returns named attribute, as string, if found.
+    // Otherwise defVal is returned.
     wxString GetAttribute( const wxString& name, const wxString& defVal ) const;
 
-    /**
-        Returns named attribute, as long, if found.
-
-        Otherwise defVal is returned.
-    */
+    // Returns named attribute, as long, if found.
+    // Otherwise defVal is returned.
     long GetAttributeAsLong( const wxString& name, long defVal ) const;
 
-    /**
-        Returns named attribute, as double, if found.
-
-        Otherwise defVal is returned.
-    */
+    // Returns named attribute, as double, if found.
+    // Otherwise defVal is returned.
     double GetAttributeAsDouble( const wxString& name, double defVal ) const;
 
     unsigned int GetDepth() const { return (unsigned int)m_depth; }
 
-    /** Gets flags as a'|' delimited string. Note that flag names are not
-        prepended with 'wxPG_PROP_'.
-        @param flagsMask
-        String will only be made to include flags combined by this parameter.
-    */
-    wxString GetFlagsAsString( FlagType flagsMask ) const;
+    // Gets flags as a'|' delimited string. Note that flag names are not
+    // prepended with 'wxPGPropertyFlags'.
+    // flagmask - String will only be made to include flags combined by this parameter.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use GetFlagsAsString() with 'flags' argument as wxPGPropertyFlags")
+    wxString GetFlagsAsString( int flagsMask ) const
+    {
+        return GetFlagsAsString(static_cast<wxPGPropertyFlags>(flagsMask));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    wxString GetFlagsAsString(wxPGPropertyFlags flagsMask) const;
 
-    /** Returns position in parent's array. */
+    // Returns position in parent's array.
     unsigned int GetIndexInParent() const
     {
-        return (unsigned int)m_arrIndex;
+        return m_arrIndex;
     }
 
-    /** Hides or reveals the property.
-        @param hide
-            true for hide, false for reveal.
-        @param flags
-            By default changes are applied recursively. Set this paramter
-            wxPG_DONT_RECURSE to prevent this.
-    */
-    bool Hide( bool hide, int flags = wxPG_RECURSE );
+    // Hides or reveals the property.
+    // hide - true for hide, false for reveal.
+    // flags - By default changes are applied recursively. Set this
+    //   parameter to wxPGPropertyValuesFlags::DontRecurse to prevent this.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use Hide with flags argument as wxPGPropertyValuesFlags")
+    bool Hide(bool hide, int flags)
+    {
+        return Hide(hide, static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    bool Hide(bool hide, wxPGPropertyValuesFlags = wxPGPropertyValuesFlags::Recurse);
 
+    // Returns true if property has visible children.
     bool IsExpanded() const
-        { return (!(m_flags & wxPG_PROP_COLLAPSED) && GetChildCount()); }
+        { return (!(m_flags & wxPGPropertyFlags::Collapsed) && HasAnyChild()); }
 
-    /** Returns true if all parents expanded.
-    */
+    // Returns true if all parents expanded.
     bool IsVisible() const;
 
-    bool IsEnabled() const { return !(m_flags & wxPG_PROP_DISABLED); }
+    // Returns true if property is enabled.
+    bool IsEnabled() const { return !(m_flags & wxPGPropertyFlags::Disabled); }
 
-    /** If property's editor is created this forces its recreation.
-        Useful in SetAttribute etc. Returns true if actually did anything.
-    */
+    // If property's editor is created this forces its recreation.
+    // Useful in SetAttribute etc. Returns true if actually did anything.
     bool RecreateEditor();
 
-    /** If property's editor is active, then update it's value.
-    */
+    // If property's editor is active, then update its value.
     void RefreshEditor();
 
-    /** Sets an attribute for this property.
-        @param name
-        Text identifier of attribute. See @ref propgrid_property_attributes.
-        @param value
-        Value of attribute.
-    */
+    // Sets an attribute for this property.
+    // name - Text identifier of attribute. See @ref propgrid_property_attributes.
+    // value - Value of attribute.
+    // Setting attribute's value to Null variant will simply remove it
+    // from property's set of attributes.
     void SetAttribute( const wxString& name, wxVariant value );
 
     void SetAttributes( const wxPGAttributeStorage& attributes );
 
-    /**
-        Set if user can change the property's value to unspecified by
-        modifying the value of the editor control (usually by clearing
-        it).  Currently, this can work with following properties:
-        wxIntProperty, wxUIntProperty, wxFloatProperty, wxEditEnumProperty.
-
-        @param enable
-            Whether to enable or disable this behaviour (it is disabled by
-            default).
-    */
+    // Set if user can change the property's value to unspecified by
+    // modifying the value of the editor control (usually by clearing
+    // it).  Currently, this can work with following properties:
+    // wxIntProperty, wxUIntProperty, wxFloatProperty, wxEditEnumProperty.
+    // enable - Whether to enable or disable this behaviour (it is disabled
+    // by default).
     void SetAutoUnspecified( bool enable = true )
     {
-        ChangeFlag(wxPG_PROP_AUTO_UNSPECIFIED, enable);
+        ChangeFlag(wxPGPropertyFlags::AutoUnspecified, enable);
     }
 
-    /**
-        Sets property's background colour.
+    // Sets property's background colour.
+    // colour - Background colour to use.
+    // flags - Default is wxPGPropertyValuesFlags::Recurse which causes colour to be set recursively.
+    //   Omit this flag to only set colour for the property in question
+    //   and not any of its children.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use SetBackgroundColour with flags argument as wxPGPropertyValuesFlags")
+    void SetBackgroundColour(const wxColour& colour, int flags)
+    {
+        SetBackgroundColour(colour, static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void SetBackgroundColour(const wxColour& colour,
+                             wxPGPropertyValuesFlags flags = wxPGPropertyValuesFlags::Recurse);
 
-        @param colour
-            Background colour to use.
+    // Sets property's text colour.
+    // colour - Text colour to use.
+    // flags - Default is wxPGPropertyValuesFlags::Recurse which causes colour to be set recursively.
+    // Omit this flag to only set colour for the property in question
+    // and not any of its children.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use SetTextColour with flags argument as wxPGPropertyValuesFlags")
+    void SetTextColour(const wxColour& colour, int flags)
+    {
+        SetTextColour(colour, static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void SetTextColour(const wxColour& colour,
+                       wxPGPropertyValuesFlags flags = wxPGPropertyValuesFlags::Recurse);
 
-        @param flags
-            Default is wxPG_RECURSE which causes colour to be set recursively.
-            Omit this flag to only set colour for the property in question
-            and not any of its children.
-    */
-    void SetBackgroundColour( const wxColour& colour,
-                              int flags = wxPG_RECURSE );
+    // Sets property's default text and background colours.
+    // flags - Default is wxPGPropertyValuesFlags::Recurse
+    //   which causes colours to be set recursively.
+    //   Omit this flag to only set colours for the property in question
+    //   and not any of its children.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use SetDefaultColours with wxPGPropertyValuesFlags argument")
+    void SetDefaultColours(int flags)
+    {
+        SetDefaultColours(static_cast<wxPGPropertyValuesFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void SetDefaultColours(wxPGPropertyValuesFlags flags = wxPGPropertyValuesFlags::Recurse);
 
-    /**
-        Sets property's text colour.
-
-        @param colour
-            Text colour to use.
-
-        @param flags
-            Default is wxPG_RECURSE which causes colour to be set recursively.
-            Omit this flag to only set colour for the property in question
-            and not any of its children.
-    */
-    void SetTextColour( const wxColour& colour,
-                        int flags = wxPG_RECURSE );
-
-    /** Set default value of a property. Synonymous to
-
-        @code
-            SetAttribute("DefaultValue", value);
-        @endcode
-    */
+    // Set default value of a property. Synonymous to
+    // SetAttribute("DefaultValue", value);
     void SetDefaultValue( wxVariant& value );
 
-    /** Sets editor for a property.
-
-        @param editor
-            For builtin editors, use wxPGEditor_X, where X is builtin editor's
-            name (TextCtrl, Choice, etc. see wxPGEditor documentation for full
-            list).
-
-        For custom editors, use pointer you received from
-        wxPropertyGrid::RegisterEditorClass().
-    */
+    // Sets editor for a property.
+    // editor - For builtin editors, use wxPGEditor_X, where X is builtin editor's
+    //   name (TextCtrl, Choice, etc. see wxPGEditor documentation for full
+    //   list).
+    // For custom editors, use pointer you received from
+    // wxPropertyGrid::RegisterEditorClass().
     void SetEditor( const wxPGEditor* editor )
     {
         m_customEditor = editor;
     }
 
-    /** Sets editor for a property.
-    */
-    inline void SetEditor( const wxString& editorName );
+    // Sets editor for a property, , by editor name.
+    void SetEditor( const wxString& editorName );
 
-    /**
-        Sets cell information for given column.
-    */
+    // Sets cell information for given column.
     void SetCell( int column, const wxPGCell& cell );
 
-    /** Sets common value selected for this property. -1 for none.
-    */
+    // Sets common value selected for this property. -1 for none.
     void SetCommonValue( int commonValue )
     {
         m_commonValue = commonValue;
     }
 
-    /** Sets flags from a '|' delimited string. Note that flag names are not
-        prepended with 'wxPG_PROP_'.
-    */
+    // Sets flags from a '|' delimited string. Note that flag names are not
+    // prepended with 'wxPGPropertyFlags'.
     void SetFlagsFromString( const wxString& str );
 
-    /** Sets property's "is it modified?" flag. Affects children recursively.
-    */
+    // Sets property's "is it modified?" flag. Affects children recursively.
     void SetModifiedStatus( bool modified )
     {
-        SetFlagRecursively(wxPG_PROP_MODIFIED, modified);
+        SetFlagRecursively(wxPGPropertyFlags::Modified, modified);
     }
 
-    /** Call in OnEvent(), OnButtonClick() etc. to change the property value
-        based on user input.
+    // Call in OnEvent(), OnButtonClick() etc. to change the property value
+    // based on user input.
+    // This method is const since it doesn't actually modify value, but posts
+    // given variant as pending value, stored in wxPropertyGrid.
+    void SetValueInEvent( const wxVariant& value ) const;
 
-        @remarks
-        This method is const since it doesn't actually modify value, but posts
-        given variant as pending value, stored in wxPropertyGrid.
-    */
-    void SetValueInEvent( wxVariant value ) const;
+    // Call this to set value of the property.
+    // Unlike methods in wxPropertyGrid, this does not automatically update
+    // the display.
+    // Use wxPropertyGrid::ChangePropertyValue() instead if you need to run
+    // through validation process and send property change event.
+    // If you need to change property value in event, based on user input, use
+    // SetValueInEvent() instead.
+    // pList - Pointer to list variant that contains child values. Used to
+    //   indicate which children should be marked as modified.
+    // flags - Various flags (for instance, wxPGSetValueFlags::RefreshEditor,
+    //  which is enabled by default).
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use SetValue with flags argument as wxPGSetValueFlags")
+    void SetValue(wxVariant value, wxVariant* pList, int flags)
+    {
+        SetValue(value, pList, static_cast<wxPGSetValueFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void SetValue(wxVariant value, wxVariant* pList = nullptr,
+                  wxPGSetValueFlags flags = wxPGSetValueFlags::RefreshEditor);
 
-    /**
-        Call this to set value of the property.
+    // Set wxBitmap in front of the value. This bitmap may be ignored
+    // by custom cell renderers.
+    void SetValueImage( const wxBitmapBundle& bmp );
 
-        Unlike methods in wxPropertyGrid, this does not automatically update
-        the display.
-
-        @remarks
-        Use wxPropertyGrid::ChangePropertyValue() instead if you need to run
-        through validation process and send property change event.
-
-        If you need to change property value in event, based on user input, use
-        SetValueInEvent() instead.
-
-        @param pList
-            Pointer to list variant that contains child values. Used to
-            indicate which children should be marked as modified.
-
-        @param flags
-            Various flags (for instance, wxPG_SETVAL_REFRESH_EDITOR, which is
-            enabled by default).
-    */
-    void SetValue( wxVariant value, wxVariant* pList = NULL,
-                   int flags = wxPG_SETVAL_REFRESH_EDITOR );
-
-    /** Set wxBitmap in front of the value. This bitmap may be ignored
-        by custom cell renderers.
-    */
-    void SetValueImage( wxBitmap& bmp );
-
-    /** Sets selected choice and changes property value.
-
-        Tries to retain value type, although currently if it is not string,
-        then it is forced to integer.
-    */
+    // Sets selected choice and changes property value.
+    // Tries to retain value type, although currently if it is not string,
+    // then it is forced to integer.
     void SetChoiceSelection( int newValue );
 
     void SetExpanded( bool expanded )
     {
-        if ( !expanded ) m_flags |= wxPG_PROP_COLLAPSED;
-        else m_flags &= ~wxPG_PROP_COLLAPSED;
+        ChangeFlag(wxPGPropertyFlags::Collapsed, !expanded);
     }
 
-    /**
-        Sets or clears given property flag. Mainly for internal use.
-
-        @remarks Setting a property flag never has any side-effect, and is
-                 intended almost exclusively for internal use. So, for
-                 example, if you want to disable a property, call
-                 Enable(false) instead of setting wxPG_PROP_DISABLED flag.
-
-        @see HasFlag(), GetFlags()
-    */
+    // Sets or clears given property flag. Mainly for internal use.
+    // Setting a property flag never has any side-effect, and is
+    // intended almost exclusively for internal use. So, for
+    // example, if you want to disable a property, call
+    // Enable(false) instead of setting wxPGPropertyFlags::Disabled flag.
     void ChangeFlag( wxPGPropertyFlags flag, bool set )
     {
         if ( set )
@@ -2092,190 +1867,172 @@ public:
             m_flags &= ~flag;
     }
 
-    /**
-        Sets or clears given property flag, recursively. This function is
-        primarily intended for internal use.
-
-        @see ChangeFlag()
-    */
+    // Sets or clears given property flag, recursively. This function is
+    // primarily intended for internal use.
     void SetFlagRecursively( wxPGPropertyFlags flag, bool set );
 
+    // Sets property's help string, which is shown, for example, in
+    // wxPropertyGridManager's description text box.
     void SetHelpString( const wxString& helpString )
     {
         m_helpString = helpString;
     }
 
-    void SetLabel( const wxString& label ) { m_label = label; }
+    // Sets property's label.
+    // Properties under same parent may have same labels. However,
+    // property names must still remain unique.
+    void SetLabel( const wxString& label );
 
+    // Sets new (base) name for property.
     void SetName( const wxString& newName );
 
-    /**
-        Changes what sort of parent this property is for its children.
-
-        @param flag
-            Use one of the following values: wxPG_PROP_MISC_PARENT (for
-            generic parents), wxPG_PROP_CATEGORY (for categories), or
-            wxPG_PROP_AGGREGATE (for derived property classes with private
-            children).
-
-        @remarks You generally do not need to call this function.
-    */
-    void SetParentalType( int flag )
+    // Changes what sort of parent this property is for its children.
+    // flag - Use one of the following values: wxPGPropertyFlags::MiscParent (for
+    //   generic parents), wxPGPropertyFlags::Category (for categories), or
+    //   wxPGPropertyFlags::Aggregate (for derived property classes with private
+    //   children).
+    // You generally do not need to call this function.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use SetParentalType() with 'flag' argument as wxPGPropertyFlags")
+    void SetParentalType(int flag)
     {
-        m_flags &= ~(wxPG_PROP_PROPERTY|wxPG_PROP_PARENTAL_FLAGS);
+        SetParentalType(static_cast<wxPGPropertyFlags>(flag));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void SetParentalType(wxPGPropertyFlags flag)
+    {
+        m_flags &= ~(wxPGPropertyFlags::Property | wxPGPropertyFlags::ParentalFlags);
         m_flags |= flag;
     }
 
+    // Sets property's value to unspecified (i.e. Null variant).
     void SetValueToUnspecified()
     {
-        wxVariant val;  // Create NULL variant
-        SetValue(val, NULL, wxPG_SETVAL_REFRESH_EDITOR);
+        wxVariant val;  // Create null variant
+        SetValue(val, nullptr, wxPGSetValueFlags::RefreshEditor);
     }
 
     // Helper function (for wxPython bindings and such) for settings protected
     // m_value.
-    void SetValuePlain( wxVariant value )
+    void SetValuePlain( const wxVariant& value )
     {
         m_value = value;
     }
 
 #if wxUSE_VALIDATORS
-    /** Sets wxValidator for a property*/
+    // Sets wxValidator for a property.
     void SetValidator( const wxValidator& validator )
     {
         m_validator = wxDynamicCast(validator.Clone(),wxValidator);
     }
 
-    /** Gets assignable version of property's validator. */
+    // Gets assignable version of property's validator.
     wxValidator* GetValidator() const
     {
-        if ( m_validator )
-            return m_validator;
-        return DoGetValidator();
+        return  m_validator ? m_validator : DoGetValidator();
     }
 #endif // wxUSE_VALIDATORS
 
-    /** Returns client data (void*) of a property.
-    */
+    // Returns client data (void*) of a property.
     void* GetClientData() const
     {
         return m_clientData;
     }
 
-    /** Sets client data (void*) of a property.
-        @remarks
-        This untyped client data has to be deleted manually.
-    */
+    // Sets client data (void*) of a property.
+    // This untyped client data has to be deleted manually.
     void SetClientData( void* clientData )
     {
         m_clientData = clientData;
     }
 
-    /** Returns client object of a property.
-    */
+    // Sets client object of a property.
     void SetClientObject(wxClientData* clientObject)
     {
         delete m_clientObject;
         m_clientObject = clientObject;
     }
 
-    /** Sets managed client object of a property.
-    */
+    // Gets managed client object of a property.
     wxClientData *GetClientObject() const { return m_clientObject; }
 
-    /**
-        Sets new set of choices for the property.
-
-        @remarks This operation deselects the property and clears its
-                 value.
-    */
+    // Sets new set of choices for the property.
+    // This operation deselects the property and clears its
+    // value.
     bool SetChoices( const wxPGChoices& choices );
 
-    /** Set max length of text in text editor.
-    */
-    inline bool SetMaxLength( int maxLen );
+    // Set max length of text in text editor.
+    bool SetMaxLength( int maxLen );
 
-    /** Call with 'false' in OnSetValue to cancel value changes after all
-        (ie. cancel 'true' returned by StringToValue() or IntToValue()).
-    */
+    // Call with 'false' in OnSetValue to cancel value changes after all
+    // (i.e. cancel 'true' returned by StringToValue() or IntToValue()).
     void SetWasModified( bool set = true )
     {
-        if ( set ) m_flags |= wxPG_PROP_WAS_MODIFIED;
-        else m_flags &= ~wxPG_PROP_WAS_MODIFIED;
+        ChangeFlag(wxPGPropertyFlags::WasModified, set);
     }
 
+    // Returns property's help or description text.
     const wxString& GetHelpString() const
     {
         return m_helpString;
     }
 
+    // Returns true if candidateParent is some parent of this property.
     // Use, for example, to detect if item is inside collapsed section.
     bool IsSomeParent( wxPGProperty* candidate_parent ) const;
 
-    /**
-        Adapts list variant into proper value using consecutive
-        ChildChanged-calls.
-    */
+    // Adapts list variant into proper value using consecutive
+    // ChildChanged-calls.
     void AdaptListToValue( wxVariant& list, wxVariant* value ) const;
 
-#if wxPG_COMPATIBILITY_1_4
-    /**
-        Adds a private child property.
-
-        @deprecated Use AddPrivateChild() instead.
-
-        @see AddPrivateChild()
-    */
-    wxDEPRECATED( void AddChild( wxPGProperty* prop ) );
-#endif
-
-    /**
-        Adds a private child property. If you use this instead of
-        wxPropertyGridInterface::Insert() or
-        wxPropertyGridInterface::AppendIn(), then property's parental
-        type will automatically be set up to wxPG_PROP_AGGREGATE. In other
-        words, all properties of this property will become private.
-    */
+    // Adds a private child property. If you use this instead of
+    // wxPropertyGridInterface::Insert() or
+    // wxPropertyGridInterface::AppendIn(), then property's parental
+    // type will automatically be set up to wxPGPropertyFlags::Aggregate. In other
+    // words, all properties of this property will become private.
     void AddPrivateChild( wxPGProperty* prop );
 
-    /**
-        Appends a new child property.
-    */
+    // Use this member function to add independent (i.e. regular) children to
+    // a property.
+    // wxPropertyGrid is not automatically refreshed by this function.
     wxPGProperty* AppendChild( wxPGProperty* prop )
     {
         return InsertChild(-1, prop);
     }
 
-    /** Returns height of children, recursively, and
-        by taking expanded/collapsed status into account.
-
-        iMax is used when finding property y-positions.
-    */
+    // Returns height of children, recursively, and
+    // by taking expanded/collapsed status into account.
+    // lh - Line height. Pass result of GetGrid()->GetRowHeight() here.
+    // iMax - Only used (internally) when finding property y-positions.
     int GetChildrenHeight( int lh, int iMax = -1 ) const;
 
-    /** Returns number of child properties */
+    // Returns number of child properties.
     unsigned int GetChildCount() const
     {
         return (unsigned int) m_children.size();
     }
 
-    /** Returns sub-property at index i. */
+    // Checks if contains any child property.
+    bool HasAnyChild() const
+    {
+        return !m_children.empty();
+    }
+
+    // Returns sub-property at index i.
     wxPGProperty* Item( unsigned int i ) const
         { return m_children[i]; }
 
-    /** Returns last sub-property.
-    */
+    // Returns last sub-property.
     wxPGProperty* Last() const { return m_children.back(); }
 
-    /** Returns index of given child property. */
+    // Returns index of given child property. wxNOT_FOUND if
+    // given property is not child of this.
     int Index( const wxPGProperty* p ) const;
 
     // Puts correct indexes to children
     void FixIndicesOfChildren( unsigned int starthere = 0 );
 
-    /**
-        Converts image width into full image offset, with margins.
-    */
+    // Converts image width into full image offset, with margins.
     int GetImageOffset( int imageWidth ) const;
 
     // Returns wxPropertyGridPageState in which this property resides.
@@ -2285,119 +2042,154 @@ public:
                               unsigned int lh,
                               unsigned int* nextItemY ) const;
 
-    /** Returns property at given virtual y coordinate.
-    */
+    // Returns property at given virtual y coordinate.
     wxPGProperty* GetItemAtY( unsigned int y ) const;
 
-    /** Returns (direct) child property with given name (or NULL if not found).
-    */
+    // Returns (direct) child property with given name (or nullptr if not found).
     wxPGProperty* GetPropertyByName( const wxString& name ) const;
 
     // Returns various display-related information for given column
+#if WXWIN_COMPATIBILITY_3_0
+    wxDEPRECATED_MSG("don't use GetDisplayInfo function with argument of 'const wxPGCell**' type. Use 'wxPGCell*' argument instead")
     void GetDisplayInfo( unsigned int column,
                          int choiceIndex,
                          int flags,
                          wxString* pString,
                          const wxPGCell** pCell );
+#endif //  WXWIN_COMPATIBILITY_3_0
+    // This function can return modified (customized) cell object.
+    void GetDisplayInfo( unsigned int column,
+                         int choiceIndex,
+                         int flags,
+                         wxString* pString,
+                         wxPGCell* pCell );
 
-    static wxString*            sm_wxPG_LABEL;
 
-    /** This member is public so scripting language bindings
-        wrapper code can access it freely.
-    */
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_BUT_USED_INTERNALLY(static wxString* sm_wxPG_LABEL;)
+#endif // WXWIN_COMPATIBILITY_3_2
+    const static wxString       sm_labelItem;
+
+    // This member is public so scripting language bindings
+    // wrapper code can access it freely.
     void*                       m_clientData;
 
 protected:
 
-    /**
-        Sets property cell in fashion that reduces number of exclusive
-        copies of cell data. Used when setting, for instance, same
-        background colour for a number of properties.
+    // Ctors are ptotected because wxPGProperty is only a base class
+    // for all property classes and shouldn't be instantiated directly.
+    wxPGProperty();
+    // All non-abstract property classes should have a constructor with
+    // the same first two arguments as this one.
+    wxPGProperty(const wxString& label, const wxString& name);
 
-        @param firstCol
-            First column to affect.
-
-        @param lastCol
-            Last column to affect.
-
-        @param preparedCell
-            Pre-prepared cell that is used for those which cell data
-            before this matched unmodCellData.
-
-        @param srcData
-            If unmodCellData did not match, valid cell data from this
-            is merged into cell (usually generating new exclusive copy
-            of cell's data).
-
-        @param unmodCellData
-            If cell's cell data matches this, its cell is now set to
-            preparedCell.
-
-        @param ignoreWithFlags
-            Properties with any one of these flags are skipped.
-
-        @param recursively
-            If @true, apply this operation recursively in child properties.
-    */
+    // Sets property cell in fashion that reduces number of exclusive
+    // copies of cell data. Used when setting, for instance, same
+    // background colour for a number of properties.
+    // firstCol - First column to affect.
+    // lastCol- Last column to affect.
+    // preparedCell - Pre-prepared cell that is used for those which cell data
+    //   before this matched unmodCellData.
+    // srcData - If unmodCellData did not match, valid cell data from this
+    //   is merged into cell (usually generating new exclusive copy
+    //   of cell's data).
+    // unmodCellData - If cell's cell data matches this, its cell is now set to
+    //   preparedCell.
+    // ignoreWithFlags - Properties with any one of these flags are skipped.
+    // recursively - If true, apply this operation recursively in child properties.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use AdaptiveSetCell() with 'ignoreWithFlags' argument as wxPGPropertyFlags")
     void AdaptiveSetCell( unsigned int firstCol,
                           unsigned int lastCol,
                           const wxPGCell& preparedCell,
                           const wxPGCell& srcData,
                           wxPGCellData* unmodCellData,
-                          FlagType ignoreWithFlags,
-                          bool recursively );
+                          int ignoreWithFlags,
+                          bool recursively )
+    {
+        AdaptiveSetCell(firstCol, lastCol, preparedCell, srcData, unmodCellData,
+                        static_cast<wxPGPropertyFlags>(ignoreWithFlags), recursively);
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void AdaptiveSetCell(unsigned int firstCol,
+                         unsigned int lastCol,
+                         const wxPGCell& preparedCell,
+                         const wxPGCell& srcData,
+                         wxPGCellData* unmodCellData,
+                         wxPGPropertyFlags ignoreWithFlags,
+                         bool recursively);
 
-    /**
-        Makes sure m_cells has size of column+1 (or more).
-    */
+    // Clear cells associated with property.
+    // recursively - If true, apply this operation recursively in child properties.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use ClearCells() with 'ignoreWithFlags' argument as wxPGPropertyFlags")
+    void ClearCells(int ignoreWithFlags, bool recursively)
+    {
+        ClearCells(static_cast<wxPGPropertyFlags>(ignoreWithFlags), recursively);
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void ClearCells(wxPGPropertyFlags ignoreWithFlags, bool recursively);
+
+    // Makes sure m_cells has size of column+1 (or more).
     void EnsureCells( unsigned int column );
 
-    /** Returns (direct) child property with given name (or NULL if not found),
-        with hint index.
-
-        @param hintIndex
-        Start looking for the child at this index.
-
-        @remarks
-        Does not support scope (ie. Parent.Child notation).
-    */
+    // Returns (direct) child property with given name (or nullptr if not found),
+    // with hint index.
+    // hintIndex - Start looking for the child at this index.
+    // Does not support scope (i.e. Parent.Child notation).
     wxPGProperty* GetPropertyByNameWH( const wxString& name,
                                        unsigned int hintIndex ) const;
 
-    /** This is used by Insert etc. */
+    // This is used by Insert etc.
     void DoAddChild( wxPGProperty* prop,
                      int index = -1,
                      bool correct_mode = true );
 
-    void DoGenerateComposedValue( wxString& text,
-                                  int argFlags = wxPG_VALUE_IS_CURRENT,
-                                  const wxVariantList* valueOverrides = NULL,
-                                  wxPGHashMapS2S* childResults = NULL ) const;
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use DoGenerateComposedValue with 'flags' argument as wxPGPropValFormatFlags")
+    void DoGenerateComposedValue(wxString& text, int flags,
+                                 const wxVariantList* valueOverrides,
+                                 wxPGHashMapS2S* childResults) const
+    {
+        DoGenerateComposedValue(text, static_cast<wxPGPropValFormatFlags>(flags),
+                                valueOverrides, childResults);
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void DoGenerateComposedValue(wxString& text,
+                                 wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::ValueIsCurrent,
+                                 const wxVariantList* valueOverrides = nullptr,
+                                 wxPGHashMapS2S* childResults = nullptr) const;
 
-    bool DoHide( bool hide, int flags );
+    bool DoHide( bool hide, wxPGPropertyValuesFlags flags );
 
     void DoSetName(const wxString& str) { m_name = str; }
 
-    /** Deletes all sub-properties. */
+    // Deletes all sub-properties.
     void Empty();
 
     bool HasCell( unsigned int column ) const
     {
-        if ( m_cells.size() > column )
-            return true;
-        return false;
+        return m_cells.size() > column;
     }
 
     void InitAfterAdded( wxPropertyGridPageState* pageState,
                          wxPropertyGrid* propgrid );
 
-    /**
-        Returns true if child property is selected.
-    */
+    // Returns true if child property is selected.
     bool IsChildSelected( bool recursive = false ) const;
 
     // Removes child property with given pointer. Does not delete it.
     void RemoveChild( wxPGProperty* p );
+
+    // Removes child property at given index. Does not delete it.
+    void RemoveChild(unsigned int index);
+
+    // Sorts children using specified comparison function.
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("Don't use SortChildren function with argument of 'int (*)(wxPGProperty**, wxPGProperty**)' type. Use 'bool (*)(wxPGProperty*, wxPGProperty*)' argument instead")
+    void SortChildren(int (*fCmp)(wxPGProperty**, wxPGProperty**));
+#endif // WXWIN_COMPATIBILITY_3_2
+    void SortChildren(bool (*fCmp)(wxPGProperty*, wxPGProperty*));
 
     void DoEnable( bool enable );
 
@@ -2415,7 +2207,17 @@ protected:
         m_flags |= flag;
     }
 
-    void ClearFlag( FlagType flag ) { m_flags &= ~(flag); }
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use ClearFlag() with 'flag' argument as wxPGPropertyFlags")
+    void ClearFlag( int flag )
+    {
+        ClearFlag(static_cast<wxPGPropertyFlags>(flag));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    void ClearFlag(wxPGPropertyFlags flag)
+    {
+        m_flags &= ~(flag);
+    }
 
     // Called when the property is being removed from the grid and/or
     // page state (but *not* when it is also deleted).
@@ -2445,14 +2247,15 @@ protected:
     // Show this in front of the value
     //
     // TODO: Can bitmap be implemented with wxPGCell?
-    wxBitmap*                   m_valueBitmap;
+    wxBitmapBundle              m_valueBitmapBundle;
+    mutable wxBitmap            m_valueBitmap;
 
     wxVariant                   m_value;
     wxPGAttributeStorage        m_attributes;
-    wxArrayPGProperty           m_children;
+    std::vector<wxPGProperty*>  m_children;
 
     // Extended cell information
-    wxVector<wxPGCell>          m_cells;
+    std::vector<wxPGCell>       m_cells;
 
     // Choices shown in drop-down list of editor control.
     wxPGChoices                 m_choices;
@@ -2466,13 +2269,12 @@ protected:
     // If not -1, then overrides m_value
     int                         m_commonValue;
 
-    FlagType                    m_flags;
+    wxPGPropertyFlags           m_flags;
 
-    // Maximum length (mainly for string properties). Could be in some sort of
+    // Maximum length (for string properties). Could be in some sort of
     // wxBaseStringProperty, but currently, for maximum flexibility and
-    // compatibility, we'll stick it here. Anyway, we had 3 excess bytes to use
-    // so short int will fit in just fine.
-    short                       m_maxLen;
+    // compatibility, we'll stick it here.
+    int                         m_maxLen;
 
     // Root has 0, categories etc. at that level 1, etc.
     unsigned char               m_depth;
@@ -2495,41 +2297,51 @@ private:
 //
 
 #define WX_PG_DECLARE_DOGETEDITORCLASS \
-    virtual const wxPGEditor* DoGetEditorClass() const;
+    virtual const wxPGEditor* DoGetEditorClass() const override;
 
 #ifndef WX_PG_DECLARE_PROPERTY_CLASS
     #define WX_PG_DECLARE_PROPERTY_CLASS(CLASSNAME) \
         public: \
-            DECLARE_DYNAMIC_CLASS(CLASSNAME) \
+            wxDECLARE_DYNAMIC_CLASS(CLASSNAME); \
             WX_PG_DECLARE_DOGETEDITORCLASS \
         private:
 #endif
 
 // Implements sans constructor function. Also, first arg is class name, not
 // property name.
-#define WX_PG_IMPLEMENT_PROPERTY_CLASS_PLAIN(PROPNAME,T,EDITOR) \
+#define wxPG_IMPLEMENT_PROPERTY_CLASS_PLAIN(PROPNAME, EDITOR) \
 const wxPGEditor* PROPNAME::DoGetEditorClass() const \
 { \
     return wxPGEditor_##EDITOR; \
 }
 
+#if WXWIN_COMPATIBILITY_3_0
+// This macro is deprecated. Use wxPG_IMPLEMENT_PROPERTY_CLASS_PLAIN instead.
+#define WX_PG_IMPLEMENT_PROPERTY_CLASS_PLAIN(PROPNAME,T,EDITOR) \
+wxPG_IMPLEMENT_PROPERTY_CLASS_PLAIN(PROPNAME, EDITOR)
+#endif // WXWIN_COMPATIBILITY_3_0
+
 // -----------------------------------------------------------------------
 
-/** @class wxPGRootProperty
-    @ingroup classes
-    Root parent property.
-*/
+// Root parent property.
 class WXDLLIMPEXP_PROPGRID wxPGRootProperty : public wxPGProperty
 {
 public:
     WX_PG_DECLARE_PROPERTY_CLASS(wxPGRootProperty)
 public:
 
-    /** Constructor. */
+    // Constructor.
     wxPGRootProperty( const wxString& name = wxS("<Root>") );
-    virtual ~wxPGRootProperty();
+    virtual ~wxPGRootProperty() = default;
 
-    virtual bool StringToValue( wxVariant&, const wxString&, int ) const
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
+    virtual bool StringToValue( wxVariant&, const wxString&, int ) const override
+    {
+        return false;
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    virtual bool StringToValue( wxVariant&, const wxString&, wxPGPropValFormatFlags ) const override
     {
         return false;
     }
@@ -2539,28 +2351,40 @@ protected:
 
 // -----------------------------------------------------------------------
 
-/** @class wxPropertyCategory
-    @ingroup classes
-    Category (caption) property.
-*/
+// Category (caption) property.
 class WXDLLIMPEXP_PROPGRID wxPropertyCategory : public wxPGProperty
 {
-    friend class wxPropertyGrid;
     friend class wxPropertyGridPageState;
     WX_PG_DECLARE_PROPERTY_CLASS(wxPropertyCategory)
 public:
 
-    /** Default constructor is only used in special cases. */
+    // Default constructor is only used in special cases.
     wxPropertyCategory();
 
     wxPropertyCategory( const wxString& label,
                         const wxString& name = wxPG_LABEL );
-    ~wxPropertyCategory();
+    virtual ~wxPropertyCategory() = default;
 
     int GetTextExtent( const wxWindow* wnd, const wxFont& font ) const;
 
-    virtual wxString ValueToString( wxVariant& value, int argFlags ) const;
-    virtual wxString GetValueAsString( int argFlags = 0 ) const;
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
+    virtual wxString ValueToString(wxVariant& value, int flags) const override
+    {
+        m_oldValueToStringCalled = true;
+        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    virtual wxString ValueToString(wxVariant& value, wxPGPropValFormatFlags flags) const override;
+#if WXWIN_COMPATIBILITY_3_2
+    wxDEPRECATED_MSG("use GetValueAsString with 'flags' argument as wxPGPropValFormatFlags")
+    virtual wxString GetValueAsString(int flags) const override
+    {
+        m_oldGetValueAsString = true;
+        return GetValueAsString(static_cast<wxPGPropValFormatFlags>(flags));
+    }
+#endif // WXWIN_COMPATIBILITY_3_2
+    virtual wxString GetValueAsString(wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
 
 protected:
     void SetTextColIndex( unsigned int colInd )
@@ -2568,7 +2392,7 @@ protected:
     unsigned int GetTextColIndex() const
         { return (unsigned int) m_capFgColIndex; }
 
-    void CalculateTextExtent( wxWindow* wnd, const wxFont& font );
+    void CalculateTextExtent(const wxWindow* wnd, const wxFont& font);
 
     int     m_textExtent;  // pre-calculated length of text
     wxByte  m_capFgColIndex;  // caption text colour index

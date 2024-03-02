@@ -125,7 +125,7 @@ private:
     void OnMove(wxMouseEvent& event);
 
 
-    // the associated window, never NULL except between the calls to the
+    // the associated window, never null except between the calls to the
     // default ctor and Create()
     wxWindow *m_win;
 
@@ -144,7 +144,7 @@ private:
     wxPoint m_posLast;
 
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
     wxDECLARE_NO_COPY_CLASS(wxMouseEventsManager);
 };

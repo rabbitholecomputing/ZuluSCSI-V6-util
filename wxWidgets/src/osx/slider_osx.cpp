@@ -2,7 +2,6 @@
 // Name:        src/osx/slider_osx.cpp
 // Purpose:     wxSlider
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
@@ -15,8 +14,8 @@
 #include "wx/slider.h"
 #include "wx/osx/private.h"
 
-BEGIN_EVENT_TABLE(wxSlider, wxControl)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxSlider, wxControl)
+wxEND_EVENT_TABLE()
 
  // The dimensions of the different styles of sliders (from Aqua document)
 #if wxOSX_USE_COCOA
@@ -44,9 +43,9 @@ wxSlider::wxSlider()
     m_rangeMin = 0;
     m_tickFreq = 0;
 
-    m_macMinimumStatic = NULL;
-    m_macMaximumStatic = NULL;
-    m_macValueStatic = NULL;
+    m_macMinimumStatic = nullptr;
+    m_macMaximumStatic = nullptr;
+    m_macValueStatic = nullptr;
 }
 
 bool wxSlider::Create(wxWindow *parent,
@@ -59,9 +58,9 @@ bool wxSlider::Create(wxWindow *parent,
 {    
     DontCreatePeer();
     
-    m_macMinimumStatic = NULL;
-    m_macMaximumStatic = NULL;
-    m_macValueStatic = NULL;
+    m_macMinimumStatic = nullptr;
+    m_macMaximumStatic = nullptr;
+    m_macValueStatic = nullptr;
 
     m_lineSize = 1;
     m_tickFreq = 0;
@@ -117,10 +116,14 @@ bool wxSlider::Create(wxWindow *parent,
     // other values
 #endif
     
-    if (style & wxSL_LABELS)
+    if (style & wxSL_MIN_MAX_LABELS)
     {
         m_macMinimumStatic = new wxStaticText( parent, wxID_ANY, wxEmptyString );
         m_macMaximumStatic = new wxStaticText( parent, wxID_ANY, wxEmptyString );
+    }
+
+    if (style & wxSL_VALUE_LABEL)
+    {
         m_macValueStatic = new wxStaticText( parent, wxID_ANY, wxEmptyString );
     }
 
@@ -397,9 +400,25 @@ wxSize wxSlider::DoGetBestSize() const
 
 void wxSlider::DoSetSize(int x, int y, int w, int h, int sizeFlags)
 {
-    int yborder = 0;
+    if ( w == -1 || h == -1 ||
+            (!(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) && (x == -1 || y == -1)) )
+    {
+        const wxRect currentRect = GetRect();
+        if ( !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
+        {
+            if ( x == -1 )
+                x = currentRect.x;
+            if ( y == -1 )
+                y = currentRect.y;
+        }
+
+        if ( w == -1 )
+            w = currentRect.width;
+        if ( h == -1 )
+            h = currentRect.height;
+    }
+
     int minValWidth, maxValWidth, textheight;
-    int sliderBreadth;
     int width = w;
 
     if (GetWindowStyle() & wxSL_LABELS)
@@ -444,9 +463,11 @@ void wxSlider::DoSetSize(int x, int y, int w, int h, int sizeFlags)
 
         GetTextExtent(text, &valValWidth, &ht);
 
+        int yborder;
         yborder = textheight + wxSLIDER_BORDERTEXT;
 
         // Get slider breadth
+        int sliderBreadth;
         if (GetWindowStyle() & wxSL_AUTOTICKS)
             sliderBreadth = wxSLIDER_DIMENSIONACROSS_WITHTICKMARKS;
         else
@@ -475,7 +496,7 @@ void wxSlider::DoSetSize(int x, int y, int w, int h, int sizeFlags)
     }
 
     // yet another hack since this is a composite control
-    // when wxSlider has it's size hardcoded, we're not allowed to
+    // when wxSlider has its size hardcoded, we're not allowed to
     // change the size. But when the control has labels, we DO need
     
     // to resize the internal Mac control to accommodate the text labels.
@@ -498,11 +519,6 @@ void wxSlider::DoSetSize(int x, int y, int w, int h, int sizeFlags)
     wxControl::DoSetSize( x, y, w, h, sizeFlags );
 
     m_minWidth = minWidth;
-}
-
-void wxSlider::DoMoveWindow(int x, int y, int width, int height)
-{
-    wxControl::DoMoveWindow( x, y, width, height );
 }
 
 // Common processing to invert slider values based on wxSL_INVERSE

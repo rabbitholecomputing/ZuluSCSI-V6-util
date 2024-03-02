@@ -14,9 +14,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#if defined(__BORLANDC__)
-    #pragma hdrstop
-#endif
 
 #include "wx/artprov.h"
 
@@ -35,14 +32,14 @@ class wxMacArtProvider : public wxArtProvider
 protected:
 #if wxOSX_USE_COCOA_OR_CARBON
     virtual wxIconBundle CreateIconBundle(const wxArtID& id,
-                                          const wxArtClient& client);
+                                          const wxArtClient& client) override;
 #endif
 #if wxOSX_USE_COCOA_OR_IPHONE
-    virtual wxBitmap CreateBitmap(const wxArtID& id,
+    virtual wxBitmapBundle CreateBitmapBundle(const wxArtID& id,
                                   const wxArtClient& client,
-                                  const wxSize& size)
+                                  const wxSize& size) override
     {
-        return wxOSXCreateSystemBitmap(id, client, size);
+        return wxOSXCreateSystemBitmapBundle(id, client, size);
     }
 #endif
 };
@@ -87,6 +84,7 @@ static wxIconBundle wxMacArtProvider_CreateIconBundle(const wxArtID& id)
     ART_MSGBOX(wxART_FLOPPY,      wxICON_FLOPPY,      floppy)
     ART_MSGBOX(wxART_HARDDISK,    wxICON_HARDDISK,    harddisk)
     ART_MSGBOX(wxART_REMOVABLE,   wxICON_REMOVABLE,   removable)
+    ART_MSGBOX(wxART_PRINT,       wxICON_PRINT,       print)
 
     ART_MSGBOX(wxART_DELETE,      wxICON_DELETE,      delete)
 
@@ -96,6 +94,7 @@ static wxIconBundle wxMacArtProvider_CreateIconBundle(const wxArtID& id)
 
     ART_MSGBOX(wxART_HELP_SETTINGS, wxICON_HELP_SETTINGS, htmoptns)
     ART_MSGBOX(wxART_HELP_PAGE,   wxICON_HELP_PAGE,   htmpage)
+    ART_MSGBOX(wxART_HELP_FOLDER,   wxICON_HELP_FOLDER,   htmlfoldr)
 
     return wxNullIconBundle;
 }
@@ -117,11 +116,11 @@ wxIconBundle wxMacArtProvider::CreateIconBundle(const wxArtID& id, const wxArtCl
 #endif
 
 // ----------------------------------------------------------------------------
-// wxArtProvider::GetNativeSizeHint()
+// wxArtProvider::GetNativeDIPSizeHint()
 // ----------------------------------------------------------------------------
 
 /*static*/
-wxSize wxArtProvider::GetNativeSizeHint(const wxArtClient& client)
+wxSize wxArtProvider::GetNativeDIPSizeHint(const wxArtClient& client)
 {
     if ( client == wxART_TOOLBAR )
     {
@@ -131,7 +130,7 @@ wxSize wxArtProvider::GetNativeSizeHint(const wxArtClient& client)
     }
     else if ( client == wxART_BUTTON || client == wxART_MENU )
     {
-        // Mac UI doesn't use any images in neither buttons nor menus in
+        // Mac UI doesn't use any images in either buttons or menus in
         // general but the code using wxArtProvider can use wxART_BUTTON to
         // find the icons of a roughly appropriate size for the buttons and
         // 16x16 seems to be the best choice for this kind of use

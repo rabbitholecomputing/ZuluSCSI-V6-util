@@ -2,7 +2,6 @@
 // Name:        wx/univ/stattext.h
 // Purpose:     wxStaticText
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     14.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -16,7 +15,7 @@
 class WXDLLIMPEXP_CORE wxStaticText : public wxGenericStaticText
 {
 public:
-    wxStaticText() { }
+    wxStaticText() = default;
 
     // usual ctor
     wxStaticText(wxWindow *parent,
@@ -24,7 +23,7 @@ public:
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize)
     {
-        Create(parent, wxID_ANY, label, pos, size, 0, wxStaticTextNameStr);
+        Create(parent, wxID_ANY, label, pos, size, 0, wxASCII_STR(wxStaticTextNameStr));
     }
 
     // full form
@@ -34,7 +33,7 @@ public:
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
                  long style = 0,
-                 const wxString &name = wxStaticTextNameStr)
+                 const wxString &name = wxASCII_STR(wxStaticTextNameStr))
     {
         Create(parent, id, label, pos, size, style, name);
     }
@@ -46,22 +45,22 @@ public:
                 const wxPoint &pos = wxDefaultPosition,
                 const wxSize &size = wxDefaultSize,
                 long style = 0,
-                const wxString &name = wxStaticTextNameStr);
+                const wxString &name = wxASCII_STR(wxStaticTextNameStr));
 
     // implementation only from now on
 
-    virtual void SetLabel(const wxString& label);
+    virtual void SetLabel(const wxString& label) override;
 
-    virtual bool IsFocused() const { return false; }
+    virtual bool IsFocused() const override { return false; }
 
 protected:
     // draw the control
-    virtual void DoDraw(wxControlRenderer *renderer);
+    virtual void DoDraw(wxControlRenderer *renderer) override;
 
-    virtual void DoSetLabel(const wxString& str);
-    virtual wxString DoGetLabel() const;
+    virtual void WXSetVisibleLabel(const wxString& str) override;
+    virtual wxString WXGetVisibleLabel() const override;
 
-    DECLARE_DYNAMIC_CLASS(wxStaticText)
+    wxDECLARE_DYNAMIC_CLASS(wxStaticText);
 };
 
 #endif // _WX_UNIV_STATTEXT_H_

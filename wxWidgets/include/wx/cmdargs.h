@@ -3,7 +3,7 @@
 // Purpose:     declaration of wxCmdLineArgsArray helper class
 // Author:      Vadim Zeitlin
 // Created:     2007-11-12
-// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -16,8 +16,6 @@
 // wxCmdLineArgsArray: helper class used by wxApp::argv
 // ----------------------------------------------------------------------------
 
-#if wxUSE_UNICODE
-
 // this class is used instead of either "char **" or "wchar_t **" (neither of
 // which would be backwards compatible with all the existing code) for argv
 // field of wxApp
@@ -28,22 +26,20 @@
 class WXDLLIMPEXP_BASE wxCmdLineArgsArray
 {
 public:
-    wxCmdLineArgsArray() { m_argsA = NULL; m_argsW = NULL; }
+    wxCmdLineArgsArray() { m_argsA = nullptr; m_argsW = nullptr; }
 
     template <typename T>
-    wxCmdLineArgsArray& operator=(T **argv)
+    void Init(int argc, T **argv)
     {
         FreeArgs();
 
         m_args.clear();
+        m_args.reserve(argc);
 
-        if ( argv )
+        for ( int i = 0; i < argc; i++ )
         {
-            while ( *argv )
-                m_args.push_back(*argv++);
+            m_args.push_back(argv[i]);
         }
-
-        return *this;
     }
 
     operator char**() const
@@ -51,9 +47,11 @@ public:
         if ( !m_argsA )
         {
             const size_t count = m_args.size();
-            m_argsA = new char *[count];
+            m_argsA = new char *[count + 1];
             for ( size_t n = 0; n < count; n++ )
                 m_argsA[n] = wxStrdup(m_args[n].ToAscii());
+
+            m_argsA[count] = nullptr;
         }
 
         return m_argsA;
@@ -64,9 +62,11 @@ public:
         if ( !m_argsW )
         {
             const size_t count = m_args.size();
-            m_argsW = new wchar_t *[count];
+            m_argsW = new wchar_t *[count + 1];
             for ( size_t n = 0; n < count; n++ )
                 m_argsW[n] = wxStrdup(m_args[n].wc_str());
+
+            m_argsW[count] = nullptr;
         }
 
         return m_argsW;
@@ -113,7 +113,7 @@ public:
 
 private:
     template <typename T>
-    void Free(T **args)
+    void Free(T**& args)
     {
         if ( !args )
             return;
@@ -123,6 +123,7 @@ private:
             free(args[n]);
 
         delete [] args;
+        args = nullptr;
     }
 
     void FreeArgs()
@@ -144,8 +145,6 @@ inline bool operator&&(bool cond, const wxCmdLineArgsArray& array)
 {
     return cond && !array.IsEmpty();
 }
-
-#endif // wxUSE_UNICODE
 
 #endif // _WX_CMDARGS_H_
 

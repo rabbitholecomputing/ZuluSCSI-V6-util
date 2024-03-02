@@ -16,6 +16,9 @@
 #include "wx/archive.h"
 #include "wx/filename.h"
 
+#include <memory>
+#include <vector>
+
 // some methods from wxZipInputStream and wxZipOutputStream stream do not get
 // exported/imported when compiled with Mingw versions before 3.4.2. So they
 // are imported/exported individually as a workaround
@@ -105,8 +108,17 @@ enum wxZipFlags
     wxZIP_ENHANCED          = 0x0010,
     wxZIP_PATCH             = 0x0020,
     wxZIP_STRONG_ENC        = 0x0040,
+    wxZIP_LANG_ENC_UTF8     = 0x0800,   // filename and comment are UTF8
     wxZIP_UNUSED            = 0x0F80,
     wxZIP_RESERVED          = 0xF000
+};
+
+enum wxZipArchiveFormat
+{
+    /// Default zip format
+    wxZIP_FORMAT_DEFAULT,
+    /// ZIP64 format
+    wxZIP_FORMAT_ZIP64
 };
 
 // Forward decls
@@ -121,7 +133,7 @@ class WXDLLIMPEXP_FWD_BASE wxZipInputStream;
 class WXDLLIMPEXP_BASE wxZipNotifier
 {
 public:
-    virtual ~wxZipNotifier() { }
+    virtual ~wxZipNotifier() = default;
 
     virtual void OnEntryUpdated(wxZipEntry& entry) = 0;
 };
@@ -129,6 +141,8 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////
 // Zip Entry - holds the meta data for a file in the zip
+
+class wxDataOutputStream;
 
 class WXDLLIMPEXP_BASE wxZipEntry : public wxArchiveEntry
 {
@@ -142,10 +156,10 @@ public:
     wxZipEntry& operator=(const wxZipEntry& entry);
 
     // Get accessors
-    wxDateTime   GetDateTime() const            { return m_DateTime; }
-    wxFileOffset GetSize() const                { return m_Size; }
-    wxFileOffset GetOffset() const              { return m_Offset; }
-    wxString     GetInternalName() const        { return m_Name; }
+    wxDateTime   GetDateTime() const override            { return m_DateTime; }
+    wxFileOffset GetSize() const override                { return m_Size; }
+    wxFileOffset GetOffset() const override              { return m_Offset; }
+    wxString     GetInternalName() const override        { return m_Name; }
     int          GetMethod() const              { return m_Method; }
     int          GetFlags() const               { return m_Flags; }
     wxUint32     GetCrc() const                 { return m_Crc; }
@@ -153,23 +167,23 @@ public:
     int          GetSystemMadeBy() const        { return m_SystemMadeBy; }
     wxString     GetComment() const             { return m_Comment; }
     wxUint32     GetExternalAttributes() const  { return m_ExternalAttributes; }
-    wxPathFormat GetInternalFormat() const      { return wxPATH_UNIX; }
+    wxPathFormat GetInternalFormat() const override      { return wxPATH_UNIX; }
     int          GetMode() const;
     const char  *GetLocalExtra() const;
     size_t       GetLocalExtraLen() const;
     const char  *GetExtra() const;
     size_t       GetExtraLen() const;
-    wxString     GetName(wxPathFormat format = wxPATH_NATIVE) const;
+    wxString     GetName(wxPathFormat format = wxPATH_NATIVE) const override;
 
     // is accessors
-    inline bool IsDir() const;
+    inline bool IsDir() const override;
     inline bool IsText() const;
-    inline bool IsReadOnly() const;
+    inline bool IsReadOnly() const override;
     inline bool IsMadeByUnix() const;
 
     // set accessors
-    void SetDateTime(const wxDateTime& dt)      { m_DateTime = dt; }
-    void SetSize(wxFileOffset size)             { m_Size = size; }
+    void SetDateTime(const wxDateTime& dt) override      { m_DateTime = dt; }
+    void SetSize(wxFileOffset size) override             { m_Size = size; }
     void SetMethod(int method)                  { m_Method = (wxUint16)method; }
     void SetComment(const wxString& comment)    { m_Comment = comment; }
     void SetExternalAttributes(wxUint32 attr )  { m_ExternalAttributes = attr; }
@@ -179,21 +193,21 @@ public:
     void SetLocalExtra(const char *extra, size_t len);
 
     inline void SetName(const wxString& name,
-                        wxPathFormat format = wxPATH_NATIVE);
+                        wxPathFormat format = wxPATH_NATIVE) override;
 
     static wxString GetInternalName(const wxString& name,
                                     wxPathFormat format = wxPATH_NATIVE,
-                                    bool *pIsDir = NULL);
+                                    bool *pIsDir = nullptr);
 
     // set is accessors
-    void SetIsDir(bool isDir = true);
-    inline void SetIsReadOnly(bool isReadOnly = true);
+    void SetIsDir(bool isDir = true) override;
+    inline void SetIsReadOnly(bool isReadOnly = true) override;
     inline void SetIsText(bool isText = true);
 
     wxZipEntry *Clone() const                   { return ZipClone(); }
 
     void SetNotifier(wxZipNotifier& notifier);
-    void UnsetNotifier();
+    void UnsetNotifier() override;
 
 protected:
     // Internal attributes
@@ -207,7 +221,7 @@ protected:
     int GetInternalAttributes() const           { return m_InternalAttributes; }
 
     void SetVersionNeeded(int version)          { m_VersionNeeded = (wxUint16)version; }
-    void SetOffset(wxFileOffset offset)         { m_Offset = offset; }
+    void SetOffset(wxFileOffset offset) override         { m_Offset = offset; }
     void SetFlags(int flags)                    { m_Flags = (wxUint16)flags; }
     void SetVersionMadeBy(int version)          { m_VersionMadeBy = (wxUint8)version; }
     void SetCrc(wxUint32 crc)                   { m_Crc = crc; }
@@ -221,10 +235,10 @@ protected:
     void Notify();
 
 private:
-    wxArchiveEntry* DoClone() const             { return ZipClone(); }
+    wxArchiveEntry* DoClone() const override             { return ZipClone(); }
 
     size_t ReadLocal(wxInputStream& stream, wxMBConv& conv);
-    size_t WriteLocal(wxOutputStream& stream, wxMBConv& conv) const;
+    size_t WriteLocal(wxOutputStream& stream, wxMBConv& conv, wxZipArchiveFormat zipFormat);
 
     size_t ReadCentral(wxInputStream& stream, wxMBConv& conv);
     size_t WriteCentral(wxOutputStream& stream, wxMBConv& conv) const;
@@ -232,6 +246,13 @@ private:
     size_t ReadDescriptor(wxInputStream& stream);
     size_t WriteDescriptor(wxOutputStream& stream, wxUint32 crc,
                            wxFileOffset compressedSize, wxFileOffset size);
+
+    void WriteLocalFileSizes(wxDataOutputStream& ds) const;
+    void WriteLocalZip64ExtraInfo(wxOutputStream& stream) const;
+
+    bool LoadExtraInfo(const char* extraData, wxUint16 extraLen, bool localInfo);
+
+    wxUint16 GetInternalFlags(bool checkForUTF8) const;
 
     wxUint8      m_SystemMadeBy;       // one of enum wxZipSystem
     wxUint8      m_VersionMadeBy;      // major * 10 + minor
@@ -251,6 +272,7 @@ private:
     wxUint16     m_DiskStart;          // for multidisk archives, not unsupported
     wxUint16     m_InternalAttributes; // bit 0 set for text files
     wxUint32     m_ExternalAttributes; // system specific depends on SystemMadeBy
+    wxUint16     m_z64infoOffset;      // Offset of ZIP64 local extra data for file sizes
 
     class wxZipMemory *m_Extra;
     class wxZipMemory *m_LocalExtra;
@@ -261,50 +283,51 @@ private:
     friend class wxZipInputStream;
     friend class wxZipOutputStream;
 
-    DECLARE_DYNAMIC_CLASS(wxZipEntry)
+    wxDECLARE_DYNAMIC_CLASS(wxZipEntry);
 };
 
 
 /////////////////////////////////////////////////////////////////////////////
 // wxZipOutputStream
 
-WX_DECLARE_LIST_WITH_DECL(wxZipEntry, wxZipEntryList_, class WXDLLIMPEXP_BASE);
-
 class WXDLLIMPEXP_BASE wxZipOutputStream : public wxArchiveOutputStream
 {
 public:
     wxZipOutputStream(wxOutputStream& stream,
                       int level = -1,
-                      wxMBConv& conv = wxConvLocal);
+                      wxMBConv& conv = wxConvUTF8);
     wxZipOutputStream(wxOutputStream *stream,
                       int level = -1,
-                      wxMBConv& conv = wxConvLocal);
+                      wxMBConv& conv = wxConvUTF8);
     virtual WXZIPFIX ~wxZipOutputStream();
 
     bool PutNextEntry(wxZipEntry *entry)        { return DoCreate(entry); }
 
     bool WXZIPFIX PutNextEntry(const wxString& name,
                                const wxDateTime& dt = wxDateTime::Now(),
-                               wxFileOffset size = wxInvalidOffset);
+                               wxFileOffset size = wxInvalidOffset) override;
 
     bool WXZIPFIX PutNextDirEntry(const wxString& name,
-                                  const wxDateTime& dt = wxDateTime::Now());
+                                  const wxDateTime& dt = wxDateTime::Now()) override;
 
     bool WXZIPFIX CopyEntry(wxZipEntry *entry, wxZipInputStream& inputStream);
     bool WXZIPFIX CopyArchiveMetaData(wxZipInputStream& inputStream);
 
-    void WXZIPFIX Sync();
-    bool WXZIPFIX CloseEntry();
-    bool WXZIPFIX Close();
+    void WXZIPFIX Sync() override;
+    bool WXZIPFIX CloseEntry() override;
+    bool WXZIPFIX Close() override;
 
     void SetComment(const wxString& comment)    { m_Comment = comment; }
 
     int  GetLevel() const                       { return m_level; }
     void WXZIPFIX SetLevel(int level);
 
+    void SetFormat(wxZipArchiveFormat format)   { m_format = format; }
+    wxZipArchiveFormat GetFormat() const        { return m_format; }
+
 protected:
-    virtual size_t WXZIPFIX OnSysWrite(const void *buffer, size_t size);
-    virtual wxFileOffset OnSysTell() const      { return m_entrySize; }
+    virtual size_t WXZIPFIX OnSysWrite(const void *buffer, size_t size) override;
+    virtual wxFileOffset OnSysTell() const override      { return m_entrySize; }
 
     // this protected interface isn't yet finalised
     struct Buffer { const char *m_data; size_t m_size; };
@@ -319,9 +342,9 @@ protected:
 private:
     void Init(int level);
 
-    bool WXZIPFIX PutNextEntry(wxArchiveEntry *entry);
-    bool WXZIPFIX CopyEntry(wxArchiveEntry *entry, wxArchiveInputStream& stream);
-    bool WXZIPFIX CopyArchiveMetaData(wxArchiveInputStream& stream);
+    bool WXZIPFIX PutNextEntry(wxArchiveEntry *entry) override;
+    bool WXZIPFIX CopyEntry(wxArchiveEntry *entry, wxArchiveInputStream& stream) override;
+    bool WXZIPFIX CopyArchiveMetaData(wxArchiveInputStream& stream) override;
 
     bool IsOpened() const { return m_comp || m_pending; }
 
@@ -332,7 +355,7 @@ private:
     class wxStoredOutputStream *m_store;
     class wxZlibOutputStream2 *m_deflate;
     class wxZipStreamLink *m_backlink;
-    wxZipEntryList_ m_entries;
+    std::vector<std::unique_ptr<wxZipEntry>> m_entries;
     char *m_initialData;
     size_t m_initialSize;
     wxZipEntry *m_pending;
@@ -346,6 +369,7 @@ private:
     wxFileOffset m_offsetAdjustment;
     wxString m_Comment;
     bool m_endrecWritten;
+    wxZipArchiveFormat m_format;
 
     wxDECLARE_NO_COPY_CLASS(wxZipOutputStream);
 };
@@ -362,30 +386,21 @@ public:
     wxZipInputStream(wxInputStream& stream, wxMBConv& conv = wxConvLocal);
     wxZipInputStream(wxInputStream *stream, wxMBConv& conv = wxConvLocal);
 
-#if WXWIN_COMPATIBILITY_2_6 && wxUSE_FFILE
-    wxZipInputStream(const wxString& archive, const wxString& file)
-     : wxArchiveInputStream(OpenFile(archive), wxConvLocal) { Init(file); }
-#endif
-
     virtual WXZIPFIX ~wxZipInputStream();
 
     bool OpenEntry(wxZipEntry& entry)   { return DoOpen(&entry); }
-    bool WXZIPFIX CloseEntry();
+    bool WXZIPFIX CloseEntry() override;
 
     wxZipEntry *GetNextEntry();
 
     wxString WXZIPFIX GetComment();
     int WXZIPFIX GetTotalEntries();
 
-    virtual wxFileOffset GetLength() const { return m_entry.GetSize(); }
+    virtual wxFileOffset GetLength() const override { return m_entry.GetSize(); }
 
 protected:
-    size_t WXZIPFIX OnSysRead(void *buffer, size_t size);
-    wxFileOffset OnSysTell() const { return m_decomp ? m_decomp->TellI() : 0; }
-
-#if WXWIN_COMPATIBILITY_2_6
-    wxFileOffset WXZIPFIX OnSysSeek(wxFileOffset seek, wxSeekMode mode);
-#endif
+    size_t WXZIPFIX OnSysRead(void *buffer, size_t size) override;
+    wxFileOffset OnSysTell() const override { return m_decomp ? m_decomp->TellI() : 0; }
 
     // this protected interface isn't yet finalised
     virtual wxInputStream* WXZIPFIX OpenDecompressor(wxInputStream& stream);
@@ -394,13 +409,10 @@ protected:
 private:
     void Init();
     void Init(const wxString& file);
-#if WXWIN_COMPATIBILITY_2_6 && wxUSE_FFILE
-    static wxInputStream *OpenFile(const wxString& archive);
-#endif
 
-    wxArchiveEntry *DoGetNextEntry()    { return GetNextEntry(); }
+    wxArchiveEntry *DoGetNextEntry() override    { return GetNextEntry(); }
 
-    bool WXZIPFIX OpenEntry(wxArchiveEntry& entry);
+    bool WXZIPFIX OpenEntry(wxArchiveEntry& entry) override;
 
     wxStreamError ReadLocal(bool readEndRec = false);
     wxStreamError ReadCentral();
@@ -411,11 +423,11 @@ private:
 
     bool AtHeader() const       { return m_headerSize == 0; }
     bool AfterHeader() const    { return m_headerSize > 0 && !m_decomp; }
-    bool IsOpened() const       { return m_decomp != NULL; }
+    bool IsOpened() const       { return m_decomp != nullptr; }
 
     wxZipStreamLink *MakeLink(wxZipOutputStream *out);
 
-    bool DoOpen(wxZipEntry *entry = NULL, bool raw = false);
+    bool DoOpen(wxZipEntry *entry = nullptr, bool raw = false);
     bool OpenDecompressor(bool raw = false);
 
     class wxStoredInputStream *m_store;
@@ -440,11 +452,6 @@ private:
     friend bool wxZipOutputStream::CopyArchiveMetaData(
                     wxZipInputStream& inputStream);
 
-#if WXWIN_COMPATIBILITY_2_6
-    bool m_allowSeeking;
-    friend class wxArchiveFSHandler;
-#endif
-
     wxDECLARE_NO_COPY_CLASS(wxZipInputStream);
 };
 
@@ -452,11 +459,9 @@ private:
 /////////////////////////////////////////////////////////////////////////////
 // Iterators
 
-#if wxUSE_STL || defined WX_TEST_ARCHIVE_ITERATOR
 typedef wxArchiveIterator<wxZipInputStream> wxZipIter;
 typedef wxArchiveIterator<wxZipInputStream,
          std::pair<wxString, wxZipEntry*> > wxZipPairIter;
-#endif
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -469,10 +474,8 @@ public:
     typedef wxZipInputStream  instream_type;
     typedef wxZipOutputStream outstream_type;
     typedef wxZipNotifier     notifier_type;
-#if wxUSE_STL || defined WX_TEST_ARCHIVE_ITERATOR
     typedef wxZipIter         iter_type;
     typedef wxZipPairIter     pairiter_type;
-#endif
 
     wxZipClassFactory();
 
@@ -488,26 +491,26 @@ public:
         { return new wxZipOutputStream(stream, -1, GetConv()); }
 
     wxString GetInternalName(const wxString& name,
-                             wxPathFormat format = wxPATH_NATIVE) const
+                             wxPathFormat format = wxPATH_NATIVE) const override
         { return wxZipEntry::GetInternalName(name, format); }
 
     const wxChar * const *GetProtocols(wxStreamProtocolType type
-                                       = wxSTREAM_PROTOCOL) const;
+                                       = wxSTREAM_PROTOCOL) const override;
 
 protected:
-    wxArchiveEntry *DoNewEntry() const
+    wxArchiveEntry *DoNewEntry() const override
         { return NewEntry(); }
-    wxArchiveInputStream *DoNewStream(wxInputStream& stream) const
+    wxArchiveInputStream *DoNewStream(wxInputStream& stream) const override
         { return NewStream(stream); }
-    wxArchiveOutputStream *DoNewStream(wxOutputStream& stream) const
+    wxArchiveOutputStream *DoNewStream(wxOutputStream& stream) const override
         { return NewStream(stream); }
-    wxArchiveInputStream *DoNewStream(wxInputStream *stream) const
+    wxArchiveInputStream *DoNewStream(wxInputStream *stream) const override
         { return NewStream(stream); }
-    wxArchiveOutputStream *DoNewStream(wxOutputStream *stream) const
+    wxArchiveOutputStream *DoNewStream(wxOutputStream *stream) const override
         { return NewStream(stream); }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxZipClassFactory)
+    wxDECLARE_DYNAMIC_CLASS(wxZipClassFactory);
 };
 
 
@@ -531,17 +534,37 @@ inline bool wxZipEntry::IsReadOnly() const
 
 inline bool wxZipEntry::IsMadeByUnix() const
 {
-    const int pattern =
-        (1 << wxZIP_SYSTEM_OPENVMS) |
-        (1 << wxZIP_SYSTEM_UNIX) |
-        (1 << wxZIP_SYSTEM_ATARI_ST) |
-        (1 << wxZIP_SYSTEM_ACORN_RISC) |
-        (1 << wxZIP_SYSTEM_BEOS) | (1 << wxZIP_SYSTEM_TANDEM);
+    switch ( m_SystemMadeBy )
+    {
+        case wxZIP_SYSTEM_MSDOS:
+            // note: some unix zippers put madeby = dos
+            return (m_ExternalAttributes & ~0xFFFF) != 0;
 
-    // note: some unix zippers put madeby = dos
-    return (m_SystemMadeBy == wxZIP_SYSTEM_MSDOS
-            && (m_ExternalAttributes & ~0xFFFF))
-        || ((pattern >> m_SystemMadeBy) & 1);
+        case wxZIP_SYSTEM_OPENVMS:
+        case wxZIP_SYSTEM_UNIX:
+        case wxZIP_SYSTEM_ATARI_ST:
+        case wxZIP_SYSTEM_ACORN_RISC:
+        case wxZIP_SYSTEM_BEOS:
+        case wxZIP_SYSTEM_TANDEM:
+            return true;
+
+        case wxZIP_SYSTEM_AMIGA:
+        case wxZIP_SYSTEM_VM_CMS:
+        case wxZIP_SYSTEM_OS2_HPFS:
+        case wxZIP_SYSTEM_MACINTOSH:
+        case wxZIP_SYSTEM_Z_SYSTEM:
+        case wxZIP_SYSTEM_CPM:
+        case wxZIP_SYSTEM_WINDOWS_NTFS:
+        case wxZIP_SYSTEM_MVS:
+        case wxZIP_SYSTEM_VSE:
+        case wxZIP_SYSTEM_VFAT:
+        case wxZIP_SYSTEM_ALTERNATE_MVS:
+        case wxZIP_SYSTEM_OS_400:
+            return false;
+    }
+
+    // Unknown system, assume not Unix.
+    return false;
 }
 
 inline void wxZipEntry::SetIsText(bool isText)

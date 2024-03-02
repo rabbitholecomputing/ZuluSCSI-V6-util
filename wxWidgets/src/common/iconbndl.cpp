@@ -10,27 +10,30 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/iconbndl.h"
 
 #ifndef WX_PRECOMP
+    #ifdef __WINDOWS__
+        #include "wx/msw/wrapwin.h"
+    #endif
+    #include "wx/app.h"
     #include "wx/settings.h"
     #include "wx/log.h"
     #include "wx/intl.h"
     #include "wx/bitmap.h"
     #include "wx/image.h"
     #include "wx/stream.h"
+    #include "wx/utils.h"
 #endif
 
 #include "wx/wfstream.h"
 
-#include "wx/arrimpl.cpp"
-WX_DEFINE_OBJARRAY(wxIconArray)
+#ifdef __WINDOWS__
+    #include "wx/private/icondir.h"
+#endif
 
-IMPLEMENT_DYNAMIC_CLASS(wxIconBundle, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxIconBundle, wxGDIObject);
 
 #define M_ICONBUNDLEDATA static_cast<wxIconBundleRefData*>(m_refData)
 
@@ -53,9 +56,9 @@ public:
 
     // default assignment operator and dtor are ok
 
-    virtual bool IsOk() const { return !m_icons.empty(); }
+    virtual bool IsOk() const override { return !m_icons.empty(); }
 
-    wxIconArray m_icons;
+    std::vector<wxIcon> m_icons;
 };
 
 // ============================================================================
@@ -88,6 +91,16 @@ wxIconBundle::wxIconBundle(const wxIcon& icon)
 {
     AddIcon(icon);
 }
+
+#if defined(__WINDOWS__) && wxUSE_ICO_CUR
+
+wxIconBundle::wxIconBundle(const wxString& resourceName, WXHINSTANCE module)
+            : wxGDIObject()
+{
+    AddIcon(resourceName, module);
+}
+
+#endif // defined(__WINDOWS__) && wxUSE_ICO_CUR
 
 wxGDIRefData *wxIconBundle::CreateGDIRefData() const
 {
@@ -192,6 +205,55 @@ void wxIconBundle::AddIcon(wxInputStream& stream, wxBitmapType type)
 
 #endif // wxUSE_STREAMS && wxUSE_IMAGE
 
+#if defined(__WINDOWS__) && wxUSE_ICO_CUR
+
+// Loads all the icons for an icon group (i.e., different sizes of one icon)
+// stored as an MS Windows resource.
+void wxIconBundle::AddIcon(const wxString& resourceName, WXHINSTANCE module)
+{
+#ifdef __WXMSW__
+    const void* data = nullptr;
+    size_t outLen = 0;
+
+    // load the icon directory resource
+    if ( !wxLoadUserResource(&data, &outLen, resourceName, RT_GROUP_ICON, module) )
+    {
+        wxLogError(_("Failed to load icons from resource '%s'."), resourceName);
+        return;
+    }
+
+    // load the individual icons referred from the icon directory
+    const GRPICONDIR* grpIconDir = static_cast<const GRPICONDIR*>(data);
+
+    for ( WORD i = 0; i < grpIconDir->idCount; i++ )
+    {
+        const WORD iconID = grpIconDir->idEntries[i].nID;
+
+        if ( wxLoadUserResource(&data, &outLen, wxString::Format(wxS("#%u"), iconID), RT_ICON, module) )
+        {
+            HICON hIcon = ::CreateIconFromResourceEx(static_cast<PBYTE>(const_cast<void*>(data)),
+                                static_cast<DWORD>(outLen), TRUE, 0x00030000, 0, 0, LR_DEFAULTCOLOR);
+            wxIcon icon;
+
+            if ( hIcon && icon.CreateFromHICON(hIcon) )
+                AddIcon(icon);
+            else
+                wxLogDebug(wxS("Failed to create icon from resource with id %u."), iconID);
+        }
+        else
+        {
+            wxLogDebug(wxS("Failed to load icon with id %u for group icon resource '%s'."), iconID, resourceName);
+        }
+    }
+#else
+    wxUnusedVar(resourceName);
+    wxUnusedVar(module);
+    wxLogError(wxS("Loading icons from resources isn't implemented in this toolkit port yet."));
+#endif
+}
+
+#endif // defined(__WINDOWS__) && wxUSE_ICO_CUR
+
 wxIcon wxIconBundle::GetIcon(const wxSize& size, int flags) const
 {
     wxASSERT( size == wxDefaultSize || (size.x >= 0 && size.y > 0) );
@@ -201,8 +263,9 @@ wxIcon wxIconBundle::GetIcon(const wxSize& size, int flags) const
             sysY = 0;
     if ( flags & FALLBACK_SYSTEM )
     {
-        sysX = wxSystemSettings::GetMetric(wxSYS_ICON_X);
-        sysY = wxSystemSettings::GetMetric(wxSYS_ICON_Y);
+        wxWindow* win = wxApp::GetMainTopWindow();
+        sysX = wxSystemSettings::GetMetric(wxSYS_ICON_X, win);
+        sysY = wxSystemSettings::GetMetric(wxSYS_ICON_Y, win);
     }
 
     // If size == wxDefaultSize, we use system default icon size by convention.
@@ -215,6 +278,14 @@ wxIcon wxIconBundle::GetIcon(const wxSize& size, int flags) const
 
         sizeX = sysX;
         sizeY = sysY;
+
+        // Not all ports provide this metric, so if they don't, fall back to
+        // something reasonable _and_ allow searching for a closer match.
+        if ( sizeX == -1 && sizeY == -1 )
+        {
+            sizeX = sizeY = 32;
+            flags |= FALLBACK_NEAREST_LARGER;
+        }
     }
 
     // Iterate over all icons searching for the exact match or the closest icon
@@ -224,12 +295,8 @@ wxIcon wxIconBundle::GetIcon(const wxSize& size, int flags) const
     bool bestIsLarger = false;
     bool bestIsSystem = false;
 
-    const size_t count = GetIconCount();
-
-    const wxIconArray& iconArray = M_ICONBUNDLEDATA->m_icons;
-    for ( size_t i = 0; i < count; i++ )
+    for ( const wxIcon& icon : M_ICONBUNDLEDATA->m_icons )
     {
-        const wxIcon& icon = iconArray[i];
         if ( !icon.IsOk() )
             continue;
         wxCoord sx = icon.GetWidth(),
@@ -273,14 +340,7 @@ wxIcon wxIconBundle::GetIcon(const wxSize& size, int flags) const
         }
     }
 
-#if defined( __WXMAC__ ) && wxOSX_USE_CARBON
-    if (!iconBest.IsOk())
-        return wxNullIcon;
-
-    return wxIcon(iconBest.GetHICON(), size);
-#else
     return iconBest;
-#endif
 }
 
 wxIcon wxIconBundle::GetIconOfExactSize(const wxSize& size) const
@@ -294,13 +354,9 @@ void wxIconBundle::AddIcon(const wxIcon& icon)
 
     AllocExclusive();
 
-    wxIconArray& iconArray = M_ICONBUNDLEDATA->m_icons;
-
     // replace existing icon with the same size if we already have it
-    const size_t count = iconArray.size();
-    for ( size_t i = 0; i < count; ++i )
+    for ( wxIcon& tmp : M_ICONBUNDLEDATA->m_icons )
     {
-        wxIcon& tmp = iconArray[i];
         if ( tmp.IsOk() &&
                 tmp.GetWidth() == icon.GetWidth() &&
                 tmp.GetHeight() == icon.GetHeight() )
@@ -311,7 +367,7 @@ void wxIconBundle::AddIcon(const wxIcon& icon)
     }
 
     // if we don't, add an icon with new size
-    iconArray.Add(icon);
+    M_ICONBUNDLEDATA->m_icons.push_back(icon);
 }
 
 size_t wxIconBundle::GetIconCount() const

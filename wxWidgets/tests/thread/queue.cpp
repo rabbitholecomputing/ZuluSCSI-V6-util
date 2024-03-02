@@ -13,9 +13,6 @@
 
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/dynarray.h"
@@ -55,7 +52,7 @@ private:
         {}
 
         // thread execution starts here
-        virtual void *Entry();
+        virtual void *Entry() override;
 
         // Thread message queue
         Queue& GetQueue()
@@ -80,7 +77,7 @@ private:
     void TestReceive();
     void TestReceiveTimeout();
 
-    DECLARE_NO_COPY_CLASS(QueueTestCase)
+    wxDECLARE_NO_COPY_CLASS(QueueTestCase);
 };
 
 // register in the unnamed registry so that these tests are run by default
@@ -104,7 +101,7 @@ void QueueTestCase::TestReceive()
     int i;
     for ( i = 0; i < threadCount; ++i )
     {
-        MyThread *previousThread = i == 0 ? NULL : threads[i-1];
+        MyThread *previousThread = i == 0 ? nullptr : threads[i-1];
         MyThread *thread =
             new MyThread(WaitInfinitlyLong, previousThread, msgCount);
 
@@ -130,6 +127,7 @@ void QueueTestCase::TestReceive()
         // if it returns a negative, then it detected some problem.
         wxThread::ExitCode code = threads[i]->Wait();
         CPPUNIT_ASSERT_EQUAL( code, (wxThread::ExitCode)wxMSGQUEUE_NO_ERROR );
+        delete threads[i];
     }
 }
 
@@ -141,8 +139,8 @@ void QueueTestCase::TestReceive()
 // should return wxMSGQUEUUE_TIMEOUT.
 void QueueTestCase::TestReceiveTimeout()
 {
-    MyThread* thread1 = new MyThread(WaitWithTimeout, NULL, 2);
-    MyThread* thread2 = new MyThread(WaitWithTimeout, NULL, 2);
+    MyThread* thread1 = new MyThread(WaitWithTimeout, nullptr, 2);
+    MyThread* thread2 = new MyThread(WaitWithTimeout, nullptr, 2);
 
     CPPUNIT_ASSERT_EQUAL ( thread1->Create(), wxTHREAD_NO_ERROR );
     CPPUNIT_ASSERT_EQUAL ( thread2->Create(), wxTHREAD_NO_ERROR );
@@ -162,6 +160,8 @@ void QueueTestCase::TestReceiveTimeout()
 
     CPPUNIT_ASSERT_EQUAL( code1, (wxThread::ExitCode)wxMSGQUEUE_NO_ERROR );
     CPPUNIT_ASSERT_EQUAL( code2, (wxThread::ExitCode)wxMSGQUEUE_TIMEOUT );
+    delete thread2;
+    delete thread1;
 }
 
 // every thread tries to read exactly m_maxMsgCount messages from its queue
@@ -185,27 +185,29 @@ void *QueueTestCase::MyThread::Entry()
 
         if ( result == wxMSGQUEUE_NO_ERROR )
         {
-            if ( m_nextThread != NULL )
+            if ( m_nextThread != nullptr )
             {
                 wxMessageQueueError res = m_nextThread->GetQueue().Post(msg);
 
                 if ( res == wxMSGQUEUE_MISC_ERROR )
                     return (wxThread::ExitCode)wxMSGQUEUE_MISC_ERROR;
 
-                CPPUNIT_ASSERT_EQUAL( wxMSGQUEUE_NO_ERROR, res );
+                // We can't use Catch asserts outside of the main thread
+                // currently, unfortunately.
+                wxASSERT( res == wxMSGQUEUE_NO_ERROR );
             }
             ++messagesReceived;
             continue;
         }
 
-        CPPUNIT_ASSERT_EQUAL ( result, wxMSGQUEUE_TIMEOUT );
+        wxASSERT( result == wxMSGQUEUE_TIMEOUT );
 
         break;
     }
 
     if ( messagesReceived != m_maxMsgCount )
     {
-        CPPUNIT_ASSERT_EQUAL( m_type, WaitWithTimeout );
+        wxASSERT( m_type == WaitWithTimeout );
 
         return (wxThread::ExitCode)wxMSGQUEUE_TIMEOUT;
     }

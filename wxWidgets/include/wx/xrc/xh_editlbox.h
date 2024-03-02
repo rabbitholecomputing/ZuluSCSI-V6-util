@@ -23,14 +23,14 @@ class WXDLLIMPEXP_XRC wxEditableListBoxXmlHandler : public wxXmlResourceHandler
 public:
     wxEditableListBoxXmlHandler();
 
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 
 private:
     bool m_insideBox;
     wxArrayString m_items;
 
-    DECLARE_DYNAMIC_CLASS(wxEditableListBoxXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxEditableListBoxXmlHandler);
 };
 
 #endif // wxUSE_XRC && wxUSE_EDITABLELISTBOX

@@ -22,12 +22,12 @@ public:
     wxScreenDCImpl( wxScreenDC *owner );
     ~wxScreenDCImpl();
 
-    virtual void DoGetSize(int *width, int *height) const;
+    virtual void DoGetSize(int *width, int *height) const override;
 
 private:
     void Init();
 
-    DECLARE_ABSTRACT_CLASS(wxScreenDCImpl)
+    wxDECLARE_ABSTRACT_CLASS(wxScreenDCImpl);
 };
 
 #endif // _WX_GTKDCSCREEN_H_

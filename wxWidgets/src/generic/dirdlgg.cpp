@@ -2,7 +2,6 @@
 // Name:        src/generic/dirdlgg.cpp
 // Purpose:     wxDirDialog
 // Author:      Harm van der Heijden, Robert Roebling & Julian Smart
-// Modified by:
 // Created:     12/12/98
 // Copyright:   (c) Harm van der Heijden, Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
@@ -11,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_DIRDLG
 
@@ -48,9 +44,9 @@ static const int ID_GO_HOME = 1006;
 // wxGenericDirDialog
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericDirDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericDirDialog, wxDialog);
 
-BEGIN_EVENT_TABLE(wxGenericDirDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxGenericDirDialog, wxDialog)
     EVT_CLOSE                (wxGenericDirDialog::OnCloseWindow)
     EVT_BUTTON               (wxID_OK,        wxGenericDirDialog::OnOK)
     EVT_BUTTON               (ID_NEW,         wxGenericDirDialog::OnNew)
@@ -59,7 +55,7 @@ BEGIN_EVENT_TABLE(wxGenericDirDialog, wxDialog)
     EVT_TREE_SEL_CHANGED     (wxID_ANY,       wxGenericDirDialog::OnTreeSelected)
     EVT_TEXT_ENTER           (ID_TEXTCTRL,    wxGenericDirDialog::OnOK)
     EVT_CHECKBOX             (ID_SHOW_HIDDEN, wxGenericDirDialog::OnShowHidden)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxGenericDirDialog::wxGenericDirDialog(wxWindow* parent, const wxString& title,
                                        const wxString& defaultPath, long style,
@@ -91,33 +87,13 @@ bool wxGenericDirDialog::Create(wxWindow* parent,
 
     wxBoxSizer *topsizer = new wxBoxSizer( wxVERTICAL );
 
-    // smartphones does not support or do not waste space for wxButtons
-#if defined(__SMARTPHONE__)
-
-    wxMenu *dirMenu = new wxMenu;
-    dirMenu->Append(ID_GO_HOME, _("Home"));
-
-    if (!HasFlag(wxDD_DIR_MUST_EXIST))
-    {
-        dirMenu->Append(ID_NEW, _("New directory"));
-    }
-
-    dirMenu->AppendCheckItem(ID_SHOW_HIDDEN, _("Show hidden directories"));
-    dirMenu->AppendSeparator();
-    dirMenu->Append(wxID_CANCEL, _("Cancel"));
-
-#else
-
     // 0) 'New' and 'Home' Buttons
     wxSizer* buttonsizer = new wxBoxSizer( wxHORIZONTAL );
 
-    // VS: 'Home directory' concept is unknown to MS-DOS
-#if !defined(__DOS__)
     wxBitmapButton* homeButton =
         new wxBitmapButton(this, ID_GO_HOME,
                            wxArtProvider::GetBitmap(wxART_GO_HOME, wxART_BUTTON));
     buttonsizer->Add( homeButton, 0, wxLEFT|wxRIGHT, 10 );
-#endif
 
     // I'm not convinced we need a New button, and we tend to get annoying
     // accidental-editing with label editing enabled.
@@ -138,10 +114,8 @@ bool wxGenericDirDialog::Create(wxWindow* parent,
 
     topsizer->Add( buttonsizer, 0, wxTOP | wxALIGN_RIGHT, 10 );
 
-#endif // __SMARTPHONE__/!__SMARTPHONE__
-
     // 1) dir ctrl
-    m_dirCtrl = NULL; // this is necessary, event handler called from
+    m_dirCtrl = nullptr; // this is necessary, event handler called from
                       // wxGenericDirCtrl would crash otherwise!
     long dirStyle = wxDIRCTRL_DIR_ONLY | wxDEFAULT_CONTROL_BORDER;
 
@@ -164,12 +138,10 @@ bool wxGenericDirDialog::Create(wxWindow* parent,
 
     topsizer->Add(m_dirCtrl, wxSizerFlags(flagsBorder2).Proportion(1).Expand());
 
-#ifndef __SMARTPHONE__
     // TODO: Make this an option depending on a flag?
     wxCheckBox *
         check = new wxCheckBox(this, ID_SHOW_HIDDEN, _("Show &hidden directories"));
     topsizer->Add(check, wxSizerFlags(flagsBorder2).Right());
-#endif // !__SMARTPHONE__
 
     // 2) text ctrl
     m_input = new wxTextCtrl( this, ID_TEXTCTRL, m_path, wxDefaultPosition );
@@ -182,18 +154,11 @@ bool wxGenericDirDialog::Create(wxWindow* parent,
         topsizer->Add(buttonSizer, wxSizerFlags().Expand().DoubleBorder());
     }
 
-#ifdef __SMARTPHONE__
-    // overwrite menu set by CreateSeparatedButtonSizer() call above
-    SetRightMenu(wxID_ANY, _("Options"), dirMenu);
-#endif
-
     m_input->SetFocus();
 
-    SetAutoLayout( true );
     SetSizer( topsizer );
 
     topsizer->SetSizeHints( this );
-    topsizer->Fit( this );
 
     Centre( wxBOTH );
 
@@ -280,7 +245,7 @@ void wxGenericDirDialog::OnTreeSelected( wxTreeEvent &event )
 
     wxTreeItemId item = event.GetItem();
 
-    wxDirItemData *data = NULL;
+    wxDirItemData *data = nullptr;
 
     if(item.IsOk())
         data = (wxDirItemData*)m_dirCtrl->GetTreeCtrl()->GetItemData(item);

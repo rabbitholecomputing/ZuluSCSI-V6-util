@@ -2,7 +2,6 @@
 // Name:        wx/x11/joystick.h
 // Purpose:     wxJoystick class
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -15,7 +14,7 @@
 
 class WXDLLIMPEXP_ADV wxJoystick: public wxObject
 {
-    DECLARE_DYNAMIC_CLASS(wxJoystick)
+    wxDECLARE_DYNAMIC_CLASS(wxJoystick);
 public:
 /*
 * Public interface

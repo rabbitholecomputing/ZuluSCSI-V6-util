@@ -2,7 +2,6 @@
 // Name:        wx/unix/joystick.h
 // Purpose:     wxJoystick class
 // Author:      Guilhem Lavaux
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
@@ -17,8 +16,8 @@ class WXDLLIMPEXP_FWD_CORE wxJoystickThread;
 
 class WXDLLIMPEXP_ADV wxJoystick: public wxObject
 {
-    DECLARE_DYNAMIC_CLASS(wxJoystick)
-        public:
+    wxDECLARE_DYNAMIC_CLASS(wxJoystick);
+public:
     /*
      * Public interface
      */

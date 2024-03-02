@@ -10,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_XRC && wxUSE_CHECKLISTBOX
 
@@ -26,7 +23,7 @@
 
 #include "wx/xml/xml.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxCheckListBoxXmlHandler, wxXmlResourceHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCheckListBoxXmlHandler, wxXmlResourceHandler);
 
 wxCheckListBoxXmlHandler::wxCheckListBoxXmlHandler()
 : wxXmlResourceHandler(), m_insideBox(false)
@@ -49,7 +46,7 @@ wxObject *wxCheckListBoxXmlHandler::DoCreateResource()
     {
         // need to build the list of strings from children
         m_insideBox = true;
-        CreateChildrenPrivately(NULL, GetParamNode(wxT("content")));
+        CreateChildrenPrivately(nullptr, GetParamNode(wxT("content")));
 
         XRC_MAKE_INSTANCE(control, wxCheckListBox)
 
@@ -94,11 +91,8 @@ wxObject *wxCheckListBoxXmlHandler::DoCreateResource()
         // handle <item checked="boolean">Label</item>
 
         // add to the list
-        wxString str = GetNodeContent(m_node);
-        if (m_resource->GetFlags() & wxXRC_USE_LOCALE)
-            str = wxGetTranslation(str, m_resource->GetDomain());
-        strList.Add(str);
-        return NULL;
+        strList.Add(GetNodeText(m_node, wxXRC_TEXT_NO_ESCAPE));
+        return nullptr;
     }
 }
 

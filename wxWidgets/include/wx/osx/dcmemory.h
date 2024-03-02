@@ -2,7 +2,6 @@
 // Name:        wx/osx/dcmemory.h
 // Purpose:     wxMemoryDC class
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -22,14 +21,14 @@ public:
 
     virtual ~wxMemoryDCImpl();
 
-    virtual void DoGetSize( int *width, int *height ) const;
-    virtual wxBitmap DoGetAsBitmap(const wxRect *subrect) const
-       { return subrect == NULL ? GetSelectedBitmap() : GetSelectedBitmap().GetSubBitmap(*subrect); }
-    virtual void DoSelect(const wxBitmap& bitmap);
+    virtual void DoGetSize( int *width, int *height ) const override;
+    virtual wxBitmap DoGetAsBitmap(const wxRect *subrect) const override
+       { return subrect == nullptr ? GetSelectedBitmap() : GetSelectedBitmap().GetSubBitmap(*subrect); }
+    virtual void DoSelect(const wxBitmap& bitmap) override;
 
-    virtual const wxBitmap& GetSelectedBitmap() const
+    virtual const wxBitmap& GetSelectedBitmap() const override
         { return m_selected; }
-    virtual wxBitmap& GetSelectedBitmap()
+    virtual wxBitmap& GetSelectedBitmap() override
         { return m_selected; }
 
 private:
@@ -37,7 +36,7 @@ private:
 
     wxBitmap  m_selected;
 
-    DECLARE_CLASS(wxMemoryDCImpl)
+    wxDECLARE_CLASS(wxMemoryDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxMemoryDCImpl);
 };
 

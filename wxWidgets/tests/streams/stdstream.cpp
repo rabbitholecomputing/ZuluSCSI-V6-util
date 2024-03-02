@@ -10,9 +10,6 @@
 // and "wx/cppunit.h"
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 // for all others, include the necessary headers
 #ifndef WX_PRECOMP
@@ -96,7 +93,7 @@ private:
 
     char m_testData[TEST_SIZE];
 
-    DECLARE_NO_COPY_CLASS(StdStreamTestCase)
+    wxDECLARE_NO_COPY_CLASS(StdStreamTestCase);
 };
 
 // register in the unnamed registry so that these tests are run by default
@@ -126,7 +123,7 @@ void StdStreamTestCase::InputBuffer_pubsetbuf()
     wxStdInputStreamBuffer buffer(stream);
     char testBuffer[TEST_SIZE];
 
-    CPPUNIT_ASSERT(buffer.pubsetbuf(testBuffer, TEST_SIZE) == NULL);
+    CPPUNIT_ASSERT(buffer.pubsetbuf(testBuffer, TEST_SIZE) == nullptr);
 }
 
 void StdStreamTestCase::InputBuffer_pubseekoff()
@@ -331,7 +328,7 @@ void StdStreamTestCase::OutputBuffer_pubsetbuf()
     wxStdOutputStreamBuffer buffer(stream);
     char testBuffer[TEST_SIZE];
 
-    CPPUNIT_ASSERT(buffer.pubsetbuf(testBuffer, TEST_SIZE) == NULL);
+    CPPUNIT_ASSERT(buffer.pubsetbuf(testBuffer, TEST_SIZE) == nullptr);
 }
 
 void StdStreamTestCase::OutputBuffer_pubseekoff()

@@ -2,7 +2,6 @@
 // Name:        wx/android/config_android.h
 // Purpose:     configurations for Android builds
 // Author:      Zsolt Bakcsi
-// Modified by:
 // Created:     2011-12-02
 // RCS-ID:
 // Copyright:   (c) wxWidgets team
@@ -12,6 +11,12 @@
 // Please note that most of these settings are based on config_xcode.h and
 // 'fine-tuned' on a trial-and-error basis. This means, no in-depth analysis
 // of Android docs / source was done.
+
+// For Qt under Android, use the default configuration procedure as most
+// features should be supported and the following fixed definitions will
+// cause compiler warnings or other issues.
+
+#if !defined(__WXQT__)
 
 #define wxUSE_UNIX 1
 #define __UNIX__ 1
@@ -45,11 +50,11 @@
 #define wxSIZE_T_IS_UINT 1
 #define wxWCHAR_T_IS_REAL_TYPE 1
 
-#define wxTYPE_SA_HANDLER int
-
 #define wxUSE_SELECT_DISPATCHER 1
 
 #ifdef HAVE_PTHREAD_CANCEL
 // Android doesn't support pthread_cancel().
 #undef HAVE_PTHREAD_CANCEL
+#endif
+
 #endif

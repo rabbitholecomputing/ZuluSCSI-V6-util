@@ -61,7 +61,7 @@ public:
         Note that you should look at wxEvtLoopBase for more event-processing
         documentation.
     */
-    //@{
+    ///@{
 
     /**
         Called by wxWidgets on creation of the application. Override this if you wish
@@ -97,7 +97,7 @@ public:
         by OnRun() and which dispatches all events sent from the native toolkit
         to the application (except when new event loops are temporarily set-up).
         The returned value maybe @NULL. Put initialization code which needs a
-        non-@NULL main event loop into OnEventLoopEnter().
+        non-null main event loop into OnEventLoopEnter().
     */
     wxEventLoopBase* GetMainLoop() const;
 
@@ -126,7 +126,7 @@ public:
      */
     virtual bool UsesEventLoop() const;
 
-    //@}
+    ///@}
 
 
     /**
@@ -136,7 +136,7 @@ public:
         to allow queuing of events even when there's no event loop
         (e.g. in wxAppConsole::OnInit).
     */
-    //@{
+    ///@{
 
     /**
         Process all pending events; it is necessary to call this function to
@@ -185,7 +185,7 @@ public:
     */
     void ResumeProcessingOfPendingEvents();
 
-    //@}
+    ///@}
 
     /**
         Delayed objects destruction.
@@ -195,7 +195,7 @@ public:
         still pending for the same object. In this case the handler may call
         ScheduleForDestruction() instead.
      */
-    //@{
+    ///@{
 
     /**
         Schedule the object for destruction in the near future.
@@ -219,9 +219,21 @@ public:
      */
     bool IsScheduledForDestruction(wxObject *object) const;
 
-    //@}
+    ///@}
 
 
+    /**
+        Yields control to pending messages in the event loop.
+
+        This method is a convenient wrapper for wxEvtLoopBase::Yield(). If the
+        main loop is currently running, it calls this method on it. Otherwise
+        it creates a temporary event loop and uses it instead, which can be
+        useful to process pending messages during the program startup, before
+        the main loop is created.
+
+        Use extreme caution when calling this function as, just as
+        wxEvtLoopBase::Yield(), it can result in unexpected reentrances.
+     */
     bool Yield(bool onlyIfNeeded = false);
 
     /**
@@ -239,7 +251,7 @@ public:
         Returns the one and only global application object.
         Usually ::wxTheApp is used instead.
 
-        @see SetInstance()
+        @see SetInstance(), wxApp::GetGUIInstance()
     */
     static wxAppConsole* GetInstance();
 
@@ -256,13 +268,13 @@ public:
     /**
         @name Callbacks for application-wide "events"
     */
-    //@{
+    ///@{
 
     /**
         This function is called when an assert failure occurs, i.e.\ the condition
         specified in wxASSERT() macro evaluated to @false.
 
-        It is only called in debug mode (when @c __WXDEBUG__ is defined) as
+        It is only called in debug mode (when @c \__WXDEBUG__ is defined) as
         asserts are not left in the release code at all.
         The base class version shows the default assert failure dialog box proposing to
         the user to stop the program, continue or ignore all subsequent asserts.
@@ -273,7 +285,7 @@ public:
             the line number in this file where the assert occurred
         @param func
             the name of the function where the assert occurred, may be
-            empty if the compiler doesn't support C99 __FUNCTION__
+            empty if the compiler doesn't support C99 \__FUNCTION__
         @param cond
             the condition of the failed assert in text form
         @param msg
@@ -299,7 +311,7 @@ public:
     virtual bool OnCmdLineError(wxCmdLineParser& parser);
 
     /**
-        Called when the help option (@c --help) was specified on the command line.
+        Called when the help option (@c \--help) was specified on the command line.
         The default behaviour is to show the program usage text and abort the program.
 
         Return @true to continue normal execution or @false to return
@@ -342,23 +354,6 @@ public:
         @see OnEventLoopEnter()
     */
     virtual void OnEventLoopExit(wxEventLoopBase* loop);
-
-    /**
-        This function is called if an unhandled exception occurs inside the main
-        application event loop. It can return @true to ignore the exception and to
-        continue running the loop or @false to exit the loop and terminate the
-        program. In the latter case it can also use C++ @c throw keyword to
-        rethrow the current exception.
-
-        The default behaviour of this function is the latter in all ports except under
-        Windows where a dialog is shown to the user which allows him to choose between
-        the different options. You may override this function in your class to do
-        something more appropriate.
-
-        Finally note that if the exception is rethrown from here, it can be caught in
-        OnUnhandledException().
-    */
-    virtual bool OnExceptionInMainLoop();
 
     /**
         Override this member function for any processing which needs to be
@@ -406,6 +401,12 @@ public:
         Called from OnInit() and may be used to initialize the parser with the
         command line options for this application. The base class versions adds
         support for a few standard options only.
+
+        Note that this method should just configure @a parser to accept the
+        desired command line options by calling wxCmdLineParser::AddOption(),
+        wxCmdLineParser::AddSwitch() and similar methods, but should @e not
+        call wxCmdLineParser::Parse() as this will be done by wxWidgets itself
+        slightly later.
     */
     virtual void OnInitCmdLine(wxCmdLineParser& parser);
 
@@ -420,6 +421,66 @@ public:
         should return 0 in case of successful termination.
     */
     virtual int OnRun();
+
+    ///@}
+
+
+    /**
+        @name Exceptions support
+
+        Methods related to C++ exceptions handling.
+
+        @see overview_exceptions
+    */
+    ///@{
+
+    /**
+        This function is called if an unhandled exception occurs inside the main
+        application event loop. It can return @true to ignore the exception and to
+        continue running the loop or @false to exit the loop and terminate the
+        program.
+
+        The default behaviour of this function is the latter in all ports except under
+        Windows where a dialog is shown to the user which allows him to choose between
+        the different options. You may override this function in your class to do
+        something more appropriate.
+
+        If this method rethrows the exception and if the exception can't be
+        stored for later processing using StoreCurrentException(), the program
+        will terminate after calling OnUnhandledException().
+
+        You should consider overriding this method to perform whichever last
+        resort exception handling that would be done in a typical C++ program
+        in a @c try/catch block around the entire @c main() function. As this
+        method is called during exception handling, you may use the C++ @c
+        throw keyword to rethrow the current exception to catch it again and
+        analyze it. For example:
+
+        @code
+        class MyApp : public wxApp {
+        public:
+            virtual bool OnExceptionInMainLoop()
+            {
+                wxString error;
+                try {
+                    throw; // Rethrow the current exception.
+                } catch (const MyException& e) {
+                    error = e.GetMyErrorMessage();
+                } catch (const std::exception& e) {
+                    error = e.what();
+                } catch ( ... ) {
+                    error = "unknown error.";
+                }
+
+                wxLogError("Unexpected exception has occurred: %s, the program will terminate.", error);
+
+                // Exit the main loop and thus terminate the program.
+                return false;
+            }
+        };
+        @endcode
+    */
+    virtual bool OnExceptionInMainLoop();
 
     /**
         This function is called when an unhandled C++ exception occurs in user
@@ -440,13 +501,126 @@ public:
     */
     virtual void OnUnhandledException();
 
-    //@}
+    /**
+        Method to store exceptions not handled by OnExceptionInMainLoop().
+
+        @note The default implementation of this function when using C++98
+            compiler just returns false, as there is no generic way to store an
+            arbitrary exception in C++98 and each application must do it on its
+            own for the exceptions it uses in its overridden version. When
+            using C++11, the default implementation uses
+            std::current_exception() and returns true, so it's normally not
+            necessary to override this method when using C++11.
+
+        This function can be overridden to store the current exception, in view
+        of rethrowing it later when RethrowStoredException() is called. If the
+        exception was stored, return true. If the exception can't be stored,
+        i.e. if this function returns false, the program will abort after
+        calling OnUnhandledException().
+
+        It is necessary to override this function if OnExceptionInMainLoop()
+        doesn't catch all exceptions, but you still want to handle them using
+        explicit @c try/catch statements. Typical use could be to allow code
+        like the following to work:
+
+        @code
+        void MyFrame::SomeFunction()
+        {
+            try {
+                MyDialog dlg(this);
+                dlg.ShowModal();
+            } catch ( const MyExpectedException& e ) {
+                // Deal with the exceptions thrown from the dialog.
+            }
+        }
+        @endcode
+
+        By default, throwing an exception from an event handler called from the
+        dialog modal event loop would terminate the application as the
+        exception can't be safely propagated to the code in the catch clause
+        because of the presence of the native system functions (through which
+        C++ exceptions can't, generally speaking, propagate) in the call stack
+        between them.
+
+        Overriding this method allows the exception to be stored when it is
+        detected and rethrown using RethrowStoredException() when the native
+        system function dispatching the dialog events terminates, with the
+        result that the code above works as expected.
+
+        An example of implementing this method:
+        @code
+        class MyApp : public wxApp {
+        public:
+            virtual bool StoreCurrentException()
+            {
+                try {
+                    throw;
+                } catch ( const std::runtime_exception& e ) {
+                    if ( !m_runtimeError.empty() ) {
+                        // This is not supposed to happen, only one exception,
+                        // at most, should be stored.
+                        return false;
+                    }
+
+                    m_runtimeError = e.what();
+
+                    // Don't terminate, let our code handle this exception later.
+                    return true;
+                } catch ( ... ) {
+                    // This could be extended to store information about any
+                    // other exceptions too, but if we don't store them, we
+                    // should return false to let the program die.
+                }
+
+                return false;
+            }
+
+            virtual void RethrowStoredException()
+            {
+                if ( !m_runtimeError.empty() ) {
+                    std::runtime_exception e(m_runtimeError);
+                    m_runtimeError.clear();
+                    throw e;
+                }
+            }
+
+        private:
+            std::string m_runtimeError;
+        };
+        @endcode
+
+        @see OnExceptionInMainLoop(), RethrowStoredException()
+
+        @since 3.1.0
+    */
+    virtual bool StoreCurrentException();
+
+    /**
+        Method to rethrow exceptions stored by StoreCurrentException().
+
+        @note Just as with StoreCurrentException(), it is usually not necessary
+            to override this method when using C++11.
+
+        If StoreCurrentException() is overridden, this function should be
+        overridden as well to rethrow the exceptions stored by it when the
+        control gets back to our code, i.e. when it's safe to do it.
+
+        See StoreCurrentException() for an example of implementing this method.
+
+        The default version does nothing when using C++98 and uses
+        std::rethrow_exception() in C++11.
+
+        @since 3.1.0
+    */
+    virtual void RethrowStoredException();
+
+    ///@}
 
 
     /**
         @name Application information
     */
-    //@{
+    ///@{
 
     /**
         Returns the user-readable application name.
@@ -558,7 +732,7 @@ public:
     */
     void SetVendorName(const wxString& name);
 
-    //@}
+    ///@}
 
     /**
         Sets the C locale to the default locale for the current environment.
@@ -581,8 +755,7 @@ public:
             std::locale::global(std::locale(""));
         @endcode
         but be warned that locale support in C++ standard library can be poor
-        or worse under some platforms, e.g. the above line results in an
-        immediate crash under OS X up to the version 10.8.2.
+        or worse under some platforms.
 
         @since 2.9.5
      */
@@ -598,7 +771,7 @@ public:
 
         Under Windows and Linux/Unix, you should parse the command line
         arguments and check for files to be opened when starting your
-        application. Under OS X, you need to override MacOpenFiles()
+        application. Under macOS, you need to override MacOpenFiles()
         since command line arguments are used differently there.
 
         You may use the wxCmdLineParser to parse command line arguments.
@@ -616,7 +789,7 @@ public:
 
     In addition to the features provided by wxAppConsole it keeps track of
     the <em>top window</em> (see SetTopWindow()) and adds support for
-    video modes (see SetVideoMode()).
+    video modes (see SetDisplayMode()).
 
     In general, application-wide settings for GUI-only apps are accessible
     from wxApp (or from wxSystemSettings or wxSystemOptions classes).
@@ -666,6 +839,35 @@ public:
     virtual wxVideoMode GetDisplayMode() const;
 
     /**
+        Returns the current GUI wxApp object if any or @NULL otherwise.
+
+        This function should only be used in the rare cases when the same code
+        needs to work in both console and GUI applications, but needs to use
+        GUI-specific functionality if it is available, and so just calling
+        wxAppConsole::GetInstance() is insufficient while using ::wxTheApp is
+        incorrect, as the application object is not always a GUI wxApp.
+
+        For example:
+        @code
+            WXWidget handle = 0;
+            if ( wxApp* const app = wxApp::GetGUIInstance() ) {
+                if ( wxWindow* const w = app->GetTopWindow() ) {
+                    handle = w->GetHandle();
+                }
+            }
+            //else: no window to use
+
+            some_native_function_taking_a_window_handle(handle);
+        @endcode
+
+        Note that in this particular example, you could  use GetMainTopWindow()
+        which already does the same thing instead of doing it yourself.
+
+        @since 3.1.6
+    */
+    static wxAppConsole* GetGUIInstance();
+
+    /**
         Returns @true if the application will exit when the top-level frame is deleted.
 
         @see SetExitOnFrameDelete()
@@ -685,6 +887,18 @@ public:
         @see SetUseBestVisual()
     */
     bool GetUseBestVisual() const;
+
+    /**
+        Returns a pointer to the top application window if any.
+
+        This function is safe to call even before creating, or after
+        destroying, the application object, as it simply returns @NULL if it
+        doesn't exist. Otherwise it's equivalent to calling
+        @c wxTheApp->GetTopWindow().
+
+        @since 3.1.5
+     */
+    static wxWindow* GetMainTopWindow();
 
     /**
         Returns a pointer to the top window.
@@ -722,7 +936,7 @@ public:
         Works like SafeYield() with @e onlyIfNeeded == @true except that
         it allows the caller to specify a mask of events to be processed.
 
-        See wxAppConsole::YieldFor for more info.
+        See wxEventLoopBase::YieldFor() for more info.
     */
     virtual bool SafeYieldFor(wxWindow *win, long eventsToProcess);
 
@@ -790,7 +1004,7 @@ public:
         first frame or dialog (or better, any wxTopLevelWindow) in its top-level
         window list, when it needs to use the top window.
         If you previously called SetTopWindow() and now you need to restore this
-        automatic behaviour you can call @code wxApp::SetTopWindow(NULL) @endcode.
+        automatic behaviour you can call `wxApp::SetTopWindow(nullptr)`.
 
         @param window
             The new top window.
@@ -817,11 +1031,66 @@ public:
     */
     void SetUseBestVisual(bool flag, bool forceTrueColour = false);
 
+    /**
+        @name GTK-specific functions
+    */
+    ///@{
+
+    /**
+        Disables the printing of various GTK messages.
+
+        This function can be called to suppress GTK diagnostic messages that
+        are output on the standard error stream by default.
+
+        If @c WXSUPPRESS_GTK_DIAGNOSTICS environment variable is set to a
+        non-zero value, wxWidgets automatically calls this function on program
+        startup with the value of this variable as @a flags if it's a number or
+        with the default flags value otherwise.
+
+        The default value of the argument disables all messages, but you
+        can pass in a mask flag to specifically disable only particular
+        categories of messages.
+
+        Note that this function only works when using glib 2.50 (released in
+        September 2016) or later and does nothing with the older versions of
+        the library.
+
+        @param flags
+           The mask for the types of messages to suppress. Refer to the
+           glib documentation for the @c GLogLevelFlags enum, which defines
+           the various message types.
+
+        @onlyfor{wxgtk}
+
+        @since 3.1.6
+    */
+    static void GTKSuppressDiagnostics(int flags = -1);
+
+    /**
+        Allows wxWidgets to selectively suppress some GTK messages.
+
+        This function can be called to allow wxWidgets to control GTK message
+        logging. You must @e not call it if your application calls the @c
+        g_log_set_writer_func() function itself, as this function can be only
+        called once.
+
+        It is recommended to call this function in your overridden version of
+        wxApp::OnInit() to allow wxWidgets to suppress some spurious GTK error
+        messages, e.g. the ones that happen whenever wxNotebook pages are
+        removed with the current GTK versions.
+
+        @onlyfor{wxgtk}
+
+        @since 3.2.1
+     */
+    static void GTKAllowDiagnosticsControl();
+
+    ///@}
 
     /**
         @name Mac-specific functions
     */
-    //@{
+    ///@{
 
     /**
         Called in response of an "open-application" Apple event.
@@ -832,8 +1101,7 @@ public:
     virtual void MacNewFile();
 
     /**
-        Called in response of an openFiles message with Cocoa, or an
-        "open-document" Apple event with Carbon.
+        Called in response of an openFiles message.
 
         You need to override this method in order to open one or more document
         files after the user double clicked on it or if the files and/or
@@ -882,7 +1150,7 @@ public:
 
     /**
         May be overridden to indicate that the application is not a foreground
-        GUI application under OS X.
+        GUI application under macOS.
 
         This method is called during the application startup and returns @true
         by default. In this case, wxWidgets ensures that the application is ran
@@ -896,13 +1164,79 @@ public:
         is specified in the @c Info.plist file.
 
         @onlyfor{wxosx}
-        
+
         @since 3.0.1
     */
     virtual bool OSXIsGUIApplication();
 
-    //@}
+    /**
+        Enable the automatic tabbing features of macOS.
 
+        This feature is native to the operating system. When it is enabled, macOS
+        will automatically place windows inside tabs and show a tab bar in the
+        application. Entries are also added to the View menu to show/hide the tab bar.
+
+        @onlyfor{wxosx}
+
+        @remarks Requires macOS 10.12+, does nothing under earlier OS versions.
+
+        @since 3.1.4
+    */
+    void OSXEnableAutomaticTabbing(bool enable);
+
+    ///@}
+
+    /**
+        @name MSW-specific functions
+    */
+    //@{
+
+    /**
+        Enable experimental dark mode support for MSW applications.
+
+        This function uses @e undocumented, and unsupported by Microsoft,
+        functions to enable dark mode support for the desktop applications
+        under Windows 10 20H1 or later (including all Windows 11 versions).
+
+        Note that dark mode can also be enabled by setting the "msw.dark-mode"
+        @ref wxSystemOptions "system option" via an environment variable from
+        outside the application.
+
+        Known limitations of dark mode support include:
+
+            - Anything based on TaskDialog() Win32 API doesn't support dark mode:
+              wxMessageBox(), wxMessageDialog, wxRichMessageDialog, wxProgressDialog
+              and simple (i.e. without hyperlink or licence) wxAboutBox(). Consider
+              using generic versions (e.g. wxGenericMessageDialog or wxGenericProgressDialog)
+              if dark mode support is more important than using the native dialog.
+            - The following dialogs wrapping common windows dialogs don't support
+              dark mode: wxColourDialog, wxFindReplaceDialog, wxFontDialog,
+              wxPageSetupDialog, wxPrintDialog.
+            - wxDatePickerCtrl and wxTimePickerCtrl don't support dark mode and
+              use the same (light) background as by default in it.
+            - Toolbar items for which wxToolBar::SetDropdownMenu() was called
+              don't draw the menu drop-down correctly, making it almost
+              invisible.
+            - Calling wxMenu::Break() will result in the menu being light.
+
+        @param flags Can include @c wxApp::DarkMode_Always to force enabling
+            dark mode for the application, even if the system doesn't use the
+            dark mode by default. Otherwise dark mode is only used if it is the
+            default mode for the applications on the current system.
+        @param settings If specified, allows to customize dark mode appearance.
+            Please see wxDarkModeSettings documentation for more information.
+
+        @return @true if dark mode support was enabled, @false if it couldn't
+            be done, most likely because the system doesn't support dark mode.
+
+        @onlyfor{wxmsw}
+
+        @since 3.3.0
+     */
+    bool
+    MSWEnableDarkMode(int flags = 0, wxDarkModeSettings* settings = nullptr);
+
+    //@}
 };
 
 
@@ -913,7 +1247,7 @@ public:
 
 
 /** @addtogroup group_funcmacro_rtti */
-//@{
+///@{
 
 /**
     This is used in headers to create a forward declaration of the ::wxGetApp()
@@ -933,8 +1267,17 @@ public:
 #define wxDECLARE_APP( className )
 
 /**
-    This is used in the application class implementation file to make the
-    application class known to wxWidgets for dynamic construction.
+    This macro defines the application entry point and tells wxWidgets which
+    application class should be used.
+
+    The two tasks performed by this macro can be done separately by using
+    wxIMPLEMENT_APP_NO_MAIN() and wxIMPLEMENT_WXWIN_MAIN() macros, but in a
+    typical GUI application it's simpler and more convenient to use this macro
+    to do both together.
+
+    The @a className passed to this macro must be a name of the class deriving
+    from wxApp.
+
     Note that this macro requires a final semicolon.
 
     @header{wx/app.h}
@@ -945,25 +1288,87 @@ public:
     wxIMPLEMENT_APP(MyApp);
     @endcode
 
-    @see wxDECLARE_APP()
+    @see wxDECLARE_APP(), wxIMPLEMENT_APP_CONSOLE()
 */
 #define wxIMPLEMENT_APP( className )
 
-//@}
+/**
+    This macro defines the application entry point for non-GUI applications and
+    tells wxWidgets which application class should be used.
+
+    This macro is provided for symmetry with wxIMPLEMENT_APP() for the console
+    (non-GUI) applications and is equivalent to using wxIMPLEMENT_APP_NO_MAIN()
+    and wxIMPLEMENT_WXWIN_MAIN_CONSOLE().
+
+    The @a className passed to this macro must be a name of the class deriving
+    from wxApp.
+
+    Note that this macro requires a final semicolon.
+
+    @header{wx/app.h}
+
+    Example:
+
+    @code
+    wxIMPLEMENT_APP_CONSOLE(MyApp);
+    @endcode
+
+    @see wxIMPLEMENT_APP()
+*/
+#define wxIMPLEMENT_APP_CONSOLE( className )
+
+/**
+    This macro defines the application entry point appropriate for the current
+    platform.
+
+    Note that usually wxIMPLEMENT_APP() is used instead of this macro.
+
+    For most platforms, it defines @c main() function, but for GUI Windows
+    applications, it defines @c WinMain() instead.
+
+    In either case, the macro expansion includes the call to
+    wxDISABLE_DEBUG_SUPPORT() which disables debugging code in release builds.
+    If you don't use this macro, but define the entry point yourself, you
+    probably want to call wxDISABLE_DEBUG_SUPPORT() explicitly.
+
+    @header{wx/app.h}
+ */
+#define wxIMPLEMENT_WXWIN_MAIN
+
+/**
+    This macro defines the application entry point for console applications.
+
+    This macro is provided mostly for symmetry with wxIMPLEMENT_WXWIN_MAIN()
+    but is less useful, as it is also simple enough to define @c main()
+    function directly.
+
+    Please note, however, that this macro, as well as wxIMPLEMENT_APP_CONSOLE()
+    which uses it, contains the call to wxDISABLE_DEBUG_SUPPORT() which
+    disables debugging code in release builds and that if you don't use this
+    macro, but define @c main() yourself, you probably want to call
+    wxDISABLE_DEBUG_SUPPORT() from it explicitly.
+
+    @header{wx/app.h}
+ */
+#define wxIMPLEMENT_WXWIN_MAIN_CONSOLE
+
+///@}
 
 
 
 /**
     The global pointer to the singleton wxApp object.
 
-    @see wxApp::GetInstance()
+    This pointer can only be used in the GUI applications.
+
+    @see wxAppConsole::GetInstance(), wxApp::GetGUIInstance()
 */
 wxApp *wxTheApp;
 
 
 
 /** @addtogroup group_funcmacro_appinitterm */
-//@{
+///@{
 
 /**
     This function doesn't exist in wxWidgets but it is created by using the
@@ -994,7 +1399,7 @@ wxAppDerivedClass& wxGetApp();
     Notice that this function is only available if @c wxUSE_ON_FATAL_EXCEPTION
     is 1 and under Windows platform this requires a compiler with support for
     SEH (structured exception handling) which currently means only Microsoft
-    Visual C++ or a recent Borland C++ version.
+    Visual C++.
 
     @header{wx/app.h}
 */
@@ -1007,7 +1412,7 @@ bool wxHandleFatalExceptions(bool doIt = true);
 
     If the function returns @false the initialization could not be performed,
     in this case the library cannot be used and wxUninitialize() shouldn't be
-    called neither.
+    called either.
 
     This function may be called several times but wxUninitialize() must be
     called for each successful call to this function.
@@ -1037,11 +1442,12 @@ void wxUninitialize();
 void wxWakeUpIdle();
 
 /**
-    Calls wxAppConsole::Yield.
+    Calls wxAppConsole::Yield if there is an existing application object.
 
-    @deprecated
-    This function is kept only for backwards compatibility. Please use
-    the wxAppConsole::Yield method instead in any new code.
+    Does nothing if there is no application (which typically only happens early
+    during the program startup or late during its shutdown).
+
+    @see wxEvtLoopBase::Yield()
 
     @header{wx/app.h}
 */
@@ -1052,13 +1458,13 @@ bool wxYield();
 
     @header{wx/app.h}
 */
-bool wxSafeYield(wxWindow* win = NULL, bool onlyIfNeeded = false);
+bool wxSafeYield(wxWindow* win = nullptr, bool onlyIfNeeded = false);
 
 /**
     This function initializes wxWidgets in a platform-dependent way. Use this if you
     are not using the default wxWidgets entry code (e.g. main or WinMain).
 
-    For example, you can initialize wxWidgets from an Microsoft Foundation Classes
+    For example, you can initialize wxWidgets from a Microsoft Foundation Classes
     (MFC) application using this function.
 
     @note This overload of wxEntry is available under all platforms.
@@ -1072,8 +1478,7 @@ int wxEntry(int& argc, wxChar** argv);
 /**
     See wxEntry(int&,wxChar**) for more info about this function.
 
-    Notice that under Windows CE platform, and only there, the type of @a pCmdLine
-    is @c wchar_t *, otherwise it is @c char *, even in Unicode build.
+    Notice that the type of @a pCmdLine is @c char *, even in Unicode build.
 
     @remarks To clean up wxWidgets, call wxApp::OnExit followed by the static
              function wxApp::CleanUp. For example, if exiting from an MFC application
@@ -1092,16 +1497,16 @@ int wxEntry(int& argc, wxChar** argv);
     @header{wx/app.h}
 */
 int wxEntry(HINSTANCE hInstance,
-            HINSTANCE hPrevInstance = NULL,
-            char* pCmdLine = NULL,
+            HINSTANCE hPrevInstance = nullptr,
+            char* pCmdLine = nullptr,
             int nCmdShow = SW_SHOWNORMAL);
 
-//@}
+///@}
 
 
 
 /** @addtogroup group_funcmacro_procctrl */
-//@{
+///@{
 
 /**
     Exits application after calling wxApp::OnExit.
@@ -1114,10 +1519,10 @@ int wxEntry(HINSTANCE hInstance,
 */
 void wxExit();
 
-//@}
+///@}
 
 /** @addtogroup group_funcmacro_debug */
-//@{
+///@{
 
 /**
     @def wxDISABLE_DEBUG_SUPPORT()
@@ -1148,5 +1553,5 @@ void wxExit();
     wxDISABLE_ASSERTS_IN_RELEASE_BUILD(); \
     wxDISABLE_DEBUG_LOGGING_IN_RELEASE_BUILD()
 
-//@}
+///@}
 

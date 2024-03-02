@@ -2,7 +2,6 @@
 // Name:        wx/generic/fontdlgg.h
 // Purpose:     wxGenericFontDialog
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -14,12 +13,7 @@
 #include "wx/gdicmn.h"
 #include "wx/font.h"
 
-#ifdef __WXWINCE__
-#define USE_SPINCTRL_FOR_POINT_SIZE 1
-class WXDLLIMPEXP_FWD_CORE wxSpinEvent;
-#else
 #define USE_SPINCTRL_FOR_POINT_SIZE 0
-#endif
 
 /*
  * FONT DIALOG
@@ -50,12 +44,7 @@ public:
         : wxFontDialogBase(parent, data) { Init(); }
     virtual ~wxGenericFontDialog();
 
-    virtual int ShowModal();
-
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated, for backwards compatibility only
-    wxDEPRECATED( wxGenericFontDialog(wxWindow *parent, const wxFontData *data) );
-#endif // WXWIN_COMPATIBILITY_2_6
+    virtual int ShowModal() override;
 
     // Internal functions
     void OnCloseWindow(wxCloseEvent& event);
@@ -71,7 +60,7 @@ public:
 
 protected:
 
-    virtual bool DoCreate(wxWindow *parent);
+    virtual bool DoCreate(wxWindow *parent) override;
 
 private:
 
@@ -88,7 +77,9 @@ private:
     wxChoice *m_colourChoice;
     wxCheckBox *m_underLineCheckBox;
 
-#if !USE_SPINCTRL_FOR_POINT_SIZE
+#if USE_SPINCTRL_FOR_POINT_SIZE
+    wxSpinCtrl *m_pointSizeSpin;
+#else
     wxChoice   *m_pointSizeChoice;
 #endif
 
@@ -96,14 +87,8 @@ private:
     bool       m_useEvents;
 
     //  static bool fontDialogCancelled;
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxGenericFontDialog)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxGenericFontDialog);
 };
-
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated, for backwards compatibility only
-inline wxGenericFontDialog::wxGenericFontDialog(wxWindow *parent, const wxFontData *data)
-                           :wxFontDialogBase(parent) { Init(); InitFontData(data); Create(parent); }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 #endif // _WX_GENERIC_FONTDLGG_H

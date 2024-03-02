@@ -2,7 +2,6 @@
 // Name:        wx/gdiobj.h
 // Purpose:     wxGDIObject base header
 // Author:      Julian Smart
-// Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
@@ -24,7 +23,7 @@ class WXDLLIMPEXP_CORE wxGDIRefData : public wxObjectRefData
 public:
     // Default ctor which needs to be defined just because we use
     // wxDECLARE_NO_COPY_CLASS() below.
-    wxGDIRefData() { }
+    wxGDIRefData() = default;
 
     // override this in the derived classes to check if this data object is
     // really fully initialized
@@ -50,13 +49,13 @@ public:
     }
 
     // don't use in the new code, use IsOk() instead
-    bool IsNull() const { return m_refData == NULL; }
+    bool IsNull() const { return m_refData == nullptr; }
 
     // older version, for backwards compatibility only (but not deprecated
     // because it's still widely used)
     bool Ok() const { return IsOk(); }
 
-#if defined(__WXMSW__) || defined(__WXPM__)
+#if defined(__WXMSW__)
     // Creates the resource
     virtual bool RealizeResource() { return false; }
 
@@ -66,19 +65,19 @@ public:
     virtual bool IsFree() const { return false; }
 
     // Returns handle.
-    virtual WXHANDLE GetResourceHandle() const { return 0; }
-#endif // defined(__WXMSW__) || defined(__WXPM__)
+    virtual WXHANDLE GetResourceHandle() const { return nullptr; }
+#endif // defined(__WXMSW__)
 
 protected:
     // replace base class functions using wxObjectRefData with our own which
     // use wxGDIRefData to ensure that we always work with data objects of the
     // correct type (i.e. derived from wxGDIRefData)
-    virtual wxObjectRefData *CreateRefData() const
+    virtual wxObjectRefData *CreateRefData() const override
     {
         return CreateGDIRefData();
     }
 
-    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const
+    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const override
     {
         return CloneGDIRefData(static_cast<const wxGDIRefData *>(data));
     }
@@ -86,7 +85,7 @@ protected:
     virtual wxGDIRefData *CreateGDIRefData() const = 0;
     virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const = 0;
 
-    DECLARE_DYNAMIC_CLASS(wxGDIObject)
+    wxDECLARE_DYNAMIC_CLASS(wxGDIObject);
 };
 
 #endif // _WX_GDIOBJ_H_BASE_

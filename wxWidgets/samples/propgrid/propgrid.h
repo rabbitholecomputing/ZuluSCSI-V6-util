@@ -2,7 +2,6 @@
 // Name:        samples/propgrid/propgrid.h
 // Purpose:     wxPropertyGrid sample
 // Author:      Jaakko Salli
-// Modified by:
 // Created:     2004-09-25
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
@@ -10,36 +9,6 @@
 
 #ifndef _WX_SAMPLES_PROPGRID_PROPGRID_H_
 #define _WX_SAMPLES_PROPGRID_PROPGRID_H_
-
-// -----------------------------------------------------------------------
-
-class wxAdvImageFileProperty : public wxFileProperty
-{
-    WX_PG_DECLARE_PROPERTY_CLASS(wxAdvImageFileProperty)
-public:
-
-    wxAdvImageFileProperty( const wxString& label = wxPG_LABEL,
-                            const wxString& name = wxPG_LABEL,
-                            const wxString& value = wxEmptyString );
-    virtual ~wxAdvImageFileProperty ();
-
-    virtual void OnSetValue();  // Override to allow image loading.
-
-    virtual bool IntToValue( wxVariant& variant, int number, int argFlags = 0 ) const;
-    virtual bool OnEvent( wxPropertyGrid* propgrid, wxWindow* primary, wxEvent& event );
-    virtual wxSize OnMeasureImage( int item ) const;
-    virtual void OnCustomPaint( wxDC& dc,
-                                const wxRect& rect, wxPGPaintData& paintdata );
-
-    void LoadThumbnails( size_t n );
-
-protected:
-    wxImage*    m_pImage; // Temporary thumbnail data.
-
-    static wxPGChoices ms_choices;
-
-    int m_index; // Index required for choice behaviour.
-};
 
 // -----------------------------------------------------------------------
 
@@ -51,8 +20,8 @@ public:
         x = y = z = 0.0;
     }
     wxVector3f( double x, double y, double z )
+        : x(x), y(y), z(z)
     {
-        x = x; y = y; z = z;
     }
 
     double x, y, z;
@@ -73,12 +42,12 @@ public:
     wxVectorProperty( const wxString& label = wxPG_LABEL,
                     const wxString& name = wxPG_LABEL,
                     const wxVector3f& value = wxVector3f() );
-    virtual ~wxVectorProperty();
+    virtual ~wxVectorProperty() = default;
 
     virtual wxVariant ChildChanged( wxVariant& thisValue,
                                     int childIndex,
-                                    wxVariant& childValue ) const;
-    virtual void RefreshChildren();
+                                    wxVariant& childValue ) const override;
+    virtual void RefreshChildren() override;
 
 protected:
 };
@@ -106,12 +75,12 @@ public:
     wxTriangleProperty( const wxString& label = wxPG_LABEL,
                         const wxString& name = wxPG_LABEL,
                         const wxTriangle& value = wxTriangle() );
-    virtual ~wxTriangleProperty();
+    virtual ~wxTriangleProperty() = default;
 
     virtual wxVariant ChildChanged( wxVariant& thisValue,
                                     int childIndex,
-                                    wxVariant& childValue ) const;
-    virtual void RefreshChildren();
+                                    wxVariant& childValue ) const override;
+    virtual void RefreshChildren() override;
 
 protected:
 };
@@ -128,10 +97,10 @@ enum
 class FormMain : public wxFrame
 {
 public:
-    FormMain(const wxString& title, const wxPoint& pos, const wxSize& size );
+    FormMain(const wxString& title);
     ~FormMain();
 
-    wxPropertyGridManager*  m_pPropGridManager;
+    wxPropertyGridManager*  m_propGridManager;
     wxPropertyGrid*     m_propGrid;
 
     wxTextCtrl*     m_tcPropLabel;
@@ -142,7 +111,7 @@ public:
     wxLogWindow*    m_logWindow;
 #endif
 
-    wxPGEditor*     m_pSampleMultiButtonEditor;
+    wxPGEditor*     m_sampleMultiButtonEditor;
     wxPGChoices     m_combinedFlags;
 
     wxMenuItem*     m_itemCatColours;
@@ -153,16 +122,16 @@ public:
     wxVariant       m_storedValues;
 
     wxString        m_savedState;
+    bool            m_hasHeader;
+    bool            m_labelEditingEnabled;
 
 
     void CreateGrid( int style, int extraStyle );
-    void FinalizeFramePosition();
+    void ReplaceGrid(int style, int extraStyle);
 
     // These are used in CreateGrid(), and in tests to compose
     // grids for testing purposes.
-    void InitPanel();
     void PopulateGrid();
-    void FinalizePanel( bool wasCreated = true );
 
     void PopulateWithStandardItems();
     void PopulateWithExamples();
@@ -186,14 +155,20 @@ public:
     void OnEnableDisable( wxCommandEvent& event );
     void OnSetReadOnly( wxCommandEvent& event );
     void OnHide( wxCommandEvent& event );
+    void OnBoolCheckbox( wxCommandEvent& evt );
     void OnSetBackgroundColour( wxCommandEvent& event );
     void OnClearModifyStatusClick( wxCommandEvent& event );
     void OnFreezeClick( wxCommandEvent& event );
     void OnEnableLabelEditing( wxCommandEvent& event );
+#if wxUSE_HEADERCTRL
     void OnShowHeader( wxCommandEvent& event );
+#endif
     void OnDumpList( wxCommandEvent& event );
+    void OnCatColoursUpdateUI( wxUpdateUIEvent& event );
     void OnCatColours( wxCommandEvent& event );
     void OnSetColumns( wxCommandEvent& event );
+    void OnSetVirtualWidth(wxCommandEvent& evt);
+    void OnSetGridDisabled(wxCommandEvent& evt);
     void OnMisc( wxCommandEvent& event );
     void OnPopulateClick( wxCommandEvent& event );
     void OnSetSpinCtrlEditorClick( wxCommandEvent& event );
@@ -257,8 +232,6 @@ public:
 
     void AddTestProperties( wxPropertyGridPage* pg );
 
-    bool RunTests( bool fullTest, bool interactive = false );
-
 private:
     wxDECLARE_EVENT_TABLE();
 };
@@ -269,13 +242,10 @@ class cxApplication : public wxApp
 {
 public:
 
-    virtual bool OnInit();
-
-private:
-    FormMain    *Form1;
+    virtual bool OnInit() override;
 };
 
-DECLARE_APP(cxApplication)
+wxDECLARE_APP(cxApplication);
 
 // -----------------------------------------------------------------------
 

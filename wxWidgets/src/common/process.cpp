@@ -19,9 +19,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/process.h"
 
@@ -31,8 +28,8 @@
 
 wxDEFINE_EVENT( wxEVT_END_PROCESS, wxProcessEvent );
 
-IMPLEMENT_DYNAMIC_CLASS(wxProcess, wxEvtHandler)
-IMPLEMENT_DYNAMIC_CLASS(wxProcessEvent, wxEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxProcess, wxEvtHandler);
+wxIMPLEMENT_DYNAMIC_CLASS(wxProcessEvent, wxEvent);
 
 // ============================================================================
 // wxProcess implementation
@@ -53,9 +50,9 @@ void wxProcess::Init(wxEvtHandler *parent, int id, int flags)
     m_redirect   = (flags & wxPROCESS_REDIRECT) != 0;
 
 #if wxUSE_STREAMS
-    m_inputStream  = NULL;
-    m_errorStream  = NULL;
-    m_outputStream = NULL;
+    m_inputStream  = nullptr;
+    m_errorStream  = nullptr;
+    m_outputStream = nullptr;
 #endif // wxUSE_STREAMS
 }
 
@@ -69,7 +66,7 @@ wxProcess *wxProcess::Open(const wxString& cmd, int flags)
     {
         // couldn't launch the process
         delete process;
-        return NULL;
+        return nullptr;
     }
 
     process->SetPid(pid);
@@ -108,7 +105,7 @@ void wxProcess::Detach()
     if (m_nextHandler)
         m_nextHandler->SetPreviousHandler(m_previousHandler);
 
-    m_nextHandler = NULL;
+    m_nextHandler = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -169,11 +166,23 @@ bool wxProcess::Exists(int pid)
         case wxKILL_ERROR:
         case wxKILL_BAD_SIGNAL:
             wxFAIL_MSG( wxT("unexpected wxProcess::Kill() return code") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxKILL_NO_PROCESS:
             return false;
     }
+}
+
+bool wxProcess::Activate() const
+{
+#ifdef __WINDOWS__
+    // This function is defined in src/msw/utils.cpp.
+    extern bool wxMSWActivatePID(long pid);
+
+    return wxMSWActivatePID(m_pid);
+#else
+    return false;
+#endif
 }
 
 void wxProcess::SetPriority(unsigned priority)

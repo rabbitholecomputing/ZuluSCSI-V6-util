@@ -2,7 +2,6 @@
 // Name:        src/msw/dialog.cpp
 // Purpose:     wxDialog class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/dialog.h"
 #include "wx/modalhook.h"
@@ -39,12 +35,12 @@
 #endif
 
 #include "wx/msw/private.h"
+#include "wx/msw/private/custompaint.h"
+#include "wx/msw/private/darkmode.h"
+#include "wx/msw/wrapcctl.h"
+
 #include "wx/evtloop.h"
 #include "wx/scopedptr.h"
-
-#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
-    #include "wx/msw/wince/resources.h"
-#endif // __SMARTPHONE__ && __WXWINCE__
 
 // ----------------------------------------------------------------------------
 // wxWin macros
@@ -82,19 +78,78 @@ wxDEFINE_TIED_SCOPED_PTR_TYPE(wxDialogModalData)
 // ============================================================================
 
 // ----------------------------------------------------------------------------
+// Gripper subclass proc
+// ----------------------------------------------------------------------------
+
+namespace wxMSWImpl
+{
+
+LRESULT CALLBACK
+GripperProc(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam,
+            UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+    wxDialog* const self = reinterpret_cast<wxDialog*>(dwRefData);
+
+    switch ( nMsg )
+    {
+        case WM_PAINT:
+            {
+                const auto bg = self->GetBackgroundColour();
+
+                wxMSWImpl::CustomPaint
+                (
+                    hwnd,
+                    [](HWND hwnd, WPARAM wParam)
+                    {
+                        ::DefSubclassProc(hwnd, WM_PAINT, wParam, 0);
+                    },
+                    [bg](const wxBitmap& bmp)
+                    {
+                        return wxMSWImpl::PostPaintEachPixel
+                               (
+                                    bmp,
+                                    [bg](unsigned char& r,
+                                         unsigned char& g,
+                                         unsigned char& b,
+                                         unsigned char& a)
+                                    {
+                                        // Replace all background pixels, which
+                                        // are transparent, with the colour we
+                                        // want to use.
+                                        if ( a == wxALPHA_TRANSPARENT )
+                                        {
+                                            r = bg.Red();
+                                            g = bg.Green();
+                                            b = bg.Blue();
+
+                                            a = wxALPHA_OPAQUE;
+                                        }
+                                    }
+                               );
+                    }
+                );
+            }
+            return 0;
+
+        case WM_NCDESTROY:
+            ::RemoveWindowSubclass(hwnd, GripperProc, uIdSubclass);
+            break;
+    }
+
+    return ::DefSubclassProc(hwnd, nMsg, wParam, lParam);
+}
+
+} // namespace wxMSWImpl
+
+// ----------------------------------------------------------------------------
 // wxDialog construction
 // ----------------------------------------------------------------------------
 
 void wxDialog::Init()
 {
     m_isShown = false;
-    m_modalData = NULL;
-#if wxUSE_TOOLBAR && defined(__POCKETPC__)
-    m_dialogToolBar = NULL;
-#endif
-#if wxUSE_DIALOG_SIZEGRIP
+    m_modalData = nullptr;
     m_hGripper = 0;
-#endif // wxUSE_DIALOG_SIZEGRIP
 }
 
 bool wxDialog::Create(wxWindow *parent,
@@ -116,22 +171,12 @@ bool wxDialog::Create(wxWindow *parent,
     if ( !m_hasFont )
         SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
-#if defined(__SMARTPHONE__) && defined(__WXWINCE__)
-    SetLeftMenu(wxID_OK, _("OK"));
-#endif
-#if wxUSE_TOOLBAR && defined(__POCKETPC__)
-    CreateToolBar();
-#endif
-
-#if wxUSE_DIALOG_SIZEGRIP
     if ( HasFlag(wxRESIZE_BORDER) )
     {
         CreateGripper();
 
-        Connect(wxEVT_CREATE,
-                wxWindowCreateEventHandler(wxDialog::OnWindowCreate));
+        Bind(wxEVT_CREATE, &wxDialog::OnWindowCreate, this);
     }
-#endif // wxUSE_DIALOG_SIZEGRIP
 
     return true;
 }
@@ -141,9 +186,7 @@ wxDialog::~wxDialog()
     // this will also reenable all the other windows for a modal dialog
     Show(false);
 
-#if wxUSE_DIALOG_SIZEGRIP
     DestroyGripper();
-#endif // wxUSE_DIALOG_SIZEGRIP
 }
 
 // ----------------------------------------------------------------------------
@@ -201,17 +244,17 @@ int wxDialog::ShowModal()
 
     wxASSERT_MSG( !IsModal(), wxT("ShowModal() can't be called twice") );
 
+    wxDialogModalDataTiedPtr modalData(&m_modalData,
+                                       new wxDialogModalData(this));
+
     Show();
 
     // EndModal may have been called from InitDialog handler (called from
     // inside Show()) and hidden the dialog back again
     if ( IsShown() )
-    {
-        // enter and run the modal loop
-        wxDialogModalDataTiedPtr modalData(&m_modalData,
-                                           new wxDialogModalData(this));
         modalData->RunLoop();
-    }
+    else
+        m_modalData->ExitLoop();
 
     return GetReturnCode();
 }
@@ -229,11 +272,13 @@ void wxDialog::EndModal(int retCode)
 // wxDialog gripper handling
 // ----------------------------------------------------------------------------
 
-#if wxUSE_DIALOG_SIZEGRIP
-
 void wxDialog::SetWindowStyleFlag(long style)
 {
     wxDialogBase::SetWindowStyleFlag(style);
+
+    // Don't do anything if we're setting the style before creating the dialog.
+    if ( !GetHwnd() )
+        return;
 
     if ( HasFlag(wxRESIZE_BORDER) )
         CreateGripper();
@@ -259,8 +304,17 @@ void wxDialog::CreateGripper()
                                     GetHwnd(),
                                     0,
                                     wxGetInstance(),
-                                    NULL
+                                    nullptr
                                );
+
+        wxMSWDarkMode::AllowForWindow((HWND)m_hGripper);
+
+        // Whether we use the dark mode or not, handle WM_PAINT for the gripper
+        // ourselves, as even in the light mode its background is wrong if the
+        // dialog doesn't use the default background colour -- and in dark mode
+        // it's wrong even by default.
+        ::SetWindowSubclass(m_hGripper, wxMSWImpl::GripperProc,
+                            0, wxPtrToUInt(this));
     }
 }
 
@@ -319,48 +373,9 @@ void wxDialog::OnWindowCreate(wxWindowCreateEvent& event)
     event.Skip();
 }
 
-#endif // wxUSE_DIALOG_SIZEGRIP
-
 // ----------------------------------------------------------------------------
 // wxWin event handlers
 // ----------------------------------------------------------------------------
-
-#ifdef __POCKETPC__
-// Responds to the OK button in a PocketPC titlebar. This
-// can be overridden, or you can change the id used for
-// sending the event, by calling SetAffirmativeId.
-bool wxDialog::DoOK()
-{
-    const int idOk = GetAffirmativeId();
-    if ( EmulateButtonClickIfPresent(idOk) )
-        return true;
-
-    wxCommandEvent event(wxEVT_BUTTON, GetAffirmativeId());
-    event.SetEventObject(this);
-
-    return HandleWindowEvent(event);
-}
-#endif // __POCKETPC__
-
-#if wxUSE_TOOLBAR && defined(__POCKETPC__)
-// create main toolbar by calling OnCreateToolBar()
-wxToolBar* wxDialog::CreateToolBar(long style, wxWindowID winid, const wxString& name)
-{
-    m_dialogToolBar = OnCreateToolBar(style, winid, name);
-
-    return m_dialogToolBar;
-}
-
-// return a new toolbar
-wxToolBar *wxDialog::OnCreateToolBar(long style,
-                                       wxWindowID winid,
-                                       const wxString& name)
-{
-    return new wxToolMenuBar(this, winid,
-                         wxDefaultPosition, wxDefaultSize,
-                         style, name);
-}
-#endif
 
 // ---------------------------------------------------------------------------
 // dialog Windows messages processing
@@ -373,28 +388,6 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
 
     switch ( message )
     {
-#ifdef __WXWINCE__
-        // react to pressing the OK button in the title
-        case WM_COMMAND:
-        {
-            switch ( LOWORD(wParam) )
-            {
-#ifdef __POCKETPC__
-                case IDOK:
-                    processed = DoOK();
-                    if (!processed)
-                        processed = !Close();
-#endif
-#ifdef __SMARTPHONE__
-                case IDM_LEFT:
-                case IDM_RIGHT:
-                    processed = HandleCommand( LOWORD(wParam) , 0 , NULL );
-                    break;
-#endif // __SMARTPHONE__
-            }
-            break;
-        }
-#endif
         case WM_CLOSE:
             // if we can't close, tell the system that we processed the
             // message - otherwise it would close us
@@ -402,20 +395,25 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
             break;
 
         case WM_SIZE:
-#if wxUSE_DIALOG_SIZEGRIP
-            if ( m_hGripper )
+            switch ( wParam )
             {
-                switch ( wParam )
-                {
-                    case SIZE_MAXIMIZED:
-                        ShowGripper(false);
-                        break;
+                case SIZE_MINIMIZED:
+                    m_showCmd = SW_MINIMIZE;
+                    break;
 
-                    case SIZE_RESTORED:
-                        ShowGripper(true);
-                }
+                case SIZE_MAXIMIZED:
+                    wxFALLTHROUGH;
+
+                case SIZE_RESTORED:
+                    if ( m_hGripper )
+                        ShowGripper( wParam == SIZE_RESTORED );
+
+                    if ( m_showCmd == SW_MINIMIZE )
+                        (void)SendIconizeEvent(false);
+                    m_showCmd = SW_RESTORE;
+
+                    break;
             }
-#endif // wxUSE_DIALOG_SIZEGRIP
 
             // the Windows dialogs unfortunately are not meant to be resizable
             // at all and their standard class doesn't include CS_[VH]REDRAW
@@ -427,8 +425,15 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
             processed = true;
             if ( HasFlag(wxFULL_REPAINT_ON_RESIZE) )
             {
-                ::InvalidateRect(GetHwnd(), NULL, false /* erase bg */);
+                ::InvalidateRect(GetHwnd(), nullptr, false /* erase bg */);
             }
+            break;
+
+        case WM_CTLCOLORDLG:
+            // We need to explicitly set the dark background colour when using
+            // dark mode, otherwise we'd be using the default light background.
+            if ( wxMSWDarkMode::IsActive() )
+                return (WXLRESULT)wxMSWDarkMode::GetBackgroundBrush();
             break;
     }
 

@@ -16,7 +16,7 @@
 class WXDLLIMPEXP_CORE wxFont : public wxFontBase
 {
 public:
-    wxFont() { }
+    wxFont() = default;
 
     wxFont(const wxFontInfo& info);
 
@@ -26,19 +26,6 @@ public:
     }
 
     wxFont(const wxNativeFontInfo& info);
-
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxFont(int size,
-           int family,
-           int style,
-           int weight,
-           bool underlined = false,
-           const wxString& face = wxEmptyString,
-           wxFontEncoding encoding = wxFONTENCODING_DEFAULT)
-    {
-        (void)Create(size, (wxFontFamily)family, (wxFontStyle)style, (wxFontWeight)weight, underlined, face, encoding);
-    }
-#endif
 
     wxFont(int size,
            wxFontFamily family,
@@ -74,29 +61,39 @@ public:
     // wxGTK-specific
     bool Create(const wxString& fontname);
 
-    virtual ~wxFont();
-
     // implement base class pure virtuals
-    virtual int GetPointSize() const;
-    virtual wxFontStyle GetStyle() const;
-    virtual wxFontWeight GetWeight() const;
-    virtual wxString GetFaceName() const;
-    virtual bool GetUnderlined() const;
-    virtual bool GetStrikethrough() const;
-    virtual wxFontEncoding GetEncoding() const;
-    virtual const wxNativeFontInfo *GetNativeFontInfo() const;
-    virtual bool IsFixedWidth() const;
+    virtual double GetFractionalPointSize() const override;
+    virtual wxFontStyle GetStyle() const override;
+    virtual int GetNumericWeight() const override;
+    virtual wxString GetFaceName() const override;
+    virtual bool GetUnderlined() const override;
+    virtual bool GetStrikethrough() const override;
+    virtual wxFontEncoding GetEncoding() const override;
+    virtual const wxNativeFontInfo *GetNativeFontInfo() const override;
+    virtual bool IsFixedWidth() const override;
 
-    virtual void SetPointSize( int pointSize );
-    virtual void SetFamily(wxFontFamily family);
-    virtual void SetStyle(wxFontStyle style);
-    virtual void SetWeight(wxFontWeight weight);
-    virtual bool SetFaceName( const wxString& faceName );
-    virtual void SetUnderlined( bool underlined );
-    virtual void SetStrikethrough(bool strikethrough);
-    virtual void SetEncoding(wxFontEncoding encoding);
+    virtual void SetFractionalPointSize(double pointSize) override;
+    virtual void SetFamily(wxFontFamily family) override;
+    virtual void SetStyle(wxFontStyle style) override;
+    virtual void SetNumericWeight(int weight) override;
+    virtual bool SetFaceName( const wxString& faceName ) override;
+    virtual void SetUnderlined( bool underlined ) override;
+    virtual void SetStrikethrough(bool strikethrough) override;
+    virtual void SetEncoding(wxFontEncoding encoding) override;
 
     wxDECLARE_COMMON_FONT_METHODS();
+
+    wxDEPRECATED_MSG("use wxFONT{FAMILY,STYLE,WEIGHT}_XXX constants")
+    wxFont(int size,
+           int family,
+           int style,
+           int weight,
+           bool underlined = false,
+           const wxString& face = wxEmptyString,
+           wxFontEncoding encoding = wxFONTENCODING_DEFAULT)
+    {
+        (void)Create(size, (wxFontFamily)family, (wxFontStyle)style, (wxFontWeight)weight, underlined, face, encoding);
+    }
 
     // Set Pango attributes in the specified layout. Currently only
     // underlined and strike-through attributes are handled by this function.
@@ -105,23 +102,18 @@ public:
     // attributes and returns true.
     bool GTKSetPangoAttrs(PangoLayout* layout) const;
 
-    // implementation from now on
-    void Unshare();
-
-    // no data :-)
-
 protected:
-    virtual void DoSetNativeFontInfo( const wxNativeFontInfo& info );
+    virtual void DoSetNativeFontInfo( const wxNativeFontInfo& info ) override;
 
-    virtual wxGDIRefData* CreateGDIRefData() const;
-    virtual wxGDIRefData* CloneGDIRefData(const wxGDIRefData* data) const;
+    virtual wxGDIRefData* CreateGDIRefData() const override;
+    virtual wxGDIRefData* CloneGDIRefData(const wxGDIRefData* data) const override;
 
-    virtual wxFontFamily DoGetFamily() const;
+    virtual wxFontFamily DoGetFamily() const override;
 
 private:
     void Init();
 
-    DECLARE_DYNAMIC_CLASS(wxFont)
+    wxDECLARE_DYNAMIC_CLASS(wxFont);
 };
 
 #endif // _WX_GTK_FONT_H_

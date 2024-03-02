@@ -2,7 +2,6 @@
 // Name:        src/x11/brush.cpp
 // Purpose:     wxBrush
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -32,6 +31,7 @@ public:
     }
 
     wxBrushRefData( const wxBrushRefData& data )
+        : wxGDIRefData()
     {
         m_style = data.m_style;
         m_stipple = data.m_stipple;
@@ -54,7 +54,7 @@ public:
 
 #define M_BRUSHDATA ((wxBrushRefData *)m_refData)
 
-IMPLEMENT_DYNAMIC_CLASS(wxBrush,wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBrush,wxGDIObject);
 
 wxBrush::wxBrush( const wxColour &colour, wxBrushStyle style )
 {
@@ -63,14 +63,12 @@ wxBrush::wxBrush( const wxColour &colour, wxBrushStyle style )
     M_BRUSHDATA->m_colour = colour;
 }
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 wxBrush::wxBrush(const wxColour& col, int style)
 {
     m_refData = new wxBrushRefData;
     M_BRUSHDATA->m_style = (wxBrushStyle)style;
     M_BRUSHDATA->m_colour = col;
 }
-#endif
 
 wxBrush::wxBrush( const wxBitmap &stippleBitmap )
 {
@@ -83,11 +81,6 @@ wxBrush::wxBrush( const wxBitmap &stippleBitmap )
         M_BRUSHDATA->m_style = wxBRUSHSTYLE_STIPPLE_MASK_OPAQUE;
     else
         M_BRUSHDATA->m_style = wxBRUSHSTYLE_STIPPLE_MASK;
-}
-
-wxBrush::~wxBrush()
-{
-    // m_refData unrefed in ~wxObject
 }
 
 wxGDIRefData *wxBrush::CreateGDIRefData() const
@@ -125,7 +118,7 @@ wxColour wxBrush::GetColour() const
 
 wxBitmap *wxBrush::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), NULL, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid brush") );
 
     return &M_BRUSHDATA->m_stipple;
 }

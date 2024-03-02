@@ -67,21 +67,21 @@ class WXDLLIMPEXP_FWD_HTML wxHtmlHelpWindow;
 
 class WXDLLIMPEXP_HTML wxHtmlHelpFrame : public wxFrame
 {
-    DECLARE_DYNAMIC_CLASS(wxHtmlHelpFrame)
+    wxDECLARE_DYNAMIC_CLASS(wxHtmlHelpFrame);
 
 public:
-    wxHtmlHelpFrame(wxHtmlHelpData* data = NULL) { Init(data); }
-    wxHtmlHelpFrame(wxWindow* parent, wxWindowID wxWindowID,
+    wxHtmlHelpFrame(wxHtmlHelpData* data = nullptr) { Init(data); }
+    wxHtmlHelpFrame(wxWindow* parent, wxWindowID id,
                     const wxString& title = wxEmptyString,
-                    int style = wxHF_DEFAULT_STYLE, wxHtmlHelpData* data = NULL
+                    int style = wxHF_DEFAULT_STYLE, wxHtmlHelpData* data = nullptr
 #if wxUSE_CONFIG
-                    , wxConfigBase *config=NULL, const wxString& rootpath = wxEmptyString
+                    , wxConfigBase *config=nullptr, const wxString& rootpath = wxEmptyString
 #endif // wxUSE_CONFIG
                     );
     bool Create(wxWindow* parent, wxWindowID id, const wxString& title = wxEmptyString,
                 int style = wxHF_DEFAULT_STYLE
 #if wxUSE_CONFIG
-                , wxConfigBase *config=NULL, const wxString& rootpath = wxEmptyString
+                , wxConfigBase *config=nullptr, const wxString& rootpath = wxEmptyString
 #endif // wxUSE_CONFIG
                 );
     virtual ~wxHtmlHelpFrame();
@@ -118,18 +118,13 @@ public:
 
     // we don't want to prevent the app from closing just because a help window
     // remains opened
-    virtual bool ShouldPreventAppExit() const { return m_shouldPreventAppExit; }
+    virtual bool ShouldPreventAppExit() const override { return m_shouldPreventAppExit; }
 
 protected:
-    void Init(wxHtmlHelpData* data = NULL);
+    void Init(wxHtmlHelpData* data = nullptr);
 
     void OnCloseWindow(wxCloseEvent& event);
     void OnActivate(wxActivateEvent& event);
-
-#ifdef __WXMAC__
-    void OnClose(wxCommandEvent& event);
-    void OnAbout(wxCommandEvent& event);
-#endif
 
     // Images:
     enum {
@@ -148,7 +143,7 @@ protected:
 
 private:
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxHtmlHelpFrame);
 };
 

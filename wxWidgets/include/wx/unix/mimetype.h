@@ -2,7 +2,6 @@
 // Name:        wx/unix/mimetype.h
 // Purpose:     classes and functions to manage MIME types
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     23.09.98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
@@ -99,6 +98,8 @@ protected:
                        const wxArrayString& strExtensions,
                        const wxString& strDesc);
 
+    virtual wxString GetIconFromMimeType(const wxString& mime);
+
     // give it access to m_aXXX variables
     friend class WXDLLIMPEXP_FWD_BASE wxFileTypeImpl;
 };
@@ -157,11 +158,10 @@ public:
     bool SetCommand(const wxString& cmd, const wxString& verb, bool overwriteprompt = true);
     bool SetDefaultIcon(const wxString& strIcon = wxEmptyString, int index = 0);
 
-private:
     wxString
     GetExpandedCommand(const wxString & verb,
                        const wxFileType::MessageParameters& params) const;
-
+private:
     wxMimeTypesManagerImpl *m_manager;
     wxArrayInt              m_index; // in the wxMimeTypesManagerImpl arrays
 };

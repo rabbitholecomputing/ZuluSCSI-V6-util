@@ -18,10 +18,13 @@
 
 #if wxUSE_FILEPICKERCTRL
 
+#ifndef WX_PRECOMP
+    #include "wx/log.h"
+#endif
+
 #include "wx/filepicker.h"
 #include "wx/tooltip.h"
 
-#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
 // ============================================================================
@@ -32,7 +35,7 @@
 // wxFileButton
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxFileButton, wxButton)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFileButton, wxButton);
 
 bool wxFileButton::Create( wxWindow *parent, wxWindowID id,
                         const wxString &label, const wxString &path,
@@ -63,7 +66,7 @@ bool wxFileButton::Create( wxWindow *parent, wxWindowID id,
         m_path = path;
         m_message = message;
         m_wildcard = wildcard;
-        if ((m_dialog = CreateDialog()) == NULL)
+        if ((m_dialog = CreateDialog()) == nullptr)
             return false;
 
         // little trick used to avoid problems when there are other GTK windows 'grabbed':
@@ -75,8 +78,8 @@ bool wxFileButton::Create( wxWindow *parent, wxWindowID id,
         // Unfortunately there's no way to hook in the 'clicked' event of the GtkFileChooserButton,
         // thus we add grab on m_dialog->m_widget when it's shown and remove it when it's
         // hidden simply using its "show" and "hide" events - clean & simple :)
-        g_signal_connect(m_dialog->m_widget, "show", G_CALLBACK(gtk_grab_add), NULL);
-        g_signal_connect(m_dialog->m_widget, "hide", G_CALLBACK(gtk_grab_remove), NULL);
+        g_signal_connect(m_dialog->m_widget, "show", G_CALLBACK(gtk_grab_add), nullptr);
+        g_signal_connect(m_dialog->m_widget, "hide", G_CALLBACK(gtk_grab_remove), nullptr);
 
         //       use as label the currently selected file
         m_widget = gtk_file_chooser_button_new_with_dialog( m_dialog->m_widget );
@@ -85,9 +88,7 @@ bool wxFileButton::Create( wxWindow *parent, wxWindowID id,
         // we need to know when the dialog has been dismissed clicking OK...
         // NOTE: the "clicked" signal is not available for a GtkFileChooserButton
         //       thus we are forced to use wxFileDialog's event
-        m_dialog->Connect(wxEVT_BUTTON,
-                wxCommandEventHandler(wxFileButton::OnDialogOK),
-                NULL, this);
+        m_dialog->Bind(wxEVT_BUTTON, &wxFileButton::OnDialogOK, this);
 
         m_parent->DoAddChild( this );
 
@@ -134,7 +135,9 @@ void wxFileButton::SetPath(const wxString &str)
 {
     m_path = str;
 
-    if (m_dialog)
+    if (GTK_IS_FILE_CHOOSER(m_widget))
+        gtk_file_chooser_set_filename((GtkFileChooser*)m_widget, str.utf8_str());
+    else if (m_dialog)
         UpdateDialogPath(m_dialog);
 }
 
@@ -154,6 +157,9 @@ void wxFileButton::SetInitialDirectory(const wxString& dir)
         wxGenericFileButton::SetInitialDirectory(dir);
 }
 
+void wxFileButton::DoApplyWidgetStyle(GtkRcStyle*)
+{
+}
 #endif // wxUSE_FILEPICKERCTRL
 
 #if wxUSE_DIRPICKERCTRL
@@ -180,7 +186,13 @@ static void file_set(GtkFileChooser* widget, wxDirButton* p)
     // thus we need to make sure the current working directory is updated if wxDIRP_CHANGE_DIR
     // style was given.
     if (p->HasFlag(wxDIRP_CHANGE_DIR))
-        chdir(filename);
+    {
+        if ( chdir(filename) != 0 )
+        {
+            wxLogSysError(_("Changing current directory to \"%s\" failed"),
+                          wxString::FromUTF8(filename));
+        }
+    }
 
     // ...and fire an event
     wxFileDirPickerEvent event(wxEVT_DIRPICKER_CHANGED, p, p->GetId(), p->GetPath());
@@ -210,7 +222,7 @@ static void selection_changed(GtkFileChooser* chooser, wxDirButton* win)
 // wxDirButtonGTK
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxDirButton, wxButton)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDirButton, wxButton);
 
 bool wxDirButton::Create( wxWindow *parent, wxWindowID id,
                         const wxString &label, const wxString &path,
@@ -236,7 +248,7 @@ bool wxDirButton::Create( wxWindow *parent, wxWindowID id,
         SetWindowStyle(style);
         m_message = message;
         m_wildcard = wildcard;
-        if ((m_dialog = CreateDialog()) == NULL)
+        if ((m_dialog = CreateDialog()) == nullptr)
             return false;
 
         // little trick used to avoid problems when there are other GTK windows 'grabbed':
@@ -248,8 +260,8 @@ bool wxDirButton::Create( wxWindow *parent, wxWindowID id,
         // Unfortunately there's no way to hook in the 'clicked' event of the GtkFileChooserButton,
         // thus we add grab on m_dialog->m_widget when it's shown and remove it when it's
         // hidden simply using its "show" and "hide" events - clean & simple :)
-        g_signal_connect(m_dialog->m_widget, "show", G_CALLBACK(gtk_grab_add), NULL);
-        g_signal_connect(m_dialog->m_widget, "hide", G_CALLBACK(gtk_grab_remove), NULL);
+        g_signal_connect(m_dialog->m_widget, "show", G_CALLBACK(gtk_grab_add), nullptr);
+        g_signal_connect(m_dialog->m_widget, "hide", G_CALLBACK(gtk_grab_remove), nullptr);
 
 
         // NOTE: we deliberately ignore the given label as GtkFileChooserButton
@@ -259,7 +271,7 @@ bool wxDirButton::Create( wxWindow *parent, wxWindowID id,
         SetPath(path);
 
 #ifdef __WXGTK3__
-        if (gtk_check_version(3,8,0) == NULL)
+        if (gtk_check_version(3,8,0) == nullptr)
             g_signal_connect(m_widget, "file_set", G_CALLBACK(file_set), this);
         else
 #endif
@@ -321,4 +333,7 @@ void wxDirButton::SetInitialDirectory(const wxString& dir)
         wxGenericDirButton::SetInitialDirectory(dir);
 }
 
+void wxDirButton::DoApplyWidgetStyle(GtkRcStyle*)
+{
+}
 #endif // wxUSE_DIRPICKERCTRL

@@ -2,7 +2,6 @@
 // Name:        wx/msw/wrapcctl.h
 // Purpose:     Wrapper for the standard <commctrl.h> header
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     03.08.2003
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -19,13 +18,9 @@
 #include "wx/msw/missing.h"
 
 // Set Unicode format for a common control
-inline void wxSetCCUnicodeFormat(HWND WXUNUSED_IN_WINCE(hwnd))
+inline void wxSetCCUnicodeFormat(HWND hwnd)
 {
-#ifndef __WXWINCE__
-    ::SendMessage(hwnd, CCM_SETUNICODEFORMAT, wxUSE_UNICODE, 0);
-#else // !__WXWINCE__
-    // here it should be already in Unicode anyhow
-#endif // __WXWINCE__/!__WXWINCE__
+    ::SendMessage(hwnd, CCM_SETUNICODEFORMAT, TRUE, 0);
 }
 
 #if wxUSE_GUI

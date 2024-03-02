@@ -2,7 +2,6 @@
 // Name:        src/univ/combobox.cpp
 // Purpose:     wxComboBox implementation
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     15.12.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -18,9 +17,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_COMBOBOX
 
@@ -93,16 +89,16 @@ protected:
 private:
     friend class wxComboBox; // it accesses our DoGetItemClientData()
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // ----------------------------------------------------------------------------
 // event tables and such
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxComboListBox, wxListBox)
+wxBEGIN_EVENT_TABLE(wxComboListBox, wxListBox)
     EVT_LEFT_UP(wxComboListBox::OnLeftUp)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
@@ -120,7 +116,7 @@ bool wxComboListBox::Create(wxWindow* parent)
 {
     if ( !wxListBox::Create(parent, wxID_ANY,
                             wxDefaultPosition, wxDefaultSize,
-                            0, NULL,
+                            0, nullptr,
                             wxBORDER_SIMPLE |
                             ( m_combo->GetWindowStyle() & wxCB_SORT ? wxLB_SORT : 0 ) ) )
         return false;
@@ -202,7 +198,7 @@ wxSize wxComboListBox::GetAdjustedSize(int minWidth,
 
 void wxComboBox::Init()
 {
-    m_lbox = NULL;
+    m_lbox = nullptr;
 }
 
 wxComboBox::wxComboBox(wxWindow *parent,
@@ -270,17 +266,12 @@ wxComboBox::~wxComboBox()
 // wxComboBox methods forwarded to wxTextCtrl
 // ----------------------------------------------------------------------------
 
-wxString wxComboBox::DoGetValue() const
-{
-    return GetTextCtrl() ? GetTextCtrl()->GetValue() : m_valueString;
-}
-
 void wxComboBox::SetValue(const wxString& value)
 {
-    if ( GetTextCtrl() )
-        GetTextCtrl()->SetValue(value);
+    if ( HasFlag(wxCB_READONLY) )
+        SetStringSelection(value);
     else
-        m_valueString = value;
+        GetTextCtrl()->SetValue(value);
 }
 
 void wxComboBox::WriteText(const wxString& value)
@@ -456,7 +447,7 @@ void *wxComboBox::DoGetItemClientData(unsigned int n) const
 
 bool wxComboBox::IsEditable() const
 {
-    return GetTextCtrl() != NULL && (!HasFlag(wxCB_READONLY) || GetTextCtrl()->IsEditable() );
+    return GetTextCtrl() != nullptr && (!HasFlag(wxCB_READONLY) || GetTextCtrl()->IsEditable() );
 }
 
 void wxComboBox::Undo()
@@ -478,7 +469,7 @@ void wxComboBox::SelectAll()
 
 bool wxComboBox::CanCopy() const
 {
-    if (GetTextCtrl() != NULL)
+    if (GetTextCtrl() != nullptr)
         return GetTextCtrl()->CanCopy();
     else
         return false;
@@ -486,7 +477,7 @@ bool wxComboBox::CanCopy() const
 
 bool wxComboBox::CanCut() const
 {
-    if (GetTextCtrl() != NULL)
+    if (GetTextCtrl() != nullptr)
         return GetTextCtrl()->CanCut();
     else
         return false;

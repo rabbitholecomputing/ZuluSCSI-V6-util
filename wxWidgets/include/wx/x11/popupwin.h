@@ -21,7 +21,7 @@
 class WXDLLIMPEXP_CORE wxPopupWindow: public wxPopupWindowBase
 {
 public:
-    wxPopupWindow() { }
+    wxPopupWindow() = default;
     virtual ~wxPopupWindow() ;
 
     wxPopupWindow(wxWindow *parent, int flags = wxBORDER_NONE)
@@ -38,8 +38,8 @@ protected:
                            int sizeFlags = wxSIZE_AUTO);
 
 private:
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxPopupWindow)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxPopupWindow);
 };
 
 #endif // __GTKPOPUPWINDOWH__

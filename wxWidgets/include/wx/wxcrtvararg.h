@@ -36,33 +36,6 @@
  */
 #ifdef __UNIX__
 
-#if defined(HAVE_VSNPRINTF) && !defined(HAVE_VSNPRINTF_DECL)
-#ifdef __cplusplus
-    extern "C"
-#else
-    extern
-#endif
-    int vsnprintf(char *str, size_t size, const char *format, va_list ap);
-#endif /* !HAVE_VSNPRINTF_DECL */
-
-#if defined(HAVE_SNPRINTF) && !defined(HAVE_SNPRINTF_DECL)
-#ifdef __cplusplus
-    extern "C"
-#else
-    extern
-#endif
-    int snprintf(char *str, size_t size, const char *format, ...);
-#endif /* !HAVE_SNPRINTF_DECL */
-
-#if defined(HAVE_VSSCANF) && !defined(HAVE_VSSCANF_DECL)
-#ifdef __cplusplus
-    extern "C"
-#else
-    extern
-#endif
-    int vsscanf(const char *str, const char *format, va_list ap);
-#endif /* !HAVE_VSSCANF_DECL */
-
 /* Wrapper for vsnprintf if it's 3rd parameter is non-const. Note: the
  * same isn't done for snprintf below, the builtin wxSnprintf_ is used
  * instead since it's already a simple wrapper */
@@ -92,10 +65,6 @@
     #endif
 #endif /* __MINGW32__ */
 
-#if defined(__WATCOMC__)
-    #define HAVE_VSWPRINTF 1
-#endif
-
 #if wxUSE_PRINTF_POS_PARAMS
     /*
         The systems where vsnprintf() supports positional parameters should
@@ -120,7 +89,7 @@
             The 2003 PSDK includes a slightly earlier version of VC8 than the
             main release and does not have the printf_p functions.
          */
-        #if defined _MSC_FULL_VER && _MSC_FULL_VER >= 140050727 && !defined __WXWINCE__
+        #if defined _MSC_FULL_VER && _MSC_FULL_VER >= 140050727
             #define wxCRT_VsnprintfA    _vsprintf_p
             #define wxCRT_VsnprintfW    _vswprintf_p
         #endif
@@ -136,8 +105,7 @@
        is a wrapper around it as explained below
      */
 
-    #if defined(__VISUALC__) || \
-            (defined(__BORLANDC__) && __BORLANDC__ >= 0x540)
+    #if defined(__VISUALC__)
         #define wxCRT_VsnprintfA    _vsnprintf
         #define wxCRT_VsnprintfW    _vsnwprintf
     #else
@@ -145,12 +113,9 @@
             #define wxCRT_VsnprintfW    _vsnwprintf
         #elif defined(HAVE_VSWPRINTF)
             #define wxCRT_VsnprintfW     vswprintf
-        #elif defined(__WATCOMC__)
-            #define wxCRT_VsnprintfW    _vsnwprintf
         #endif
 
-        #if defined(HAVE_VSNPRINTF) \
-            || defined(__WATCOMC__)
+        #if defined(HAVE_VSNPRINTF)
             #ifdef HAVE_BROKEN_VSNPRINTF_DECL
                 #define wxCRT_VsnprintfA    wx_fixed_vsnprintf
             #else
@@ -181,9 +146,7 @@
 // for wxString code, define wxUSE_WXVSNPRINTF to indicate that wx
 // implementation is used no matter what (in UTF-8 build, either *A or *W
 // version may be called):
-#if !wxUSE_UNICODE
-    #define wxUSE_WXVSNPRINTF wxUSE_WXVSNPRINTFA
-#elif wxUSE_UNICODE_WCHAR
+#if wxUSE_UNICODE_WCHAR
     #define wxUSE_WXVSNPRINTF wxUSE_WXVSNPRINTFW
 #elif wxUSE_UTF8_LOCALE_ONLY
     #define wxUSE_WXVSNPRINTF wxUSE_WXVSNPRINTFA
@@ -247,6 +210,8 @@
         return vsscanf(const_cast<char *>(str), format, ap);
     }
 #else
+    wxDECL_FOR_STRICT_MINGW32(int, vsscanf, (const char*, const char*, va_list))
+
     #define wxCRT_VsscanfA   vsscanf
 #endif
 
@@ -262,6 +227,8 @@
 #ifdef wxNEED_VSWSCANF
     int wxCRT_VsscanfW(const wchar_t *str, const wchar_t *format, va_list ap);
 #else
+    wxDECL_FOR_STRICT_MINGW32(int, vswscanf, (const wchar_t*, const wchar_t*, va_list))
+
     #define wxCRT_VsscanfW   wxVMS_USE_STD vswscanf
 #endif
 
@@ -269,37 +236,45 @@
 // user-friendly wrappers to CRT functions
 // ----------------------------------------------------------------------------
 
-#ifdef __WATCOMC__
-    // workaround for http://bugzilla.openwatcom.org/show_bug.cgi?id=351
-    #define wxPrintf    wxPrintf_Impl
-    #define wxFprintf   wxFprintf_Impl
-    #define wxSprintf   wxSprintf_Impl
-    #define wxSnprintf  wxSnprintf_Impl
-#endif
+wxGCC_ONLY_WARNING_SUPPRESS(format-nonliteral)
+wxGCC_ONLY_WARNING_SUPPRESS(format-security)
 
-    // FIXME-UTF8: remove this
-#if wxUSE_UNICODE
-    #define wxCRT_PrintfNative wxCRT_PrintfW
-    #define wxCRT_FprintfNative wxCRT_FprintfW
-#else
-    #define wxCRT_PrintfNative wxCRT_PrintfA
-    #define wxCRT_FprintfNative wxCRT_FprintfA
-#endif
-
-
-WX_DEFINE_VARARG_FUNC_SANS_N0(int, wxPrintf, 1, (const wxFormatString&),
-                              wxCRT_PrintfNative, wxCRT_PrintfA)
-inline int wxPrintf(const wxFormatString& s)
+template <typename... Targs>
+int wxPrintf(const wxFormatString& format, Targs... args)
 {
-    return wxPrintf("%s", s.InputAsString());
+    format.Validate({wxFormatStringSpecifier<Targs>::value...});
+
+#if wxUSE_UNICODE_UTF8
+    #if !wxUSE_UTF8_LOCALE_ONLY
+        if ( wxLocaleIsUtf8 )
+    #endif
+            return wxCRT_PrintfA(format, wxArgNormalizerUtf8<Targs>{args, nullptr, 0}.get()...);
+#endif // wxUSE_UNICODE_UTF8
+
+#if !wxUSE_UTF8_LOCALE_ONLY
+    return wxCRT_PrintfW(format, wxArgNormalizerWchar<Targs>{args, nullptr, 0}.get()...);
+#endif // !wxUSE_UTF8_LOCALE_ONLY
 }
 
-WX_DEFINE_VARARG_FUNC_SANS_N0(int, wxFprintf, 2, (FILE*, const wxFormatString&),
-                              wxCRT_FprintfNative, wxCRT_FprintfA)
-inline int wxFprintf(FILE *f, const wxFormatString& s)
+template <typename... Targs>
+int wxFprintf(FILE* fp, const wxFormatString& format, Targs... args)
 {
-    return wxFprintf(f, "%s", s.InputAsString());
+    format.Validate({wxFormatStringSpecifier<Targs>::value...});
+
+#if wxUSE_UNICODE_UTF8
+    #if !wxUSE_UTF8_LOCALE_ONLY
+        if ( wxLocaleIsUtf8 )
+    #endif
+            return wxCRT_FprintfA(fp, format, wxArgNormalizerUtf8<Targs>{args, nullptr, 0}.get()...);
+#endif // wxUSE_UNICODE_UTF8
+
+#if !wxUSE_UTF8_LOCALE_ONLY
+    return wxCRT_FprintfW(fp, format, wxArgNormalizerWchar<Targs>{args, nullptr, 0}.get()...);
+#endif // !wxUSE_UTF8_LOCALE_ONLY
 }
+
+wxGCC_ONLY_WARNING_RESTORE(format-security)
+wxGCC_ONLY_WARNING_RESTORE(format-nonliteral)
 
 // va_list versions of printf functions simply forward to the respective
 // CRT function; note that they assume that va_list was created using
@@ -313,12 +288,9 @@ inline int wxFprintf(FILE *f, const wxFormatString& s)
             if ( wxLocaleIsUtf8 ) return implA args;                 \
             else return implW args
     #endif
-#elif wxUSE_UNICODE_WCHAR
+#else // wxUSE_UNICODE_WCHAR
     #define WX_VARARG_VFOO_IMPL(args, implW, implA)                  \
         return implW args
-#else // ANSI
-    #define WX_VARARG_VFOO_IMPL(args, implW, implA)                  \
-        return implA args
 #endif
 
 inline int
@@ -343,76 +315,72 @@ wxVfprintf(FILE *f, const wxString& format, va_list ap)
 
 #if !wxUSE_UTF8_LOCALE_ONLY
 int WXDLLIMPEXP_BASE wxDoSprintfWchar(char *str, const wxChar *format, ...);
+int WXDLLIMPEXP_BASE wxDoSprintfWchar(wchar_t *str, const wxChar *format, ...);
 #endif
 #if wxUSE_UNICODE_UTF8
 int WXDLLIMPEXP_BASE wxDoSprintfUtf8(char *str, const char *format, ...);
+int WXDLLIMPEXP_BASE wxDoSprintfUtf8(wchar_t *str, const char *format, ...);
 #endif
-WX_DEFINE_VARARG_FUNC(int, wxSprintf, 2, (char*, const wxFormatString&),
-                      wxDoSprintfWchar, wxDoSprintfUtf8)
+
+template <typename CharType, typename... Targs>
+int wxSprintf(CharType* str, const wxFormatString& format, Targs... args)
+{
+    format.Validate({wxFormatStringSpecifier<Targs>::value...});
+
+#if wxUSE_UNICODE_UTF8
+    #if !wxUSE_UTF8_LOCALE_ONLY
+        if ( wxLocaleIsUtf8 )
+    #endif
+            return wxDoSprintfUtf8(str, format, wxArgNormalizerUtf8<Targs>{args, nullptr, 0}.get()...);
+#endif // wxUSE_UNICODE_UTF8
+
+#if !wxUSE_UTF8_LOCALE_ONLY
+    return wxDoSprintfWchar(str, format, wxArgNormalizerWchar<Targs>{args, nullptr, 0}.get()...);
+#endif // !wxUSE_UTF8_LOCALE_ONLY
+}
 
 int WXDLLIMPEXP_BASE
 wxVsprintf(char *str, const wxString& format, va_list argptr);
 
 #if !wxUSE_UTF8_LOCALE_ONLY
 int WXDLLIMPEXP_BASE wxDoSnprintfWchar(char *str, size_t size, const wxChar *format, ...);
+int WXDLLIMPEXP_BASE wxDoSnprintfWchar(wchar_t *str, size_t size, const wxChar *format, ...);
 #endif
 #if wxUSE_UNICODE_UTF8
 int WXDLLIMPEXP_BASE wxDoSnprintfUtf8(char *str, size_t size, const char *format, ...);
+int WXDLLIMPEXP_BASE wxDoSnprintfUtf8(wchar_t *str, size_t size, const char *format, ...);
 #endif
-WX_DEFINE_VARARG_FUNC(int, wxSnprintf, 3, (char*, size_t, const wxFormatString&),
-                      wxDoSnprintfWchar, wxDoSnprintfUtf8)
+
+template <typename CharType, typename... Targs>
+int wxSnprintf(CharType* str, size_t size, const wxFormatString& format, Targs... args)
+{
+    format.Validate({wxFormatStringSpecifier<Targs>::value...});
+
+#if wxUSE_UNICODE_UTF8
+    #if !wxUSE_UTF8_LOCALE_ONLY
+        if ( wxLocaleIsUtf8 )
+    #endif
+            return wxDoSnprintfUtf8(str, size, format, wxArgNormalizerUtf8<Targs>{args, nullptr, 0}.get()...);
+#endif // wxUSE_UNICODE_UTF8
+
+#if !wxUSE_UTF8_LOCALE_ONLY
+    return wxDoSnprintfWchar(str, size, format, wxArgNormalizerWchar<Targs>{args, nullptr, 0}.get()...);
+#endif // !wxUSE_UTF8_LOCALE_ONLY
+}
 
 int WXDLLIMPEXP_BASE
 wxVsnprintf(char *str, size_t size, const wxString& format, va_list argptr);
 
-#if wxUSE_UNICODE
-
 #if !wxUSE_UTF8_LOCALE_ONLY
-int WXDLLIMPEXP_BASE wxDoSprintfWchar(wchar_t *str, const wxChar *format, ...);
 #endif
 #if wxUSE_UNICODE_UTF8
-int WXDLLIMPEXP_BASE wxDoSprintfUtf8(wchar_t *str, const char *format, ...);
 #endif
-WX_DEFINE_VARARG_FUNC(int, wxSprintf, 2, (wchar_t*, const wxFormatString&),
-                      wxDoSprintfWchar, wxDoSprintfUtf8)
 
 int WXDLLIMPEXP_BASE
 wxVsprintf(wchar_t *str, const wxString& format, va_list argptr);
 
-#if !wxUSE_UTF8_LOCALE_ONLY
-int WXDLLIMPEXP_BASE wxDoSnprintfWchar(wchar_t *str, size_t size, const wxChar *format, ...);
-#endif
-#if wxUSE_UNICODE_UTF8
-int WXDLLIMPEXP_BASE wxDoSnprintfUtf8(wchar_t *str, size_t size, const char *format, ...);
-#endif
-WX_DEFINE_VARARG_FUNC(int, wxSnprintf, 3, (wchar_t*, size_t, const wxFormatString&),
-                      wxDoSnprintfWchar, wxDoSnprintfUtf8)
-
 int WXDLLIMPEXP_BASE
 wxVsnprintf(wchar_t *str, size_t size, const wxString& format, va_list argptr);
-
-#endif // wxUSE_UNICODE
-
-#ifdef __WATCOMC__
-    // workaround for http://bugzilla.openwatcom.org/show_bug.cgi?id=351
-    //
-    // fortunately, OpenWatcom implements __VA_ARGS__, so we can provide macros
-    // that cast the format argument to wxString:
-    #undef wxPrintf
-    #undef wxFprintf
-    #undef wxSprintf
-    #undef wxSnprintf
-
-    #define wxPrintf(fmt, ...) \
-            wxPrintf_Impl(wxFormatString(fmt), __VA_ARGS__)
-    #define wxFprintf(f, fmt, ...) \
-            wxFprintf_Impl(f, wxFormatString(fmt), __VA_ARGS__)
-    #define wxSprintf(s, fmt, ...) \
-            wxSprintf_Impl(s, wxFormatString(fmt), __VA_ARGS__)
-    #define wxSnprintf(s, n, fmt, ...) \
-            wxSnprintf_Impl(s, n, wxFormatString(fmt), __VA_ARGS__)
-#endif // __WATCOMC__
-
 
 // We can't use wxArgNormalizer<T> for variadic arguments to wxScanf() etc.
 // because they are writable, so instead of providing friendly template
@@ -472,12 +440,16 @@ WX_DEFINE_SCANFUNC(wxSscanf, 2, (const wxScopedCharBuffer& str, const char *form
                    wxCRT_SscanfA, (str.data(), format))
 WX_DEFINE_SCANFUNC(wxSscanf, 2, (const wxScopedWCharBuffer& str, const wchar_t *format),
                    wxCRT_SscanfW, (str.data(), wxScanfConvertFormatW(format)))
+#ifndef wxNO_IMPLICIT_WXSTRING_ENCODING
 WX_DEFINE_SCANFUNC(wxSscanf, 2, (const wxString& str, const char *format),
                    wxCRT_SscanfA, (str.mb_str(), format))
+#endif
 WX_DEFINE_SCANFUNC(wxSscanf, 2, (const wxString& str, const wchar_t *format),
                    wxCRT_SscanfW, (str.wc_str(), wxScanfConvertFormatW(format)))
+#ifndef wxNO_IMPLICIT_WXSTRING_ENCODING
 WX_DEFINE_SCANFUNC(wxSscanf, 2, (const wxCStrData& str, const char *format),
                    wxCRT_SscanfA, (str.AsCharBuf(), format))
+#endif
 WX_DEFINE_SCANFUNC(wxSscanf, 2, (const wxCStrData& str, const wchar_t *format),
                    wxCRT_SscanfW, (str.AsWCharBuf(), wxScanfConvertFormatW(format)))
 

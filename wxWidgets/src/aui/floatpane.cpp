@@ -2,7 +2,6 @@
 // Name:        src/aui/floatpane.cpp
 // Purpose:     wxaui: wx advanced user interface - docking window manager
 // Author:      Benjamin I. Williams
-// Modified by:
 // Created:     2005-05-17
 // Copyright:   (C) Copyright 2005-2006, Kirix Corporation, All Rights Reserved
 // Licence:     wxWindows Library Licence, Version 3.1
@@ -18,9 +17,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_AUI
 
@@ -35,7 +31,7 @@
 #include "wx/msw/private.h"
 #endif
 
-IMPLEMENT_CLASS(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
+wxIMPLEMENT_CLASS(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass);
 
 wxAuiFloatingFrame::wxAuiFloatingFrame(wxWindow* parent,
                 wxAuiManager* owner_mgr,
@@ -52,10 +48,11 @@ wxAuiFloatingFrame::wxAuiFloatingFrame(wxWindow* parent,
                         (pane.HasMaximizeButton()?wxMAXIMIZE_BOX:0) |
                         (pane.IsFixed()?0:wxRESIZE_BORDER)
                         )
+    , m_ownerMgr(owner_mgr)
 {
-    m_ownerMgr = owner_mgr;
     m_moving = false;
     m_mgr.SetManagedWindow(this);
+    m_mgr.SetArtProvider(owner_mgr->GetArtProvider()->Clone());
     m_solidDrag = true;
 
     // find out if the system supports solid window drag.
@@ -74,7 +71,7 @@ wxAuiFloatingFrame::~wxAuiFloatingFrame()
     // if we do not do this, then we can crash...
     if (m_ownerMgr && m_ownerMgr->m_actionWindow == this)
     {
-        m_ownerMgr->m_actionWindow = NULL;
+        m_ownerMgr->m_actionWindow = nullptr;
     }
 
     m_mgr.UnInit();
@@ -165,6 +162,22 @@ wxAuiManager* wxAuiFloatingFrame::GetOwnerManager() const
     return m_ownerMgr;
 }
 
+bool wxAuiFloatingFrame::IsTopNavigationDomain(NavigationKind kind) const
+{
+    switch ( kind )
+    {
+        case Navigation_Tab:
+            break;
+
+        case Navigation_Accel:
+            // Floating frames are often used as tool palettes and it's
+            // convenient for the accelerators defined in the parent frame to
+            // work in them, so don't block their propagation.
+            return false;
+    }
+
+    return wxAuiFloatingFrameBaseClass::IsTopNavigationDomain(kind);
+}
 
 void wxAuiFloatingFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 {
@@ -189,6 +202,13 @@ void wxAuiFloatingFrame::OnClose(wxCloseEvent& evt)
 
 void wxAuiFloatingFrame::OnMoveEvent(wxMoveEvent& event)
 {
+    // Always sync pane's floating_pos with frame's position
+    if (m_ownerMgr)
+    {
+        m_ownerMgr->GetPane(m_paneWindow).
+            floating_pos = GetRect().GetPosition();
+    }
+
     if (!m_solidDrag)
     {
         // systems without solid window dragging need to be
@@ -220,20 +240,13 @@ void wxAuiFloatingFrame::OnMoveEvent(wxMoveEvent& event)
 #ifndef __WXOSX__
     // skip if moving too fast to avoid massive redraws and
     // jumping hint windows
+    // TODO: Should 3x3px threshold increase on Retina displays?
     if ((abs(winRect.x - m_lastRect.x) > 3) ||
         (abs(winRect.y - m_lastRect.y) > 3))
     {
         m_last3Rect = m_last2Rect;
         m_last2Rect = m_lastRect;
         m_lastRect = winRect;
-
-        // However still update the internally stored position to avoid
-        // snapping back to the old one later.
-        if (m_ownerMgr)
-        {
-            m_ownerMgr->GetPane(m_paneWindow).
-                floating_pos = winRect.GetPosition();
-        }
 
         return;
     }
@@ -352,14 +365,14 @@ bool wxAuiFloatingFrame::isMouseDown()
 }
 
 
-BEGIN_EVENT_TABLE(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
+wxBEGIN_EVENT_TABLE(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
     EVT_SIZE(wxAuiFloatingFrame::OnSize)
     EVT_MOVE(wxAuiFloatingFrame::OnMoveEvent)
     EVT_MOVING(wxAuiFloatingFrame::OnMoveEvent)
     EVT_CLOSE(wxAuiFloatingFrame::OnClose)
     EVT_IDLE(wxAuiFloatingFrame::OnIdle)
     EVT_ACTIVATE(wxAuiFloatingFrame::OnActivate)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 #endif // wxUSE_AUI

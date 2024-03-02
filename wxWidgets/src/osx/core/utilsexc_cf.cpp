@@ -31,6 +31,8 @@
 
 #if wxUSE_EVENTLOOP_SOURCE
 
+#include <memory>
+
 namespace
 {
 
@@ -72,14 +74,14 @@ class wxCFEventLoopSourcesManager : public wxEventLoopSourcesManagerBase
 {
 public:
     wxEventLoopSource *
-    AddSourceForFD(int fd, wxEventLoopSourceHandler *handler, int flags)
+    AddSourceForFD(int fd, wxEventLoopSourceHandler *handler, int flags) override
     {
-        wxCHECK_MSG( fd != -1, NULL, "can't monitor invalid fd" );
+        wxCHECK_MSG( fd != -1, nullptr, "can't monitor invalid fd" );
 
-        wxScopedPtr<wxCFEventLoopSource>
+        std::unique_ptr<wxCFEventLoopSource>
             source(new wxCFEventLoopSource(handler, flags));
 
-        CFSocketContext context = { 0, source.get(), NULL, NULL, NULL };
+        CFSocketContext context = { 0, source.get(), nullptr, nullptr, nullptr };
 
         int callbackTypes = 0;
         if ( flags & wxEVENT_SOURCE_INPUT )
@@ -100,7 +102,7 @@ public:
         if ( !cfSocket )
         {
             wxLogError(wxS("Failed to create event loop source socket."));
-            return NULL;
+            return nullptr;
         }
 
         // Adjust the socket options to suit our needs:
@@ -129,7 +131,7 @@ public:
         {
             wxLogError(wxS("Failed to create low level event loop source."));
             CFSocketInvalidate(cfSocket);
-            return NULL;
+            return nullptr;
         }
 
         // Save the socket so that we can remove it later if asked to.
@@ -151,26 +153,6 @@ wxEventLoopSourcesManagerBase* wxGUIAppTraits::GetEventLoopSourcesManager()
 #endif // wxUSE_EVENTLOOP_SOURCE
 
 /////////////////////////////////////////////////////////////////////////////
-
-// NOTE: This doesn't really belong here but this was a handy file to
-// put it in because it's already compiled for wxCocoa and wxMac GUI lib.
-#if wxUSE_STDPATHS
-wxStandardPaths& wxGUIAppTraits::GetStandardPaths()
-{
-    // Derive a class just to be able to create it: wxStandardPaths ctor is
-    // protected to prevent its misuse, but it also means we can't create an
-    // object of this class directly.
-    class wxStandardPathsDefault : public wxStandardPathsCF
-    {
-    public:
-        wxStandardPathsDefault() { }
-    };
-
-    static wxStandardPathsDefault gs_stdPaths;
-
-    return gs_stdPaths;
-}
-#endif
 
 #if wxUSE_SOCKETS
 

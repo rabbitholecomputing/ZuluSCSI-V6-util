@@ -16,12 +16,12 @@
 
 class WXDLLIMPEXP_XRC wxDirPickerCtrlXmlHandler : public wxXmlResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxDirPickerCtrlXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxDirPickerCtrlXmlHandler);
 
 public:
     wxDirPickerCtrlXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 };
 
 #endif // wxUSE_XRC && wxUSE_DIRPICKERCTRL

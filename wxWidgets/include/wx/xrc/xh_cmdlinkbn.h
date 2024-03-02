@@ -19,8 +19,8 @@ class WXDLLIMPEXP_XRC wxCommandLinkButtonXmlHandler : public wxXmlResourceHandle
 public:
     wxCommandLinkButtonXmlHandler();
 
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 
 private:
     wxDECLARE_DYNAMIC_CLASS(wxCommandLinkButtonXmlHandler);

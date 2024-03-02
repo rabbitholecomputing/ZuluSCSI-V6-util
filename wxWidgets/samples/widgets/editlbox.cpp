@@ -19,9 +19,6 @@
 // for compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_EDITABLELISTBOX
 
@@ -69,11 +66,11 @@ class EditableListboxWidgetsPage : public WidgetsPage
 public:
     EditableListboxWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxControl *GetWidget() const { return m_lbox->GetListCtrl(); }
-    virtual void RecreateWidget() { CreateLbox(); }
+    virtual wxWindow *GetWidget() const override { return m_lbox->GetListCtrl(); }
+    virtual void RecreateWidget() override { CreateLbox(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() override;
 
 protected:
     // event handlers
@@ -115,7 +112,7 @@ wxEND_EVENT_TABLE()
 // implementation
 // ============================================================================
 
-IMPLEMENT_WIDGETS_PAGE(EditableListboxWidgetsPage, wxT("EditableListbox"), GENERIC_CTRLS);
+IMPLEMENT_WIDGETS_PAGE(EditableListboxWidgetsPage, "EditableListbox", GENERIC_CTRLS);
 
 EditableListboxWidgetsPage::EditableListboxWidgetsPage(WidgetsBookCtrl *book,
                                                        wxImageList *imaglist)
@@ -133,16 +130,15 @@ void EditableListboxWidgetsPage::CreateContent()
     wxSizer *sizerTop = new wxBoxSizer(wxHORIZONTAL);
 
     // left pane
-    wxStaticBox *box = new wxStaticBox(this, wxID_ANY,
-                                       wxT("&Set listbox parameters"));
-    wxSizer *sizerLeft = new wxStaticBoxSizer(box, wxVERTICAL);
+    wxStaticBoxSizer *sizerLeft = new wxStaticBoxSizer(wxVERTICAL, this, "&Set listbox parameters");
+    wxStaticBox* const sizerLeftBox = sizerLeft->GetStaticBox();
 
-    m_chkAllowNew = CreateCheckBoxAndAddToSizer(sizerLeft, wxT("Allow new items"));
-    m_chkAllowEdit = CreateCheckBoxAndAddToSizer(sizerLeft, wxT("Allow editing items"));
-    m_chkAllowDelete = CreateCheckBoxAndAddToSizer(sizerLeft, wxT("Allow deleting items"));
-    m_chkAllowNoReorder = CreateCheckBoxAndAddToSizer(sizerLeft, wxT("Block user reordering"));
+    m_chkAllowNew = CreateCheckBoxAndAddToSizer(sizerLeft, "Allow new items", wxID_ANY, sizerLeftBox);
+    m_chkAllowEdit = CreateCheckBoxAndAddToSizer(sizerLeft, "Allow editing items", wxID_ANY, sizerLeftBox);
+    m_chkAllowDelete = CreateCheckBoxAndAddToSizer(sizerLeft, "Allow deleting items", wxID_ANY, sizerLeftBox);
+    m_chkAllowNoReorder = CreateCheckBoxAndAddToSizer(sizerLeft, "Block user reordering", wxID_ANY, sizerLeftBox);
 
-    wxButton *btn = new wxButton(this, EditableListboxPage_Reset, wxT("&Reset"));
+    wxButton *btn = new wxButton(sizerLeftBox, EditableListboxPage_Reset, "&Reset");
     sizerLeft->Add(btn, 0, wxALIGN_CENTRE_HORIZONTAL | wxALL, 15);
 
     // right pane
@@ -178,7 +174,7 @@ void EditableListboxWidgetsPage::Reset()
 
 void EditableListboxWidgetsPage::CreateLbox()
 {
-    int flags = 0;
+    long flags = GetAttrs().m_defaultFlags;
 
     if ( m_chkAllowNew->GetValue() )
         flags |= wxEL_ALLOW_NEW;
@@ -201,6 +197,8 @@ void EditableListboxWidgetsPage::CreateLbox()
                                    _("Match these wildcards:"),
                                    wxDefaultPosition, wxDefaultSize,
                                    flags);
+
+    NotifyWidgetRecreation(m_lbox);
 
     m_lbox->SetStrings(items);
     m_sizerLbox->Add(m_lbox, 1, wxGROW | wxALL, 5);

@@ -19,15 +19,15 @@
 class wxFDIOEventLoopSourceHandler : public wxFDIOHandler
 {
 public:
-    wxEXPLICIT wxFDIOEventLoopSourceHandler(wxEventLoopSourceHandler* handler)
+    explicit wxFDIOEventLoopSourceHandler(wxEventLoopSourceHandler* handler)
         : m_handler(handler)
     {
     }
 
     // Just forward to the real handler.
-    virtual void OnReadWaiting() { m_handler->OnReadWaiting(); }
-    virtual void OnWriteWaiting() { m_handler->OnWriteWaiting(); }
-    virtual void OnExceptionWaiting() { m_handler->OnExceptionWaiting(); }
+    virtual void OnReadWaiting() override { m_handler->OnReadWaiting(); }
+    virtual void OnWriteWaiting() override { m_handler->OnWriteWaiting(); }
+    virtual void OnExceptionWaiting() override { m_handler->OnExceptionWaiting(); }
 
 protected:
     wxEventLoopSourceHandler* const m_handler;

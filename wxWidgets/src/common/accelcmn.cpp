@@ -3,7 +3,7 @@
 // Purpose:     implementation of platform-independent wxAcceleratorEntry parts
 // Author:      Vadim Zeitlin
 // Created:     2007-05-05
-// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -18,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_ACCEL
 
@@ -38,78 +35,84 @@ wxAcceleratorTable wxNullAcceleratorTable;
 // wxAcceleratorEntry implementation
 // ============================================================================
 
+wxGCC_WARNING_SUPPRESS(missing-field-initializers)
+
 static const struct wxKeyName
 {
     wxKeyCode code;
     const char *name;
+    const char *display_name;
 } wxKeyNames[] =
 {
-    { WXK_DELETE, wxTRANSLATE("DEL") },
-    { WXK_DELETE, wxTRANSLATE("DELETE") },
-    { WXK_BACK, wxTRANSLATE("BACK") },
-    { WXK_INSERT, wxTRANSLATE("INS") },
-    { WXK_INSERT, wxTRANSLATE("INSERT") },
-    { WXK_RETURN, wxTRANSLATE("ENTER") },
-    { WXK_RETURN, wxTRANSLATE("RETURN") },
-    { WXK_PAGEUP, wxTRANSLATE("PGUP") },
-    { WXK_PAGEDOWN, wxTRANSLATE("PGDN") },
-    { WXK_LEFT, wxTRANSLATE("LEFT") },
-    { WXK_RIGHT, wxTRANSLATE("RIGHT") },
-    { WXK_UP, wxTRANSLATE("UP") },
-    { WXK_DOWN, wxTRANSLATE("DOWN") },
-    { WXK_HOME, wxTRANSLATE("HOME") },
-    { WXK_END, wxTRANSLATE("END") },
-    { WXK_SPACE, wxTRANSLATE("SPACE") },
-    { WXK_TAB, wxTRANSLATE("TAB") },
-    { WXK_ESCAPE, wxTRANSLATE("ESC") },
-    { WXK_ESCAPE, wxTRANSLATE("ESCAPE") },
-    { WXK_CANCEL, wxTRANSLATE("CANCEL") },
-    { WXK_CLEAR, wxTRANSLATE("CLEAR") },
-    { WXK_MENU, wxTRANSLATE("MENU") },
-    { WXK_PAUSE, wxTRANSLATE("PAUSE") },
-    { WXK_CAPITAL, wxTRANSLATE("CAPITAL") },
-    { WXK_SELECT, wxTRANSLATE("SELECT") },
-    { WXK_PRINT, wxTRANSLATE("PRINT") },
-    { WXK_EXECUTE, wxTRANSLATE("EXECUTE") },
-    { WXK_SNAPSHOT, wxTRANSLATE("SNAPSHOT") },
-    { WXK_HELP, wxTRANSLATE("HELP") },
-    { WXK_ADD, wxTRANSLATE("ADD") },
-    { WXK_SEPARATOR, wxTRANSLATE("SEPARATOR") },
-    { WXK_SUBTRACT, wxTRANSLATE("SUBTRACT") },
-    { WXK_DECIMAL, wxTRANSLATE("DECIMAL") },
-    { WXK_DIVIDE, wxTRANSLATE("DIVIDE") },
-    { WXK_NUMLOCK, wxTRANSLATE("NUM_LOCK") },
-    { WXK_SCROLL, wxTRANSLATE("SCROLL_LOCK") },
-    { WXK_PAGEUP, wxTRANSLATE("PAGEUP") },
-    { WXK_PAGEDOWN, wxTRANSLATE("PAGEDOWN") },
-    { WXK_NUMPAD_SPACE, wxTRANSLATE("KP_SPACE") },
-    { WXK_NUMPAD_TAB, wxTRANSLATE("KP_TAB") },
-    { WXK_NUMPAD_ENTER, wxTRANSLATE("KP_ENTER") },
-    { WXK_NUMPAD_HOME, wxTRANSLATE("KP_HOME") },
-    { WXK_NUMPAD_LEFT, wxTRANSLATE("KP_LEFT") },
-    { WXK_NUMPAD_UP, wxTRANSLATE("KP_UP") },
-    { WXK_NUMPAD_RIGHT, wxTRANSLATE("KP_RIGHT") },
-    { WXK_NUMPAD_DOWN, wxTRANSLATE("KP_DOWN") },
-    { WXK_NUMPAD_PAGEUP, wxTRANSLATE("KP_PRIOR") },
-    { WXK_NUMPAD_PAGEUP, wxTRANSLATE("KP_PAGEUP") },
-    { WXK_NUMPAD_PAGEDOWN, wxTRANSLATE("KP_NEXT") },
-    { WXK_NUMPAD_PAGEDOWN, wxTRANSLATE("KP_PAGEDOWN") },
-    { WXK_NUMPAD_END, wxTRANSLATE("KP_END") },
-    { WXK_NUMPAD_BEGIN, wxTRANSLATE("KP_BEGIN") },
-    { WXK_NUMPAD_INSERT, wxTRANSLATE("KP_INSERT") },
-    { WXK_NUMPAD_DELETE, wxTRANSLATE("KP_DELETE") },
-    { WXK_NUMPAD_EQUAL, wxTRANSLATE("KP_EQUAL") },
-    { WXK_NUMPAD_MULTIPLY, wxTRANSLATE("KP_MULTIPLY") },
-    { WXK_NUMPAD_ADD, wxTRANSLATE("KP_ADD") },
-    { WXK_NUMPAD_SEPARATOR, wxTRANSLATE("KP_SEPARATOR") },
-    { WXK_NUMPAD_SUBTRACT, wxTRANSLATE("KP_SUBTRACT") },
-    { WXK_NUMPAD_DECIMAL, wxTRANSLATE("KP_DECIMAL") },
-    { WXK_NUMPAD_DIVIDE, wxTRANSLATE("KP_DIVIDE") },
-    { WXK_WINDOWS_LEFT, wxTRANSLATE("WINDOWS_LEFT") },
-    { WXK_WINDOWS_RIGHT, wxTRANSLATE("WINDOWS_RIGHT") },
-    { WXK_WINDOWS_MENU, wxTRANSLATE("WINDOWS_MENU") },
-    { WXK_COMMAND, wxTRANSLATE("COMMAND") },
+    { WXK_DELETE,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Delete") },
+    { WXK_DELETE,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Del") },
+    { WXK_BACK,             wxTRANSLATE_IN_CONTEXT("keyboard key", "Back"),          wxTRANSLATE_IN_CONTEXT("keyboard key", "Backspace") },
+    { WXK_INSERT,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Insert") },
+    { WXK_INSERT,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Ins") },
+    { WXK_RETURN,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Enter") },
+    { WXK_RETURN,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Return") },
+    { WXK_PAGEUP,           wxTRANSLATE_IN_CONTEXT("keyboard key", "PageUp"),        wxTRANSLATE_IN_CONTEXT("keyboard key", "Page Up") },
+    { WXK_PAGEDOWN,         wxTRANSLATE_IN_CONTEXT("keyboard key", "PageDown"),      wxTRANSLATE_IN_CONTEXT("keyboard key", "Page Down") },
+    { WXK_PAGEUP,           wxTRANSLATE_IN_CONTEXT("keyboard key", "PgUp") },
+    { WXK_PAGEDOWN,         wxTRANSLATE_IN_CONTEXT("keyboard key", "PgDn") },
+    { WXK_LEFT,             wxTRANSLATE_IN_CONTEXT("keyboard key", "Left"),          wxTRANSLATE_IN_CONTEXT("keyboard key", "Left") },
+    { WXK_RIGHT,            wxTRANSLATE_IN_CONTEXT("keyboard key", "Right"),         wxTRANSLATE_IN_CONTEXT("keyboard key", "Right") },
+    { WXK_UP,               wxTRANSLATE_IN_CONTEXT("keyboard key", "Up"),            wxTRANSLATE_IN_CONTEXT("keyboard key", "Up") },
+    { WXK_DOWN,             wxTRANSLATE_IN_CONTEXT("keyboard key", "Down"),          wxTRANSLATE_IN_CONTEXT("keyboard key", "Down") },
+    { WXK_HOME,             wxTRANSLATE_IN_CONTEXT("keyboard key", "Home") },
+    { WXK_END,              wxTRANSLATE_IN_CONTEXT("keyboard key", "End") },
+    { WXK_SPACE,            wxTRANSLATE_IN_CONTEXT("keyboard key", "Space") },
+    { WXK_TAB,              wxTRANSLATE_IN_CONTEXT("keyboard key", "Tab") },
+    { WXK_ESCAPE,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Esc") },
+    { WXK_ESCAPE,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Escape") },
+    { WXK_CANCEL,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Cancel") },
+    { WXK_CLEAR,            wxTRANSLATE_IN_CONTEXT("keyboard key", "Clear") },
+    { WXK_MENU,             wxTRANSLATE_IN_CONTEXT("keyboard key", "Menu") },
+    { WXK_PAUSE,            wxTRANSLATE_IN_CONTEXT("keyboard key", "Pause") },
+    { WXK_CAPITAL,          wxTRANSLATE_IN_CONTEXT("keyboard key", "Capital") },
+    { WXK_SELECT,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Select") },
+    { WXK_PRINT,            wxTRANSLATE_IN_CONTEXT("keyboard key", "Print") },
+    { WXK_EXECUTE,          wxTRANSLATE_IN_CONTEXT("keyboard key", "Execute") },
+    { WXK_SNAPSHOT,         wxTRANSLATE_IN_CONTEXT("keyboard key", "Snapshot") },
+    { WXK_HELP,             wxTRANSLATE_IN_CONTEXT("keyboard key", "Help") },
+    { WXK_ADD,              wxTRANSLATE_IN_CONTEXT("keyboard key", "Add") },
+    { WXK_SEPARATOR,        wxTRANSLATE_IN_CONTEXT("keyboard key", "Separator") },
+    { WXK_SUBTRACT,         wxTRANSLATE_IN_CONTEXT("keyboard key", "Subtract") },
+    { WXK_DECIMAL,          wxTRANSLATE_IN_CONTEXT("keyboard key", "Decimal") },
+    { WXK_MULTIPLY,         wxTRANSLATE_IN_CONTEXT("keyboard key", "Multiply") },
+    { WXK_DIVIDE,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Divide") },
+    { WXK_NUMLOCK,          wxTRANSLATE_IN_CONTEXT("keyboard key", "Num_lock"),      wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Lock") },
+    { WXK_SCROLL,           wxTRANSLATE_IN_CONTEXT("keyboard key", "Scroll_lock"),   wxTRANSLATE_IN_CONTEXT("keyboard key", "Scroll Lock") },
+    { WXK_NUMPAD_SPACE,     wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Space"),      wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Space") },
+    { WXK_NUMPAD_TAB,       wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Tab"),        wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Tab") },
+    { WXK_NUMPAD_ENTER,     wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Enter"),      wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Enter") },
+    { WXK_NUMPAD_HOME,      wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Home"),       wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Home") },
+    { WXK_NUMPAD_LEFT,      wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Left"),       wxTRANSLATE_IN_CONTEXT("keyboard key", "Num left") },
+    { WXK_NUMPAD_UP,        wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Up"),         wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Up") },
+    { WXK_NUMPAD_RIGHT,     wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Right"),      wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Right") },
+    { WXK_NUMPAD_DOWN,      wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Down"),       wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Down") },
+    { WXK_NUMPAD_PAGEUP,    wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_PageUp"),     wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Page Up") },
+    { WXK_NUMPAD_PAGEDOWN,  wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_PageDown"),   wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Page Down") },
+    { WXK_NUMPAD_PAGEUP,    wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Prior") },
+    { WXK_NUMPAD_PAGEDOWN,  wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Next") },
+    { WXK_NUMPAD_END,       wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_End"),        wxTRANSLATE_IN_CONTEXT("keyboard key", "Num End") },
+    { WXK_NUMPAD_BEGIN,     wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Begin"),      wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Begin") },
+    { WXK_NUMPAD_INSERT,    wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Insert"),     wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Insert") },
+    { WXK_NUMPAD_DELETE,    wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Delete"),     wxTRANSLATE_IN_CONTEXT("keyboard key", "Num Delete") },
+    { WXK_NUMPAD_EQUAL,     wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Equal"),      wxTRANSLATE_IN_CONTEXT("keyboard key", "Num =") },
+    { WXK_NUMPAD_MULTIPLY,  wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Multiply"),   wxTRANSLATE_IN_CONTEXT("keyboard key", "Num *") },
+    { WXK_NUMPAD_ADD,       wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Add"),        wxTRANSLATE_IN_CONTEXT("keyboard key", "Num +") },
+    { WXK_NUMPAD_SEPARATOR, wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Separator"),  wxTRANSLATE_IN_CONTEXT("keyboard key", "Num ,") },
+    { WXK_NUMPAD_SUBTRACT,  wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Subtract"),   wxTRANSLATE_IN_CONTEXT("keyboard key", "Num -") },
+    { WXK_NUMPAD_DECIMAL,   wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Decimal"),    wxTRANSLATE_IN_CONTEXT("keyboard key", "Num .") },
+    { WXK_NUMPAD_DIVIDE,    wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_Divide"),     wxTRANSLATE_IN_CONTEXT("keyboard key", "Num /") },
+    { WXK_WINDOWS_LEFT,     wxTRANSLATE_IN_CONTEXT("keyboard key", "Windows_Left") },
+    { WXK_WINDOWS_RIGHT,    wxTRANSLATE_IN_CONTEXT("keyboard key", "Windows_Right") },
+    { WXK_WINDOWS_MENU,     wxTRANSLATE_IN_CONTEXT("keyboard key", "Windows_Menu") },
+    { WXK_COMMAND,          wxTRANSLATE_IN_CONTEXT("keyboard key", "Command") },
 };
+
+wxGCC_WARNING_RESTORE(missing-field-initializers)
 
 // return true if the 2 strings refer to the same accel
 //
@@ -119,7 +122,7 @@ static inline bool CompareAccelString(const wxString& str, const char *accel)
 {
     return str.CmpNoCase(accel) == 0
 #if wxUSE_INTL
-            || str.CmpNoCase(wxGetTranslation(accel)) == 0
+            || str.CmpNoCase(wxGetTranslation(accel, wxString(), "keyboard key")) == 0
 #endif
             ;
 }
@@ -146,7 +149,7 @@ static int IsNumberedAccelKey(const wxString& str,
     {
         // this must be a mistake, chances that this is a valid name of another
         // key are vanishingly small
-        wxLogDebug(wxT("Invalid key string \"%s\""), str.c_str());
+        wxLogDebug(wxT("Invalid key string \"%s\""), str);
         return 0;
     }
 
@@ -177,16 +180,27 @@ wxAcceleratorEntry::ParseAccel(const wxString& text, int *flagsOut, int *keyOut)
     wxString current;
     for ( size_t n = (size_t)posTab; n < label.length(); n++ )
     {
-        if ( (label[n] == '+') || (label[n] == '-') )
+        bool skip = false;
+        if ( !skip && ( (label[n] == '+') || (label[n] == '-') ) )
         {
-            if ( CompareAccelString(current, wxTRANSLATE("ctrl")) )
+            if ( CompareAccelString(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "ctrl")) )
                 accelFlags |= wxACCEL_CTRL;
-            else if ( CompareAccelString(current, wxTRANSLATE("alt")) )
+            else if ( CompareAccelString(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "alt")) )
                 accelFlags |= wxACCEL_ALT;
-            else if ( CompareAccelString(current, wxTRANSLATE("shift")) )
+            else if ( CompareAccelString(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "shift")) )
                 accelFlags |= wxACCEL_SHIFT;
-            else if ( CompareAccelString(current, wxTRANSLATE("rawctrl")) )
+            else if ( CompareAccelString(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "rawctrl")) )
                 accelFlags |= wxACCEL_RAW_CTRL;
+            else if ( CompareAccelString(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "num ")) )
+            {
+                // This isn't really a modifier, but is part of the name of keys
+                // that have a =/- in them (e.g. num + and num -)
+                // So we want to skip the processing if we see it
+                skip = true;
+                current += label[n];
+
+                continue;
+            }
             else // not a recognized modifier name
             {
                 // we may have "Ctrl-+", for example, but we still want to
@@ -202,8 +216,7 @@ wxAcceleratorEntry::ParseAccel(const wxString& text, int *flagsOut, int *keyOut)
                 }
                 else
                 {
-                    wxLogDebug(wxT("Unknown accel modifier: '%s'"),
-                               current.c_str());
+                    wxLogDebug(wxT("Unknown accel modifier: '%s'"), current);
                 }
             }
 
@@ -211,7 +224,8 @@ wxAcceleratorEntry::ParseAccel(const wxString& text, int *flagsOut, int *keyOut)
         }
         else // not special character
         {
-            current += (wxChar) wxTolower(label[n]);
+            // Preserve case of the key (see comment below)
+            current += label[n];
         }
     }
 
@@ -227,22 +241,29 @@ wxAcceleratorEntry::ParseAccel(const wxString& text, int *flagsOut, int *keyOut)
             // it's just a letter
             keyCode = current[0U];
 
-            // if the key is used with any modifiers, make it an uppercase one
-            // because Ctrl-A and Ctrl-a are the same; but keep it as is if it's
-            // used alone as 'a' and 'A' are different
-            if ( accelFlags != wxACCEL_NORMAL )
-                keyCode = wxToupper(keyCode);
-            break;
+            // ...or maybe not. A translation may be single character too (e.g.
+            // Chinese), but if it's a Latin character, that's unlikely
+            if ( keyCode < 128 )
+            {
+                // if the key is used with any modifiers, make it an uppercase one
+                // because Ctrl-A and Ctrl-a are the same; but keep it as is if it's
+                // used alone as 'a' and 'A' are different
+                if ( accelFlags != wxACCEL_NORMAL )
+                    keyCode = wxToupper(keyCode);
+                break;
+            }
+            wxFALLTHROUGH;
 
         default:
-            keyCode = IsNumberedAccelKey(current, wxTRANSLATE("F"),
-                                         WXK_F1, 1, 12);
+            keyCode = IsNumberedAccelKey(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "F"),
+                                         WXK_F1, 1, 24);
             if ( !keyCode )
             {
                 for ( size_t n = 0; n < WXSIZEOF(wxKeyNames); n++ )
                 {
                     const wxKeyName& kn = wxKeyNames[n];
-                    if ( CompareAccelString(current, kn.name) )
+                    if ( CompareAccelString(current, kn.name)
+                         || ( kn.display_name && CompareAccelString(current, kn.display_name) ) )
                     {
                         keyCode = kn.code;
                         break;
@@ -251,16 +272,18 @@ wxAcceleratorEntry::ParseAccel(const wxString& text, int *flagsOut, int *keyOut)
             }
 
             if ( !keyCode )
-                keyCode = IsNumberedAccelKey(current, wxTRANSLATE("KP_"),
+                keyCode = IsNumberedAccelKey(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_F"),
+                                             WXK_NUMPAD_F1, 1, 4);
+            if ( !keyCode )
+                keyCode = IsNumberedAccelKey(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_"),
                                              WXK_NUMPAD0, 0, 9);
             if ( !keyCode )
-                keyCode = IsNumberedAccelKey(current, wxTRANSLATE("SPECIAL"),
+                keyCode = IsNumberedAccelKey(current, wxTRANSLATE_IN_CONTEXT("keyboard key", "SPECIAL"),
                                              WXK_SPECIAL1, 1, 20);
 
             if ( !keyCode )
             {
-                wxLogDebug(wxT("Unrecognized accel key '%s', accel string ignored."),
-                           current.c_str());
+                wxLogDebug(wxT("Unrecognized accel key '%s', accel string ignored."), current);
                 return false;
             }
     }
@@ -284,14 +307,14 @@ wxAcceleratorEntry *wxAcceleratorEntry::Create(const wxString& str)
     {
         // It's ok to pass strings not containing any accelerators at all to
         // this function, wxMenuItem code does it and we should just return
-        // NULL in this case.
-        return NULL;
+        // nullptr in this case.
+        return nullptr;
     }
 
     int flags,
         keyCode;
     if ( !ParseAccel(accelStr, &flags, &keyCode) )
-        return NULL;
+        return nullptr;
 
     return new wxAcceleratorEntry(flags, keyCode);
 }
@@ -306,7 +329,7 @@ namespace
 
 wxString PossiblyLocalize(const wxString& str, bool localize)
 {
-    return localize ? wxGetTranslation(str) : str;
+    return localize ? wxGetTranslation(str, wxString(), "keyboard key") : str;
 }
 
 }
@@ -317,26 +340,29 @@ wxString wxAcceleratorEntry::AsPossiblyLocalizedString(bool localized) const
 
     int flags = GetFlags();
     if ( flags & wxACCEL_ALT )
-        text += PossiblyLocalize(wxTRANSLATE("Alt+"), localized);
+        text += PossiblyLocalize(wxTRANSLATE_IN_CONTEXT("keyboard key", "Alt+"), localized);
     if ( flags & wxACCEL_CTRL )
-        text += PossiblyLocalize(wxTRANSLATE("Ctrl+"), localized);
+        text += PossiblyLocalize(wxTRANSLATE_IN_CONTEXT("keyboard key", "Ctrl+"), localized);
     if ( flags & wxACCEL_SHIFT )
-        text += PossiblyLocalize(wxTRANSLATE("Shift+"), localized);
-#if defined(__WXMAC__) || defined(__WXCOCOA__)
+        text += PossiblyLocalize(wxTRANSLATE_IN_CONTEXT("keyboard key", "Shift+"), localized);
+#if defined(__WXMAC__)
     if ( flags & wxACCEL_RAW_CTRL )
-        text += PossiblyLocalize(wxTRANSLATE("RawCtrl+"), localized);
+        text += PossiblyLocalize(wxTRANSLATE_IN_CONTEXT("keyboard key", "RawCtrl+"), localized);
 #endif
-    
+
     const int code = GetKeyCode();
 
-    if ( code >= WXK_F1 && code <= WXK_F12 )
-        text << PossiblyLocalize(wxTRANSLATE("F"), localized)
+    if ( code >= WXK_F1 && code <= WXK_F24 )
+        text << PossiblyLocalize(wxTRANSLATE_IN_CONTEXT("keyboard key", "F"), localized)
              << code - WXK_F1 + 1;
+    else if ( code >= WXK_NUMPAD_F1 && code <= WXK_NUMPAD_F4 )
+        text << PossiblyLocalize(wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_F"), localized)
+             << code - WXK_NUMPAD_F1 + 1;
     else if ( code >= WXK_NUMPAD0 && code <= WXK_NUMPAD9 )
-        text << PossiblyLocalize(wxTRANSLATE("KP_"), localized)
+        text << PossiblyLocalize(wxTRANSLATE_IN_CONTEXT("keyboard key", "KP_"), localized)
              << code - WXK_NUMPAD0;
     else if ( code >= WXK_SPECIAL1 && code <= WXK_SPECIAL20 )
-        text << PossiblyLocalize(wxTRANSLATE("SPECIAL"), localized)
+        text << PossiblyLocalize(wxTRANSLATE_IN_CONTEXT("keyboard key", "SPECIAL"), localized)
              << code - WXK_SPECIAL1 + 1;
     else // check the named keys
     {
@@ -346,7 +372,7 @@ wxString wxAcceleratorEntry::AsPossiblyLocalizedString(bool localized) const
             const wxKeyName& kn = wxKeyNames[n];
             if ( code == kn.code )
             {
-                text << PossiblyLocalize(kn.name, localized);
+                text << PossiblyLocalize(kn.display_name ? kn.display_name : kn.name, localized);
                 break;
             }
         }
@@ -354,13 +380,7 @@ wxString wxAcceleratorEntry::AsPossiblyLocalizedString(bool localized) const
         if ( n == WXSIZEOF(wxKeyNames) )
         {
             // must be a simple key
-            if (
-#if !wxUSE_UNICODE
-                 // we can't call wxIsalnum() for non-ASCII characters in ASCII
-                 // build as they're only defined for the ASCII range (or EOF)
-                 wxIsascii(code) &&
-#endif // ANSI
-                    wxIsprint(code) )
+            if ( wxIsprint(code) )
             {
                 text << (wxChar)code;
             }

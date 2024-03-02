@@ -11,6 +11,10 @@
     A wxScreenDC can be used to paint on the screen. This should normally be
     constructed as a temporary stack object; don't store a wxScreenDC object.
 
+    When using multiple monitors, wxScreenDC corresponds to the entire virtual
+    screen composed of all of them. Notice that coordinates on wxScreenDC can
+    be negative in this case, see wxDisplay::GetGeometry() for more.
+
     @library{wxcore}
     @category{dc}
 
@@ -76,6 +80,6 @@ public:
                  that this function allows the screen to be refreshed
                  afterwards, may be useful to some applications.
     */
-    static bool StartDrawingOnTop(wxRect* rect = NULL);
+    static bool StartDrawingOnTop(wxRect* rect = nullptr);
 };
 

@@ -8,9 +8,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_HTML && wxUSE_STREAMS
 
@@ -39,14 +36,14 @@ There is code for several default filters:
 
 */
 
-IMPLEMENT_ABSTRACT_CLASS(wxHtmlFilter, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxHtmlFilter, wxObject);
 
 //--------------------------------------------------------------------------------
 // wxHtmlFilterPlainText
 //          filter for text/plain or uknown
 //--------------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxHtmlFilterPlainText, wxHtmlFilter)
+wxIMPLEMENT_DYNAMIC_CLASS(wxHtmlFilterPlainText, wxHtmlFilter);
 
 bool wxHtmlFilterPlainText::CanRead(const wxFSFile& WXUNUSED(file)) const
 {
@@ -60,7 +57,7 @@ wxString wxHtmlFilterPlainText::ReadFile(const wxFSFile& file) const
     wxInputStream *s = file.GetStream();
     wxString doc, doc2;
 
-    if (s == NULL) return wxEmptyString;
+    if (s == nullptr) return wxEmptyString;
     ReadString(doc, s, wxConvISO8859_1);
 
     doc.Replace(wxT("&"), wxT("&amp;"), true);
@@ -81,14 +78,14 @@ wxString wxHtmlFilterPlainText::ReadFile(const wxFSFile& file) const
 
 class wxHtmlFilterImage : public wxHtmlFilter
 {
-    DECLARE_DYNAMIC_CLASS(wxHtmlFilterImage)
+    wxDECLARE_DYNAMIC_CLASS(wxHtmlFilterImage);
 
     public:
-        virtual bool CanRead(const wxFSFile& file) const;
-        virtual wxString ReadFile(const wxFSFile& file) const;
+        virtual bool CanRead(const wxFSFile& file) const override;
+        virtual wxString ReadFile(const wxFSFile& file) const override;
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxHtmlFilterImage, wxHtmlFilter)
+wxIMPLEMENT_DYNAMIC_CLASS(wxHtmlFilterImage, wxHtmlFilter);
 
 
 
@@ -114,7 +111,7 @@ wxString wxHtmlFilterImage::ReadFile(const wxFSFile& file) const
 //--------------------------------------------------------------------------------
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxHtmlFilterHTML, wxHtmlFilter)
+wxIMPLEMENT_DYNAMIC_CLASS(wxHtmlFilterHTML, wxHtmlFilter);
 
 bool wxHtmlFilterHTML::CanRead(const wxFSFile& file) const
 {
@@ -132,9 +129,9 @@ wxString wxHtmlFilterHTML::ReadFile(const wxFSFile& file) const
     wxInputStream *s = file.GetStream();
     wxString doc;
 
-    if (s == NULL)
+    if (s == nullptr)
     {
-        wxLogError(_("Cannot open HTML document: %s"), file.GetLocation().c_str());
+        wxLogError(_("Cannot open HTML document: %s"), file.GetLocation());
         return wxEmptyString;
     }
 
@@ -142,7 +139,6 @@ wxString wxHtmlFilterHTML::ReadFile(const wxFSFile& file) const
     //     either Content-Type header or <meta> tags. In ANSI mode, we don't
     //     do it as it is done by wxHtmlParser (for this reason, we add <meta>
     //     tag if we used Content-Type header).
-#if wxUSE_UNICODE
     int charsetPos;
     if ((charsetPos = file.GetMimeType().Find(wxT("; charset="))) != wxNOT_FOUND)
     {
@@ -166,17 +162,6 @@ wxString wxHtmlFilterHTML::ReadFile(const wxFSFile& file) const
             doc = wxString( buf, conv );
         }
     }
-#else // !wxUSE_UNICODE
-    ReadString(doc, s, wxConvLibc);
-    // add meta tag if we obtained this through http:
-    if (!file.GetMimeType().empty())
-    {
-        wxString hdr;
-        wxString mime = file.GetMimeType();
-        hdr.Printf(wxT("<meta http-equiv=\"Content-Type\" content=\"%s\">"), mime.c_str());
-        return hdr+doc;
-    }
-#endif
 
     return doc;
 }
@@ -188,18 +173,18 @@ wxString wxHtmlFilterHTML::ReadFile(const wxFSFile& file) const
 
 class wxHtmlFilterModule : public wxModule
 {
-    DECLARE_DYNAMIC_CLASS(wxHtmlFilterModule)
+    wxDECLARE_DYNAMIC_CLASS(wxHtmlFilterModule);
 
     public:
-        virtual bool OnInit()
+        virtual bool OnInit() override
         {
             wxHtmlWindow::AddFilter(new wxHtmlFilterHTML);
             wxHtmlWindow::AddFilter(new wxHtmlFilterImage);
             return true;
         }
-        virtual void OnExit() {}
+        virtual void OnExit() override {}
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxHtmlFilterModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxHtmlFilterModule, wxModule);
 
 #endif

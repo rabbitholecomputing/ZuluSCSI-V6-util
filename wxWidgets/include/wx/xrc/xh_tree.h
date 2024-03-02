@@ -16,12 +16,12 @@
 
 class WXDLLIMPEXP_XRC wxTreeCtrlXmlHandler : public wxXmlResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxTreeCtrlXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxTreeCtrlXmlHandler);
 
 public:
     wxTreeCtrlXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 };
 
 #endif // wxUSE_XRC && wxUSE_TREECTRL

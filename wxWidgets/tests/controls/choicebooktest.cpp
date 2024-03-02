@@ -10,9 +10,6 @@
 
 #if wxUSE_CHOICEBOOK
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"
@@ -27,16 +24,16 @@ class ChoicebookTestCase : public BookCtrlBaseTestCase, public CppUnit::TestCase
 public:
     ChoicebookTestCase() { }
 
-    virtual void setUp();
-    virtual void tearDown();
+    virtual void setUp() override;
+    virtual void tearDown() override;
 
 private:
-    virtual wxBookCtrlBase *GetBase() const { return m_choicebook; }
+    virtual wxBookCtrlBase *GetBase() const override { return m_choicebook; }
 
-    virtual wxEventType GetChangedEvent() const
+    virtual wxEventType GetChangedEvent() const override
     { return wxEVT_CHOICEBOOK_PAGE_CHANGED; }
 
-    virtual wxEventType GetChangingEvent() const
+    virtual wxEventType GetChangingEvent() const override
     { return wxEVT_CHOICEBOOK_PAGE_CHANGING; }
 
     CPPUNIT_TEST_SUITE( ChoicebookTestCase );
@@ -48,7 +45,7 @@ private:
 
     wxChoicebook *m_choicebook;
 
-    DECLARE_NO_COPY_CLASS(ChoicebookTestCase)
+    wxDECLARE_NO_COPY_CLASS(ChoicebookTestCase);
 };
 
 // register in the unnamed registry so that these tests are run by default

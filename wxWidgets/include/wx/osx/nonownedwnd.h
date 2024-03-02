@@ -2,7 +2,6 @@
 // Name:        wx/osx/nonownedwnd.h
 // Purpose:     declares wxNonOwnedWindow class
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     2008-03-24
 // Copyright:   (c) 2008 Stefan Csomor
 // Licence:     wxWindows licence
@@ -42,7 +41,7 @@ public:
                         const wxPoint& pos = wxDefaultPosition,
                         const wxSize& size = wxDefaultSize,
                         long style = 0,
-                        const wxString& name = wxPanelNameStr)
+                        const wxString& name = wxASCII_STR(wxPanelNameStr))
     {
         Init();
 
@@ -54,7 +53,7 @@ public:
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
-                const wxString& name = wxPanelNameStr);
+                const wxString& name = wxASCII_STR(wxPanelNameStr));
 
     bool Create(wxWindow *parent, WXWindow nativeWindow);
 
@@ -63,16 +62,16 @@ public:
     virtual void SubclassWin(WXWindow nativeWindow);
     virtual void UnsubclassWin();
 
-    virtual wxPoint GetClientAreaOrigin() const;
-    
+    virtual wxPoint GetClientAreaOrigin() const override;
+
     // implement base class pure virtuals
 
-    virtual bool SetTransparent(wxByte alpha);
-    virtual bool CanSetTransparent();
+    virtual bool SetTransparent(wxByte alpha) override;
+    virtual bool CanSetTransparent() override;
 
-    virtual bool SetBackgroundStyle(wxBackgroundStyle style);
+    virtual bool SetBackgroundStyle(wxBackgroundStyle style) override;
 
-    virtual void Update();
+    virtual void Update() override;
 
     WXWindow GetWXWindow() const ;
     static wxNonOwnedWindow* GetFromWXWindow( WXWindow win );
@@ -90,21 +89,21 @@ public:
     static void MacDelayedDeactivation(long timestamp);
     virtual void MacActivate( long timestamp , bool inIsActivating ) ;
 
-    virtual void SetWindowStyleFlag(long flags);
+    virtual void SetWindowStyleFlag(long flags) override;
 
-    virtual void Raise();
-    virtual void Lower();
-    virtual bool Show( bool show = true );
+    virtual void Raise() override;
+    virtual void Lower() override;
+    virtual bool Show( bool show = true ) override;
 
-    virtual void SetExtraStyle(long exStyle) ;
+    virtual void SetExtraStyle(long exStyle) override;
 
-    virtual bool SetBackgroundColour( const wxColour &colour );
+    virtual bool SetBackgroundColour( const wxColour &colour ) override;
 
     wxNonOwnedWindowImpl* GetNonOwnedPeer() const { return m_nowpeer; }
 
 #if wxOSX_USE_COCOA_OR_IPHONE
     // override the base class method to return an NSWindow instead of NSView
-    virtual void *OSXGetViewOrWindow() const;
+    virtual void *OSXGetViewOrWindow() const override;
 #endif // Cocoa
 
     // osx specific event handling common for all osx-ports
@@ -113,28 +112,32 @@ public:
     virtual void HandleResized( double timestampsec );
     virtual void HandleMoved( double timestampsec );
     virtual void HandleResizing( double timestampsec, wxRect* rect );
-    
+
+    void OSXHandleMiniaturize(double WXUNUSED(timestampsec), bool miniaturized);
+
+    void OSXSetIgnoreResizing(bool value) { m_ignoreResizing = value; }
+
     void WindowWasPainted();
 
-    virtual bool Destroy();
+    virtual bool Destroy() override;
 
 protected:
     // common part of all ctors
     void Init();
 
-    virtual void DoGetPosition( int *x, int *y ) const;
-    virtual void DoGetSize( int *width, int *height ) const;
-    virtual void DoMoveWindow(int x, int y, int width, int height);
-    virtual void DoGetClientSize(int *width, int *height) const;
+    virtual void DoGetPosition( int *x, int *y ) const override;
+    virtual void DoGetSize( int *width, int *height ) const override;
+    virtual void DoMoveWindow(int x, int y, int width, int height) override;
+    virtual void DoGetClientSize(int *width, int *height) const override;
 
     virtual bool OSXShowWithEffect(bool show,
                                    wxShowEffect effect,
-                                   unsigned timeout);
+                                   unsigned timeout) override;
 
-    virtual bool DoClearShape();
-    virtual bool DoSetRegionShape(const wxRegion& region);
+    virtual bool DoClearShape() override;
+    virtual bool DoSetRegionShape(const wxRegion& region) override;
 #if wxUSE_GRAPHICS_CONTEXT
-    virtual bool DoSetPathShape(const wxGraphicsPath& path);
+    virtual bool DoSetPathShape(const wxGraphicsPath& path) override;
 #endif // wxUSE_GRAPHICS_CONTEXT
 
     virtual void WillBeDestroyed();
@@ -147,11 +150,12 @@ protected:
 
 private :
     static clock_t s_lastFlush;
-    
+
     wxRegion m_shape;
 #if wxUSE_GRAPHICS_CONTEXT
     wxGraphicsPath m_shapePath;
 #endif // wxUSE_GRAPHICS_CONTEXT
+    bool m_ignoreResizing;
 };
 
 // list of all frames and modeless dialogs

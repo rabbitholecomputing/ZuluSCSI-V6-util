@@ -10,7 +10,7 @@
 #ifndef _WX_SIMPLEBOOK_H_
 #define _WX_SIMPLEBOOK_H_
 
-#include "wx/bookctrl.h"
+#include "wx/compositebookctrl.h"
 
 #if wxUSE_BOOKCTRL
 
@@ -22,7 +22,7 @@
 
 // NB: This class doesn't use DLL export declaration as it's fully inline.
 
-class wxSimplebook : public wxBookCtrlBase
+class wxSimplebook : public wxCompositeBookCtrlBase
 {
 public:
     wxSimplebook()
@@ -36,8 +36,8 @@ public:
                  const wxSize& size = wxDefaultSize,
                  long style = 0,
                  const wxString& name = wxEmptyString)
-        : wxBookCtrlBase(parent, winid, pos, size, style | wxBK_TOP, name)
     {
+        wxBookCtrlBase::Create(parent, winid, pos, size, style | wxBK_TOP, name);
         Init();
     }
 
@@ -95,7 +95,7 @@ public:
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = NO_IMAGE)
+                            int imageId = NO_IMAGE) override
     {
         if ( !wxBookCtrlBase::InsertPage(n, page, text, bSelect, imageId) )
             return false;
@@ -108,19 +108,19 @@ public:
         return true;
     }
 
-    virtual int SetSelection(size_t n)
+    virtual int SetSelection(size_t n) override
     {
         return DoSetSelection(n, SetSelection_SendEvent);
     }
 
-    virtual int ChangeSelection(size_t n)
+    virtual int ChangeSelection(size_t n) override
     {
         return DoSetSelection(n);
     }
 
     // Neither labels nor images are supported but we still store the labels
     // just in case the user code attaches some importance to them.
-    virtual bool SetPageText(size_t n, const wxString& strText)
+    virtual bool SetPageText(size_t n, const wxString& strText) override
     {
         wxCHECK_MSG( n < GetPageCount(), false, wxS("Invalid page") );
 
@@ -129,41 +129,50 @@ public:
         return true;
     }
 
-    virtual wxString GetPageText(size_t n) const
+    virtual wxString GetPageText(size_t n) const override
     {
         wxCHECK_MSG( n < GetPageCount(), wxString(), wxS("Invalid page") );
 
         return m_pageTexts[n];
     }
 
-    virtual bool SetPageImage(size_t WXUNUSED(n), int WXUNUSED(imageId))
+    virtual bool SetPageImage(size_t WXUNUSED(n), int WXUNUSED(imageId)) override
     {
         return false;
     }
 
-    virtual int GetPageImage(size_t WXUNUSED(n)) const
+    virtual int GetPageImage(size_t WXUNUSED(n)) const override
     {
         return NO_IMAGE;
     }
 
-protected:
-    virtual void UpdateSelectedPage(size_t newsel)
+    // Override some wxWindow methods too.
+    virtual void SetFocus() override
     {
-        m_selection = (int)newsel;
+        wxWindow* const page = GetCurrentPage();
+        if ( page )
+            page->SetFocus();
     }
 
-    virtual wxBookCtrlEvent* CreatePageChangingEvent() const
+protected:
+    virtual void UpdateSelectedPage(size_t WXUNUSED(newsel)) override
+    {
+        // Nothing to do here, but must be overridden to avoid the assert in
+        // the base class version.
+    }
+
+    virtual wxBookCtrlEvent* CreatePageChangingEvent() const override
     {
         return new wxBookCtrlEvent(wxEVT_BOOKCTRL_PAGE_CHANGING,
                                    GetId());
     }
 
-    virtual void MakeChangedEvent(wxBookCtrlEvent& event)
+    virtual void MakeChangedEvent(wxBookCtrlEvent& event) override
     {
         event.SetEventType(wxEVT_BOOKCTRL_PAGE_CHANGED);
     }
 
-    virtual wxWindow *DoRemovePage(size_t page)
+    virtual wxWindow *DoRemovePage(size_t page) override
     {
         wxWindow* const win = wxBookCtrlBase::DoRemovePage(page);
         if ( win )
@@ -176,19 +185,27 @@ protected:
         return win;
     }
 
-    virtual void DoSize()
+    virtual void DoSize() override
     {
         wxWindow* const page = GetCurrentPage();
         if ( page )
             page->SetSize(GetPageRect());
     }
 
-    virtual void DoShowPage(wxWindow* page, bool show)
+    virtual void DoShowPage(wxWindow* page, bool show) override
     {
         if ( show )
+        {
             page->ShowWithEffect(m_showEffect, m_showTimeout);
+
+            // Unlike simple Show(), ShowWithEffect() doesn't necessarily give
+            // focus to the window, but we do expect the new page to have focus.
+            page->SetFocus();
+        }
         else
+        {
             page->HideWithEffect(m_hideEffect, m_hideTimeout);
+        }
     }
 
 private:

@@ -11,35 +11,27 @@
 // ----------------------------------------------------------------------------
 
 // For compilers that support precompilation, includes "wx/wx.h"
-// and "wx/cppunit.h"
+// and "catch.hpp"
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
+// See PCH support documentation in 3rdparty/catch/docs/ci-and-misc.md
+#undef TWOBLUECUBES_SINGLE_INCLUDE_CATCH_HPP_INCLUDED
+#define CATCH_CONFIG_IMPL_ONLY
+#define CATCH_CONFIG_RUNNER
+#include <catch2/catch.hpp>
+
+// Also define our own global variables.
+namespace wxPrivate
+{
+std::string wxTheCurrentTestClass, wxTheCurrentTestMethod;
+}
 
 // for all others, include the necessary headers
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
 
-#include "wx/beforestd.h"
-#ifdef __VISUALC__
-    #pragma warning(disable:4100)
-#endif
-
-#include <cppunit/TestListener.h>
-#include <cppunit/Protector.h>
-#include <cppunit/Test.h>
-#include <cppunit/TestResult.h>
-#include <cppunit/TestFailure.h>
-#include <cppunit/TestResultCollector.h>
-
-#ifdef __VISUALC__
-    #pragma warning(default:4100)
-#endif
-#include "wx/afterstd.h"
-
+#include "wx/apptrait.h"
 #include "wx/cmdline.h"
 #include <exception>
 #include <iostream>
@@ -54,17 +46,16 @@
 
 #if wxUSE_GUI
     #include "testableframe.h"
-#endif
+
+#ifdef __WXGTK__
+    #include <glib.h>
+#endif // __WXGTK__
+#endif // wxUSE_GUI
 
 #include "wx/socket.h"
 #include "wx/evtloop.h"
 
 using namespace std;
-
-using CppUnit::Test;
-using CppUnit::TestSuite;
-using CppUnit::TestFactoryRegistry;
-
 
 // ----------------------------------------------------------------------------
 // helper classes
@@ -82,6 +73,11 @@ struct CrtAssertFailure
     wxDECLARE_NO_ASSIGN_CLASS(CrtAssertFailure);
 };
 
+CATCH_TRANSLATE_EXCEPTION(CrtAssertFailure& e)
+{
+    return "CRT assert failure: " + e.m_msg.ToStdString(wxConvUTF8);
+}
+
 #endif // wxUSE_VC_CRTDBG
 
 #if wxDEBUG_LEVEL
@@ -96,9 +92,10 @@ static wxString FormatAssertMessage(const wxString& file,
                                     const wxString& msg)
 {
     wxString str;
-    str << "wxWidgets assert: " << cond << " failed "
-           "at " << file << ":" << line << " in " << func
-        << " with message '" << msg << "'";
+    str << wxASCII_STR("wxWidgets assert: ") << cond
+        << wxASCII_STR(" failed at ") << file << wxASCII_STR(":") << line
+        << wxASCII_STR(" in ") << func << wxASCII_STR(" with message '")
+        << msg << wxASCII_STR("'");
     return str;
 }
 
@@ -120,21 +117,27 @@ static void TestAssertHandler(const wxString& file,
     {
         // Exceptions thrown from worker threads are not caught currently and
         // so we'd just die without any useful information -- abort instead.
-        abortReason << assertMessage << "in a worker thread.";
+        abortReason << assertMessage << wxASCII_STR(" in a worker thread.");
     }
+#if wxCHECK_CXX_STD(201703L)
+    else if ( uncaught_exceptions() )
+#else
     else if ( uncaught_exception() )
+#endif
     {
         // Throwing while already handling an exception would result in
         // terminate() being called and we wouldn't get any useful information
         // about why the test failed then.
         if ( s_lastAssertMessage.empty() )
         {
-            abortReason << assertMessage << "while handling an exception";
+            abortReason << assertMessage
+                        << wxASCII_STR("while handling an exception");
         }
         else // In this case the exception is due to a previous assert.
         {
-            abortReason << s_lastAssertMessage << "\n  and another "
-                        << assertMessage << " while handling it.";
+            abortReason << s_lastAssertMessage
+                        << wxASCII_STR("\n  and another ") << assertMessage
+                        << wxASCII_STR(" while handling it.");
         }
     }
     else // Can "safely" throw from here.
@@ -147,141 +150,101 @@ static void TestAssertHandler(const wxString& file,
         throw TestAssertFailure(file, line, func, cond, msg);
     }
 
+#if wxUSE_STACKWALKER
+    const wxString& stackTrace = wxApp::GetValidTraits().GetAssertStackTrace();
+    if ( !stackTrace.empty() )
+        abortReason << wxASCII_STR("\n\nAssert call stack:\n") << stackTrace;
+#endif // wxUSE_STACKWALKER
+
     wxFputs(abortReason, stderr);
     fflush(stderr);
     _exit(-1);
 }
 
-#endif // wxDEBUG_LEVEL
-
-// this function should only be called from a catch clause
-static string GetExceptionMessage()
+CATCH_TRANSLATE_EXCEPTION(TestAssertFailure& e)
 {
-    wxString msg;
+    wxString desc = e.m_msg;
+    if ( desc.empty() )
+        desc.Printf(wxASCII_STR("Condition \"%s\" failed"), e.m_cond);
 
-    try
-    {
-        throw;
-    }
-#if wxDEBUG_LEVEL
-    catch ( TestAssertFailure& )
-    {
-        msg = s_lastAssertMessage;
-        s_lastAssertMessage.clear();
-    }
-#endif // wxDEBUG_LEVEL
-#ifdef wxUSE_VC_CRTDBG
-    catch ( CrtAssertFailure& e )
-    {
-        msg << "CRT assert failure: " << e.m_msg;
-    }
-#endif // wxUSE_VC_CRTDBG
-    catch ( std::exception& e )
-    {
-        msg << "std::exception: " << e.what();
-    }
-    catch ( ... )
-    {
-        msg = "Unknown exception caught.";
-    }
+    desc += wxString::Format(wxASCII_STR(" in %s() at %s:%d"), e.m_func, e.m_file, e.m_line);
 
-    return string(msg.mb_str());
+    return desc.ToStdString(wxConvUTF8);
 }
 
-// Protector adding handling of wx-specific (this includes MSVC debug CRT in
-// this context) exceptions
-class wxUnitTestProtector : public CppUnit::Protector
+#endif // wxDEBUG_LEVEL
+
+#if wxUSE_LOG
+
+// Custom log target used while running the tests.
+class TestLogger : public wxLog
 {
 public:
-    virtual bool protect(const CppUnit::Functor &functor,
-                         const CppUnit::ProtectorContext& context)
+    TestLogger()
     {
-        try
-        {
-            return functor();
-        }
-        catch ( std::exception& )
-        {
-            // cppunit deals with the standard exceptions itself, let it do as
-            // it output more details (especially for std::exception-derived
-            // CppUnit::Exception) than we do
-            throw;
-        }
-        catch ( ... )
-        {
-            reportError(context, CppUnit::Message("Uncaught exception",
-                                                  GetExceptionMessage()));
-        }
-
-        return false;
+        // Use standard time-stamp instead of the locale-specific one and show
+        // milliseconds too.
+        wxLog::SetTimestamp("%Y-%m-%d %H:%M:%S.%l");
     }
+
+    // This is used by TestLogEnabler to enable logging all messages.
+    static int ms_enableCount;
+
+protected:
+    virtual void DoLogRecord(wxLogLevel level,
+                             const wxString& msg,
+                             const wxLogRecordInfo& info) override
+    {
+        // If logging was explicitly enabled, show everything on the console.
+        //
+        // Otherwise we only show trace messages as they are not given by
+        // default and can be only activated by setting WXTRACE.
+        if ( ms_enableCount || level == wxLOG_Trace )
+        {
+            wxString ts;
+            TimeStampMS(&ts, info.timestampMS);
+
+            const wxString levels[] =
+            {
+                "Fatal", "Error", "Warning",
+                "Message", "Status", "Info",
+                "Debug", "Trace", "Progress"
+            };
+            wxString prefix;
+            if ( level < WXSIZEOF(levels) )
+                prefix = levels[level];
+            else
+                prefix.Printf("Level %d", level);
+
+            m_out.Output(wxString::Format("[%s] %s: %s", ts, prefix, msg));
+        }
+    }
+
+    wxMessageOutputStderr m_out;
 };
 
-// Displays the test name before starting to execute it: this helps with
-// diagnosing where exactly does a test crash or hang when/if it does.
-class DetailListener : public CppUnit::TestListener
+// By default, normal logging is disabled as it would interfere with the normal
+// test output.
+int TestLogger::ms_enableCount = 0;
+
+TestLogEnabler::TestLogEnabler()
 {
-public:
-    DetailListener(bool doTiming = false):
-        CppUnit::TestListener(),
-        m_timing(doTiming)
-    {
-    }
+    TestLogger::ms_enableCount++;
+}
 
-    virtual void startTest(CppUnit::Test *test)
-    {
-        printf("  %-60s  ", test->getName().c_str());
-        m_result = RESULT_OK;
-        m_watch.Start();
-    }
+TestLogEnabler::~TestLogEnabler()
+{
+    TestLogger::ms_enableCount--;
+}
 
-    virtual void addFailure(const CppUnit::TestFailure& failure)
-    {
-        m_result = failure.isError() ? RESULT_ERROR : RESULT_FAIL;
-    }
-
-    virtual void endTest(CppUnit::Test * WXUNUSED(test))
-    {
-        m_watch.Pause();
-        printf("%s", GetResultStr(m_result));
-        if (m_timing)
-            printf("  %6ld ms", m_watch.Time());
-        printf("\n");
-    }
-
-protected :
-    enum ResultType
-    {
-        RESULT_OK = 0,
-        RESULT_FAIL,
-        RESULT_ERROR,
-        RESULT_MAX
-    };
-
-    const char* GetResultStr(ResultType type) const
-    {
-        static const char *resultTypeNames[] =
-        {
-            "  OK",
-            "FAIL",
-            " ERR"
-        };
-
-        wxCOMPILE_TIME_ASSERT( WXSIZEOF(resultTypeNames) == RESULT_MAX,
-                               ResultTypeNamesMismatch );
-
-        return resultTypeNames[type];
-    }
-
-    bool m_timing;
-    wxStopWatch m_watch;
-    ResultType m_result;
-};
+#endif // wxUSE_LOG
 
 #if wxUSE_GUI
     typedef wxApp TestAppBase;
+    typedef wxGUIAppTraits TestAppTraitsBase;
 #else
     typedef wxAppConsole TestAppBase;
+    typedef wxConsoleAppTraits TestAppTraitsBase;
 #endif
 
 // The application class
@@ -292,14 +255,52 @@ public:
     TestApp();
 
     // standard overrides
-    virtual void OnInitCmdLine(wxCmdLineParser& parser);
-    virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
-    virtual bool OnInit();
-    virtual int  OnExit();
+    virtual bool OnInit() override;
+    virtual int  OnExit() override;
+
+#ifdef __WIN32__
+    virtual wxAppTraits *CreateTraits() override
+    {
+        // Define a new class just to customize CanUseStderr() behaviour.
+        class TestAppTraits : public TestAppTraitsBase
+        {
+        public:
+            // We want to always use stderr, tests are also run unattended and
+            // in this case we really don't want to show any message boxes, as
+            // wxMessageOutputBest, used e.g. from the default implementation
+            // of wxApp::OnUnhandledException(), would do by default.
+            virtual bool CanUseStderr() override { return true; }
+
+            // Overriding CanUseStderr() is not enough, we also need to
+            // override this one to avoid returning false from it.
+            virtual bool WriteToStderr(const wxString& text) override
+            {
+                wxFputs(text, stderr);
+                fflush(stderr);
+
+                // Intentionally ignore any errors, we really don't want to
+                // show any message boxes in any case.
+                return true;
+            }
+        };
+
+        return new TestAppTraits;
+    }
+#endif // __WIN32__
+
+    // Also override this method to avoid showing any dialogs from here -- and
+    // show some details about the exception along the way.
+    virtual bool OnExceptionInMainLoop() override
+    {
+        wxFprintf(stderr, wxASCII_STR("Unhandled exception in the main loop: %s\n"),
+                  wxASCII_STR(Catch::translateActiveException().c_str()));
+
+        throw;
+    }
 
     // used by events propagation test
-    virtual int FilterEvent(wxEvent& event);
-    virtual bool ProcessEvent(wxEvent& event);
+    virtual int FilterEvent(wxEvent& event) override;
+    virtual bool ProcessEvent(wxEvent& event) override;
 
     void SetFilterEventFunc(FilterEventFunc f) { m_filterEventFunc = f; }
     void SetProcessEventFunc(ProcessEventFunc f) { m_processEventFunc = f; }
@@ -336,48 +337,70 @@ public:
 
         event.Skip();
     }
-#else // !wxUSE_GUI
-    virtual int OnRun()
+
+    virtual int OnRun() override
     {
-        m_exitcode = RunTests();
+        if ( !IsGUIEnabled() )
+            return 0;
+
+        if ( TestAppBase::OnRun() != 0 )
+            m_exitcode = EXIT_FAILURE;
+
         return m_exitcode;
+    }
+#else // !wxUSE_GUI
+    virtual int OnRun() override
+    {
+        return RunTests();
     }
 #endif // wxUSE_GUI/!wxUSE_GUI
 
-private:
-    void List(Test *test, const string& parent = "") const;
-
-    // call List() if m_list or runner.addTest() otherwise
-    void AddTest(CppUnit::TestRunner& runner, Test *test)
+    // Hack to test that GUI applications not using GUI at all work: this was
+    // broken in the past (see #23981), so now the test suite checks that
+    // running this test with WX_TEST_DISABLE_GUI works.
+#if wxUSE_GUI
+    bool IsGUIEnabled() const
     {
-        if (m_list)
-            List(test);
-        else
-            runner.addTest(test);
+        return !wxGetEnv(wxASCII_STR("WX_TEST_DISABLE_GUI"), nullptr);
     }
 
+    virtual bool Initialize(int& argcIn, wxChar **argvIn) override
+    {
+        return IsGUIEnabled() ? wxApp::Initialize(argcIn, argvIn)
+                              : wxAppConsole::Initialize(argcIn, argvIn);
+    }
+
+    virtual bool OnInitGui() override
+    {
+        return !IsGUIEnabled() || wxApp::OnInitGui();
+    }
+
+    virtual void CleanUp() override
+    {
+        if ( IsGUIEnabled() )
+            wxApp::CleanUp();
+        else
+            wxAppConsole::CleanUp();
+    }
+#endif // wxUSE_GUI
+
+private:
     int RunTests();
 
     // flag telling us whether we should run tests from our EVT_IDLE handler
     bool m_runTests;
 
-    // command lines options/parameters
-    bool m_list;
-    bool m_longlist;
-    bool m_detail;
-    bool m_timing;
-    wxArrayString m_registries;
-    wxLocale *m_locale;
-
     // event handling hooks
     FilterEventFunc m_filterEventFunc;
     ProcessEventFunc m_processEventFunc;
 
+#if wxUSE_GUI
     // the program exit code
     int m_exitcode;
+#endif // wxUSE_GUI
 };
 
-IMPLEMENT_APP_NO_MAIN(TestApp)
+wxIMPLEMENT_APP_NO_MAIN(TestApp);
 
 
 // ----------------------------------------------------------------------------
@@ -410,16 +433,7 @@ int main(int argc, char **argv)
     _CrtSetReportHook(TestCrtReportHook);
 #endif // wxUSE_VC_CRTDBG
 
-    try
-    {
-        return wxEntry(argc, argv);
-    }
-    catch ( ... )
-    {
-        cerr << "\n" << GetExceptionMessage() << endl;
-    }
-
-    return -1;
+    return wxEntry(argc, argv);
 }
 
 extern void SetFilterEventFunc(FilterEventFunc func)
@@ -432,27 +446,36 @@ extern void SetProcessEventFunc(ProcessEventFunc func)
     wxGetApp().SetProcessEventFunc(func);
 }
 
-extern bool IsNetworkAvailable()
+static bool DoCheckConnection()
 {
     // NOTE: we could use wxDialUpManager here if it was in wxNet; since it's in
     //       wxCore we use a simple rough test:
-    
-    wxSocketBase::Initialize();
-    
+
+    wxSocketInitializer socketInit;
+
     wxIPV4address addr;
-    if (!addr.Hostname("www.google.com") || !addr.Service("www"))
-    {
-        wxSocketBase::Shutdown();
+    if (!addr.Hostname(0xadfe5c16) || !addr.Service(wxASCII_STR("www")))
         return false;
-    }
+
+    const char* const
+        HTTP_GET = "GET / HTTP /1.1\r\nHost: www.wxwidgets.org\r\n\r\n";
 
     wxSocketClient sock;
     sock.SetTimeout(10);    // 10 secs
-    bool online = sock.Connect(addr);
-    
-    wxSocketBase::Shutdown();
-    
+    bool online = sock.Connect(addr) &&
+                    (sock.Write(HTTP_GET, strlen(HTTP_GET)), sock.WaitForRead(1));
+
     return online;
+}
+
+extern bool IsNetworkAvailable()
+{
+    static int s_isNetworkAvailable = -1;
+
+    if ( s_isNetworkAvailable == -1 )
+        s_isNetworkAvailable = DoCheckConnection();
+
+    return s_isNetworkAvailable == 1;
 }
 
 extern bool IsAutomaticTest()
@@ -460,157 +483,215 @@ extern bool IsAutomaticTest()
     static int s_isAutomatic = -1;
     if ( s_isAutomatic == -1 )
     {
-        // Allow setting an environment variable to emulate buildslave user for
-        // testing.
-        wxString username;
-        if ( !wxGetEnv("WX_TEST_USER", &username) )
-            username = wxGetUserId();
-
-        username.MakeLower();
-        s_isAutomatic = username.Matches("buildslave*") ||
-                            username.Matches("sandbox*");
+        s_isAutomatic = wxGetEnv(wxASCII_STR("GITHUB_ACTIONS"), nullptr) ||
+                            wxGetEnv(wxASCII_STR("APPVEYOR"), nullptr);
     }
 
     return s_isAutomatic == 1;
 }
 
-// helper of RunTests(): gets the test with the given name, returning NULL (and
-// not an empty test suite) if there is no such test
-static Test *GetTestByName(const wxString& name)
+extern bool IsRunningUnderXVFB()
 {
-    Test *
-      test = TestFactoryRegistry::getRegistry(string(name.mb_str())).makeTest();
-    if ( test )
+    static int s_isRunningUnderXVFB = -1;
+    if ( s_isRunningUnderXVFB == -1 )
     {
-        TestSuite * const suite = dynamic_cast<TestSuite *>(test);
-        if ( !suite || !suite->countTestCases() )
+        wxString value;
+        s_isRunningUnderXVFB = wxGetEnv(wxASCII_STR("wxUSE_XVFB"), &value) && value == wxASCII_STR("1");
+    }
+
+    return s_isRunningUnderXVFB == 1;
+}
+
+#if wxUSE_GUI
+
+bool EnableUITests()
+{
+    static int s_enabled = -1;
+    if ( s_enabled == -1 )
+    {
+        // Allow explicitly configuring this via an environment variable under
+        // all platforms.
+        wxString enabled;
+        if ( wxGetEnv(wxASCII_STR("WX_UI_TESTS"), &enabled) )
         {
-            // it's a bogus test, don't use it
-            delete test;
-            test = NULL;
+            if ( enabled == wxASCII_STR("1") )
+                s_enabled = 1;
+            else if ( enabled == wxASCII_STR("0") )
+                s_enabled = 0;
+            else
+                wxFprintf(stderr, wxASCII_STR("Unknown \"WX_UI_TESTS\" value \"%s\" ignored.\n"), enabled);
+        }
+
+        if ( s_enabled == -1 )
+        {
+#if defined(__WXMSW__) || defined(__WXGTK__) || defined(__WXQT__)
+            s_enabled = 1;
+#else // !(__WXMSW__ || __WXGTK__ || __WXQT__)
+            s_enabled = 0;
+#endif // (__WXMSW__ || __WXGTK__ || __WXQT__)
         }
     }
 
-    return test;
+    return s_enabled == 1;
 }
 
+void DeleteTestWindow(wxWindow* win)
+{
+    if ( !win )
+        return;
+
+    wxWindow* const capture = wxWindow::GetCapture();
+    if ( capture )
+    {
+        if ( capture == win ||
+                capture->GetMainWindowOfCompositeControl() == win )
+            capture->ReleaseMouse();
+    }
+
+    delete win;
+}
+
+#ifdef __WXGTK__
+
+#ifdef GDK_WINDOWING_X11
+
+#include "X11/Xlib.h"
+
+extern "C"
+int wxTestX11ErrorHandler(Display*, XErrorEvent*)
+{
+    fprintf(stderr, "\n*** X11 error while running %s(): ",
+            wxGetCurrentTestName().c_str());
+    return 0;
+}
+
+#endif // GDK_WINDOWING_X11
+
+extern "C"
+void
+wxTestGLogHandler(const gchar* domain,
+                  GLogLevelFlags level,
+                  const gchar* message,
+                  gpointer data)
+{
+    // Check if debug messages in this domain will be logged.
+    if ( level == G_LOG_LEVEL_DEBUG )
+    {
+        static const char* const allowed = getenv("G_MESSAGES_DEBUG");
+
+        // By default debug messages are dropped, but if G_MESSAGES_DEBUG is
+        // defined, they're logged for the domains specified in it and if it
+        // has the special value "all", then all debug messages are shown.
+        //
+        // Note that the check here can result in false positives, e.g. domain
+        // "foo" would pass it even if G_MESSAGES_DEBUG only contains "foobar",
+        // but such cases don't seem to be important enough to bother
+        // accounting for them.
+        if ( !allowed ||
+                (strcmp(allowed, "all") != 0 && !strstr(allowed, domain)) )
+        {
+            return;
+        }
+    }
+
+    fprintf(stderr, "\n*** GTK log message while running %s(): ",
+            wxGetCurrentTestName().c_str());
+
+    g_log_default_handler(domain, level, message, data);
+}
+
+#endif // __WXGTK__
+
+#endif // wxUSE_GUI
 
 // ----------------------------------------------------------------------------
 // TestApp
 // ----------------------------------------------------------------------------
 
 TestApp::TestApp()
-  : m_list(false),
-    m_longlist(false)
 {
     m_runTests = true;
 
-    m_filterEventFunc = NULL;
-    m_processEventFunc = NULL;
+    m_filterEventFunc = nullptr;
+    m_processEventFunc = nullptr;
 
-    m_locale = NULL;
-
+#if wxUSE_GUI
     m_exitcode = EXIT_SUCCESS;
+#endif // wxUSE_GUI
 }
 
 // Init
 //
 bool TestApp::OnInit()
 {
-    if ( !TestAppBase::OnInit() )
-        return false;
+#if wxUSE_GUI
+    if ( !IsGUIEnabled() )
+    {
+        wxFputs(wxASCII_STR("Not running tests because GUI is disabled.\n"), stderr);
+        return true;
+    }
+#endif // wxUSE_GUI
 
+    // Hack: don't call TestAppBase::OnInit() to let CATCH handle command line.
+
+    // Output some important information about the test environment.
 #if wxUSE_GUI
     cout << "Test program for wxWidgets GUI features\n"
 #else
     cout << "Test program for wxWidgets non-GUI features\n"
 #endif
          << "build: " << WX_BUILD_OPTIONS_SIGNATURE << "\n"
-         << "running under " << wxGetOsDescription()
-         << " as " << wxGetUserId() << std::endl;
+         << "compiled using "
+#if defined(__clang__)
+         << "clang " << __clang_major__ << "." << __clang_minor__ << "." << __clang_patchlevel__
+#elif defined(__INTEL_COMPILER)
+         << "icc " << __INTEL_COMPILER
+#elif defined(__GNUG__)
+         << "gcc " << __GNUC__ << "." << __GNUC_MINOR__
+#elif defined(_MSC_VER)
+         << "msvc " << _MSC_VER
+    #if defined(_MSC_FULL_VER)
+                                << " (full: " << _MSC_FULL_VER << ")"
+    #endif
+#else
+         << "unidentified compiler"
+#endif
+         << "\n"
+         << "running under " << wxGetOsDescription();
 
-    if ( m_detail )
-    {
-        // Output some important information about the test environment.
-        cout << "Running under " << wxGetOsDescription() << ", "
-                "locale is " << setlocale(LC_ALL, NULL) << std::endl;
-    }
+#ifdef __WXMSW__
+    wxVersionInfo verWine;
+    if ( wxIsRunningUnderWine(&verWine) )
+        cout << " emulated by " << verWine.GetVersionString();
+#endif // __WXMSW__
+
+    cout << " as " << wxGetUserId()
+         << std::endl;
+
+    // Optionally allow executing the tests in the locale specified by the
+    // standard environment variable, this is especially useful to use UTF-8
+    // for all tests by just setting WX_TEST_LOCALE=C.
+    wxString testLoc;
+    if ( wxGetEnv(wxASCII_STR("WX_TEST_LOCALE"), &testLoc) )
+        wxSetlocale(LC_ALL, testLoc);
 
 #if wxUSE_GUI
-    // create a hidden parent window to be used as parent for the GUI controls
-    wxTestableFrame* frame = new wxTestableFrame();
-    frame->Show();
+    // create a parent window to be used as parent for the GUI controls
+    new wxTestableFrame();
 
     Connect(wxEVT_IDLE, wxIdleEventHandler(TestApp::OnIdle));
+
+#ifdef __WXGTK__
+    g_log_set_default_handler(wxTestGLogHandler, nullptr);
+#endif // __WXGTK__
+
+#ifdef GDK_WINDOWING_X11
+    XSetErrorHandler(wxTestX11ErrorHandler);
+#endif // GDK_WINDOWING_X11
+
 #endif // wxUSE_GUI
 
     return true;
-}
-
-// The table of command line options
-//
-void TestApp::OnInitCmdLine(wxCmdLineParser& parser)
-{
-    TestAppBase::OnInitCmdLine(parser);
-
-    static const wxCmdLineEntryDesc cmdLineDesc[] = {
-        { wxCMD_LINE_SWITCH, "l", "list",
-            "list the test suites, do not run them",
-            wxCMD_LINE_VAL_NONE, 0 },
-        { wxCMD_LINE_SWITCH, "L", "longlist",
-            "list the test cases, do not run them",
-            wxCMD_LINE_VAL_NONE, 0 },
-        { wxCMD_LINE_SWITCH, "d", "detail",
-            "print the test case names, run them",
-            wxCMD_LINE_VAL_NONE, 0 },
-        { wxCMD_LINE_SWITCH, "t", "timing",
-            "print names and measure running time of individual test, run them",
-            wxCMD_LINE_VAL_NONE, 0 },
-        { wxCMD_LINE_OPTION, "", "locale",
-            "locale to use when running the program",
-            wxCMD_LINE_VAL_STRING, 0 },
-        { wxCMD_LINE_PARAM, NULL, NULL, "REGISTRY", wxCMD_LINE_VAL_STRING,
-            wxCMD_LINE_PARAM_OPTIONAL | wxCMD_LINE_PARAM_MULTIPLE },
-        wxCMD_LINE_DESC_END
-    };
-
-    parser.SetDesc(cmdLineDesc);
-}
-
-// Handle command line options
-//
-bool TestApp::OnCmdLineParsed(wxCmdLineParser& parser)
-{
-    if (parser.GetParamCount())
-    {
-        for (size_t i = 0; i < parser.GetParamCount(); i++)
-            m_registries.push_back(parser.GetParam(i));
-    }
-
-    m_longlist = parser.Found("longlist");
-    m_list = m_longlist || parser.Found("list");
-    m_timing = parser.Found("timing");
-    m_detail = !m_timing && parser.Found("detail");
-
-    wxString loc;
-    if ( parser.Found("locale", &loc) )
-    {
-        const wxLanguageInfo * const info = wxLocale::FindLanguageInfo(loc);
-        if ( !info )
-        {
-            cerr << "Locale \"" << string(loc.mb_str()) << "\" is unknown.\n";
-            return false;
-        }
-
-        m_locale = new wxLocale(info->Language);
-        if ( !m_locale->IsOk() )
-        {
-            cerr << "Using locale \"" << string(loc.mb_str()) << "\" failed.\n";
-            return false;
-        }
-    }
-
-    return TestAppBase::OnCmdLineParsed(parser);
 }
 
 // Event handling
@@ -635,124 +716,23 @@ bool TestApp::ProcessEvent(wxEvent& event)
 int TestApp::RunTests()
 {
 #if wxUSE_LOG
-    // Switch off logging unless --verbose
-    bool verbose = wxLog::GetVerbose();
-    wxLog::EnableLogging(verbose);
-#else
-    bool verbose = false;
+    delete wxLog::SetActiveTarget(new TestLogger);
 #endif
 
-    CppUnit::TextTestRunner runner;
-
-    if ( m_registries.empty() )
-    {
-        // run or list all tests which use the CPPUNIT_TEST_SUITE_REGISTRATION() macro
-        // (i.e. those registered in the "All tests" registry); if there are other
-        // tests not registered with the CPPUNIT_TEST_SUITE_REGISTRATION() macro
-        // then they won't be listed/run!
-        AddTest(runner, TestFactoryRegistry::getRegistry().makeTest());
-
-        if (m_list)
-        {
-            cout << "\nNote that the list above is not complete as it doesn't include the \n";
-            cout << "tests disabled by default.\n";
-        }
-    }
-    else // run only the selected tests
-    {
-        for (size_t i = 0; i < m_registries.size(); i++)
-        {
-            const wxString reg = m_registries[i];
-            Test *test = GetTestByName(reg);
-
-            if ( !test && !reg.EndsWith("TestCase") )
-            {
-                test = GetTestByName(reg + "TestCase");
-            }
-
-            if ( !test )
-            {
-                cerr << "No such test suite: " << string(reg.mb_str()) << endl;
-                return 2;
-            }
-
-            AddTest(runner, test);
-        }
-    }
-
-    if ( m_list )
-        return EXIT_SUCCESS;
-
-    runner.setOutputter(new CppUnit::CompilerOutputter(&runner.result(), cout));
-
-    // there is a bug
-    // (http://sf.net/tracker/index.php?func=detail&aid=1649369&group_id=11795&atid=111795)
-    // in some versions of cppunit: they write progress dots to cout (and not
-    // cerr) and don't flush it so all the dots appear at once at the end which
-    // is not very useful so unbuffer cout to work around this
-    cout.setf(ios::unitbuf);
-
-    // add detail listener if needed
-    DetailListener detailListener(m_timing);
-    if ( m_detail || m_timing )
-        runner.eventManager().addListener(&detailListener);
-
-    // finally ensure that we report our own exceptions nicely instead of
-    // giving "uncaught exception of unknown type" messages
-    runner.eventManager().pushProtector(new wxUnitTestProtector);
-
-    bool printProgress = !(verbose || m_detail || m_timing);
-    runner.run("", false, true, printProgress);
-
-    return runner.result().testFailures() == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+    // Cast is needed under MSW where Catch also provides an overload taking
+    // wchar_t, but as it simply converts arguments to char internally anyhow,
+    // we can just as well always use the char version.
+    return Catch::Session().run(argc, static_cast<char**>(argv));
 }
 
 int TestApp::OnExit()
 {
-    delete m_locale;
-
 #if wxUSE_GUI
+    if ( !IsGUIEnabled() )
+        return wxAppConsole::OnExit();
+
     delete GetTopWindow();
 #endif // wxUSE_GUI
 
-    return m_exitcode;
-}
-
-// List the tests
-//
-void TestApp::List(Test *test, const string& parent /*=""*/) const
-{
-    TestSuite *suite = dynamic_cast<TestSuite*>(test);
-    string name;
-
-    if (suite) {
-        // take the last component of the name and append to the parent
-        name = test->getName();
-        string::size_type i = name.find_last_of(".:");
-        if (i != string::npos)
-            name = name.substr(i + 1);
-        name = parent + "." + name;
-
-        // drop the 1st component from the display and indent
-        if (parent != "") {
-            string::size_type j = i = name.find('.', 1);
-            while ((j = name.find('.', j + 1)) != string::npos)
-                cout << "  ";
-            cout << "  " << name.substr(i + 1) << "\n";
-        }
-
-        typedef vector<Test*> Tests;
-        typedef Tests::const_iterator Iter;
-
-        const Tests& tests = suite->getTests();
-
-        for (Iter it = tests.begin(); it != tests.end(); ++it)
-            List(*it, name);
-    }
-    else if (m_longlist) {
-        string::size_type i = 0;
-        while ((i = parent.find('.', i + 1)) != string::npos)
-            cout << "  ";
-        cout << "  " << test->getName() << "\n";
-    }
+    return TestAppBase::OnExit();
 }

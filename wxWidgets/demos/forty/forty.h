@@ -2,7 +2,6 @@
 // Name:        forty.h
 // Purpose:     Forty Thieves patience game
 // Author:      Chris Breeze
-// Modified by:
 // Created:     21/07/97
 // Copyright:   (c) 1993-1998 Chris Breeze
 // Licence:     wxWindows licence
@@ -17,7 +16,7 @@ class FortyApp: public wxApp
 public:
     FortyApp(){}
     virtual ~FortyApp();
-    bool OnInit();
+    bool OnInit() override;
 
     static const wxColour& BackgroundColour();
     static const wxColour& TextColour();
@@ -31,14 +30,14 @@ private:
     wxString m_helpFile;
 };
 
-DECLARE_APP(FortyApp)
+wxDECLARE_APP(FortyApp);
 
 class FortyCanvas;
 class FortyFrame: public wxFrame
 {
 public:
     FortyFrame(wxFrame* frame, const wxString& title, const wxPoint& pos, const wxSize& size, bool largecards);
-    virtual ~FortyFrame(){};
+    virtual ~FortyFrame(){}
 
     void OnCloseWindow(wxCloseEvent& event);
 
@@ -56,7 +55,7 @@ public:
 
     FortyCanvas* GetCanvas() { return m_canvas; }
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
 private:
     enum MenuCommands {

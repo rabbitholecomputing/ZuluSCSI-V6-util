@@ -19,37 +19,34 @@ class WXDLLIMPEXP_FWD_CORE wxColour;
 class WXDLLIMPEXP_CORE wxBrush: public wxBrushBase
 {
 public:
-    wxBrush() { }
+    wxBrush() = default;
 
     wxBrush( const wxColour &colour, wxBrushStyle style = wxBRUSHSTYLE_SOLID );
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED_FUTURE( wxBrush(const wxColour& col, int style) );
-#endif
     wxBrush( const wxBitmap &stippleBitmap );
-    virtual ~wxBrush();
 
     bool operator==(const wxBrush& brush) const;
     bool operator!=(const wxBrush& brush) const { return !(*this == brush); }
 
-    wxBrushStyle GetStyle() const;
-    wxColour GetColour() const;
-    wxBitmap *GetStipple() const;
+    wxBrushStyle GetStyle() const override;
+    wxColour GetColour() const override;
+    wxBitmap *GetStipple() const override;
 
-    void SetColour( const wxColour& col );
-    void SetColour( unsigned char r, unsigned char g, unsigned char b );
-    void SetStyle( wxBrushStyle style );
-    void SetStipple( const wxBitmap& stipple );
+    void SetColour( const wxColour& col ) override;
+    void SetColour( unsigned char r, unsigned char g, unsigned char b ) override;
+    void SetStyle( wxBrushStyle style ) override;
+    void SetStipple( const wxBitmap& stipple ) override;
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED_FUTURE( void SetStyle(int style) )
-        { SetStyle((wxBrushStyle)style); }
-#endif
+    wxDEPRECATED_MSG("use wxBRUSHSTYLE_XXX constants")
+    wxBrush(const wxColour& col, int style);
+
+    wxDEPRECATED_MSG("use wxBRUSHSTYLE_XXX constants")
+    void SetStyle(int style) { SetStyle((wxBrushStyle)style); }
 
 protected:
-    virtual wxGDIRefData *CreateGDIRefData() const;
-    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
+    virtual wxGDIRefData *CreateGDIRefData() const override;
+    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const override;
 
-    DECLARE_DYNAMIC_CLASS(wxBrush)
+    wxDECLARE_DYNAMIC_CLASS(wxBrush);
 };
 
 #endif // _WX_GTK_BRUSH_H_

@@ -2,7 +2,6 @@
 // Name:        wx/brush.h
 // Purpose:     Includes platform-specific wxBrush file
 // Author:      Julian Smart
-// Modified by:
 // Created:
 // Copyright:   Julian Smart
 // Licence:     wxWindows Licence
@@ -41,7 +40,7 @@ enum wxBrushStyle
 class WXDLLIMPEXP_CORE wxBrushBase: public wxGDIObject
 {
 public:
-    virtual ~wxBrushBase() { }
+    virtual ~wxBrushBase() = default;
 
     virtual void SetColour(const wxColour& col) = 0;
     virtual void SetColour(unsigned char r, unsigned char g, unsigned char b) = 0;
@@ -71,20 +70,16 @@ public:
 
 #if defined(__WXMSW__)
     #include "wx/msw/brush.h"
-#elif defined(__WXMOTIF__) || defined(__WXX11__)
+#elif defined(__WXX11__)
     #include "wx/x11/brush.h"
-#elif defined(__WXGTK20__)
-    #include "wx/gtk/brush.h"
 #elif defined(__WXGTK__)
-    #include "wx/gtk1/brush.h"
+    #include "wx/gtk/brush.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/brush.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/brush.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/brush.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/brush.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/brush.h"
 #endif
 
 class WXDLLIMPEXP_CORE wxBrushList: public wxGDIObjListBase
@@ -93,15 +88,9 @@ public:
     wxBrush *FindOrCreateBrush(const wxColour& colour,
                                wxBrushStyle style = wxBRUSHSTYLE_SOLID);
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
+    wxDEPRECATED_MSG("use wxBRUSHSTYLE_XXX constants")
     wxBrush *FindOrCreateBrush(const wxColour& colour, int style)
         { return FindOrCreateBrush(colour, (wxBrushStyle)style); }
-#endif
-
-#if WXWIN_COMPATIBILITY_2_6
-    wxDEPRECATED( void AddBrush(wxBrush*) );
-    wxDEPRECATED( void RemoveBrush(wxBrush*) );
-#endif
 };
 
 extern WXDLLIMPEXP_DATA_CORE(wxBrushList*)   wxTheBrushList;
@@ -112,25 +101,21 @@ extern WXDLLIMPEXP_DATA_CORE(wxBrushList*)   wxTheBrushList;
 //
 // to compile without warnings which it would otherwise provoke from some
 // compilers as it compares elements of different enums
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 
-// Unfortunately some compilers have ambiguity issues when enum comparisons are
-// overloaded so we have to disable the overloads in this case, see
-// wxCOMPILER_NO_OVERLOAD_ON_ENUM definition in wx/platform.h for more details.
-#ifndef wxCOMPILER_NO_OVERLOAD_ON_ENUM
+#if WXWIN_COMPATIBILITY_3_2
 
+wxDEPRECATED_MSG("use wxBRUSHSTYLE_XXX constants only")
 inline bool operator==(wxBrushStyle s, wxDeprecatedGUIConstants t)
 {
     return static_cast<int>(s) == static_cast<int>(t);
 }
 
+wxDEPRECATED_MSG("use wxBRUSHSTYLE_XXX constants only")
 inline bool operator!=(wxBrushStyle s, wxDeprecatedGUIConstants t)
 {
-    return !(s == t);
+    return static_cast<int>(s) != static_cast<int>(t);
 }
 
-#endif // wxCOMPILER_NO_OVERLOAD_ON_ENUM
-
-#endif // FUTURE_WXWIN_COMPATIBILITY_3_0
+#endif // WXWIN_COMPATIBILITY_3_2
 
 #endif // _WX_BRUSH_H_BASE_

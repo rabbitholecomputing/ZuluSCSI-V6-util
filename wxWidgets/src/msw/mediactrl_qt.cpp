@@ -21,9 +21,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_MEDIACTRL
 
@@ -45,8 +42,8 @@
 extern "C" WXDLLIMPEXP_BASE HINSTANCE wxGetInstance(void);
 extern WXDLLIMPEXP_CORE const wxChar *wxCanvasClassName;
 
-LRESULT WXDLLIMPEXP_CORE APIENTRY _EXPORT wxWndProc(HWND hWnd, UINT message,
-                                   WPARAM wParam, LPARAM lParam);
+LRESULT WXDLLIMPEXP_CORE APIENTRY
+wxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 //---------------------------------------------------------------------------
 // Killed MSVC warnings
@@ -101,14 +98,10 @@ typedef struct ComponentInstanceRecord * ComponentInstance;
 #define MovieController ComponentInstance
 
 #ifndef URLDataHandlerSubType
-#if defined(__WATCOMC__) || defined(__MINGW32__)
-// use magic numbers for compilers which complain about multicharacter integers
-const OSType URLDataHandlerSubType     = 1970433056;
-const OSType VisualMediaCharacteristic = 1702454643;
-#else
-const OSType URLDataHandlerSubType     = 'url ';
-const OSType VisualMediaCharacteristic = 'eyes';
-#endif
+// Under Mac this would be defined as 'url ' and 'eyes' multi-character
+// constants respectively (translate each byte to ASCII to see it), but this is
+// not accepted by non-Mac compilers, so use the numeric constants instead.
+const OSType URLDataHandlerSubType     = 0x75726c20;
 #endif
 
 struct FSSpec
@@ -162,6 +155,11 @@ enum
     mcNotVisible                = 8,
     mcWithFrame                 = 16
 };
+
+typedef void (*PPRMProcType)(Movie theMovie, OSErr theErr, void* theRefCon);
+typedef Boolean (*MCFilterProcType)(MovieController theController,
+                                    short action, void *params,
+                                    LONG_PTR refCon);
 
 //---------------------------------------------------------------------------
 //  QT Library
@@ -217,7 +215,7 @@ public:
     wxDL_VOIDMETHOD_DEFINE( MoviesTask, (Movie m, long maxms), (m, maxms) )
     wxDL_VOIDMETHOD_DEFINE( BlockMove,
         (const char* p1, const char* p2, long s), (p1,p2,s) )
-    wxDL_METHOD_DEFINE( Handle, NewHandleClear, (long s), (s), NULL )
+    wxDL_METHOD_DEFINE( Handle, NewHandleClear, (long s), (s), nullptr )
 
     wxDL_METHOD_DEFINE( OSErr, NewMovieFromDataRef,
                            (Movie * m, short flags, short * id,
@@ -228,34 +226,34 @@ public:
     wxDL_VOIDMETHOD_DEFINE( GetMovieNaturalBoundsRect, (Movie m, Rect* r), (m,r) )
     wxDL_METHOD_DEFINE( void*, GetMovieIndTrackType,
                         (Movie m, long index, OSType type, long flags),
-                        (m,index,type,flags), NULL )
+                        (m,index,type,flags), nullptr )
     wxDL_VOIDMETHOD_DEFINE( CreatePortAssociation,
             (void* hWnd, void* junk, long morejunk), (hWnd, junk, morejunk) )
-    wxDL_METHOD_DEFINE(void*, GetNativeWindowPort, (void* hWnd), (hWnd), NULL)
+    wxDL_METHOD_DEFINE(void*, GetNativeWindowPort, (void* hWnd), (hWnd), nullptr)
     wxDL_VOIDMETHOD_DEFINE(SetMovieGWorld, (Movie m, CGrafPtr port, void* whatever),
                             (m, port, whatever) )
     wxDL_VOIDMETHOD_DEFINE(DisposeMovie, (Movie m), (m) )
     wxDL_VOIDMETHOD_DEFINE(SetMovieBox, (Movie m, Rect* r), (m,r))
     wxDL_VOIDMETHOD_DEFINE(SetMovieTimeScale, (Movie m, long s), (m,s))
     wxDL_METHOD_DEFINE(long, GetMovieDuration, (Movie m), (m), 0)
-    wxDL_METHOD_DEFINE(TimeBase, GetMovieTimeBase, (Movie m), (m), 0)
+    wxDL_METHOD_DEFINE(TimeBase, GetMovieTimeBase, (Movie m), (m), nullptr)
     wxDL_METHOD_DEFINE(TimeScale, GetMovieTimeScale, (Movie m), (m), 0)
     wxDL_METHOD_DEFINE(long, GetMovieTime, (Movie m, void* cruft), (m,cruft), 0)
     wxDL_VOIDMETHOD_DEFINE(SetMovieTime, (Movie m, TimeRecord* tr), (m,tr) )
     wxDL_METHOD_DEFINE(short, GetMovieVolume, (Movie m), (m), 0)
     wxDL_VOIDMETHOD_DEFINE(SetMovieVolume, (Movie m, short sVolume), (m,sVolume) )
     wxDL_VOIDMETHOD_DEFINE(SetMovieTimeValue, (Movie m, long s), (m,s))
-    wxDL_METHOD_DEFINE(ComponentInstance, NewMovieController, (Movie m, const Rect* mr, long fl), (m,mr,fl), 0)
+    wxDL_METHOD_DEFINE(ComponentInstance, NewMovieController, (Movie m, const Rect* mr, long fl), (m,mr,fl), nullptr)
     wxDL_VOIDMETHOD_DEFINE(DisposeMovieController, (ComponentInstance ci), (ci))
     wxDL_METHOD_DEFINE(int, MCSetVisible, (ComponentInstance m, int b), (m, b), 0)
 
-    wxDL_VOIDMETHOD_DEFINE(PrePrerollMovie, (Movie m, long t, Fixed r, WXFARPROC p1, void* p2), (m,t,r,p1,p2) )
+    wxDL_VOIDMETHOD_DEFINE(PrePrerollMovie, (Movie m, long t, Fixed r, PPRMProcType p1, void* p2), (m,t,r,p1,p2) )
     wxDL_VOIDMETHOD_DEFINE(PrerollMovie, (Movie m, long t, Fixed r), (m,t,r) )
     wxDL_METHOD_DEFINE(Fixed, GetMoviePreferredRate, (Movie m), (m), 0)
     wxDL_METHOD_DEFINE(long, GetMovieLoadState, (Movie m), (m), 0)
-    wxDL_METHOD_DEFINE(void*, NewRoutineDescriptor, (WXFARPROC f, int l, void* junk), (f, l, junk), 0)
+    wxDL_METHOD_DEFINE(void*, NewRoutineDescriptor, (WXFARPROC f, int l, void* junk), (f, l, junk), nullptr)
     wxDL_VOIDMETHOD_DEFINE(DisposeRoutineDescriptor, (void* f), (f))
-    wxDL_METHOD_DEFINE(void*, GetCurrentArchitecture, (), (), 0)
+    wxDL_METHOD_DEFINE(void*, GetCurrentArchitecture, (), (), nullptr)
     wxDL_METHOD_DEFINE(int, MCDoAction, (ComponentInstance ci, long f, void* p), (ci,f,p), 0)
     wxDL_VOIDMETHOD_DEFINE(MCSetControllerBoundsRect, (ComponentInstance ci, Rect* r), (ci,r))
     wxDL_VOIDMETHOD_DEFINE(DestroyPortAssociation, (CGrafPtr g), (g))
@@ -266,7 +264,7 @@ public:
     wxDL_VOIDMETHOD_DEFINE(MCPositionController,
         (ComponentInstance ci, Rect* r, void* junk, void* morejunk), (ci,r,junk,morejunk))
     wxDL_VOIDMETHOD_DEFINE(MCSetActionFilterWithRefCon,
-        (ComponentInstance ci, WXFARPROC cb, void* ref), (ci,cb,ref))
+        (ComponentInstance ci, MCFilterProcType cb, void* ref), (ci,cb,ref))
     wxDL_VOIDMETHOD_DEFINE(MCGetControllerInfo, (MovieController mc, long* flags), (mc,flags))
     wxDL_VOIDMETHOD_DEFINE(BeginUpdate, (CGrafPtr port), (port))
     wxDL_VOIDMETHOD_DEFINE(UpdateMovie, (Movie m), (m))
@@ -355,33 +353,33 @@ public:
                                      const wxSize& size,
                                      long style,
                                      const wxValidator& validator,
-                                     const wxString& name);
+                                     const wxString& name) override;
 
-    virtual bool Play();
-    virtual bool Pause();
-    virtual bool Stop();
+    virtual bool Play() override;
+    virtual bool Pause() override;
+    virtual bool Stop() override;
 
     virtual bool Load(const wxURI& location,
-                      const wxURI& proxy)
+                      const wxURI& proxy) override
     { return wxMediaBackend::Load(location, proxy); }
 
-    virtual bool Load(const wxString& fileName);
-    virtual bool Load(const wxURI& location);
+    virtual bool Load(const wxString& fileName) override;
+    virtual bool Load(const wxURI& location) override;
 
-    virtual wxMediaState GetState();
+    virtual wxMediaState GetState() override;
 
-    virtual bool SetPosition(wxLongLong where);
-    virtual wxLongLong GetPosition();
-    virtual wxLongLong GetDuration();
+    virtual bool SetPosition(wxLongLong where) override;
+    virtual wxLongLong GetPosition() override;
+    virtual wxLongLong GetDuration() override;
 
-    virtual void Move(int x, int y, int w, int h);
-    wxSize GetVideoSize() const;
+    virtual void Move(int x, int y, int w, int h) override;
+    wxSize GetVideoSize() const override;
 
-    virtual double GetPlaybackRate();
-    virtual bool SetPlaybackRate(double dRate);
+    virtual double GetPlaybackRate() override;
+    virtual bool SetPlaybackRate(double dRate) override;
 
-    virtual double GetVolume();
-    virtual bool SetVolume(double);
+    virtual double GetVolume() override;
+    virtual bool SetVolume(double) override;
 
     void Cleanup();
     void FinishLoad();
@@ -394,7 +392,7 @@ public:
 
     static LRESULT CALLBACK QTWndProc(HWND, UINT, WPARAM, LPARAM);
 
-    virtual bool ShowPlayerControls(wxMediaCtrlPlayerControls flags);
+    virtual bool ShowPlayerControls(wxMediaCtrlPlayerControls flags) override;
 
     wxSize m_bestSize;              // Original movie size
     Movie m_movie;    // QT Movie handle/instance
@@ -407,7 +405,7 @@ public:
 
     friend class wxQTMediaEvtHandler;
 
-    DECLARE_DYNAMIC_CLASS(wxQTMediaBackend)
+    wxDECLARE_DYNAMIC_CLASS(wxQTMediaBackend);
 };
 
 // helper to hijack background erasing for the QT window
@@ -419,10 +417,9 @@ public:
         m_qtb = qtb;
         m_hwnd = hwnd;
 
-        m_qtb->m_ctrl->Connect(m_qtb->m_ctrl->GetId(),
+        m_qtb->m_ctrl->Bind(
             wxEVT_ERASE_BACKGROUND,
-            wxEraseEventHandler(wxQTMediaEvtHandler::OnEraseBackground),
-            NULL, this);
+            &wxQTMediaEvtHandler::OnEraseBackground, this);
     }
 
     void OnEraseBackground(wxEraseEvent& event);
@@ -448,7 +445,7 @@ private:
 // with this backend are treated as playable anyway - not verified though.
 //---------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxQTMediaBackend, wxMediaBackend)
+wxIMPLEMENT_DYNAMIC_CLASS(wxQTMediaBackend, wxMediaBackend);
 
 // Time between timer calls - this is the Apple recommendation to the TCL
 // team I believe
@@ -469,7 +466,7 @@ public:
     wxQTLoadTimer(Movie movie, wxQTMediaBackend* parent, wxQuickTimeLibrary* pLib) :
       m_movie(movie), m_parent(parent), m_pLib(pLib) {}
 
-    void Notify()
+    void Notify() override
     {
         m_pLib->MoviesTask(m_movie, 0);
         // kMovieLoadStatePlayable
@@ -502,7 +499,7 @@ public:
                   wxQuickTimeLibrary* pLib) :
         m_movie(movie), m_parent(parent), m_pLib(pLib) {}
 
-    void Notify()
+    void Notify() override
     {
         //
         //  OK, a little explaining - basically originally
@@ -575,12 +572,12 @@ LRESULT CALLBACK wxQTMediaBackend::QTWndProc(HWND hWnd, UINT nMsg,
 //---------------------------------------------------------------------------
 // wxQTMediaBackend Destructor
 //
-// Sets m_timer to NULL signifying we havn't loaded anything yet
+// Sets m_timer to nullptr signifying we havn't loaded anything yet
 //---------------------------------------------------------------------------
 wxQTMediaBackend::wxQTMediaBackend()
-: m_movie(NULL), m_bPlaying(false), m_timer(NULL), m_pMC(NULL)
+: m_movie(nullptr), m_bPlaying(false), m_timer(nullptr), m_pMC(nullptr)
 {
-    m_evthandler = NULL;
+    m_evthandler = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -602,7 +599,7 @@ wxQTMediaBackend::~wxQTMediaBackend()
         if (m_pMC)
         {
             m_lib.DisposeMovieController(m_pMC);
-            // m_pMC = NULL;
+            // m_pMC = nullptr;
         }
 
         // destroy wxQTMediaEvtHandler we pushed on it
@@ -625,7 +622,7 @@ wxQTMediaBackend::~wxQTMediaBackend()
 //---------------------------------------------------------------------------
 // wxQTMediaBackend::CreateControl
 //
-// 1) Intializes QuickTime
+// 1) Initializes QuickTime
 // 2) Creates the control window
 //---------------------------------------------------------------------------
 bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
@@ -665,7 +662,7 @@ bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
 
     // Create a port association for our window so we
     // can use it as a WindowRef
-    m_lib.CreatePortAssociation(m_ctrl->GetHWND(), NULL, 0L);
+    m_lib.CreatePortAssociation(m_ctrl->GetHWND(), nullptr, 0L);
 
     // Part of a suggestion from Greg Hazel
     // to repaint movie when idle
@@ -690,11 +687,11 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
     if (m_movie)
         Cleanup();
 
-    short movieResFile = 0; //= 0 because of annoying VC6 warning
+    short movieResFile wxDUMMY_INITIALIZE(0);
     FSSpec sfFile;
 
     OSErr err = m_lib.NativePathNameToFSSpec(
-        (char*) (const char*) fileName.mb_str(),
+        const_cast<char*>(static_cast<const char*>(fileName.mb_str())),
         &sfFile, 0);
     bool result = (err == noErr);
 
@@ -715,7 +712,7 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
                    &movieResID,
                    movieName,
                    newMovieActive,
-                   NULL ); // wasChanged
+                   nullptr ); // wasChanged
         result = (err == noErr /*&& m_lib.GetMoviesStickyError() == noErr*/);
 
         // check m_lib.GetMoviesStickyError() because it may not find the
@@ -749,7 +746,7 @@ void wxQTMediaBackend::PPRMProc (Movie theMovie,
 
     wxQTMediaBackend* pBE = (wxQTMediaBackend*) theRefCon;
 
-    long lTime = pBE->m_lib.GetMovieTime(theMovie,NULL);
+    long lTime = pBE->m_lib.GetMovieTime(theMovie,nullptr);
     Fixed rate = pBE->m_lib.GetMoviePreferredRate(theMovie);
     pBE->m_lib.PrerollMovie(theMovie, lTime, rate);
     pBE->m_timer = new wxQTLoadTimer(pBE->m_movie, pBE, &pBE->m_lib);
@@ -783,7 +780,7 @@ bool wxQTMediaBackend::Load(const wxURI& location)
     OSErr err = m_lib.NewMovieFromDataRef(&m_movie, newMovieActive |
                                                     newMovieAsyncOK
                                                     /* | newMovieIdleImportOK */,
-                                NULL, theHandle,
+                                nullptr, theHandle,
                                 URLDataHandlerSubType);
 
     m_lib.DisposeHandle(theHandle);
@@ -793,7 +790,7 @@ bool wxQTMediaBackend::Load(const wxURI& location)
         long timeNow;
         Fixed playRate;
 
-        timeNow = m_lib.GetMovieTime(m_movie, NULL);
+        timeNow = m_lib.GetMovieTime(m_movie, nullptr);
         wxASSERT(m_lib.GetMoviesError() == noErr);
 
         playRate = m_lib.GetMoviePreferredRate(m_movie);
@@ -808,8 +805,8 @@ bool wxQTMediaBackend::Load(const wxURI& location)
         // which we don't by default.
         //
         m_lib.PrePrerollMovie(m_movie, timeNow, playRate,
-                              (WXFARPROC)wxQTMediaBackend::PPRMProc,
-                              (void*)this);
+                              wxQTMediaBackend::PPRMProc,
+                              this);
 
         return true;
     }
@@ -838,7 +835,7 @@ void wxQTMediaBackend::FinishLoad()
 
     // get the real size of the movie
     Rect outRect;
-    memset(&outRect, 0, sizeof(Rect)); // suppress annoying VC6 warning
+    memset(&outRect, 0, sizeof(Rect));
     m_lib.GetMovieNaturalBoundsRect (m_movie, &outRect);
     wxASSERT(m_lib.GetMoviesError() == noErr);
 
@@ -860,7 +857,7 @@ void wxQTMediaBackend::FinishLoad()
     {
         m_lib.SetMovieGWorld(m_movie,
                        (CGrafPtr) m_lib.GetNativeWindowPort(m_ctrl->GetHWND()),
-                       NULL);
+                       nullptr);
     }
 
     // Set the movie to millisecond precision
@@ -980,7 +977,7 @@ bool wxQTMediaBackend::SetPosition(wxLongLong where)
 //---------------------------------------------------------------------------
 wxLongLong wxQTMediaBackend::GetPosition()
 {
-    return m_lib.GetMovieTime(m_movie, NULL);
+    return m_lib.GetMovieTime(m_movie, nullptr);
 }
 
 //---------------------------------------------------------------------------
@@ -1076,11 +1073,11 @@ void wxQTMediaBackend::Cleanup()
         Point thePoint;
         thePoint.h = thePoint.v = 0;
         m_lib.MCSetVisible(m_pMC, false);
-        m_lib.MCSetMovie(m_pMC, NULL, NULL, thePoint);
+        m_lib.MCSetMovie(m_pMC, nullptr, nullptr, thePoint);
     }
 
     m_lib.DisposeMovie(m_movie);
-    m_movie = NULL;
+    m_movie = nullptr;
 }
 
 //---------------------------------------------------------------------------
@@ -1095,7 +1092,7 @@ bool wxQTMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
         // restore old wndproc
         wxSetWindowProc((HWND)m_ctrl->GetHWND(), wxWndProc);
         m_lib.DisposeMovieController(m_pMC);
-        m_pMC = NULL;
+        m_pMC = nullptr;
 
         // movie controller height
         m_bestSize.y -= 16;
@@ -1123,7 +1120,7 @@ bool wxQTMediaBackend::ShowPlayerControls(wxMediaCtrlPlayerControls flags)
                                                         mcWithFrame);
             m_lib.MCDoAction(m_pMC, 32, (void*)true); // mcActionSetKeysEnabled
             m_lib.MCSetActionFilterWithRefCon(m_pMC,
-                (WXFARPROC)wxQTMediaBackend::MCFilterProc, (void*)this);
+                wxQTMediaBackend::MCFilterProc, this);
             m_bestSize.y += 16; // movie controller height
 
             // By default the movie controller uses its own colour palette

@@ -2,7 +2,6 @@
 // Name:        wx/generic/filedlgg.h
 // Purpose:     wxGenericFileDialog
 // Author:      Robert Roebling
-// Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
@@ -37,62 +36,68 @@ public:
     wxGenericFileDialog() : wxFileDialogBase() { Init(); }
 
     wxGenericFileDialog(wxWindow *parent,
-                        const wxString& message = wxFileSelectorPromptStr,
+                        const wxString& message = wxASCII_STR(wxFileSelectorPromptStr),
                         const wxString& defaultDir = wxEmptyString,
                         const wxString& defaultFile = wxEmptyString,
-                        const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                        const wxString& wildCard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                         long style = wxFD_DEFAULT_STYLE,
                         const wxPoint& pos = wxDefaultPosition,
                         const wxSize& sz = wxDefaultSize,
-                        const wxString& name = wxFileDialogNameStr,
+                        const wxString& name = wxASCII_STR(wxFileDialogNameStr),
                         bool bypassGenericImpl = false );
 
     bool Create( wxWindow *parent,
-                 const wxString& message = wxFileSelectorPromptStr,
+                 const wxString& message = wxASCII_STR(wxFileSelectorPromptStr),
                  const wxString& defaultDir = wxEmptyString,
                  const wxString& defaultFile = wxEmptyString,
-                 const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                 const wxString& wildCard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                  long style = wxFD_DEFAULT_STYLE,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& sz = wxDefaultSize,
-                 const wxString& name = wxFileDialogNameStr,
+                 const wxString& name = wxASCII_STR(wxFileDialogNameStr),
                  bool bypassGenericImpl = false );
 
     virtual ~wxGenericFileDialog();
 
-    virtual void SetDirectory(const wxString& dir)
+    virtual void SetDirectory(const wxString& dir) override
         { m_filectrl->SetDirectory(dir); }
-    virtual void SetFilename(const wxString& name)
+    virtual void SetFilename(const wxString& name) override
         { m_filectrl->SetFilename(name); }
-    virtual void SetMessage(const wxString& message) { SetTitle(message); }
-    virtual void SetPath(const wxString& path)
+    virtual void SetMessage(const wxString& message) override { SetTitle(message); }
+    virtual void SetPath(const wxString& path) override
         { m_filectrl->SetPath(path); }
-    virtual void SetFilterIndex(int filterIndex)
+    virtual void SetFilterIndex(int filterIndex) override
         { m_filectrl->SetFilterIndex(filterIndex); }
-    virtual void SetWildcard(const wxString& wildCard)
+    virtual void SetWildcard(const wxString& wildCard) override
         { m_filectrl->SetWildcard(wildCard); }
 
-    virtual wxString GetPath() const
-        { return m_filectrl->GetPath(); }
-    virtual void GetPaths(wxArrayString& paths) const
+    virtual wxString GetPath() const override
+        {
+            wxCHECK_MSG( !HasFlag(wxFD_MULTIPLE), wxString(), "When using wxFD_MULTIPLE, must call GetPaths() instead" );
+            return m_filectrl->GetPath();
+        }
+    virtual void GetPaths(wxArrayString& paths) const override
         { m_filectrl->GetPaths(paths); }
-    virtual wxString GetDirectory() const
+    virtual wxString GetDirectory() const override
         { return m_filectrl->GetDirectory(); }
-    virtual wxString GetFilename() const
-        { return m_filectrl->GetFilename(); }
-    virtual void GetFilenames(wxArrayString& files) const
+    virtual wxString GetFilename() const override
+        {
+            wxCHECK_MSG( !HasFlag(wxFD_MULTIPLE), wxString(), "When using wxFD_MULTIPLE, must call GetFilenames() instead" );
+            return m_filectrl->GetFilename();
+        }
+    virtual void GetFilenames(wxArrayString& files) const override
         { m_filectrl->GetFilenames(files); }
-    virtual wxString GetWildcard() const
+    virtual wxString GetWildcard() const override
         { return m_filectrl->GetWildcard(); }
-    virtual int GetFilterIndex() const
+    virtual int GetFilterIndex() const override
         { return m_filectrl->GetFilterIndex(); }
-    virtual bool SupportsExtraControl() const { return true; }
+    virtual bool SupportsExtraControl() const override { return true; }
 
     // implementation only from now on
     // -------------------------------
 
-    virtual int ShowModal();
-    virtual bool Show( bool show = true );
+    virtual int ShowModal() override;
+    virtual bool Show( bool show = true ) override;
 
     void OnList( wxCommandEvent &event );
     void OnReport( wxCommandEvent &event );
@@ -121,8 +126,8 @@ private:
     wxBitmapButton* AddBitmapButton( wxWindowID winId, const wxArtID& artId,
                                      const wxString& tip, wxSizer *sizer );
 
-    DECLARE_DYNAMIC_CLASS(wxGenericFileDialog)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxGenericFileDialog);
+    wxDECLARE_EVENT_TABLE();
 
     // these variables are preserved between wxGenericFileDialog calls
     static long ms_lastViewStyle;     // list or report?
@@ -134,13 +139,13 @@ private:
 class WXDLLIMPEXP_CORE wxFileDialog: public wxGenericFileDialog
 {
 public:
-    wxFileDialog() {}
+    wxFileDialog() = default;
 
     wxFileDialog(wxWindow *parent,
-                 const wxString& message = wxFileSelectorPromptStr,
+                 const wxString& message = wxASCII_STR(wxFileSelectorPromptStr),
                  const wxString& defaultDir = wxEmptyString,
                  const wxString& defaultFile = wxEmptyString,
-                 const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                 const wxString& wildCard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                  long style = 0,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize)
@@ -148,11 +153,11 @@ public:
                                defaultDir, defaultFile, wildCard,
                                style,
                                pos, size)
-     {
-     }
+    {
+    }
 
 private:
-     DECLARE_DYNAMIC_CLASS(wxFileDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxFileDialog);
 };
 
 #endif // wxHAS_GENERIC_FILEDIALOG

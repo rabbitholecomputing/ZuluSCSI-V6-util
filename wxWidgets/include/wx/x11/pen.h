@@ -2,7 +2,6 @@
 // Name:        wx/x11/pen.h
 // Purpose:     wxPen class
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -31,15 +30,13 @@ typedef char wxX11Dash;
 class WXDLLIMPEXP_CORE wxPen: public wxPenBase
 {
 public:
-    wxPen() { }
+    wxPen() = default;
 
     wxPen( const wxColour &colour, int width = 1, wxPenStyle style = wxPENSTYLE_SOLID );
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED_FUTURE( wxPen(const wxColour& col, int width, int style) );
-#endif
 
     wxPen( const wxBitmap &stipple, int width );
-    virtual ~wxPen();
+
+    wxPen( const wxPenInfo& info );
 
     bool operator == ( const wxPen& pen ) const;
     bool operator != (const wxPen& pen) const { return !(*this == pen); }
@@ -63,16 +60,17 @@ public:
     wxDash* GetDash() const;
     wxBitmap* GetStipple() const;
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
-    wxDEPRECATED_FUTURE( void SetStyle(int style) )
-        { SetStyle((wxPenStyle)style); }
-#endif
+
+    wxDEPRECATED_MSG("use wxPENSTYLE_XXX constants")
+    wxPen(const wxColour& col, int width, int style);
+    wxDEPRECATED_MSG("use wxPENSTYLE_XXX constants")
+    void SetStyle(int style) { SetStyle((wxPenStyle)style); }
 
 protected:
     virtual wxGDIRefData *CreateGDIRefData() const;
     virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
 
-    DECLARE_DYNAMIC_CLASS(wxPen)
+    wxDECLARE_DYNAMIC_CLASS(wxPen);
 };
 
 #endif // _WX_PEN_H_

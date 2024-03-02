@@ -2,7 +2,6 @@
 // Name:        wx/msw/region.h
 // Purpose:     wxRegion class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) 1997-2002 wxWidgets team
 // Licence:     wxWindows licence
@@ -35,27 +34,27 @@ public:
     virtual ~wxRegion();
 
     // wxRegionBase methods
-    virtual void Clear();
-    virtual bool IsEmpty() const;
+    virtual void Clear() override;
+    virtual bool IsEmpty() const override;
 
     // Get internal region handle
     WXHRGN GetHRGN() const;
 
 protected:
-    virtual wxGDIRefData *CreateGDIRefData() const;
-    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
+    virtual wxGDIRefData *CreateGDIRefData() const override;
+    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const override;
 
-    virtual bool DoIsEqual(const wxRegion& region) const;
-    virtual bool DoGetBox(wxCoord& x, wxCoord& y, wxCoord& w, wxCoord& h) const;
-    virtual wxRegionContain DoContainsPoint(wxCoord x, wxCoord y) const;
-    virtual wxRegionContain DoContainsRect(const wxRect& rect) const;
+    virtual bool DoIsEqual(const wxRegion& region) const override;
+    virtual bool DoGetBox(wxCoord& x, wxCoord& y, wxCoord& w, wxCoord& h) const override;
+    virtual wxRegionContain DoContainsPoint(wxCoord x, wxCoord y) const override;
+    virtual wxRegionContain DoContainsRect(const wxRect& rect) const override;
 
-    virtual bool DoOffset(wxCoord x, wxCoord y);
-    virtual bool DoCombine(const wxRegion& region, wxRegionOp op);
+    virtual bool DoOffset(wxCoord x, wxCoord y) override;
+    virtual bool DoCombine(const wxRegion& region, wxRegionOp op) override;
 
     friend class WXDLLIMPEXP_FWD_CORE wxRegionIterator;
 
-    DECLARE_DYNAMIC_CLASS(wxRegion)
+    wxDECLARE_DYNAMIC_CLASS(wxRegion);
 };
 
 class WXDLLIMPEXP_CORE wxRegionIterator : public wxObject
@@ -97,7 +96,7 @@ private:
     wxRegion m_region;
     wxRect*  m_rects;
 
-    DECLARE_DYNAMIC_CLASS(wxRegionIterator)
+    wxDECLARE_DYNAMIC_CLASS(wxRegionIterator);
 };
 
 #endif // _WX_MSW_REGION_H_

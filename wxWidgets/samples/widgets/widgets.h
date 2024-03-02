@@ -11,7 +11,7 @@
 #ifndef _WX_SAMPLE_WIDGETS_H_
 #define _WX_SAMPLE_WIDGETS_H_
 
-#if wxUSE_TREEBOOK && !defined(__WXHANDHELD__)
+#if wxUSE_TREEBOOK
     #include "wx/treebook.h"
     #define USE_TREEBOOK 1
     #define WidgetsBookCtrl wxTreebook
@@ -29,28 +29,24 @@
     #define wxWidgetsbookEventHandler(func) wxBookCtrlEventHandler(func)
 #endif
 
-#if wxUSE_LOG && !defined(__WXHANDHELD__)
+#if wxUSE_LOG
     #define USE_LOG 1
 #else
     #define USE_LOG 0
 #endif
 
-#if defined(__WXHANDHELD__)
-    #define USE_ICONS_IN_BOOK 0
-#else
-    #define USE_ICONS_IN_BOOK 1
-    #define ICON_SIZE         16
-#endif
+#define ICON_SIZE         16
 
 class WXDLLIMPEXP_FWD_CORE wxCheckBox;
 class WXDLLIMPEXP_FWD_CORE wxSizer;
 class WXDLLIMPEXP_FWD_CORE wxImageList;
 class WXDLLIMPEXP_FWD_CORE wxTextCtrl;
+class WXDLLIMPEXP_FWD_CORE wxTextEntryBase;
 class WXDLLIMPEXP_FWD_CORE WidgetsBookCtrl;
 
 class WidgetsPageInfo;
 
-#include "wx/panel.h"
+#include "wx/scrolwin.h"
 #include "wx/vector.h"
 
 // INTRODUCING NEW PAGES DON'T FORGET TO ADD ENTRIES TO 'WidgetsCategories'
@@ -83,13 +79,47 @@ enum
     ALL_CTRLS        = 1 << ALL_PAGE
 };
 
-typedef wxVector<wxControl *> Widgets;
+typedef wxVector<wxWindow *> Widgets;
 
 // ----------------------------------------------------------------------------
 // WidgetsPage: a book page demonstrating some widget
 // ----------------------------------------------------------------------------
 
-class WidgetsPage : public wxPanel
+// struct to store common widget attributes
+struct WidgetAttributes
+{
+    WidgetAttributes()
+    {
+#if wxUSE_TOOLTIPS
+        m_tooltip = "This is a tooltip";
+#endif // wxUSE_TOOLTIPS
+        m_enabled = true;
+        m_show = true;
+        m_dir = wxLayout_Default;
+        m_variant = wxWINDOW_VARIANT_NORMAL;
+        m_cursor = wxNullCursor;
+        m_defaultFlags = wxBORDER_DEFAULT;
+    }
+
+#if wxUSE_TOOLTIPS
+   wxString m_tooltip;
+#endif // wxUSE_TOOLTIPS
+#if wxUSE_FONTDLG
+    wxFont m_font;
+#endif // wxUSE_FONTDLG
+    wxColour m_colFg;
+    wxColour m_colBg;
+    wxColour m_colPageBg;
+    bool m_enabled;
+    bool m_show;
+    wxLayoutDirection m_dir;
+    wxWindowVariant m_variant;
+    wxCursor m_cursor;
+    // the default flags, currently only contains border flags
+    long m_defaultFlags;
+};
+
+class WidgetsPage : public wxScrolledWindow
 {
 public:
     WidgetsPage(WidgetsBookCtrl *book,
@@ -97,10 +127,10 @@ public:
                 const char *const icon[]);
 
     // return the control shown by this page
-    virtual wxControl *GetWidget() const = 0;
+    virtual wxWindow *GetWidget() const = 0;
 
     // return the control shown by this page, if it supports text entry interface
-    virtual wxTextEntryBase *GetTextEntry() const { return NULL; }
+    virtual wxTextEntryBase *GetTextEntry() const { return nullptr; }
 
     // lazy creation of the content
     virtual void CreateContent() = 0;
@@ -119,38 +149,58 @@ public:
     // this is currently used only to take into account the border flags
     virtual void RecreateWidget() = 0;
 
-    // the default flags for the widget, currently only contains border flags
-    static int ms_defaultFlags;
+    // notify the main window about the widget recreation if it didn't happen
+    // due to a call to RecreateWidget()
+    void NotifyWidgetRecreation(wxWindow* widget);
+
+    // enable notifications about the widget recreation disabled initially
+    void EnableRecreationNotifications() { m_notifyRecreate = true; }
+
+    // apply current attributes to the widget(s)
+    void SetUpWidget();
+
+    // the default attributes for the widget
+    static WidgetAttributes& GetAttrs();
+
+    // return true if we're showing logs in the log window (always the case
+    // except during startup and shutdown)
+    static bool IsUsingLogWindow();
 
 protected:
     // several helper functions for page creation
 
     // create a horz sizer containing the given control and the text ctrl
-    // (pointer to which will be saved in the provided variable if not NULL)
+    // (pointer to which will be saved in the provided variable if not null)
     // with the specified id
     wxSizer *CreateSizerWithText(wxControl *control,
                                  wxWindowID id = wxID_ANY,
-                                 wxTextCtrl **ppText = NULL);
+                                 wxTextCtrl **ppText = nullptr);
 
     // create a sizer containing a label and a text ctrl
     wxSizer *CreateSizerWithTextAndLabel(const wxString& label,
                                          wxWindowID id = wxID_ANY,
-                                         wxTextCtrl **ppText = NULL);
+                                         wxTextCtrl **ppText = nullptr,
+                                         wxWindow* statBoxParent = nullptr);
 
     // create a sizer containing a button and a text ctrl
     wxSizer *CreateSizerWithTextAndButton(wxWindowID idBtn,
                                           const wxString& labelBtn,
                                           wxWindowID id = wxID_ANY,
-                                          wxTextCtrl **ppText = NULL);
+                                          wxTextCtrl **ppText = nullptr,
+                                          wxWindow* statBoxParent = nullptr);
 
     // create a checkbox and add it to the sizer
     wxCheckBox *CreateCheckBoxAndAddToSizer(wxSizer *sizer,
                                             const wxString& label,
-                                            wxWindowID id = wxID_ANY);
+                                            wxWindowID id = wxID_ANY,
+                                            wxWindow* statBoxParent = nullptr);
 
 public:
     // the head of the linked list containinginfo about all pages
     static WidgetsPageInfo *ms_widgetPages;
+
+private:
+    bool m_notifyRecreate = false;
 };
 
 // ----------------------------------------------------------------------------
@@ -164,7 +214,7 @@ public:
                                         wxImageList *imaglist);
 
     // our ctor
-    WidgetsPageInfo(Constructor ctor, const wxChar *label, int categories);
+    WidgetsPageInfo(Constructor ctor, const wxString& label, int categories);
 
     // accessors
     const wxString& GetLabel() const { return m_label; }
@@ -184,7 +234,7 @@ private:
     // the function to create this page
     Constructor m_ctor;
 
-    // next node in the linked list or NULL
+    // next node in the linked list or nullptr
     WidgetsPageInfo *m_next;
 };
 

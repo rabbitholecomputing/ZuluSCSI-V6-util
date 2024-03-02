@@ -17,6 +17,12 @@ const char wxMessageBoxCaptionStr[] = "Message";
     This class represents a dialog that shows a single or multi-line message,
     with a choice of OK, Yes, No and Cancel buttons.
 
+    Note about icons: while this dialog defines a number of icon-related
+    styles, the actual icon may or not appear depending on the current platform
+    UI conventions. For example, default GTK theme doesn't use any icons at all
+    in the message dialogs while macOS does use an icon, but it uses the
+    application icon for the informational dialogs.
+
     @beginStyleTable
     @style{wxOK}
         Puts an Ok button in the message box. May be combined with @c wxCANCEL.
@@ -31,8 +37,8 @@ const char wxMessageBoxCaptionStr[] = "Message";
         Puts a Help button to the message box. This button can have special
         appearance or be specially positioned if its label is not changed from
         the default one. Notice that using this button is not supported when
-        showing a message box from non-main thread in wxOSX/Cocoa and it is not
-        supported in wxOSX/Carbon at all. Available since wxWidgets 2.9.3.
+        showing a message box from non-main thread in wxOSX/Cocoa.
+        Available since wxWidgets 2.9.3.
     @style{wxNO_DEFAULT}
         Makes the "No" button default, can only be used with @c wxYES_NO.
     @style{wxCANCEL_DEFAULT}
@@ -50,28 +56,31 @@ const char wxMessageBoxCaptionStr[] = "Message";
         used to prevent the dialog from using the default icon based on @c
         wxYES_NO presence as explained in @c wxICON_QUESTION and @c
         wxICON_INFORMATION documentation below.
-    @style{wxICON_EXCLAMATION}
-        Displays an exclamation, or warning, icon in the dialog.
     @style{wxICON_ERROR}
         Displays an error icon in the dialog.
-    @style{wxICON_HAND}
-        Displays an error symbol, this is a MSW-inspired synonym for @c wxICON_ERROR.
+    @style{wxICON_WARNING}
+        Displays a warning icon in the dialog. This style should be used for
+        informative warnings or, in combination with @c wxYES_NO or @c wxCANCEL,
+        for questions that have potentially serious consequences (caution
+        icon is used on macOS in this case).
     @style{wxICON_QUESTION}
         Displays a question mark symbol. This icon is automatically used
         with @c wxYES_NO so it's usually unnecessary to specify it explicitly.
-        This style is not supported for message dialogs under wxMSW when a task
-        dialog is used to implement them (i.e. when running under Windows Vista
-        or later) because <a href="http://msdn.microsoft.com/en-us/library/aa511273.aspx">Microsoft
-        guidelines</a> indicate that no icon should be used for routine
+        This style is not supported for message dialogs under wxMSW
+        because <a href="https://docs.microsoft.com/en-us/windows/desktop/uxguide/mess-confirm">Microsoft guidelines</a>
+        indicate that no icon should be used for routine
         confirmations. If it is specified, no icon will be displayed.
     @style{wxICON_INFORMATION}
         Displays an information symbol. This icon is used by default if
         @c wxYES_NO is not given so it is usually unnecessary to specify it
         explicitly.
+    @style{wxICON_EXCLAMATION}
+        Alias for @c wxICON_WARNING.
+    @style{wxICON_HAND}
+        Alias for @c wxICON_ERROR.
     @style{wxICON_AUTH_NEEDED}
         Displays an authentication needed symbol. This style is only supported
-        for message dialogs under wxMSW when a task dialog is used to implement
-        them (i.e. when running under Windows Vista or later). In other cases
+        for message dialogs under wxMSW. In other cases
         the default icon selection logic will be used. Note this can be
         combined with other styles to provide a fallback. For instance, using
         wxICON_AUTH_NEEDED | wxICON_QUESTION will show a shield symbol on
@@ -287,7 +296,7 @@ public:
 // ============================================================================
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Show a general purpose message dialog.
@@ -331,9 +340,9 @@ public:
 int wxMessageBox(const wxString& message,
                  const wxString& caption = wxMessageBoxCaptionStr,
                  int style = wxOK | wxCENTRE,
-                 wxWindow* parent = NULL,
+                 wxWindow* parent = nullptr,
                  int x = wxDefaultCoord,
                  int y = wxDefaultCoord);
 
-//@}
+///@}
 

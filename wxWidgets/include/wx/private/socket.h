@@ -48,14 +48,10 @@
 /*
    Including sys/types.h under Cygwin results in the warnings about "fd_set
    having been defined in sys/types.h" when winsock.h is included later and
-   doesn't seem to be necessary anyhow. It's not needed under Mac neither.
+   doesn't seem to be necessary anyhow. It's not needed under Mac either.
  */
-#if !defined(__WXMAC__) && !defined(__WXMSW__) && !defined(__WXWINCE__)
+#if !defined(__WXMAC__) && !defined(__WXMSW__)
 #include <sys/types.h>
-#endif
-
-#ifdef __WXWINCE__
-#include <stdlib.h>
 #endif
 
 // include the header defining timeval: under Windows this struct is used only
@@ -64,6 +60,15 @@
     #include "wx/msw/wrapwin.h"
 #else
     #include <sys/time.h>   // for timeval
+#endif
+
+// 64 bit Cygwin can't use the standard struct timeval because it has long
+// fields, which are supposed to be 32 bits in Win64 API, but long is 64 bits
+// in 64 bit Cygwin, so we need to use its special __ms_timeval instead.
+#if defined(__CYGWIN__) && defined(__LP64__) && defined(__WINDOWS__)
+    typedef __ms_timeval wxTimeVal_t;
+#else
+    typedef timeval wxTimeVal_t;
 #endif
 
 // these definitions are for MSW when we don't use configure, otherwise these
@@ -152,7 +157,7 @@ public:
     virtual void Uninstall_Callback(wxSocketImpl *socket,
                                     wxSocketNotify event = wxSOCKET_LOST) = 0;
 
-    virtual ~wxSocketManager() { }
+    virtual ~wxSocketManager() = default;
 
 private:
     // get the manager to use if we don't have it yet
@@ -258,7 +263,7 @@ public:
     // flags defines what kind of conditions we're interested in, the return
     // value is composed of a (possibly empty) subset of the bits set in flags
     wxSocketEventFlags Select(wxSocketEventFlags flags,
-                              const timeval *timeout = NULL);
+                              wxTimeVal_t *timeout = nullptr);
 
     // convenient wrapper calling Select() with our default timeout
     wxSocketEventFlags SelectWithTimeout(wxSocketEventFlags flags)
@@ -268,13 +273,19 @@ public:
 
     // just a wrapper for accept(): it is called to create a new wxSocketImpl
     // corresponding to a new server connection represented by the given
-    // wxSocketBase, returns NULL on error (including immediately if there are
+    // wxSocketBase, returns nullptr on error (including immediately if there are
     // no pending connections as our sockets are non-blocking)
     wxSocketImpl *Accept(wxSocketBase& wxsocket);
 
 
     // notifications
     // -------------
+
+    // Update the socket depending on the presence or absence of wxSOCKET_BLOCK
+    // in GetSocketFlags(): if it's present, make the socket blocking and
+    // ensure that we don't get any asynchronous event for it, otherwise put
+    // it into non-blocking mode and enable monitoring it in the event loop.
+    virtual void UpdateBlockingState() = 0;
 
     // notify m_wxsocket about the given socket event by calling its (inaptly
     // named) OnRequest() method
@@ -303,10 +314,13 @@ public:
     bool m_broadcast;
     bool m_dobind;
 
-    struct timeval m_timeout;
+    wxTimeVal_t m_timeout;
 
 protected:
     wxSocketImpl(wxSocketBase& wxsocket);
+
+    // get the associated socket flags
+    wxSocketFlags GetSocketFlags() const { return m_wxsocket->GetFlags(); }
 
     // true if we're a listening stream socket
     bool m_server;
@@ -314,10 +328,6 @@ protected:
 private:
     // called by Close() if we have a valid m_fd
     virtual void DoClose() = 0;
-
-    // put this socket into non-blocking mode and enable monitoring this socket
-    // as part of the event loop
-    virtual void UnblockAndRegisterWithEventLoop() = 0;
 
     // check that the socket wasn't created yet and that the given address
     // (either m_local or m_peer depending on the socket kind) is valid and
@@ -342,7 +352,7 @@ private:
     }
 
     // apply the options to the (just created) socket and register it with the
-    // event loop by calling UnblockAndRegisterWithEventLoop()
+    // event loop by calling UpdateBlockingState()
     void PostCreation();
 
     // update local address after binding/connecting
@@ -355,7 +365,7 @@ private:
     int SendDgram(const void *buffer, int size);
 
 
-    // set in ctor and never changed except that it's reset to NULL when the
+    // set in ctor and never changed except that it's reset to nullptr when the
     // socket is shut down
     wxSocketBase *m_wxsocket;
 

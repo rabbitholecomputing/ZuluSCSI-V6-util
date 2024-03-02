@@ -3,7 +3,6 @@
 // Purpose:     declaration of wxLongLong class - best implementation of a 64
 //              bit integer for the current platform.
 // Author:      Jeffrey C. Ollie <jeff@ollie.clive.ia.us>, Vadim Zeitlin
-// Modified by:
 // Created:     10.02.99
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -45,12 +44,12 @@
         #warning "Your compiler does not appear to support 64 bit "\
                  "integers, using emulation class instead.\n" \
                  "Please report your compiler version to " \
-                 "wx-dev@lists.wxwidgets.org!"
-    #elif !(defined(__WATCOMC__) || defined(__VISAGECPP__))
+                 "wx-dev@googlegroups.com!"
+    #else
         #pragma warning "Your compiler does not appear to support 64 bit "\
                         "integers, using emulation class instead.\n" \
                         "Please report your compiler version to " \
-                        "wx-dev@lists.wxwidgets.org!"
+                        "wx-dev@googlegroups.com!"
     #endif
 
     #define wxUSE_LONGLONG_WX 1
@@ -175,8 +174,12 @@ public:
         // convert to long with range checking in debug mode (only!)
     long ToLong() const
     {
+        // This assert is useless if long long is the same as long (which is
+        // the case under the standard Unix LP64 model).
+#ifdef wxHAS_LONG_LONG_T_DIFFERENT_FROM_LONG
         wxASSERT_MSG( (m_ll >= LONG_MIN) && (m_ll <= LONG_MAX),
                       wxT("wxLongLong to long conversion loss of precision") );
+#endif
 
         return wx_truncate_cast(long, m_ll);
     }
@@ -194,6 +197,8 @@ public:
         { return wxLongLongNative(m_ll + ll.m_ll); }
     wxLongLongNative& operator+=(const wxLongLongNative& ll)
         { m_ll += ll.m_ll; return *this; }
+    friend wxLongLongNative operator+(long l, const wxLongLongNative& ll)
+        { return ll + l; }
 
     wxLongLongNative operator+(const wxLongLong_t ll) const
         { return wxLongLongNative(m_ll + ll); }
@@ -218,6 +223,10 @@ public:
         { return wxLongLongNative(m_ll - ll.m_ll); }
     wxLongLongNative& operator-=(const wxLongLongNative& ll)
         { m_ll -= ll.m_ll; return *this; }
+    friend wxLongLongNative operator-(long l, const wxLongLongNative& ll)
+    {
+        return wxLongLongNative(l) - ll;
+    }
 
     wxLongLongNative operator-(const wxLongLong_t ll) const
         { return wxLongLongNative(m_ll - ll); }
@@ -311,6 +320,13 @@ public:
     bool operator>=(long l) const
         { return m_ll >= l; }
 
+    friend bool operator<(long l, const wxLongLongNative& ll) { return ll > l; }
+    friend bool operator>(long l, const wxLongLongNative& ll) { return ll < l; }
+    friend bool operator<=(long l, const wxLongLongNative& ll) { return ll >= l; }
+    friend bool operator>=(long l, const wxLongLongNative& ll) { return ll <= l; }
+    friend bool operator==(long l, const wxLongLongNative& ll) { return ll == l; }
+    friend bool operator!=(long l, const wxLongLongNative& ll) { return ll != l; }
+
     // miscellaneous
 
         // return the string representation of this number
@@ -322,7 +338,7 @@ public:
 #if wxUSE_STD_IOSTREAM
         // input/output
     friend WXDLLIMPEXP_BASE
-    wxSTD ostream& operator<<(wxSTD ostream&, const wxLongLongNative&);
+    std::ostream& operator<<(std::ostream&, const wxLongLongNative&);
 #endif
 
     friend WXDLLIMPEXP_BASE
@@ -410,16 +426,7 @@ public:
     }
 
         // convert to double
-        //
-        // For some completely obscure reasons compiling the cast below with
-        // VC6 in DLL builds only (!) results in "error C2520: conversion from
-        // unsigned __int64 to double not implemented, use signed __int64" so
-        // we must use a different version for that compiler.
-#ifdef __VISUALC6__
-    double ToDouble() const;
-#else
     double ToDouble() const { return wx_truncate_cast(double, m_ll); }
-#endif
 
     // operations
         // addition
@@ -427,6 +434,8 @@ public:
         { return wxULongLongNative(m_ll + ll.m_ll); }
     wxULongLongNative& operator+=(const wxULongLongNative& ll)
         { m_ll += ll.m_ll; return *this; }
+    friend wxULongLongNative operator+(unsigned long l, const wxULongLongNative& ull)
+        { return ull + l; }
 
     wxULongLongNative operator+(const wxULongLong_t ll) const
         { return wxULongLongNative(m_ll + ll); }
@@ -446,6 +455,10 @@ public:
         { return wxULongLongNative(m_ll - ll.m_ll); }
     wxULongLongNative& operator-=(const wxULongLongNative& ll)
         { m_ll -= ll.m_ll; return *this; }
+    friend wxULongLongNative operator-(unsigned long l, const wxULongLongNative& ull)
+    {
+        return wxULongLongNative(l - ull.m_ll);
+    }
 
     wxULongLongNative operator-(const wxULongLong_t ll) const
         { return wxULongLongNative(m_ll - ll); }
@@ -539,6 +552,13 @@ public:
     bool operator>=(unsigned long l) const
         { return m_ll >= l; }
 
+    friend bool operator<(unsigned long l, const wxULongLongNative& ull) { return ull > l; }
+    friend bool operator>(unsigned long l, const wxULongLongNative& ull) { return ull < l; }
+    friend bool operator<=(unsigned long l, const wxULongLongNative& ull) { return ull >= l; }
+    friend bool operator>=(unsigned long l, const wxULongLongNative& ull) { return ull <= l; }
+    friend bool operator==(unsigned long l, const wxULongLongNative& ull) { return ull == l; }
+    friend bool operator!=(unsigned long l, const wxULongLongNative& ull) { return ull != l; }
+
     // miscellaneous
 
         // return the string representation of this number
@@ -550,7 +570,7 @@ public:
 #if wxUSE_STD_IOSTREAM
         // input/output
     friend WXDLLIMPEXP_BASE
-    wxSTD ostream& operator<<(wxSTD ostream&, const wxULongLongNative&);
+    std::ostream& operator<<(std::ostream&, const wxULongLongNative&);
 #endif
 
     friend WXDLLIMPEXP_BASE
@@ -702,6 +722,8 @@ public:
     wxLongLongWx operator+(long l) const;
     wxLongLongWx& operator+=(long l);
 
+    friend wxLongLongWx operator+(long l, const wxLongLongWx& ll) { return ll + l; }
+
         // pre increment operator
     wxLongLongWx& operator++();
 
@@ -712,9 +734,13 @@ public:
     wxLongLongWx operator-() const;
     wxLongLongWx& Negate();
 
-        // subraction
+        // subtraction
     wxLongLongWx operator-(const wxLongLongWx& ll) const;
     wxLongLongWx& operator-=(const wxLongLongWx& ll);
+    friend wxLongLongWx operator-(long l, const wxLongLongWx& ll)
+    {
+        return wxLongLongWx(l) - ll;
+    }
 
         // pre decrement operator
     wxLongLongWx& operator--();
@@ -767,6 +793,13 @@ public:
     bool operator<=(long l) const { return *this < l || *this == l; }
     bool operator>=(long l) const { return *this > l || *this == l; }
 
+    friend bool operator<(long l, const wxLongLongWx& ll) { return ll > l; }
+    friend bool operator>(long l, const wxLongLongWx& ll) { return ll < l; }
+    friend bool operator<=(long l, const wxLongLongWx& ll) { return ll >= l; }
+    friend bool operator>=(long l, const wxLongLongWx& ll) { return ll <= l; }
+    friend bool operator==(long l, const wxLongLongWx& ll) { return ll == l; }
+    friend bool operator!=(long l, const wxLongLongWx& ll) { return ll != l; }
+
     // multiplication
     wxLongLongWx operator*(const wxLongLongWx& ll) const;
     wxLongLongWx& operator*=(const wxLongLongWx& ll);
@@ -790,7 +823,7 @@ public:
 
 #if wxUSE_STD_IOSTREAM
     friend WXDLLIMPEXP_BASE
-    wxSTD ostream& operator<<(wxSTD ostream&, const wxLongLongWx&);
+    std::ostream& operator<<(std::ostream&, const wxLongLongWx&);
 #endif // wxUSE_STD_IOSTREAM
 
     friend WXDLLIMPEXP_BASE
@@ -801,7 +834,14 @@ public:
     class wxTextOutputStream& operator<<(class wxTextOutputStream&, const wxLongLongWx&);
     friend WXDLLIMPEXP_BASE
     class wxTextInputStream& operator>>(class wxTextInputStream&, wxLongLongWx&);
-#endif
+
+#if wxUSE_LONGLONG_NATIVE
+    friend WXDLLIMPEXP_BASE
+    class wxTextOutputStream &operator<<(class wxTextOutputStream &stream, wxLongLong_t value);
+    friend WXDLLIMPEXP_BASE
+    class wxTextInputStream &operator>>(class wxTextInputStream &stream, wxLongLong_t &value);
+#endif // wxUSE_LONGLONG_NATIVE
+#endif // wxUSE_STREAMS
 
 private:
     // long is at least 32 bits, so represent our 64bit number as 2 longs
@@ -926,6 +966,8 @@ public:
     wxULongLongWx& operator+=(const wxULongLongWx& ll);
     wxULongLongWx operator+(unsigned long l) const;
     wxULongLongWx& operator+=(unsigned long l);
+    friend wxULongLongWx operator+(unsigned long l, const wxULongLongWx& ull)
+        { return ull + l; }
 
         // pre increment operator
     wxULongLongWx& operator++();
@@ -936,6 +978,13 @@ public:
         // subtraction
     wxLongLongWx operator-(const wxULongLongWx& ll) const;
     wxULongLongWx& operator-=(const wxULongLongWx& ll);
+
+    friend wxLongLongWx operator-(unsigned long l, const wxULongLongWx& ull)
+    {
+        const wxULongLongWx ret = wxULongLongWx(l) - ull;
+        return wxLongLongWx((wxInt32)ret.GetHi(),ret.GetLo());
+    }
+
 
         // pre decrement operator
     wxULongLongWx& operator--();
@@ -983,6 +1032,13 @@ public:
     bool operator<=(unsigned long l) const { return *this < l || *this == l; }
     bool operator>=(unsigned long l) const { return *this > l || *this == l; }
 
+    friend bool operator<(unsigned long l, const wxULongLongWx& ull) { return ull > l; }
+    friend bool operator>(unsigned long l, const wxULongLongWx& ull) { return ull < l; }
+    friend bool operator<=(unsigned long l, const wxULongLongWx& ull) { return ull >= l; }
+    friend bool operator>=(unsigned long l, const wxULongLongWx& ull) { return ull <= l; }
+    friend bool operator==(unsigned long l, const wxULongLongWx& ull) { return ull == l; }
+    friend bool operator!=(unsigned long l, const wxULongLongWx& ull) { return ull != l; }
+
     // multiplication
     wxULongLongWx operator*(const wxULongLongWx& ll) const;
     wxULongLongWx& operator*=(const wxULongLongWx& ll);
@@ -1006,7 +1062,7 @@ public:
 
 #if wxUSE_STD_IOSTREAM
     friend WXDLLIMPEXP_BASE
-    wxSTD ostream& operator<<(wxSTD ostream&, const wxULongLongWx&);
+    std::ostream& operator<<(std::ostream&, const wxULongLongWx&);
 #endif // wxUSE_STD_IOSTREAM
 
     friend WXDLLIMPEXP_BASE
@@ -1017,7 +1073,14 @@ public:
     class wxTextOutputStream& operator<<(class wxTextOutputStream&, const wxULongLongWx&);
     friend WXDLLIMPEXP_BASE
     class wxTextInputStream& operator>>(class wxTextInputStream&, wxULongLongWx&);
-#endif
+
+#if wxUSE_LONGLONG_NATIVE
+    friend WXDLLIMPEXP_BASE
+    class wxTextOutputStream &operator<<(class wxTextOutputStream &stream, wxULongLong_t value);
+    friend WXDLLIMPEXP_BASE
+    class wxTextInputStream &operator>>(class wxTextInputStream &stream, wxULongLong_t &value);
+#endif // wxUSE_LONGLONG_NATIVE
+#endif // wxUSE_STREAMS
 
 private:
     // long is at least 32 bits, so represent our 64bit number as 2 longs
@@ -1038,58 +1101,10 @@ private:
 #endif // wxUSE_LONGLONG_WX
 
 // ----------------------------------------------------------------------------
-// binary operators
-// ----------------------------------------------------------------------------
-
-inline bool operator<(long l, const wxLongLong& ll) { return ll > l; }
-inline bool operator>(long l, const wxLongLong& ll) { return ll < l; }
-inline bool operator<=(long l, const wxLongLong& ll) { return ll >= l; }
-inline bool operator>=(long l, const wxLongLong& ll) { return ll <= l; }
-inline bool operator==(long l, const wxLongLong& ll) { return ll == l; }
-inline bool operator!=(long l, const wxLongLong& ll) { return ll != l; }
-
-inline wxLongLong operator+(long l, const wxLongLong& ll) { return ll + l; }
-inline wxLongLong operator-(long l, const wxLongLong& ll)
-{
-    return wxLongLong(l) - ll;
-}
-
-inline bool operator<(unsigned long l, const wxULongLong& ull) { return ull > l; }
-inline bool operator>(unsigned long l, const wxULongLong& ull) { return ull < l; }
-inline bool operator<=(unsigned long l, const wxULongLong& ull) { return ull >= l; }
-inline bool operator>=(unsigned long l, const wxULongLong& ull) { return ull <= l; }
-inline bool operator==(unsigned long l, const wxULongLong& ull) { return ull == l; }
-inline bool operator!=(unsigned long l, const wxULongLong& ull) { return ull != l; }
-
-inline wxULongLong operator+(unsigned long l, const wxULongLong& ull) { return ull + l; }
-
-inline wxLongLong operator-(unsigned long l, const wxULongLong& ull)
-{
-    wxULongLong ret = wxULongLong(l) - ull;
-    return wxLongLong((wxInt32)ret.GetHi(),ret.GetLo());
-}
-
-#if wxUSE_LONGLONG_NATIVE && wxUSE_STREAMS
-
-WXDLLIMPEXP_BASE class wxTextOutputStream &operator<<(class wxTextOutputStream &stream, wxULongLong_t value);
-WXDLLIMPEXP_BASE class wxTextOutputStream &operator<<(class wxTextOutputStream &stream, wxLongLong_t value);
-
-WXDLLIMPEXP_BASE class wxTextInputStream &operator>>(class wxTextInputStream &stream, wxULongLong_t &value);
-WXDLLIMPEXP_BASE class wxTextInputStream &operator>>(class wxTextInputStream &stream, wxLongLong_t &value);
-
-#endif
-
-// ----------------------------------------------------------------------------
 // Specialize numeric_limits<> for our long long wrapper classes.
 // ----------------------------------------------------------------------------
 
 #if wxUSE_LONGLONG_NATIVE
-
-// VC6 is known to not have __int64 specializations of numeric_limits<> in its
-// <limits> anyhow so don't bother including it, especially as it results in
-// tons of warnings because the standard header itself uses obsolete template
-// specialization syntax.
-#ifndef __VISUALC6__
 
 #include <limits>
 
@@ -1108,8 +1123,6 @@ namespace std
 
 } // namespace std
 
-#endif // !VC6
-
 #endif // wxUSE_LONGLONG_NATIVE
 
 // ----------------------------------------------------------------------------
@@ -1123,6 +1136,12 @@ namespace std
 // dependencies we can only do it here (or add another header just for this but
 // it doesn't seem necessary).
 #include "wx/strvararg.h"
+
+template<>
+struct wxFormatStringSpecifier<wxLongLong>
+{
+    enum { value = wxFormatString::Arg_LongLongInt };
+};
 
 template<>
 struct WXDLLIMPEXP_BASE wxArgNormalizer<wxLongLong>

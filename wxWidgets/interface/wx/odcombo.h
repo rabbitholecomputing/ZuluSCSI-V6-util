@@ -74,7 +74,7 @@ enum
 
     @see Events emitted by wxComboCtrl.
 
-    @library{wxadv}
+    @library{wxcore}
     @category{ctrl}
     @appearance{ownerdrawncombobox}
 
@@ -89,7 +89,7 @@ public:
     wxOwnerDrawnComboBox();
 
     /**
-        Constructor, creating and showing a owner-drawn combobox.
+        Constructor, creating and showing an owner-drawn combobox.
 
         @param parent
             Parent window. Must not be @NULL.
@@ -120,7 +120,7 @@ public:
                          const wxPoint& pos = wxDefaultPosition,
                          const wxSize& size = wxDefaultSize,
                          int n = 0,
-                         const wxString choices[] = NULL,
+                         const wxString choices[] = nullptr,
                          long style = 0,
                          const wxValidator& validator = wxDefaultValidator,
                          const wxString& name = "comboBox");
@@ -163,7 +163,7 @@ public:
     */
     virtual ~wxOwnerDrawnComboBox();
 
-    //@{
+    ///@{
     /**
         Creates the combobox for two-step construction.
         See wxOwnerDrawnComboBox() for further details.
@@ -197,7 +197,40 @@ public:
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxComboBoxNameStr);
-    //@}
+    ///@}
+
+    /**
+        IsEmpty() is not available in this class.
+
+        This method is documented here only to notice that it can't be used
+        with this class because of the ambiguity between the methods with the
+        same name inherited from wxItemContainer and wxTextEntry base classes.
+
+        Because of this, any attempt to call it results in a compilation error
+        and you should use either IsListEmpty() or IsTextEmpty() depending on
+        what exactly do you want to test.
+     */
+    bool IsEmpty() const;
+
+    /**
+        Returns true if the list of combobox choices is empty.
+
+        Use this method instead of (not available in this class) IsEmpty() to
+        test if the list of items is empty.
+
+        @since 3.1.0
+     */
+    bool IsListEmpty() const;
+
+    /**
+        Returns true if the text of the combobox is empty.
+
+        Use this method instead of (not available in this class) IsEmpty() to
+        test if the text currently entered into the combobox is empty.
+
+        @since 3.1.0
+     */
+    bool IsTextEmpty() const;
 
     /**
         Returns index to the widest item in the list.

@@ -6,24 +6,12 @@
 ** Created:     11/24/04
 *****************************************************************************/
 
-
-#if defined(_WIN32_WCE)
-    /* eVC cause warnings in its own headers: stdlib.h and winnt.h */
-    #pragma warning (disable:4115)
-    #pragma warning (disable:4214)
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <limits.h>
 #include <string.h>
 #include "wx/defs.h"
-
-#if defined(_WIN32_WCE)
-    #pragma warning (default:4115)
-    #pragma warning (default:4214)
-#endif
 
 #if wxUSE_APPLE_IEEE
 
@@ -189,17 +177,5 @@ WXDLLIMPEXP_BASE void wxConvertToIeeeExtended(wxFloat64 num, wxInt8 *bytes)
     bytes[8] = loMant >> 8;
     bytes[9] = loMant;
 }
-
-#if WXWIN_COMPATIBILITY_2_8
-WXDLLIMPEXP_BASE wxFloat64 ConvertFromIeeeExtended(const wxInt8 *bytes)
-{
-    return wxConvertFromIeeeExtended(bytes);
-}
-
-WXDLLIMPEXP_BASE void ConvertToIeeeExtended(wxFloat64 num, wxInt8 *bytes)
-{
-    wxConvertToIeeeExtended(num, bytes);
-}
-#endif // WXWIN_COMPATIBILITY_2_8
 
 #endif /* wxUSE_APPLE_IEEE */

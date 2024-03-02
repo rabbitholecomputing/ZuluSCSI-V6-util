@@ -2,7 +2,6 @@
 // Name:        src/univ/scrolbar.cpp
 // Purpose:     wxScrollBar implementation
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     20.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -18,9 +17,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_SCROLLBAR
 
@@ -43,7 +39,7 @@
     #define WXDEBUG_SCROLLBAR
 #endif
 
-#if defined(WXDEBUG_SCROLLBAR) && defined(__WXMSW__) && !defined(__WXMICROWIN__)
+#if defined(WXDEBUG_SCROLLBAR) && defined(__WXMSW__)
 #include "wx/msw/private.h"
 #endif
 
@@ -73,8 +69,8 @@ private:
 // implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxScrollBar, wxScrollBarBase)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxScrollBar, wxScrollBarBase)
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // creation
@@ -627,7 +623,7 @@ void wxScrollBar::UpdateThumb()
             dc.DrawRectangle(rect);
 
             // under Unix we use "--sync" X option for this
-            #if defined(__WXMSW__) && !defined(__WXMICROWIN__)
+            #if defined(__WXMSW__)
                 ::GdiFlush();
                 ::Sleep(200);
             #endif // __WXMSW__
@@ -875,14 +871,14 @@ wxStdScrollBarInputHandler::wxStdScrollBarInputHandler(wxRenderer *renderer,
                           : wxStdInputHandler(handler)
 {
     m_renderer = renderer;
-    m_winCapture = NULL;
+    m_winCapture = nullptr;
     m_htLast = wxHT_NOWHERE;
-    m_timerScroll = NULL;
+    m_timerScroll = nullptr;
 }
 
 wxStdScrollBarInputHandler::~wxStdScrollBarInputHandler()
 {
-    // normally, it's NULL by now but just in case the user somehow managed to
+    // normally, it's null by now but just in case the user somehow managed to
     // keep the mouse captured until now...
     delete m_timerScroll;
 }
@@ -925,7 +921,7 @@ void wxStdScrollBarInputHandler::StopScrolling(wxScrollBar *control)
     if ( m_winCapture )
     {
         m_winCapture->ReleaseMouse();
-        m_winCapture = NULL;
+        m_winCapture = nullptr;
     }
 
     m_btnCapture = -1;
@@ -1002,7 +998,9 @@ bool wxStdScrollBarInputHandler::HandleMouse(wxInputConsumer *consumer,
             {
                 m_btnCapture = btn;
                 m_winCapture = consumer->GetInputWindow();
-                m_winCapture->CaptureMouse();
+
+                if ( !m_winCapture->HasCapture() )
+                    m_winCapture->CaptureMouse();
 
                 // generate the command
                 bool hasAction = true;
@@ -1031,7 +1029,7 @@ bool wxStdScrollBarInputHandler::HandleMouse(wxInputConsumer *consumer,
                         consumer->PerformAction(wxACTION_SCROLL_THUMB_DRAG);
                         m_ofsMouse = GetMouseCoord(scrollbar, event) -
                                      scrollbar->ScrollbarToPixel();
-
+                        wxFALLTHROUGH;
                         // fall through: there is no immediate action
 
                     default:
@@ -1065,7 +1063,8 @@ bool wxStdScrollBarInputHandler::HandleMouse(wxInputConsumer *consumer,
         {
             if ( m_winCapture )
             {
-                StopScrolling(scrollbar);
+                if ( m_winCapture->HasCapture() )
+                    StopScrolling(scrollbar);
 
                 // if we were dragging the thumb, send the last event
                 if ( m_htLast == wxHT_SCROLLBAR_THUMB )
@@ -1086,7 +1085,7 @@ bool wxStdScrollBarInputHandler::HandleMouse(wxInputConsumer *consumer,
         }
     }
 
-    return wxStdInputHandler::HandleMouse(consumer, event);
+    return true;
 }
 
 bool wxStdScrollBarInputHandler::HandleMouseMove(wxInputConsumer *consumer,
@@ -1150,7 +1149,7 @@ bool wxStdScrollBarInputHandler::HandleMouseMove(wxInputConsumer *consumer,
 
 #endif // wxUSE_SCROLLBAR
 
-#if wxUSE_TIMER
+#if wxUSE_TIMER && wxUSE_SCROLLBAR
 
 // ----------------------------------------------------------------------------
 // wxScrollTimer
@@ -1195,4 +1194,4 @@ void wxScrollTimer::Notify()
     }
 }
 
-#endif // wxUSE_TIMER
+#endif // wxUSE_TIMER && wxUSE_SCROLLBAR

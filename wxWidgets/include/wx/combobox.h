@@ -2,7 +2,6 @@
 // Name:        wx/combobox.h
 // Purpose:     wxComboBox declaration
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     24.12.00
 // Copyright:   (c) 1996-2000 wxWidgets team
 // Licence:     wxWindows licence
@@ -33,10 +32,10 @@ class WXDLLIMPEXP_CORE wxComboBoxBase : public wxItemContainer,
 {
 public:
     // override these methods to disambiguate between two base classes versions
-    virtual void Clear()
+    virtual void Clear() override
     {
-        wxTextEntry::Clear();
         wxItemContainer::Clear();
+        wxTextEntry::Clear();
     }
 
     // IsEmpty() is ambiguous because we inherit it from both wxItemContainer
@@ -53,8 +52,8 @@ public:
     //     but still make it pure virtual because for some platforms it's not
     //     implemented there and also because the derived class has to override
     //     it anyhow to avoid ambiguity with the other GetSelection()
-    virtual int GetSelection() const = 0;
-    virtual void GetSelection(long *from, long *to) const = 0;
+    virtual int GetSelection() const override = 0;
+    virtual void GetSelection(long *from, long *to) const override = 0;
 
     virtual void Popup() { wxFAIL_MSG( wxT("Not implemented") ); }
     virtual void Dismiss() { wxFAIL_MSG( wxT("Not implemented") ); }
@@ -73,18 +72,12 @@ public:
     #include "wx/univ/combobox.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/combobox.h"
-#elif defined(__WXMOTIF__)
-    #include "wx/motif/combobox.h"
-#elif defined(__WXGTK20__)
-    #include "wx/gtk/combobox.h"
 #elif defined(__WXGTK__)
-    #include "wx/gtk1/combobox.h"
+    #include "wx/gtk/combobox.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/combobox.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/combobox.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/combobox.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/combobox.h"
 #endif
 
 #endif // wxUSE_COMBOBOX

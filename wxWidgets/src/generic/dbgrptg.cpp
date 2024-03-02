@@ -2,7 +2,6 @@
 // Name:        src/generic/dbgrptg.cpp
 // Purpose:     implementation of wxDebugReportPreviewStd
 // Author:      Vadim Zeitlin, Andrej Putrin
-// Modified by:
 // Created:     2005-01-21
 // Copyright:   (c) 2005 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -18,9 +17,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_DEBUGREPORT && wxUSE_XML
 
@@ -141,17 +137,17 @@ private:
     void OnBrowse(wxCommandEvent& event);
 #endif // wxUSE_FILEDLG
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxDumpOpenExternalDlg);
 };
 
-BEGIN_EVENT_TABLE(wxDumpOpenExternalDlg, wxDialog)
+wxBEGIN_EVENT_TABLE(wxDumpOpenExternalDlg, wxDialog)
 
 #if wxUSE_FILEDLG
     EVT_BUTTON(wxID_MORE, wxDumpOpenExternalDlg::OnBrowse)
 #endif
 
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 wxDumpOpenExternalDlg::wxDumpOpenExternalDlg(wxWindow *parent,
@@ -231,7 +227,7 @@ void wxDumpOpenExternalDlg::OnBrowse(wxCommandEvent& )
                      fname.GetPathWithSep(),
                      fname.GetFullName()
 #ifdef __WXMSW__
-                     , _("Executable files (*.exe)|*.exe|") + wxALL_FILES
+                     , wxString(_("Executable files (*.exe)|*.exe|")) + wxALL_FILES
 #endif // __WXMSW__
                      );
     if ( dlg.ShowModal() == wxID_OK )
@@ -252,8 +248,8 @@ class wxDebugReportDialog : public wxDialog
 public:
     wxDebugReportDialog(wxDebugReport& dbgrpt);
 
-    virtual bool TransferDataToWindow();
-    virtual bool TransferDataFromWindow();
+    virtual bool TransferDataToWindow() override;
+    virtual bool TransferDataFromWindow() override;
 
 private:
     void OnView(wxCommandEvent& );
@@ -270,12 +266,16 @@ private:
 
     wxDebugReport& m_dbgrpt;
 
+#if wxUSE_CHECKLISTBOX
     wxCheckListBox *m_checklst;
+#else
+    wxListBox *m_checklst;
+#endif
     wxTextCtrl *m_notes;
 
     wxArrayString m_files;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxDebugReportDialog);
 };
 
@@ -283,12 +283,12 @@ private:
 // wxDebugReportDialog implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxDebugReportDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxDebugReportDialog, wxDialog)
     EVT_BUTTON(wxID_VIEW_DETAILS, wxDebugReportDialog::OnView)
     EVT_UPDATE_UI(wxID_VIEW_DETAILS, wxDebugReportDialog::OnViewUpdate)
     EVT_BUTTON(wxID_OPEN, wxDebugReportDialog::OnOpen)
     EVT_UPDATE_UI(wxID_OPEN, wxDebugReportDialog::OnViewUpdate)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 // ----------------------------------------------------------------------------
@@ -296,7 +296,7 @@ END_EVENT_TABLE()
 // ----------------------------------------------------------------------------
 
 wxDebugReportDialog::wxDebugReportDialog(wxDebugReport& dbgrpt)
-                   : wxDialog(NULL, wxID_ANY,
+                   : wxDialog(nullptr, wxID_ANY,
                               wxString::Format(_("Debug report \"%s\""),
                               dbgrpt.GetReportName().c_str()),
                               wxDefaultPosition,
@@ -306,16 +306,15 @@ wxDebugReportDialog::wxDebugReportDialog(wxDebugReport& dbgrpt)
 {
     // upper part of the dialog: explanatory message
     wxString msg;
-    wxString debugDir = dbgrpt.GetDirectory();
 
     // The temporary directory can be the short form on Windows;
     // normalize it for the benefit of users.
-#ifdef __WXMSW__
-    wxFileName debugDirFilename(debugDir, wxEmptyString);
+    wxFileName debugDirFilename(dbgrpt.GetSaveLocation());
     debugDirFilename.Normalize(wxPATH_NORM_LONG);
-    debugDir = debugDirFilename.GetPath();
-#endif
-    msg << _("A debug report has been generated in the directory\n")
+    wxString debugDir = debugDirFilename.GetFullPath();
+    msg << (debugDirFilename.IsDir()
+            ? _("A debug report has been generated in the directory\n")
+            : _("The following debug report will be generated\n"))
         << wxT('\n')
         << wxT("             \"") << debugDir << wxT("\"\n")
         << wxT('\n')
@@ -332,7 +331,7 @@ wxDebugReportDialog::wxDebugReportDialog(wxDebugReport& dbgrpt)
 
     wxSizer *sizerPreview =
         new wxStaticBoxSizer(wxVERTICAL, this, _("&Debug report preview:"));
-    sizerPreview->Add(CreateTextSizer(msg), SizerFlags(0).Centre());
+    sizerPreview->Add(CreateTextSizer(msg), wxSizerFlags().Centre().Border());
 
     // ... and the list of files in this debug report with buttons to view them
     wxSizer *sizerFileBtns = new wxBoxSizer(wxVERTICAL);
@@ -343,7 +342,11 @@ wxDebugReportDialog::wxDebugReportDialog(wxDebugReport& dbgrpt)
                         wxSizerFlags().Border(wxTOP));
     sizerFileBtns->AddStretchSpacer(1);
 
+#if wxUSE_CHECKLISTBOX
     m_checklst = new wxCheckListBox(this, wxID_ANY);
+#else
+    m_checklst = new wxListBox(this, wxID_ANY);
+#endif
 
     wxSizer *sizerFiles = new wxBoxSizer(wxHORIZONTAL);
     sizerFiles->Add(m_checklst, flagsExpand);
@@ -391,7 +394,9 @@ bool wxDebugReportDialog::TransferDataToWindow()
         if ( m_dbgrpt.GetFile(n, &name, &desc) )
         {
             m_checklst->Append(name + wxT(" (") + desc + wxT(')'));
+#if wxUSE_CHECKLISTBOX
             m_checklst->Check(n);
+#endif
 
             m_files.Add(name);
         }
@@ -402,6 +407,7 @@ bool wxDebugReportDialog::TransferDataToWindow()
 
 bool wxDebugReportDialog::TransferDataFromWindow()
 {
+#if wxUSE_CHECKLISTBOX
     // any unchecked files should be removed from the report
     const size_t count = m_checklst->GetCount();
     for ( size_t n = 0; n < count; n++ )
@@ -411,6 +417,7 @@ bool wxDebugReportDialog::TransferDataFromWindow()
             m_dbgrpt.RemoveFile(m_files[n]);
         }
     }
+#endif
 
     // if the user entered any notes, add them to the report
     const wxString notes = m_notes->GetValue();
@@ -527,8 +534,7 @@ bool wxDebugReportPreviewStd::Show(wxDebugReport& dbgrpt) const
     // handling for all other windows as this could result in more crashes
     wxEventLoop::SetCriticalWindow(&dlg);
 
-    wxON_BLOCK_EXIT1( wxEventLoop::SetCriticalWindow,
-                        static_cast<wxWindow *>(NULL) );
+    wxON_BLOCK_EXIT1( wxEventLoop::SetCriticalWindow, nullptr );
 #endif // __WXMSW__
 
     return dlg.ShowModal() == wxID_OK && dbgrpt.GetFilesCount() != 0;

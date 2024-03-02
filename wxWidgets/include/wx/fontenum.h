@@ -27,10 +27,10 @@
 class WXDLLIMPEXP_CORE wxFontEnumerator
 {
 public:
-    wxFontEnumerator() {}
+    wxFontEnumerator() = default;
 
     // virtual dtor for the base class
-    virtual ~wxFontEnumerator() {}
+    virtual ~wxFontEnumerator() = default;
 
     // start enumerating font facenames (either all of them or those which
     // support the given encoding) - will result in OnFacename() being
@@ -73,6 +73,11 @@ public:
     // convenience function that returns true if the given face name exist
     // in the user's system
     static bool IsValidFacename(const wxString &str);
+
+    // Invalidate cache used by some of the methods of this class internally.
+    // This should be called if the list of the fonts available on the system
+    // changes, for whatever reason.
+    static void InvalidateCache();
 
 private:
 #ifdef wxHAS_UTF8_FONTS

@@ -39,7 +39,7 @@ public:
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
-                const wxString& name = wxPanelNameStr)
+                const wxString& name = wxASCII_STR(wxPanelNameStr))
     {
         Init();
         Create(parent, id, pos, size, style, name);
@@ -52,7 +52,7 @@ public:
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
-                const wxString& name = wxPanelNameStr);
+                const wxString& name = wxASCII_STR(wxPanelNameStr));
 
     // implement base class (pure) virtual methods
     // -------------------------------------------
@@ -72,7 +72,7 @@ public:
     virtual void WarpPointer(int x, int y);
 
     virtual void Refresh(bool eraseBackground = true,
-                         const wxRect *rect = (const wxRect *) NULL);
+                         const wxRect *rect = nullptr);
     virtual void Update();
 
     virtual bool SetCursor(const wxCursor &cursor);
@@ -105,9 +105,9 @@ protected:
     // implement the base class pure virtuals
     virtual void DoGetTextExtent(const wxString& string,
                                  int *x, int *y,
-                                 int *descent = NULL,
-                                 int *externalLeading = NULL,
-                                 const wxFont *theFont = NULL) const;
+                                 int *descent = nullptr,
+                                 int *externalLeading = nullptr,
+                                 const wxFont *theFont = nullptr) const;
     virtual void DoClientToScreen(int *x, int *y) const;
     virtual void DoScreenToClient(int *x, int *y) const;
     virtual void DoGetPosition(int *x, int *y) const;
@@ -178,16 +178,16 @@ private:
     // don't access it directly)
     wxRect m_rect;
 
-    // overlays for this window (or NULL if it doesn't have any)
+    // overlays for this window (or nullptr if it doesn't have any)
     wxDfbOverlaysList *m_overlays;
 
     friend class wxNonOwnedWindow; // for HandleXXXEvent
     friend class wxOverlayImpl; // for Add/RemoveOverlay
     friend class wxWindowDCImpl; // for PaintOverlays
 
-    DECLARE_DYNAMIC_CLASS(wxWindowDFB)
+    wxDECLARE_DYNAMIC_CLASS(wxWindowDFB);
     wxDECLARE_NO_COPY_CLASS(wxWindowDFB);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_DFB_WINDOW_H_

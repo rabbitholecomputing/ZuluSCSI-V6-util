@@ -18,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_XRC && wxUSE_EDITABLELISTBOX
 
@@ -49,7 +46,7 @@ const char * const EDITLBOX_ITEM_NAME = "item";
 // implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxEditableListBoxXmlHandler, wxXmlResourceHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxEditableListBoxXmlHandler, wxXmlResourceHandler);
 
 wxEditableListBoxXmlHandler::wxEditableListBoxXmlHandler()
 {
@@ -88,7 +85,7 @@ wxObject *wxEditableListBoxXmlHandler::DoCreateResource()
         if ( contents )
         {
             m_insideBox = true;
-            CreateChildrenPrivately(NULL, contents);
+            CreateChildrenPrivately(nullptr, contents);
             m_insideBox = false;
 
             control->SetStrings(m_items);
@@ -99,17 +96,14 @@ wxObject *wxEditableListBoxXmlHandler::DoCreateResource()
     }
     else if ( m_insideBox && m_node->GetName() == EDITLBOX_ITEM_NAME )
     {
-        wxString str = GetNodeContent(m_node);
-        if ( m_resource->GetFlags() & wxXRC_USE_LOCALE )
-            str = wxGetTranslation(str, m_resource->GetDomain());
-        m_items.push_back(str);
+        m_items.push_back(GetNodeText(m_node, wxXRC_TEXT_NO_ESCAPE));
 
-        return NULL;
+        return nullptr;
     }
     else
     {
         ReportError("Unexpected node inside wxEditableListBox");
-        return NULL;
+        return nullptr;
     }
 }
 

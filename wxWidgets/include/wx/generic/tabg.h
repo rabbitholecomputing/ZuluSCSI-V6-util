@@ -1,8 +1,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        wx/generic/tabg.h
-// Purpose:     Generic tabbed dialogs; used by wxMotif's wxNotebook
+// Purpose:     Generic tabbed dialogs; used by generic wxNotebook
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -28,9 +27,9 @@ class WXDLLIMPEXP_FWD_CORE wxTabView;
 
 class WXDLLIMPEXP_CORE wxTabControl: public wxObject
 {
-DECLARE_DYNAMIC_CLASS(wxTabControl)
+    wxDECLARE_DYNAMIC_CLASS(wxTabControl);
 public:
-    wxTabControl(wxTabView *v = NULL);
+    wxTabControl(wxTabView *v = nullptr);
     virtual ~wxTabControl(void);
 
     virtual void OnDraw(wxDC& dc, bool lastInRow);
@@ -95,7 +94,7 @@ WX_DECLARE_LIST(wxTabLayer, wxTabLayerList);
 
 class WXDLLIMPEXP_CORE wxTabView: public wxObject
 {
-DECLARE_DYNAMIC_CLASS(wxTabView)
+    wxDECLARE_DYNAMIC_CLASS(wxTabView);
 public:
   wxTabView(long style = wxTAB_STYLE_DRAW_BOX | wxTAB_STYLE_COLOUR_INTERIOR);
   virtual ~wxTabView();
@@ -107,7 +106,7 @@ public:
   inline wxWindow* GetWindow(void) const { return m_window; }
 
   // Automatically positions tabs
-  wxTabControl *AddTab(int id, const wxString& label, wxTabControl *existingTab = NULL);
+  wxTabControl *AddTab(int id, const wxString& label, wxTabControl *existingTab = nullptr);
 
   // Remove the tab without deleting the window
   bool RemoveTab(int id);
@@ -267,7 +266,7 @@ protected:
 
 class WXDLLIMPEXP_CORE wxTabbedDialog : public wxDialog
 {
-    DECLARE_DYNAMIC_CLASS(wxTabbedDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxTabbedDialog);
 
 public:
     wxTabbedDialog(wxWindow *parent,
@@ -276,7 +275,7 @@ public:
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize,
                    long windowStyle = wxDEFAULT_DIALOG_STYLE,
-                   const wxString& name = wxDialogNameStr);
+                   const wxString& name = wxASCII_STR(wxDialogNameStr));
     virtual ~wxTabbedDialog();
 
     wxTabView *GetTabView() const { return m_tabView; }
@@ -290,7 +289,7 @@ protected:
     wxTabView*   m_tabView;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 /*
@@ -299,7 +298,7 @@ private:
 
 class WXDLLIMPEXP_CORE wxTabbedPanel : public wxPanel
 {
-    DECLARE_DYNAMIC_CLASS(wxTabbedPanel)
+    wxDECLARE_DYNAMIC_CLASS(wxTabbedPanel);
 
 public:
     wxTabbedPanel(wxWindow *parent,
@@ -307,7 +306,7 @@ public:
                   const wxPoint& pos = wxDefaultPosition,
                   const wxSize& size = wxDefaultSize,
                   long windowStyle = 0,
-                  const wxString& name = wxPanelNameStr);
+                  const wxString& name = wxASCII_STR(wxPanelNameStr));
     virtual ~wxTabbedPanel();
 
     wxTabView *GetTabView() const { return m_tabView; }
@@ -320,7 +319,7 @@ protected:
     wxTabView*   m_tabView;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 WX_DECLARE_HASH_MAP(int, wxWindow*, wxIntegerHash, wxIntegerEqual,
@@ -328,7 +327,7 @@ WX_DECLARE_HASH_MAP(int, wxWindow*, wxIntegerHash, wxIntegerEqual,
 
 class WXDLLIMPEXP_CORE wxPanelTabView : public wxTabView
 {
-    DECLARE_DYNAMIC_CLASS(wxPanelTabView)
+    wxDECLARE_DYNAMIC_CLASS(wxPanelTabView);
 
 public:
     wxPanelTabView(wxPanel *pan, long style = wxTAB_STYLE_DRAW_BOX | wxTAB_STYLE_COLOUR_INTERIOR);

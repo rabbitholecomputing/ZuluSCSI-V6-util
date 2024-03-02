@@ -18,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/settings.h"
@@ -33,12 +30,12 @@
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxMouseEventsManager, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxMouseEventsManager, wxEvtHandler)
     EVT_MOUSE_CAPTURE_LOST(wxMouseEventsManager::OnCaptureLost)
     EVT_LEFT_DOWN(wxMouseEventsManager::OnLeftDown)
     EVT_LEFT_UP(wxMouseEventsManager::OnLeftUp)
     EVT_MOTION(wxMouseEventsManager::OnMove)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // wxMouseEventsManager implementation
@@ -46,7 +43,7 @@ END_EVENT_TABLE()
 
 void wxMouseEventsManager::Init()
 {
-    m_win = NULL;
+    m_win = nullptr;
     m_state = State_Normal;
     m_item = wxNOT_FOUND;
 }
@@ -155,9 +152,9 @@ void wxMouseEventsManager::OnMove(wxMouseEvent& event)
                 // assumption that they don't change -- which is wrong, of
                 // course, the user can change them but it doesn't happen often
                 static const int
-                    dragMinX = wxSystemSettings::GetMetric(wxSYS_DRAG_X);
+                    dragMinX = wxSystemSettings::GetMetric(wxSYS_DRAG_X, m_win);
                 static const int
-                    dragMinY = wxSystemSettings::GetMetric(wxSYS_DRAG_Y);
+                    dragMinY = wxSystemSettings::GetMetric(wxSYS_DRAG_Y, m_win);
 
                 const wxPoint& pos = event.GetPosition();
                 const wxPoint ofs = pos - m_posLast;

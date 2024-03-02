@@ -14,23 +14,23 @@
 class WXDLLIMPEXP_CORE wxAnyButton : public wxAnyButtonBase
 {
 public:
-    wxAnyButton() {}
+    wxAnyButton() = default;
 
     static wxSize GetDefaultSize();
 
-    virtual void SetLabel(const wxString& label);
+    virtual void SetLabel(const wxString& label) override;
 
 protected:
-    virtual wxSize DoGetBestSize() const ;
+    virtual wxSize DoGetBestSize() const override;
 
     void OnEnterWindow( wxMouseEvent& event);
     void OnLeaveWindow( wxMouseEvent& event);
 
-    virtual wxBitmap DoGetBitmap(State which) const;
-    virtual void DoSetBitmap(const wxBitmap& bitmap, State which);
-    virtual void DoSetBitmapPosition(wxDirection dir);
+    virtual wxBitmap DoGetBitmap(State which) const override;
+    virtual void DoSetBitmap(const wxBitmapBundle& bitmapBundle, State which) override;
+    virtual void DoSetBitmapPosition(wxDirection dir) override;
 
-    virtual void DoSetBitmapMargins(int x, int y)
+    virtual void DoSetBitmapMargins(int x, int y) override
     {
         m_marginX = x;
         m_marginY = y;
@@ -38,7 +38,7 @@ protected:
     }
 
 #if wxUSE_MARKUP && wxOSX_USE_COCOA
-    virtual bool DoSetLabelMarkup(const wxString& markup);
+    virtual bool DoSetLabelMarkup(const wxString& markup) override;
 #endif // wxUSE_MARKUP && wxOSX_USE_COCOA
 
 
@@ -49,10 +49,10 @@ protected:
     // the bitmaps for the different state of the buttons, all of them may be
     // invalid and the button only shows a bitmap at all if State_Normal bitmap
     // is valid
-    wxBitmap m_bitmaps[State_Max];
+    wxBitmapBundle m_bitmaps[State_Max];
 
     wxDECLARE_NO_COPY_CLASS(wxAnyButton);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_OSX_ANYBUTTON_H_

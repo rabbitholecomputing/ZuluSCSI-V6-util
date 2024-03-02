@@ -11,12 +11,12 @@
 #define _WX_PERSIST_H_
 
 #include "wx/string.h"
-#include "wx/hashmap.h"
 #include "wx/confbase.h"
 
-class wxPersistentObject;
+#include <memory>
+#include <unordered_map>
 
-WX_DECLARE_VOIDPTR_HASH_MAP(wxPersistentObject *, wxPersistentObjectsMap);
+class wxPersistentObject;
 
 // ----------------------------------------------------------------------------
 // global functions
@@ -55,8 +55,6 @@ public:
     static wxPersistenceManager& Get();
 
     // trivial but virtual dtor
-    //
-    // FIXME-VC6: this only needs to be public because of VC6 bug
     virtual ~wxPersistenceManager();
 
 
@@ -80,7 +78,7 @@ public:
     wxPersistentObject *Register(void *obj, wxPersistentObject *po);
 
     // check if the object is registered and return the associated
-    // wxPersistentObject if it is or NULL otherwise
+    // wxPersistentObject if it is or nullptr otherwise
     wxPersistentObject *Find(void *obj) const;
 
     // unregister the object, this is called by wxPersistentObject itself so
@@ -161,9 +159,11 @@ protected:
 
 
 private:
+    using wxPersistentObjectPtr = std::unique_ptr<wxPersistentObject>;
+
     // map with the registered objects as keys and associated
     // wxPersistentObjects as values
-    wxPersistentObjectsMap m_persistentObjects;
+    std::unordered_map<void*, wxPersistentObjectPtr> m_persistentObjects;
 
     // true if we should restore/save the settings (it doesn't make much sense
     // to use this class when both of them are false but setting one of them to
@@ -185,7 +185,7 @@ public:
     wxPersistentObject(void *obj) : m_obj(obj) { }
 
     // trivial but virtual dtor
-    virtual ~wxPersistentObject() { }
+    virtual ~wxPersistentObject() = default;
 
 
     // methods used by wxPersistenceManager
@@ -231,15 +231,8 @@ private:
     wxDECLARE_NO_COPY_CLASS(wxPersistentObject);
 };
 
-// FIXME-VC6: VC6 has troubles with template methods of DLL-exported classes,
-//            apparently it believes they should be defined in the DLL (which
-//            is, of course, impossible as the DLL doesn't know for which types
-//            will they be instantiated) instead of compiling them when
-//            building the main application itself. Because of this problem
-//            (which only arises in debug build!) we can't use the usual
-//            RegisterAndRestore(obj) with it and need to explicitly create the
-//            persistence adapter. To hide this ugliness we define a global
-//            function which does it for us.
+// Helper function calling RegisterAndRestore() on the global persistence
+// manager object.
 template <typename T>
 inline bool wxPersistentRegisterAndRestore(T *obj)
 {

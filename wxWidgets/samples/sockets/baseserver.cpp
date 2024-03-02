@@ -2,7 +2,6 @@
 // Name:        samples/sockbase/client.cpp
 // Purpose:     Sockets sample for wxBase
 // Author:      Lukasz Michalski
-// Modified by:
 // Created:     27.06.2005
 // Copyright:   (c) 2005 Lukasz Michalski <lmichalski@user.sourceforge.net>
 // Licence:     wxWindows licence
@@ -64,7 +63,7 @@ const char *GetSocketErrorMsg(int pSockError)
 //event sent by workers to server class
 //after client is served
 const wxEventType wxEVT_WORKER = wxNewEventType();
-#define EVT_WORKER(func) DECLARE_EVENT_TABLE_ENTRY( wxEVT_WORKER, -1, -1, (wxObjectEventFunction) (wxEventFunction) (WorkerEventFunction) & func, (wxObject *) NULL ),
+#define EVT_WORKER(func) wxDECLARE_EVENT_TABLE_ENTRY( wxEVT_WORKER, -1, -1, wxEVENT_HANDLER_CAST(WorkerEventFunction, func), (wxObject *) nullptr ),
 
 class WorkerEvent : public wxEvent
 {
@@ -78,7 +77,7 @@ public:
         m_workerFailed = false;
     }
 
-    virtual wxEvent* Clone() const
+    virtual wxEvent* Clone() const override
     {
         return new WorkerEvent(*this);
     }
@@ -112,11 +111,11 @@ private:
       EVENTS
     };
 
-    virtual bool OnInit();
-    virtual int OnExit();
+    virtual bool OnInit() override;
+    virtual int OnExit() override;
 
-    void OnInitCmdLine(wxCmdLineParser& pParser);
-    bool OnCmdLineParsed(wxCmdLineParser& pParser);
+    void OnInitCmdLine(wxCmdLineParser& pParser) override;
+    bool OnCmdLineParsed(wxCmdLineParser& pParser) override;
 
     void OnSocketEvent(wxSocketEvent& pEvent);
     void OnWorkerEvent(WorkerEvent& pEvent);
@@ -146,7 +145,7 @@ private:
     wxTimer mTimer;
 };
 
-DECLARE_APP(Server);
+wxDECLARE_APP(Server);
 
 // just some common things shared between ThreadWorker and EventWorker
 class WorkerBase
@@ -168,7 +167,7 @@ class ThreadWorker : public wxThread, private WorkerBase
 {
 public:
     ThreadWorker(wxSocketBase* pSocket);
-    virtual ExitCode Entry();
+    virtual ExitCode Entry() override;
 
 private:
     wxSocketBase* m_socket;
@@ -201,7 +200,7 @@ private:
 };
 
 /******************* Implementation ******************/
-IMPLEMENT_APP_CONSOLE(Server)
+wxIMPLEMENT_APP_CONSOLE(Server);
 
 #include <wx/listimpl.cpp>
 WX_DEFINE_LIST(TList);
@@ -385,7 +384,7 @@ void Server::OnSocketEvent(wxSocketEvent& pEvent)
             {
                 wxLogError("Server: cannot get peer info");
             } else {
-                wxLogMessage("Got connection from %s:%d",addr.IPAddress().c_str(), addr.Service());
+                wxLogMessage("Got connection from %s:%d",addr.IPAddress(), addr.Service());
             }
             bool createThread;
 
@@ -408,7 +407,7 @@ void Server::OnSocketEvent(wxSocketEvent& pEvent)
                 else
                 {
                     wxLogError("Server: cannot create next thread (current threads: %d", m_threadWorkers.size());
-                };
+                }
             }
             else
             {
@@ -579,9 +578,9 @@ wxThread::ExitCode ThreadWorker::Entry()
 
 EventWorker::EventWorker(wxSocketBase* pSock)
   : m_socket(pSock),
-    m_inbuf(NULL),
+    m_inbuf(nullptr),
     m_infill(0),
-    m_outbuf(NULL),
+    m_outbuf(nullptr),
     m_outfill(0)
 {
     m_socket->SetNotify(wxSOCKET_LOST_FLAG|wxSOCKET_INPUT_FLAG|wxSOCKET_OUTPUT_FLAG);
@@ -601,7 +600,7 @@ EventWorker::~EventWorker()
 void
 EventWorker::DoRead()
 {
-    if (m_inbuf == NULL)
+    if (m_inbuf == nullptr)
     {
         //read message header
         do
@@ -650,7 +649,7 @@ EventWorker::DoRead()
         while(!m_socket->Error() && (2 - m_infill != 0));
     }
 
-    if (m_inbuf == NULL)
+    if (m_inbuf == nullptr)
         return;
     //read message data
     do
@@ -754,7 +753,7 @@ void  EventWorker::DoWrite()
             m_written += m_socket->LastCount();
         }
         LogWorker(wxString::Format("Written %d of %d bytes, todo %d",
-                  m_socket->LastCount(),m_size,m_size - m_written));
+                  m_written, m_size, m_size - m_written));
     }
     while (!m_socket->Error());
 }

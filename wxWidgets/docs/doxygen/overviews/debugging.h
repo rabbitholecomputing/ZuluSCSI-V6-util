@@ -21,7 +21,7 @@ debugging. Both assertions and debug logging are also used by wxWidgets itself
 so you may encounter them even if you don't use either of these features
 yourself.
 
-@see wxLog, @ref group_funcmacro_log, @ref group_funcmacro_debug 
+@see wxLog, @ref group_funcmacro_log, @ref group_funcmacro_debug
 
 
 
@@ -38,9 +38,9 @@ be running on are unusually constrained (notice that when asserts are disabled
 their condition is not even evaluated so the only run-time cost is a single
 condition check and the extra space taken by the asserts in the code).
 
-This automatic deactivation of debugging code is done by IMPLEMENT_APP() macro
-so if you don't use you may need to explicitly call wxDISABLE_DEBUG_SUPPORT()
-yourself.
+This automatic deactivation of debugging code is done by wxIMPLEMENT_APP()
+macro so if you don't use you may need to explicitly call
+wxDISABLE_DEBUG_SUPPORT() yourself.
 
 Also notice that it is possible to build your own application with a different
 value of wxDEBUG_LEVEL than the one which was used for wxWidgets itself. E.g.
@@ -81,7 +81,7 @@ Example of using an assertion macro:
 @code
 void GetTheAnswer(int *p)
 {
-    wxCHECK_RET( p, "pointer can't be NULL in GetTheAnswer()" );
+    wxCHECK_RET( p, "pointer can't be null in GetTheAnswer()" );
 
     *p = 42;
 };
@@ -89,7 +89,7 @@ void GetTheAnswer(int *p)
 
 If the condition is false, i.e. @c p is @NULL, the assertion handler is called
 and, in any case (even when wxDEBUG_LEVEL is 0), the function returns without
-dereferencing the NULL pointer on the next line thus avoiding a crash.
+dereferencing the null pointer on the next line thus avoiding a crash.
 
 The default assertion handler behaviour depends on whether the application
 using wxWidgets was compiled in release build (with @c NDEBUG defined) or debug

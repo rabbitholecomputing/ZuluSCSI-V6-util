@@ -3,7 +3,6 @@
 // Purpose:     wxFile - encapsulates low-level "file descriptor"
 //              wxTempFile - safely replace the old file
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     29/01/98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -32,10 +31,15 @@ class WXDLLIMPEXP_BASE wxFile
 public:
   // more file constants
   // -------------------
+  // suppress Xcode 11 warning about shadowing global read() symbol
+  wxCLANG_WARNING_SUPPRESS(shadow)
+
     // opening mode
   enum OpenMode { read, write, read_write, write_append, write_excl };
     // standard values for file descriptor
   enum { fd_invalid = -1, fd_stdin, fd_stdout, fd_stderr };
+
+  wxCLANG_WARNING_RESTORE(shadow)
 
   // static functions
   // ----------------
@@ -65,7 +69,7 @@ public:
 
   // assign an existing file descriptor and get it back from wxFile object
   void Attach(int lfd) { Close(); m_fd = lfd; m_lasterror = 0; }
-  int  Detach() { int fdOld = m_fd; m_fd = fd_invalid; return fdOld; }
+  int  Detach() { const int fdOld = m_fd; m_fd = fd_invalid; return fdOld; }
   int  fd() const { return m_fd; }
 
   // read/write (unbuffered)
@@ -140,9 +144,9 @@ class WXDLLIMPEXP_BASE wxTempFile
 public:
   // ctors
     // default
-  wxTempFile() { }
+  wxTempFile() = default;
     // associates the temp file with the file to be replaced and opens it
-  wxTempFile(const wxString& strName);
+  explicit wxTempFile(const wxString& strName);
 
   // open the temp file (strName is the name of file to be replaced)
   bool Open(const wxString& strName);

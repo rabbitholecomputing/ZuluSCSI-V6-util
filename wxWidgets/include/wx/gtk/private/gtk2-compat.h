@@ -51,6 +51,7 @@ static inline gpointer wx_g_object_ref_sink(gpointer object)
     gtk_object_sink(GTK_OBJECT(object));
     return object;
 }
+#undef g_object_ref_sink
 #define g_object_ref_sink wx_g_object_ref_sink
 
 // ----------------------------------------------------------------------------
@@ -94,6 +95,20 @@ static inline gdouble wx_gtk_adjustment_get_upper(GtkAdjustment* adjustment)
     return adjustment->upper;
 }
 #define gtk_adjustment_get_upper wx_gtk_adjustment_get_upper
+
+static inline void wx_gtk_adjustment_set_step_increment(GtkAdjustment* adjustment, gdouble step_increment)
+{
+    adjustment->step_increment = step_increment;
+    gtk_adjustment_changed(adjustment);
+}
+#define gtk_adjustment_set_step_increment wx_gtk_adjustment_set_step_increment
+
+static inline void wx_gtk_adjustment_set_page_increment(GtkAdjustment* adjustment, gdouble page_increment)
+{
+    adjustment->page_increment = page_increment;
+    gtk_adjustment_changed(adjustment);
+}
+#define gtk_adjustment_set_page_increment wx_gtk_adjustment_set_page_increment
 
 static inline void wx_gtk_adjustment_set_page_size(GtkAdjustment* adjustment, gdouble page_size)
 {
@@ -193,6 +208,13 @@ static inline void wx_gtk_cell_renderer_get_padding(GtkCellRenderer* cell, gint*
 }
 #define gtk_cell_renderer_get_padding wx_gtk_cell_renderer_get_padding
 
+static inline void wx_gtk_cell_renderer_set_padding(GtkCellRenderer* cell, gint xpad, gint ypad)
+{
+    cell->xpad = xpad;
+    cell->ypad = ypad;
+}
+#define gtk_cell_renderer_set_padding wx_gtk_cell_renderer_set_padding
+
 static inline void wx_gtk_widget_get_allocation(GtkWidget* widget, GtkAllocation* allocation)
 {
     *allocation = widget->allocation;
@@ -249,6 +271,11 @@ inline void wx_gtk_widget_set_can_focus(GtkWidget *widget, gboolean can)
 }
 #define gtk_widget_set_can_focus wx_gtk_widget_set_can_focus
 
+static inline gboolean wx_gtk_widget_has_focus(GtkWidget* widget)
+{
+    return GTK_WIDGET_HAS_FOCUS(widget);
+}
+#define gtk_widget_has_focus wx_gtk_widget_has_focus
 
 inline gboolean wx_gtk_widget_get_can_default(GtkWidget *widget)
 {
@@ -373,12 +400,14 @@ static inline gint wx_gdk_visual_get_depth(GdkVisual* visual)
 
 static inline gboolean wx_gtk_window_has_group(GtkWindow* window)
 {
-    return window->group != NULL;
+    return window->group != nullptr;
 }
 #define gtk_window_has_group wx_gtk_window_has_group
 
 // ----------------------------------------------------------------------------
 // the following were introduced in GTK+ 2.24
+
+#define gdk_window_get_visual gdk_drawable_get_visual
 
 static inline GdkDisplay* wx_gdk_window_get_display(GdkWindow* window)
 {
@@ -395,7 +424,7 @@ static inline GdkScreen* wx_gdk_window_get_screen(GdkWindow* window)
 static inline gint wx_gdk_window_get_height(GdkWindow* window)
 {
     int h;
-    gdk_drawable_get_size(window, NULL, &h);
+    gdk_drawable_get_size(window, nullptr, &h);
     return h;
 }
 #define gdk_window_get_height wx_gdk_window_get_height
@@ -403,7 +432,7 @@ static inline gint wx_gdk_window_get_height(GdkWindow* window)
 static inline gint wx_gdk_window_get_width(GdkWindow* window)
 {
     int w;
-    gdk_drawable_get_size(window, &w, NULL);
+    gdk_drawable_get_size(window, &w, nullptr);
     return w;
 }
 #define gdk_window_get_width wx_gdk_window_get_width
@@ -417,11 +446,19 @@ static inline void wx_gdk_cairo_set_source_window(cairo_t* cr, GdkWindow* window
 #endif
 
 // ----------------------------------------------------------------------------
+// the following were introduced in Glib 2.32
+
+#ifndef g_signal_handlers_disconnect_by_data
+#define g_signal_handlers_disconnect_by_data(instance, data) \
+      g_signal_handlers_disconnect_matched ((instance), G_SIGNAL_MATCH_DATA, 0, 0, nullptr, nullptr, (data))
+#endif
+
+// ----------------------------------------------------------------------------
 // the following were introduced in GTK+ 3.0
 
 static inline void wx_gdk_window_get_geometry(GdkWindow* window, gint* x, gint* y, gint* width, gint* height)
 {
-    gdk_window_get_geometry(window, x, y, width, height, NULL);
+    gdk_window_get_geometry(window, x, y, width, height, nullptr);
 }
 #define gdk_window_get_geometry wx_gdk_window_get_geometry
 
@@ -511,11 +548,158 @@ static inline void wx_gtk_widget_get_preferred_width(GtkWidget* widget, gint* mi
 static inline void wx_gtk_widget_get_preferred_size(GtkWidget* widget, GtkRequisition* minimum, GtkRequisition* natural)
 {
     GtkRequisition* req = minimum;
-    if (req == NULL)
+    if (req == nullptr)
         req = natural;
     gtk_widget_size_request(widget, req);
 }
 #define gtk_widget_get_preferred_size wx_gtk_widget_get_preferred_size
 
-#endif // !__WXGTK3__
+#define wx_gdk_device_get_window_at_position(unused, win_x, win_y) \
+    gdk_window_at_pointer(win_x, win_y)
+
+#include <gdk/gdkkeysyms.h>
+
+#if defined(GDK_Alt_L) && !defined(GDK_KEY_Alt_L)
+#define GDK_KEY_Alt_L GDK_Alt_L
+#define GDK_KEY_Alt_R GDK_Alt_R
+#define GDK_KEY_AudioLowerVolume GDK_AudioLowerVolume
+#define GDK_KEY_AudioMute GDK_AudioMute
+#define GDK_KEY_AudioNext GDK_AudioNext
+#define GDK_KEY_AudioPlay GDK_AudioPlay
+#define GDK_KEY_AudioPrev GDK_AudioPrev
+#define GDK_KEY_AudioRaiseVolume GDK_AudioRaiseVolume
+#define GDK_KEY_AudioStop GDK_AudioStop
+#define GDK_KEY_Back GDK_Back
+#define GDK_KEY_BackSpace GDK_BackSpace
+#define GDK_KEY_Begin GDK_Begin
+#define GDK_KEY_Caps_Lock GDK_Caps_Lock
+#define GDK_KEY_Clear GDK_Clear
+#define GDK_KEY_Control_L GDK_Control_L
+#define GDK_KEY_Control_R GDK_Control_R
+#define GDK_KEY_Delete GDK_Delete
+#define GDK_KEY_Down GDK_Down
+#define GDK_KEY_End GDK_End
+#define GDK_KEY_Escape GDK_Escape
+#define GDK_KEY_Execute GDK_Execute
+#define GDK_KEY_F10 GDK_F10
+#define GDK_KEY_F11 GDK_F11
+#define GDK_KEY_F12 GDK_F12
+#define GDK_KEY_F1 GDK_F1
+#define GDK_KEY_F2 GDK_F2
+#define GDK_KEY_F3 GDK_F3
+#define GDK_KEY_F4 GDK_F4
+#define GDK_KEY_F5 GDK_F5
+#define GDK_KEY_F6 GDK_F6
+#define GDK_KEY_F7 GDK_F7
+#define GDK_KEY_F8 GDK_F8
+#define GDK_KEY_F9 GDK_F9
+#define GDK_KEY_Favorites GDK_Favorites
+#define GDK_KEY_Forward GDK_Forward
+#define GDK_KEY_Help GDK_Help
+#define GDK_KEY_Home GDK_Home
+#define GDK_KEY_HomePage GDK_HomePage
+#define GDK_KEY_Insert GDK_Insert
+#define GDK_KEY_ISO_Enter GDK_ISO_Enter
+#define GDK_KEY_ISO_Left_Tab GDK_ISO_Left_Tab
+#define GDK_KEY_KP_0 GDK_KP_0
+#define GDK_KEY_KP_1 GDK_KP_1
+#define GDK_KEY_KP_2 GDK_KP_2
+#define GDK_KEY_KP_3 GDK_KP_3
+#define GDK_KEY_KP_4 GDK_KP_4
+#define GDK_KEY_KP_5 GDK_KP_5
+#define GDK_KEY_KP_6 GDK_KP_6
+#define GDK_KEY_KP_7 GDK_KP_7
+#define GDK_KEY_KP_8 GDK_KP_8
+#define GDK_KEY_KP_9 GDK_KP_9
+#define GDK_KEY_KP_Add GDK_KP_Add
+#define GDK_KEY_KP_Begin GDK_KP_Begin
+#define GDK_KEY_KP_Decimal GDK_KP_Decimal
+#define GDK_KEY_KP_Delete GDK_KP_Delete
+#define GDK_KEY_KP_Divide GDK_KP_Divide
+#define GDK_KEY_KP_Down GDK_KP_Down
+#define GDK_KEY_KP_End GDK_KP_End
+#define GDK_KEY_KP_Enter GDK_KP_Enter
+#define GDK_KEY_KP_Equal GDK_KP_Equal
+#define GDK_KEY_KP_F1 GDK_KP_F1
+#define GDK_KEY_KP_F2 GDK_KP_F2
+#define GDK_KEY_KP_F3 GDK_KP_F3
+#define GDK_KEY_KP_F4 GDK_KP_F4
+#define GDK_KEY_KP_Home GDK_KP_Home
+#define GDK_KEY_KP_Insert GDK_KP_Insert
+#define GDK_KEY_KP_Left GDK_KP_Left
+#define GDK_KEY_KP_Multiply GDK_KP_Multiply
+#define GDK_KEY_KP_Next GDK_KP_Next
+#define GDK_KEY_KP_Prior GDK_KP_Prior
+#define GDK_KEY_KP_Right GDK_KP_Right
+#define GDK_KEY_KP_Separator GDK_KP_Separator
+#define GDK_KEY_KP_Space GDK_KP_Space
+#define GDK_KEY_KP_Subtract GDK_KP_Subtract
+#define GDK_KEY_KP_Tab GDK_KP_Tab
+#define GDK_KEY_KP_Up GDK_KP_Up
+#define GDK_KEY_Launch0 GDK_Launch0
+#define GDK_KEY_Launch1 GDK_Launch1
+#define GDK_KEY_Launch2 GDK_Launch2
+#define GDK_KEY_Launch3 GDK_Launch3
+#define GDK_KEY_Launch4 GDK_Launch4
+#define GDK_KEY_Launch5 GDK_Launch5
+#define GDK_KEY_Launch6 GDK_Launch6
+#define GDK_KEY_Launch7 GDK_Launch7
+#define GDK_KEY_Launch8 GDK_Launch8
+#define GDK_KEY_Launch9 GDK_Launch9
+#define GDK_KEY_LaunchA GDK_LaunchA
+#define GDK_KEY_LaunchB GDK_LaunchB
+#define GDK_KEY_LaunchC GDK_LaunchC
+#define GDK_KEY_LaunchD GDK_LaunchD
+#define GDK_KEY_LaunchE GDK_LaunchE
+#define GDK_KEY_LaunchF GDK_LaunchF
+#define GDK_KEY_Left GDK_Left
+#define GDK_KEY_Linefeed GDK_Linefeed
+#define GDK_KEY_Mail GDK_Mail
+#define GDK_KEY_Menu GDK_Menu
+#define GDK_KEY_Meta_L GDK_Meta_L
+#define GDK_KEY_Meta_R GDK_Meta_R
+#define GDK_KEY_Next GDK_Next
+#define GDK_KEY_Num_Lock GDK_Num_Lock
+#define GDK_KEY_Page_Down GDK_Page_Down
+#define GDK_KEY_Page_Up GDK_Page_Up
+#define GDK_KEY_Pause GDK_Pause
+#define GDK_KEY_Print GDK_Print
+#define GDK_KEY_Prior GDK_Prior
+#define GDK_KEY_Refresh GDK_Refresh
+#define GDK_KEY_Return GDK_Return
+#define GDK_KEY_Right GDK_Right
+#define GDK_KEY_Scroll_Lock GDK_Scroll_Lock
+#define GDK_KEY_Search GDK_Search
+#define GDK_KEY_Select GDK_Select
+#define GDK_KEY_Shift_L GDK_Shift_L
+#define GDK_KEY_Shift_R GDK_Shift_R
+#define GDK_KEY_Stop GDK_Stop
+#define GDK_KEY_Super_L GDK_Super_L
+#define GDK_KEY_Super_R GDK_Super_R
+#define GDK_KEY_Tab GDK_Tab
+#define GDK_KEY_Up GDK_Up
+#endif
+
+// Do perform runtime checks for GTK+ 2 version: we only take the minor version
+// component here, major must be 2 and we never need to test for the micro one
+// anyhow.
+inline bool wx_is_at_least_gtk2(int minor)
+{
+    return gtk_check_version(2, minor, 0) == nullptr;
+}
+
+#else // __WXGTK3__
+
+#define wx_gdk_device_get_window_at_position(device, win_x, win_y) \
+    gdk_device_get_window_at_position(device, win_x, win_y)
+
+// With GTK+ 3 we don't need to check for GTK+ 2 version and
+// gtk_check_version() would fail due to major version mismatch.
+inline bool wx_is_at_least_gtk2(int WXUNUSED(minor))
+{
+    return true;
+}
+
+#endif // !__WXGTK3__/__WXGTK3__
+
 #endif // _WX_GTK_PRIVATE_COMPAT_H_

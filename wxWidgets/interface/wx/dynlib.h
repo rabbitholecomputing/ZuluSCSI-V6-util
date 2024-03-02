@@ -23,6 +23,10 @@ public:
     /**
         Retrieves the load address and the size of this module.
 
+        Note that under ELF systems (such as Linux) the region defined by the
+        parameters of this function can be discontinuous and contain multiple
+        segments belonging to the module with holes between them.
+
         @param addr
             The pointer to the location to return load address in, may be
             @NULL.
@@ -38,6 +42,8 @@ public:
     /**
         Returns the base name of this module, e.g.\ @c "kernel32.dll" or
         @c "libc-2.3.2.so".
+
+        This name is empty for the main program itself.
     */
     wxString GetName() const;
 
@@ -56,6 +62,14 @@ public:
 };
 
 
+/**
+    A vector of wxDynamicLibraryDetails.
+
+    This class is actually a legacy container (see @ref overview_container for
+    more details), but it can, and should be, handled as just a vector of
+    wxDynamicLibraryDetails objects in the application code.
+*/
+using wxDynamicLibraryDetailsArray = std::vector<wxDynamicLibraryDetails>;
 
 /**
     Dynamic library category used with wxDynamicLibrary::CanonicalizeName().
@@ -118,6 +132,16 @@ public:
     wxDynamicLibrary(const wxString& name, int flags = wxDL_DEFAULT);
 
     /**
+        Returns the platform-specific dynamic library file extension, or
+        depending on @a flags, the plugin file extension. The leading dot
+        is included.
+
+        For example, on Windows @c ".dll" is returned, and either @c ".dylib"
+        or @c ".bundle" on macOS.
+    */
+    static wxString GetDllExt(wxDynamicLibraryCategory cat = wxDL_LIBRARY);
+
+    /**
         Returns the platform-specific full name for the library called @a name.
         E.g. it adds a @c ".dll" extension under Windows and @c "lib" prefix
         and @c ".so", @c ".sl" or @c ".dylib" extension under Unix.
@@ -137,9 +161,23 @@ public:
                                            wxPluginCategory cat = wxDL_PLUGIN_GUI);
 
     /**
-        Detaches this object from its library handle, i.e.\ the object will not
-        unload the library any longer in its destructor but it is now the
-        callers responsibility to do this using Unload().
+        Attaches the object to an existing handle.
+
+        This allows to give ownership of an existing handle, possibly obtained
+        from Detach(), to this object, so that it will unload it when destroyed.
+
+        @since 3.1.5
+     */
+    void Attach(wxDllType h);
+
+    /**
+        Detaches this object from its library handle.
+
+        This means that the object will not unload the library any longer in
+        its destructor but it is now the callers responsibility to do this
+        using static Unload().
+
+        @see Attach()
     */
     wxDllType Detach();
 
@@ -185,15 +223,37 @@ public:
     bool IsLoaded() const;
 
     /**
-        This static method returns a wxArray containing the details of all
-        modules loaded into the address space of the current project. The array
-        elements are objects of the type: wxDynamicLibraryDetails. The array
-        will be empty if an error occurred.
+        This static method returns a vector-like object containing the details
+        of all modules loaded into the address space of the current project.
 
-        This method is currently implemented only under Win32 and Linux and is
-        useful mostly for diagnostics purposes.
+        The array elements are objects of the type wxDynamicLibraryDetails.
+        Under Unix systems they appear in the order in which they libraries
+        have been loaded, with the module corresponding to the main program
+        itself coming first.
+
+        The returned array will be empty if an error occurred or if the
+        function is not implemented for the current platform.
+
+        This method is currently implemented only under Win32 and Unix systems
+        providing `dl_iterate_phdr()` function (such as Linux) and is useful
+        mostly for diagnostics purposes.
     */
     static wxDynamicLibraryDetailsArray ListLoaded();
+
+    /**
+        Returns the load address of the module containing the specified address
+        or @NULL if not found.
+
+        If the second argument @a path is not @NULL, it is filled with the full
+        path to the file the module was loaded from upon a successful return.
+
+        This method is implemented under MSW and Unix platforms providing
+        `dladdr()` call (which include Linux and various BSD systems) and
+        always returns @NULL elsewhere.
+
+        @since 3.1.0
+    */
+    static void* GetModuleFromAddress(const void* addr, wxString* path = nullptr);
 
     /**
         Loads DLL with the given @a name into memory. The @a flags argument can
@@ -229,7 +289,7 @@ public:
 // ============================================================================
 
 /** @addtogroup group_funcmacro_misc */
-//@{
+///@{
 
 /**
     When loading a function from a DLL you always have to cast the returned
@@ -254,5 +314,5 @@ public:
 */
 #define wxDYNLIB_FUNCTION(type, name, dynlib)
 
-//@}
+///@}
 

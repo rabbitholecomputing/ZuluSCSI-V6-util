@@ -2,7 +2,6 @@
 // Name:        life/dialogs.cpp
 // Purpose:     Life! dialogs
 // Author:      Guillermo Rodriguez Garcia, <guille@iies.es>
-// Modified by:
 // Created:     Jan/2000
 // Copyright:   (c) 2000, Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
@@ -14,10 +13,6 @@
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
 #include "wx/wx.h"
@@ -57,9 +52,9 @@ enum
 // --------------------------------------------------------------------------
 
 // Event tables
-BEGIN_EVENT_TABLE(LifeSamplesDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(LifeSamplesDialog, wxDialog)
     EVT_LISTBOX (ID_LISTBOX, LifeSamplesDialog::OnListBox)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 // ==========================================================================
@@ -93,7 +88,7 @@ LifeSamplesDialog::LifeSamplesDialog(wxWindow *parent)
     m_list = new wxListBox( this, ID_LISTBOX,
         wxDefaultPosition,
         listSize,
-        0, NULL,
+        0, nullptr,
         wxLB_SINGLE | wxLB_NEEDED_SB | wxLB_HSCROLL );
 
     for (unsigned i = 0; i < (sizeof(g_patterns) / sizeof(LifePattern)); i++)
@@ -136,11 +131,9 @@ LifeSamplesDialog::LifeSamplesDialog(wxWindow *parent)
 
     // activate
     SetSizer(sizer3);
-#if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
     sizer3->SetSizeHints(this);
     sizer3->Fit(this);
     Centre(wxBOTH | wxCENTRE_ON_SCREEN);
-#endif
 }
 
 LifeSamplesDialog::~LifeSamplesDialog()
@@ -204,9 +197,7 @@ XLife is (c) 1989 by Jon Bennett et al.")),
 
     // activate
     SetSizer(sizer);
-#if !defined(__SMARTPHONE__) && !defined(__POCKETPC__)
     sizer->SetSizeHints(this);
     sizer->Fit(this);
     Centre(wxBOTH | wxCENTRE_ON_SCREEN);
-#endif
 }

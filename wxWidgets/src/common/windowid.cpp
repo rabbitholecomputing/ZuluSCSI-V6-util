@@ -12,21 +12,17 @@
 // ----------------------------------------------------------------------------
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/log.h"
     #include "wx/intl.h"
 #endif //WX_PRECOMP
 
-#include "wx/hashmap.h"
+#include "wx/windowid.h"
 
-// Not needed, included in defs.h
-// #include "wx/windowid.h"
+#include <unordered_map>
 
-#define wxTRACE_WINDOWID wxT("windowid")
+using wxWindowIDHashMap = std::unordered_map<wxWindowID, long>;
 
 namespace
 {
@@ -53,7 +49,7 @@ wxUint8 gs_autoIdsRefCount[wxID_AUTO_HIGHEST - wxID_AUTO_LOWEST + 1] = { 0 };
 // freed. The cell storing the count for an ID is freed only when its count
 // gets to zero (not when it goes below ID_COUNTTOOLARGE, so as to avoid
 // degenerate cases)
-wxLongToLongHashMap *gs_autoIdsLargeRefCount = NULL;
+wxWindowIDHashMap *gs_autoIdsLargeRefCount = nullptr;
 
 // this is an optimization used until we wrap around wxID_AUTO_HIGHEST: if this
 // value is < wxID_AUTO_HIGHEST we know that we haven't wrapped yet and so can
@@ -89,9 +85,6 @@ void UnreserveIdRefCount(wxWindowID winid)
 // Get the usage count of an id
 int GetIdRefCount(wxWindowID winid)
 {
-    wxCHECK_MSG(winid >= wxID_AUTO_LOWEST && winid <= wxID_AUTO_HIGHEST, 0,
-            wxT("invalid id range"));
-
     winid -= wxID_AUTO_LOWEST;
     int refCount = gs_autoIdsRefCount[winid];
     if (refCount == ID_COUNTTOOLARGE)
@@ -102,9 +95,6 @@ int GetIdRefCount(wxWindowID winid)
 // Increase the count for an id
 void IncIdRefCount(wxWindowID winid)
 {
-    wxCHECK_RET(winid >= wxID_AUTO_LOWEST && winid <= wxID_AUTO_HIGHEST,
-            wxT("invalid id range"));
-
     winid -= wxID_AUTO_LOWEST;
 
     wxCHECK_RET(gs_autoIdsRefCount[winid] != ID_FREE, wxT("id should first be reserved"));
@@ -119,7 +109,7 @@ void IncIdRefCount(wxWindowID winid)
         {
             // we need to allocate a cell, and maybe the hash map itself
             if (!gs_autoIdsLargeRefCount)
-                gs_autoIdsLargeRefCount = new wxLongToLongHashMap;
+                gs_autoIdsLargeRefCount = new wxWindowIDHashMap;
             (*gs_autoIdsLargeRefCount)[winid] = ID_COUNTTOOLARGE-1;
 
             gs_autoIdsRefCount[winid] = ID_COUNTTOOLARGE;
@@ -130,17 +120,11 @@ void IncIdRefCount(wxWindowID winid)
     {
         gs_autoIdsRefCount[winid]++;
     }
-
-    wxLogTrace(wxTRACE_WINDOWID, wxT("Increasing ref count of ID %d to %d"),
-            winid + wxID_AUTO_LOWEST, GetIdRefCount(winid + wxID_AUTO_LOWEST));
 }
 
 // Decrease the count for an id
 void DecIdRefCount(wxWindowID winid)
 {
-    wxCHECK_RET(winid >= wxID_AUTO_LOWEST && winid <= wxID_AUTO_HIGHEST,
-            wxT("invalid id range"));
-
     winid -= wxID_AUTO_LOWEST;
 
     wxCHECK_RET(gs_autoIdsRefCount[winid] != ID_FREE, wxT("id count already 0"));
@@ -167,9 +151,6 @@ void DecIdRefCount(wxWindowID winid)
     }
     else
         gs_autoIdsRefCount[winid]--;
-
-    wxLogTrace(wxTRACE_WINDOWID, wxT("Decreasing ref count of ID %d to %d"),
-            winid + wxID_AUTO_LOWEST, GetIdRefCount(winid + wxID_AUTO_LOWEST));
 }
 
 #else // wxUSE_AUTOID_MANAGEMENT

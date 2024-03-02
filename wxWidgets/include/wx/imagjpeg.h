@@ -36,14 +36,14 @@ public:
     static wxVersionInfo GetLibraryVersionInfo();
 
 #if wxUSE_STREAMS
-    virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 );
-    virtual bool SaveFile( wxImage *image, wxOutputStream& stream, bool verbose=true );
+    virtual bool LoadFile( wxImage *image, wxInputStream& stream, bool verbose=true, int index=-1 ) override;
+    virtual bool SaveFile( wxImage *image, wxOutputStream& stream, bool verbose=true ) override;
 protected:
-    virtual bool DoCanRead( wxInputStream& stream );
+    virtual bool DoCanRead( wxInputStream& stream ) override;
 #endif
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxJPEGHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxJPEGHandler);
 };
 
 #endif // wxUSE_LIBJPEG

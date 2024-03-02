@@ -2,7 +2,6 @@
 // Name:        canvas.cpp
 // Purpose:     Forty Thieves patience game
 // Author:      Chris Breeze
-// Modified by:
 // Created:     21/07/97
 // Copyright:   (c) 1993-1998 Chris Breeze
 // Licence:     wxWindows licence
@@ -12,10 +11,6 @@
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
 #include "wx/wx.h"
@@ -28,9 +23,9 @@
 #include "playerdg.h"
 #include "canvas.h"
 
-BEGIN_EVENT_TABLE(FortyCanvas, wxScrolledWindow)
+wxBEGIN_EVENT_TABLE(FortyCanvas, wxScrolledWindow)
     EVT_MOUSE_EVENTS(FortyCanvas::OnMouseEvent)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 FortyCanvas::FortyCanvas(wxWindow* parent, const wxPoint& pos, const wxSize& size) :
              wxScrolledWindow(parent, wxID_ANY, pos, size, 0),
@@ -39,12 +34,21 @@ FortyCanvas::FortyCanvas(wxWindow* parent, const wxPoint& pos, const wxSize& siz
              m_playerDialog(0),
              m_leftBtnDown(false)
 {
+#ifdef __WXMSW__
+    // Unfortunately the redraw logic here is incompatible with double
+    // buffering under MSW, so we have to disable it. The proper solution would
+    // be to rewrite this logic, as this is also required to make it work under
+    // GTK/Wayland and macOS, where the game currently doesn't update its
+    // display at all.
+    MSWDisableComposited();
+#endif
+
     SetScrollbars(0, 0, 0, 0);
 
 #ifdef __WXGTK__
-    m_font = wxTheFontList->FindOrCreateFont(12, wxROMAN, wxNORMAL, wxNORMAL);
+    m_font = wxTheFontList->FindOrCreateFont(wxFontInfo(12).Family(wxFONTFAMILY_ROMAN));
 #else
-    m_font = wxTheFontList->FindOrCreateFont(10, wxSWISS, wxNORMAL, wxNORMAL);
+    m_font = wxTheFontList->FindOrCreateFont(wxFontInfo(10).Family(wxFONTFAMILY_SWISS));
 #endif
     SetBackgroundColour(FortyApp::BackgroundColour());
 

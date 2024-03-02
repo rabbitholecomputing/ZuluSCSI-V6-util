@@ -2,7 +2,6 @@
 // Name:        wx/msw/colour.h
 // Purpose:     wxColour class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -27,12 +26,12 @@ public:
     // accessors
     // ---------
 
-    virtual bool IsOk() const { return m_isInit; }
+    virtual bool IsOk() const override { return m_isInit; }
 
-    unsigned char Red() const { return m_red; }
-    unsigned char Green() const { return m_green; }
-    unsigned char Blue() const { return m_blue; }
-    unsigned char Alpha() const { return m_alpha ; }
+    unsigned char Red() const override { return m_red; }
+    unsigned char Green() const override { return m_green; }
+    unsigned char Blue() const override { return m_blue; }
+    unsigned char Alpha() const override { return m_alpha ; }
 
     // comparison
     bool operator==(const wxColour& colour) const
@@ -56,7 +55,7 @@ protected:
     void Init();
 
     virtual void
-    InitRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+    InitRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a) override;
 
 private:
     bool          m_isInit;
@@ -66,7 +65,7 @@ private:
     unsigned char m_alpha;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxColour)
+    wxDECLARE_DYNAMIC_CLASS(wxColour);
 };
 
 #endif // _WX_COLOUR_H_

@@ -1,12 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/richtext/richtextmarginspage.cpp
-// Purpose:     
+// Purpose:     Implements the rich text formatting dialog margins page.
 // Author:      Julian Smart
-// Modified by: 
 // Created:     20/10/2010 10:27:34
-// RCS-ID:      
 // Copyright:   (c) Julian Smart
-// Licence:     
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/richtext/richtextmarginspage.h"
@@ -19,14 +17,14 @@
  * wxRichTextMarginsPage type definition
  */
 
-IMPLEMENT_DYNAMIC_CLASS( wxRichTextMarginsPage, wxRichTextDialogPage )
+wxIMPLEMENT_DYNAMIC_CLASS(wxRichTextMarginsPage, wxRichTextDialogPage);
 
 
 /*!
  * wxRichTextMarginsPage event table definition
  */
 
-BEGIN_EVENT_TABLE( wxRichTextMarginsPage, wxRichTextDialogPage )
+wxBEGIN_EVENT_TABLE(wxRichTextMarginsPage, wxRichTextDialogPage)
 
 ////@begin wxRichTextMarginsPage event table entries
     EVT_UPDATE_UI( ID_RICHTEXT_LEFT_MARGIN, wxRichTextMarginsPage::OnRichtextLeftMarginUpdate )
@@ -63,7 +61,7 @@ BEGIN_EVENT_TABLE( wxRichTextMarginsPage, wxRichTextDialogPage )
 
 ////@end wxRichTextMarginsPage event table entries
 
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 IMPLEMENT_HELP_PROVISION(wxRichTextMarginsPage)
 
@@ -123,30 +121,30 @@ void wxRichTextMarginsPage::Init()
     m_ignoreUpdates = false;
 
 ////@begin wxRichTextMarginsPage member initialisation
-    m_leftMarginCheckbox = NULL;
-    m_marginLeft = NULL;
-    m_unitsMarginLeft = NULL;
-    m_rightMarginCheckbox = NULL;
-    m_marginRight = NULL;
-    m_unitsMarginRight = NULL;
-    m_topMarginCheckbox = NULL;
-    m_marginTop = NULL;
-    m_unitsMarginTop = NULL;
-    m_bottomMarginCheckbox = NULL;
-    m_marginBottom = NULL;
-    m_unitsMarginBottom = NULL;
-    m_leftPaddingCheckbox = NULL;
-    m_paddingLeft = NULL;
-    m_unitsPaddingLeft = NULL;
-    m_rightPaddingCheckbox = NULL;
-    m_paddingRight = NULL;
-    m_unitsPaddingRight = NULL;
-    m_topPaddingCheckbox = NULL;
-    m_paddingTop = NULL;
-    m_unitsPaddingTop = NULL;
-    m_bottomPaddingCheckbox = NULL;
-    m_paddingBottom = NULL;
-    m_unitsPaddingBottom = NULL;
+    m_leftMarginCheckbox = nullptr;
+    m_marginLeft = nullptr;
+    m_unitsMarginLeft = nullptr;
+    m_rightMarginCheckbox = nullptr;
+    m_marginRight = nullptr;
+    m_unitsMarginRight = nullptr;
+    m_topMarginCheckbox = nullptr;
+    m_marginTop = nullptr;
+    m_unitsMarginTop = nullptr;
+    m_bottomMarginCheckbox = nullptr;
+    m_marginBottom = nullptr;
+    m_unitsMarginBottom = nullptr;
+    m_leftPaddingCheckbox = nullptr;
+    m_paddingLeft = nullptr;
+    m_unitsPaddingLeft = nullptr;
+    m_rightPaddingCheckbox = nullptr;
+    m_paddingRight = nullptr;
+    m_unitsPaddingRight = nullptr;
+    m_topPaddingCheckbox = nullptr;
+    m_paddingTop = nullptr;
+    m_unitsPaddingTop = nullptr;
+    m_bottomPaddingCheckbox = nullptr;
+    m_paddingBottom = nullptr;
+    m_unitsPaddingBottom = nullptr;
 ////@end wxRichTextMarginsPage member initialisation
 }
 
@@ -170,7 +168,7 @@ void wxRichTextMarginsPage::CreateControls()
     itemBoxSizer3->Add(itemBoxSizer4, 0, wxGROW, 5);
 
     wxStaticText* itemStaticText5 = new wxStaticText( itemRichTextDialogPage1, wxID_STATIC, _("Margins"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemStaticText5->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxBOLD, false, wxT("")));
+    itemStaticText5->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxFONTWEIGHT_BOLD));
     itemBoxSizer4->Add(itemStaticText5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxStaticLine* itemStaticLine6 = new wxStaticLine( itemRichTextDialogPage1, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -284,7 +282,7 @@ void wxRichTextMarginsPage::CreateControls()
     itemBoxSizer3->Add(itemBoxSizer28, 0, wxGROW, 5);
 
     wxStaticText* itemStaticText29 = new wxStaticText( itemRichTextDialogPage1, wxID_STATIC, _("Padding"), wxDefaultPosition, wxDefaultSize, 0 );
-    itemStaticText29->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxBOLD, false, wxT("")));
+    itemStaticText29->SetFont(wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetFamily(), wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetStyle(), wxFONTWEIGHT_BOLD));
     itemBoxSizer28->Add(itemStaticText29, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxStaticLine* itemStaticLine30 = new wxStaticLine( itemRichTextDialogPage1, wxID_STATIC, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
@@ -408,7 +406,7 @@ wxRichTextAttr* wxRichTextMarginsPage::GetAttributes()
 
 bool wxRichTextMarginsPage::ShowToolTips()
 {
-    return true;
+    return wxRichTextFormattingDialog::ShowToolTips();
 }
 
 bool wxRichTextMarginsPage::TransferDataToWindow()

@@ -2,7 +2,6 @@
 // Name:        wx/gtk/filectrl.h
 // Purpose:     wxGtkFileCtrl Header
 // Author:      Diaa M. Sami
-// Modified by:
 // Created:     Aug-10-2007
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
@@ -77,11 +76,11 @@ public:
                     wxWindowID id,
                     const wxString& defaultDirectory = wxEmptyString,
                     const wxString& defaultFilename = wxEmptyString,
-                    const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                    const wxString& wildCard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                     long style = wxFC_DEFAULT_STYLE,
                     const wxPoint& pos = wxDefaultPosition,
                     const wxSize& size = wxDefaultSize,
-                    const wxString& name = wxFileCtrlNameStr )
+                    const wxString& name = wxASCII_STR(wxFileCtrlNameStr) )
     {
         Init();
         Create( parent, id, defaultDirectory, defaultFilename, wildCard, style, pos, size, name );
@@ -93,28 +92,28 @@ public:
                  wxWindowID id,
                  const wxString& defaultDirectory = wxEmptyString,
                  const wxString& defaultFileName = wxEmptyString,
-                 const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                 const wxString& wildCard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                  long style = wxFC_DEFAULT_STYLE,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 const wxString& name = wxFileCtrlNameStr );
+                 const wxString& name = wxASCII_STR(wxFileCtrlNameStr) );
 
-    virtual void SetWildcard( const wxString& wildCard );
-    virtual void SetFilterIndex( int filterIndex );
-    virtual bool SetDirectory( const wxString& dir );
-    virtual bool SetFilename( const wxString& name );
-    virtual bool SetPath( const wxString& path );
+    virtual void SetWildcard( const wxString& wildCard ) override;
+    virtual void SetFilterIndex( int filterIndex ) override;
+    virtual bool SetDirectory( const wxString& dir ) override;
+    virtual bool SetFilename( const wxString& name ) override;
+    virtual bool SetPath( const wxString& path ) override;
 
-    virtual wxString GetFilename() const;
-    virtual wxString GetDirectory() const;
-    virtual wxString GetWildcard() const { return this->m_wildCard; }
-    virtual wxString GetPath() const;
-    virtual void GetPaths( wxArrayString& paths ) const;
-    virtual void GetFilenames( wxArrayString& files ) const;
-    virtual int GetFilterIndex() const { return m_fc.GetFilterIndex(); }
+    virtual wxString GetFilename() const override;
+    virtual wxString GetDirectory() const override;
+    virtual wxString GetWildcard() const override { return this->m_wildCard; }
+    virtual wxString GetPath() const override;
+    virtual void GetPaths( wxArrayString& paths ) const override;
+    virtual void GetFilenames( wxArrayString& files ) const override;
+    virtual int GetFilterIndex() const override { return m_fc.GetFilterIndex(); }
 
-    virtual bool HasMultipleFileSelection() const { return HasFlag( wxFC_MULTIPLE ); }
-    virtual void ShowHidden(bool show);
+    virtual bool HasMultipleFileSelection() const override { return HasFlag( wxFC_MULTIPLE ); }
+    virtual void ShowHidden(bool show) override;
 
     virtual bool HasFilterChoice() const
         { return m_fc.HasFilterChoice(); }
@@ -135,7 +134,7 @@ protected:
 private:
     void Init();
 
-    DECLARE_DYNAMIC_CLASS( wxGtkFileCtrl )
+    wxDECLARE_DYNAMIC_CLASS(wxGtkFileCtrl);
 };
 
 #endif // wxUSE_FILECTRL

@@ -2,7 +2,6 @@
 // Name:        wx/slider.h
 // Purpose:     wxSlider interface
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     09.02.01
 // Copyright:   (c) 1996-2001 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -41,11 +40,6 @@
 #define wxSL_VALUE_LABEL     0x4000
 #define wxSL_LABELS          (wxSL_MIN_MAX_LABELS|wxSL_VALUE_LABEL)
 
-#if WXWIN_COMPATIBILITY_2_6
-    // obsolete
-    #define wxSL_NOTIFY_DRAG     0x0000
-#endif // WXWIN_COMPATIBILITY_2_6
-
 extern WXDLLIMPEXP_DATA_CORE(const char) wxSliderNameStr[];
 
 // ----------------------------------------------------------------------------
@@ -66,7 +60,7 @@ public:
              const wxValidator& validator = wxDefaultValidator,
              const wxString& name = wxSliderNameStr);
     */
-    wxSliderBase() { }
+    wxSliderBase() = default;
 
     // get/set the current slider value (should be in range)
     virtual int GetValue() const = 0;
@@ -92,7 +86,7 @@ public:
     virtual int GetThumbLength() const = 0;
 
     // warning: most of subsequent methods are currently only implemented in
-    //          wxMSW under Win95 and are silently ignored on other platforms
+    //          wxMSW and are silently ignored on other platforms
 
     void SetTickFreq(int freq) { DoSetTickFreq(freq); }
     virtual int GetTickFreq() const { return 0; }
@@ -104,16 +98,12 @@ public:
     virtual int GetSelStart() const { return GetMax(); }
     virtual void SetSelection(int WXUNUSED(min), int WXUNUSED(max)) { }
 
-#if WXWIN_COMPATIBILITY_2_8
-    wxDEPRECATED_INLINE( void SetTickFreq(int freq, int), DoSetTickFreq(freq); )
-#endif
-
 protected:
     // Platform-specific implementation of SetTickFreq
     virtual void DoSetTickFreq(int WXUNUSED(freq)) { /* unsupported by default */ }
 
     // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
+    virtual wxBorder GetDefaultBorder() const override { return wxBORDER_NONE; }
 
     // adjust value according to wxSL_INVERSE style
     virtual int ValueInvertOrNot(int value) const
@@ -136,18 +126,12 @@ private:
     #include "wx/univ/slider.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/slider.h"
-#elif defined(__WXMOTIF__)
-    #include "wx/motif/slider.h"
-#elif defined(__WXGTK20__)
-    #include "wx/gtk/slider.h"
 #elif defined(__WXGTK__)
-    #include "wx/gtk1/slider.h"
+    #include "wx/gtk/slider.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/slider.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/slider.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/slider.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/slider.h"
 #endif
 
 #endif // wxUSE_SLIDER

@@ -2,7 +2,6 @@
 // Name:        wx/msw/dcscreen.h
 // Purpose:     wxScreenDC class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -17,15 +16,13 @@
 class WXDLLIMPEXP_CORE wxScreenDCImpl : public wxMSWDCImpl
 {
 public:
-    // Create a DC representing the whole screen
+    // Create a DC representing the whole virtual screen (all monitors)
     wxScreenDCImpl( wxScreenDC *owner );
 
-    virtual void DoGetSize(int *w, int *h) const
-    {
-        GetDeviceSize(w, h);
-    }
+    // Return the size of the whole virtual screen (all monitors)
+    virtual void DoGetSize(int *w, int *h) const override;
 
-    DECLARE_CLASS(wxScreenDCImpl)
+    wxDECLARE_CLASS(wxScreenDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxScreenDCImpl);
 };
 

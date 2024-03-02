@@ -2,7 +2,6 @@
 // Name:        wx/osx/carbon/region.h
 // Purpose:     wxRegion class
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -16,7 +15,7 @@
 class WXDLLIMPEXP_CORE wxRegion : public wxRegionWithCombine
 {
 public:
-    wxRegion() { }
+    wxRegion() = default;
     wxRegion(long x, long y, long w, long h);
     wxRegion(const wxPoint& topLeft, const wxPoint& bottomRight);
     wxRegion(const wxRect& rect);
@@ -37,27 +36,27 @@ public:
     virtual ~wxRegion();
 
     // wxRegionBase methods
-    virtual void Clear();
-    virtual bool IsEmpty() const;
+    virtual void Clear() override;
+    virtual bool IsEmpty() const override;
 
     // Internal
     WXHRGN GetWXHRGN() const ;
 
 protected:
-    virtual wxGDIRefData *CreateGDIRefData() const;
-    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
+    virtual wxGDIRefData *CreateGDIRefData() const override;
+    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const override;
 
-    virtual bool DoIsEqual(const wxRegion& region) const;
-    virtual bool DoGetBox(wxCoord& x, wxCoord& y, wxCoord& w, wxCoord& h) const;
-    virtual wxRegionContain DoContainsPoint(wxCoord x, wxCoord y) const;
-    virtual wxRegionContain DoContainsRect(const wxRect& rect) const;
+    virtual bool DoIsEqual(const wxRegion& region) const override;
+    virtual bool DoGetBox(wxCoord& x, wxCoord& y, wxCoord& w, wxCoord& h) const override;
+    virtual wxRegionContain DoContainsPoint(wxCoord x, wxCoord y) const override;
+    virtual wxRegionContain DoContainsRect(const wxRect& rect) const override;
 
-    virtual bool DoOffset(wxCoord x, wxCoord y);
-    virtual bool DoCombine(const wxRegion& region, wxRegionOp op);
-    virtual bool DoUnionWithRect(const wxRect& rect);
+    virtual bool DoOffset(wxCoord x, wxCoord y) override;
+    virtual bool DoCombine(const wxRegion& region, wxRegionOp op) override;
+    virtual bool DoUnionWithRect(const wxRect& rect) override;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxRegion)
+    wxDECLARE_DYNAMIC_CLASS(wxRegion);
     friend class WXDLLIMPEXP_FWD_CORE wxRegionIterator;
 };
 
@@ -96,7 +95,7 @@ private:
     wxRegion m_region;
     wxRect*  m_rects;
 
-    DECLARE_DYNAMIC_CLASS(wxRegionIterator)
+    wxDECLARE_DYNAMIC_CLASS(wxRegionIterator);
 };
 
 #endif // _WX_MAC_CARBON_REGION_H_

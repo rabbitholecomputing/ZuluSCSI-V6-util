@@ -2,7 +2,6 @@
 // Name:        src/common/scrolbarcmn.cpp
 // Purpose:     wxScrollBar common code
 // Author:      Julian Smart
-// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -11,17 +10,12 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_SCROLLBAR
 
 #include "wx/scrolbar.h"
 
 #ifndef WX_PRECOMP
-    #include "wx/utils.h"
-    #include "wx/settings.h"
 #endif
 
 extern WXDLLEXPORT_DATA(const char) wxScrollBarNameStr[] = "scrollBar";
@@ -52,7 +46,6 @@ wxBEGIN_FLAGS( wxScrollBarStyle )
     // standard window styles
     wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
     wxFLAGS_MEMBER(wxCLIP_CHILDREN)
-    wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
     wxFLAGS_MEMBER(wxWANTS_CHARS)
     wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
     wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
@@ -63,7 +56,7 @@ wxBEGIN_FLAGS( wxScrollBarStyle )
     wxFLAGS_MEMBER(wxSB_VERTICAL)
 wxEND_FLAGS( wxScrollBarStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxScrollBar, wxControl, "wx/scrolbar.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxScrollBar, wxControl, "wx/scrolbar.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxScrollBar)
     wxEVENT_RANGE_PROPERTY( Scroll, wxEVT_SCROLL_TOP, \

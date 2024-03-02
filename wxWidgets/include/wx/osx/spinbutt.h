@@ -2,7 +2,6 @@
 // Name:        wx/osx/spinbutt.h
 // Purpose:     wxSpinButton class
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -51,25 +50,27 @@ public:
 
 
     // accessors
-    virtual void SetRange(int minVal, int maxVal);
-    virtual int GetValue() const ;
-    virtual void SetValue(int val);
+    virtual void SetRange(int minVal, int maxVal) override;
+    virtual int GetValue() const override;
+    virtual void SetValue(int val) override;
+    virtual void SetIncrement(int value) override;
+    virtual int GetIncrement() const override;
 
     // implementation
 
-    virtual void TriggerScrollEvent( wxEventType scrollEvent ) ;
+    virtual void TriggerScrollEvent( wxEventType scrollEvent ) override;
 
     // osx specific event handling common for all osx-ports
 
-    virtual bool OSXHandleClicked( double timestampsec );
+    virtual bool OSXHandleClicked( double timestampsec ) override;
 
 protected:
     void         SendThumbTrackEvent() ;
 
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const override;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxSpinButton)
+    wxDECLARE_DYNAMIC_CLASS(wxSpinButton);
 };
 
 #endif

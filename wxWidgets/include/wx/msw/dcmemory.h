@@ -2,7 +2,6 @@
 // Name:        wx/msw/dcmemory.h
 // Purpose:     wxMemoryDC class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -22,21 +21,24 @@ public:
     wxMemoryDCImpl( wxMemoryDC *owner, wxDC *dc ); // Create compatible DC
 
     // override some base class virtuals
-    virtual void DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoord height);
-    virtual void DoGetSize(int* width, int* height) const;
-    virtual void DoSelect(const wxBitmap& bitmap);
+    virtual wxSize GetPPI() const override;
+    virtual void SetFont(const wxFont& font) override;
 
-    virtual wxBitmap DoGetAsBitmap(const wxRect* subrect) const
-    { return subrect == NULL ? GetSelectedBitmap() : GetSelectedBitmap().GetSubBitmapOfHDC(*subrect, GetHDC() );}
+    virtual void DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoord height) override;
+    virtual void DoGetSize(int* width, int* height) const override;
+    virtual void DoSelect(const wxBitmap& bitmap) override;
+
+    virtual wxBitmap DoGetAsBitmap(const wxRect* subrect) const override
+    { return subrect == nullptr ? GetSelectedBitmap() : GetSelectedBitmap().GetSubBitmapOfHDC(*subrect, GetHDC() );}
 
 protected:
-    // create DC compatible with the given one or screen if dc == NULL
+    // create DC compatible with the given one or screen if dc == nullptr
     bool CreateCompatible(wxDC *dc);
 
     // initialize the newly created DC
     void Init();
 
-    DECLARE_CLASS(wxMemoryDCImpl)
+    wxDECLARE_CLASS(wxMemoryDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxMemoryDCImpl);
 };
 

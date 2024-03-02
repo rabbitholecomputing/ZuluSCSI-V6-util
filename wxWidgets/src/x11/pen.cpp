@@ -2,7 +2,6 @@
 // Name:        src/x11/pen.cpp
 // Purpose:     wxPen
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -32,11 +31,12 @@ public:
         m_style = wxPENSTYLE_SOLID;
         m_joinStyle = wxJOIN_ROUND;
         m_capStyle = wxCAP_ROUND;
-        m_dash = NULL;
+        m_dash = nullptr;
         m_countDashes = 0;
     }
 
     wxPenRefData( const wxPenRefData& data )
+        : wxGDIRefData()
     {
         m_style = data.m_style;
         m_width = data.m_width;
@@ -50,6 +50,18 @@ public:
 */
         m_dash = data.m_dash;
         m_stipple = data.m_stipple;
+    }
+
+    wxPenRefData( const wxPenInfo& info )
+    {
+        m_width = info.GetWidth();
+        m_style = info.GetStyle();
+        m_joinStyle = info.GetJoin();
+        m_capStyle = info.GetCap();
+        m_colour = info.GetColour();
+        wxDash* dash;
+        m_countDashes = info.GetDashes(&dash);
+        m_dash = (wxX11Dash*)dash;
     }
 
     bool operator == (const wxPenRefData& data) const
@@ -75,29 +87,24 @@ public:
 
 #define M_PENDATA ((wxPenRefData *)m_refData)
 
-IMPLEMENT_DYNAMIC_CLASS(wxPen,wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPen, wxGDIObject);
 
 wxPen::wxPen( const wxColour &colour, int width, wxPenStyle style )
 {
-    m_refData = new wxPenRefData();
-    M_PENDATA->m_width = width;
-    M_PENDATA->m_style = style;
-    M_PENDATA->m_colour = colour;
+    m_refData = new wxPenRefData(wxPenInfo(colour, width).Style(style));
 }
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 wxPen::wxPen(const wxColour& colour, int width, int style)
 {
-    m_refData = new wxPenRefData();
-    M_PENDATA->m_width = width;
-    M_PENDATA->m_style = (wxPenStyle)style;
-    M_PENDATA->m_colour = colour;
+    m_refData = new wxPenRefData
+                    (
+                        wxPenInfo(colour, width).Style((wxPenStyle)style)
+                    );
 }
-#endif
 
-wxPen::~wxPen()
+wxPen::wxPen(const wxPenInfo& info)
 {
-    // m_refData unrefed in ~wxObject
+    m_refData = new wxPenRefData(info);
 }
 
 wxGDIRefData *wxPen::CreateGDIRefData() const

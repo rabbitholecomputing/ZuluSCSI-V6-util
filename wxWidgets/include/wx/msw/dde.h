@@ -2,7 +2,6 @@
 // Name:        wx/msw/dde.h
 // Purpose:     DDE class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -49,18 +48,18 @@ public:
 
   // implement base class pure virtual methods
   virtual const void *Request(const wxString& item,
-                              size_t *size = NULL,
-                              wxIPCFormat format = wxIPC_TEXT);
-  virtual bool StartAdvise(const wxString& item);
-  virtual bool StopAdvise(const wxString& item);
-  virtual bool Disconnect();
+                              size_t *size = nullptr,
+                              wxIPCFormat format = wxIPC_TEXT) override;
+  virtual bool StartAdvise(const wxString& item) override;
+  virtual bool StopAdvise(const wxString& item) override;
+  virtual bool Disconnect() override;
 
 protected:
-  virtual bool DoExecute(const void *data, size_t size, wxIPCFormat format);
+  virtual bool DoExecute(const void *data, size_t size, wxIPCFormat format) override;
   virtual bool DoPoke(const wxString& item, const void *data, size_t size,
-                      wxIPCFormat format);
+                      wxIPCFormat format) override;
   virtual bool DoAdvise(const wxString& item, const void *data, size_t size,
-                        wxIPCFormat format);
+                        wxIPCFormat format) override;
 
 public:
   wxString      m_topicName;
@@ -70,35 +69,35 @@ public:
   WXHCONV       m_hConv;
   const void*   m_sendingData;
   int           m_dataSize;
-  wxIPCFormat   m_dataType;
 
   wxDECLARE_NO_COPY_CLASS(wxDDEConnection);
-  DECLARE_DYNAMIC_CLASS(wxDDEConnection)
+  wxDECLARE_DYNAMIC_CLASS(wxDDEConnection);
 };
 
 class WXDLLIMPEXP_BASE wxDDEServer : public wxServerBase
 {
 public:
     wxDDEServer();
-    bool Create(const wxString& server_name);
+    bool Create(const wxString& server_name) override;
     virtual ~wxDDEServer();
 
-    virtual wxConnectionBase *OnAcceptConnection(const wxString& topic);
+    virtual wxConnectionBase *OnAcceptConnection(const wxString& topic) override;
 
     // Find/delete wxDDEConnection corresponding to the HCONV
     wxDDEConnection *FindConnection(WXHCONV conv);
     bool DeleteConnection(WXHCONV conv);
-    wxString& GetServiceName() const { return (wxString&) m_serviceName; }
+    wxString& GetServiceName() { return m_serviceName; }
+    const wxString& GetServiceName() const { return m_serviceName; }
 
-    wxDDEConnectionList& GetConnections() const
-        { return (wxDDEConnectionList&) m_connections; }
+    wxDDEConnectionList& GetConnections() { return m_connections; }
+    const wxDDEConnectionList& GetConnections() const { return m_connections; }
 
 protected:
     int       m_lastError;
     wxString  m_serviceName;
     wxDDEConnectionList m_connections;
 
-    DECLARE_DYNAMIC_CLASS(wxDDEServer)
+    wxDECLARE_DYNAMIC_CLASS(wxDDEServer);
 };
 
 class WXDLLIMPEXP_BASE wxDDEClient: public wxClientBase
@@ -107,28 +106,28 @@ public:
     wxDDEClient();
     virtual ~wxDDEClient();
 
-    bool ValidHost(const wxString& host);
+    bool ValidHost(const wxString& host) override;
 
-    // Call this to make a connection. Returns NULL if cannot.
+    // Call this to make a connection. Returns nullptr if cannot.
     virtual wxConnectionBase *MakeConnection(const wxString& host,
                                              const wxString& server,
-                                             const wxString& topic);
+                                             const wxString& topic) override;
 
     // Tailor this to return own connection.
-    virtual wxConnectionBase *OnMakeConnection();
+    virtual wxConnectionBase *OnMakeConnection() override;
 
     // Find/delete wxDDEConnection corresponding to the HCONV
     wxDDEConnection *FindConnection(WXHCONV conv);
     bool DeleteConnection(WXHCONV conv);
 
-    wxDDEConnectionList& GetConnections() const
-        { return (wxDDEConnectionList&) m_connections; }
+    wxDDEConnectionList& GetConnections() { return m_connections; }
+    const wxDDEConnectionList& GetConnections() const { return m_connections; }
 
 protected:
     int       m_lastError;
     wxDDEConnectionList m_connections;
 
-    DECLARE_DYNAMIC_CLASS(wxDDEClient)
+    wxDECLARE_DYNAMIC_CLASS(wxDDEClient);
 };
 
 void WXDLLIMPEXP_BASE wxDDEInitialize();

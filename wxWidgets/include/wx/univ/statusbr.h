@@ -2,7 +2,6 @@
 // Name:        wx/univ/statusbr.h
 // Purpose:     wxStatusBarUniv: wxStatusBar for wxUniversal declaration
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     14.10.01
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -26,7 +25,7 @@ public:
     wxStatusBarUniv(wxWindow *parent,
                     wxWindowID id = wxID_ANY,
                     long style = wxSTB_DEFAULT_STYLE,
-                    const wxString& name = wxPanelNameStr)
+                    const wxString& name = wxASCII_STR(wxPanelNameStr))
     {
         Init();
 
@@ -36,38 +35,38 @@ public:
     bool Create(wxWindow *parent,
                 wxWindowID id = wxID_ANY,
                 long style = wxSTB_DEFAULT_STYLE,
-                const wxString& name = wxPanelNameStr);
+                const wxString& name = wxASCII_STR(wxPanelNameStr));
 
     // implement base class methods
-    virtual void SetFieldsCount(int number = 1, const int *widths = NULL);
-    virtual void SetStatusWidths(int n, const int widths[]);
+    virtual void SetFieldsCount(int number = 1, const int *widths = nullptr) override;
+    virtual void SetStatusWidths(int n, const int widths[]) override;
 
-    virtual bool GetFieldRect(int i, wxRect& rect) const;
-    virtual void SetMinHeight(int height);
+    virtual bool GetFieldRect(int i, wxRect& rect) const override;
+    virtual void SetMinHeight(int height) override;
 
-    virtual int GetBorderX() const;
-    virtual int GetBorderY() const;
+    virtual int GetBorderX() const override;
+    virtual int GetBorderY() const override;
 
     // wxInputConsumer pure virtual
-    virtual wxWindow *GetInputWindow() const
+    virtual wxWindow *GetInputWindow() const override
         { return const_cast<wxStatusBar*>(this); }
 
 protected:
-    virtual void DoUpdateStatusText(int i);
+    virtual void DoUpdateStatusText(int i) override;
 
     // recalculate the field widths
     void OnSize(wxSizeEvent& event);
 
     // draw the statusbar
-    virtual void DoDraw(wxControlRenderer *renderer);
+    virtual void DoDraw(wxControlRenderer *renderer) override;
 
     // tell them about our preferred height
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const override;
 
     // override DoSetSize() to prevent the status bar height from changing
     virtual void DoSetSize(int x, int y,
                            int width, int height,
-                           int sizeFlags = wxSIZE_AUTO);
+                           int sizeFlags = wxSIZE_AUTO) override;
 
     // get the (fixed) status bar height
     wxCoord GetHeight() const;
@@ -90,8 +89,8 @@ private:
     // the absolute status fields widths
     wxArrayInt m_widthsAbs;
 
-    DECLARE_DYNAMIC_CLASS(wxStatusBarUniv)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxStatusBarUniv);
+    wxDECLARE_EVENT_TABLE();
     WX_DECLARE_INPUT_CONSUMER()
 };
 

@@ -22,7 +22,7 @@ public:
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize, long style = 0,
             const wxValidator& validator = wxDefaultValidator,
-            const wxString& name = wxCheckBoxNameStr)
+            const wxString& name = wxASCII_STR(wxCheckBoxNameStr))
     {
         Create(parent, id, label, pos, size, style, validator, name);
     }
@@ -33,13 +33,12 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxCheckBoxNameStr );
+                const wxString& name = wxASCII_STR(wxCheckBoxNameStr) );
 
-    void SetValue( bool state );
-    bool GetValue() const;
+    void SetValue( bool state ) override;
+    bool GetValue() const override;
 
-    virtual void SetLabel( const wxString& label );
-    virtual bool Enable( bool enable = true );
+    virtual void SetLabel( const wxString& label ) override;
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
@@ -49,19 +48,23 @@ public:
     void GTKEnableEvents();
 
 protected:
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style);
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) override;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const override;
 
-    void DoSet3StateValue(wxCheckBoxState state);
-    wxCheckBoxState DoGet3StateValue() const;
+    virtual void DoEnable(bool enable) override;
+
+    void DoSet3StateValue(wxCheckBoxState state) override;
+    wxCheckBoxState DoGet3StateValue() const override;
 
 private:
     typedef wxCheckBoxBase base_type;
 
+    virtual void GTKRemoveBorder() override;
+
     GtkWidget *m_widgetCheckbox;
     GtkWidget *m_widgetLabel;
 
-    DECLARE_DYNAMIC_CLASS(wxCheckBox)
+    wxDECLARE_DYNAMIC_CLASS(wxCheckBox);
 };
 
 #endif // _WX_GTKCHECKBOX_H_

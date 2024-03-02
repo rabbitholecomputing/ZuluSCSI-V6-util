@@ -22,9 +22,6 @@
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 // for all others, include the necessary headers
 #ifndef WX_PRECOMP
@@ -33,6 +30,8 @@
 
 #include "wx/filename.h"
 #include "wx/wfstream.h"
+
+#include <memory>
 
 #ifdef __WINDOWS__
     #include "wx/msw/wrapwin.h"
@@ -50,8 +49,6 @@
 #ifdef __VISUALC__
     #define fileno _fileno
 #endif
-
-using std::auto_ptr;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,7 +68,7 @@ public:
     virtual ~LargeFileTest() { }
 
 protected:
-    void runTest();
+    void runTest() override;
 
     virtual wxInputStream *MakeInStream(const wxString& name) const = 0;
     virtual wxOutputStream *MakeOutStream(const wxString& name) const = 0;
@@ -120,7 +117,7 @@ void LargeFileTest::runTest()
 
     // write a large file
     {
-        auto_ptr<wxOutputStream> out(MakeOutStream(tmpfile.m_name));
+        std::unique_ptr<wxOutputStream> out(MakeOutStream(tmpfile.m_name));
 
         // write 'A's at [ 0x7fffffbf, 0x7fffffff [
         pos = 0x7fffffff - size;
@@ -154,7 +151,7 @@ void LargeFileTest::runTest()
 
     // read the large file back
     {
-        auto_ptr<wxInputStream> in(MakeInStream(tmpfile.m_name));
+        std::unique_ptr<wxInputStream> in(MakeInStream(tmpfile.m_name));
         char buf[size];
 
         if (haveLFS) {
@@ -211,14 +208,14 @@ public:
     LargeFileTest_wxFile() : LargeFileTest("wxFile streams") { }
 
 protected:
-    wxInputStream *MakeInStream(const wxString& name) const;
-    wxOutputStream *MakeOutStream(const wxString& name) const;
-    bool HasLFS() const { return (wxFileOffset)0xffffffff > 0; }
+    wxInputStream *MakeInStream(const wxString& name) const override;
+    wxOutputStream *MakeOutStream(const wxString& name) const override;
+    bool HasLFS() const override { return (wxFileOffset)0xffffffff > 0; }
 };
 
 wxInputStream *LargeFileTest_wxFile::MakeInStream(const wxString& name) const
 {
-    auto_ptr<wxFileInputStream> in(new wxFileInputStream(name));
+    std::unique_ptr<wxFileInputStream> in(new wxFileInputStream(name));
     CPPUNIT_ASSERT(in->IsOk());
     return in.release();
 }
@@ -243,14 +240,14 @@ public:
     LargeFileTest_wxFFile() : LargeFileTest("wxFFile streams") { }
 
 protected:
-    wxInputStream *MakeInStream(const wxString& name) const;
-    wxOutputStream *MakeOutStream(const wxString& name) const;
-    bool HasLFS() const;
+    wxInputStream *MakeInStream(const wxString& name) const override;
+    wxOutputStream *MakeOutStream(const wxString& name) const override;
+    bool HasLFS() const override;
 };
 
 wxInputStream *LargeFileTest_wxFFile::MakeInStream(const wxString& name) const
 {
-    auto_ptr<wxFFileInputStream> in(new wxFFileInputStream(name));
+    std::unique_ptr<wxFFileInputStream> in(new wxFFileInputStream(name));
     CPPUNIT_ASSERT(in->IsOk());
     return in.release();
 }
@@ -343,11 +340,11 @@ void GetVolumeInfo(const wxString& path)
         }
     }
 
-    // NULL means the current volume
-    const wxChar *pVol = vol.empty() ? (const wxChar *)NULL
+    // nullptr means the current volume
+    const wxChar *pVol = vol.empty() ? (const wxChar *)nullptr
                                      : vol.c_str();
 
-    if (!::GetVolumeInformation(pVol, NULL, 0, NULL, NULL,
+    if (!::GetVolumeInformation(pVol, nullptr, 0, nullptr, nullptr,
                                 &volumeFlags,
                                 volumeType,
                                 WXSIZEOF(volumeType)))
@@ -375,11 +372,11 @@ void MakeSparse(const wxString& path, int fd)
     if ((volumeFlags & FILE_SUPPORTS_SPARSE_FILES) != 0)
         if (!::DeviceIoControl((HANDLE)_get_osfhandle(fd),
                                FSCTL_SET_SPARSE,
-                               NULL, 0, NULL, 0, &cb, NULL))
+                               nullptr, 0, nullptr, 0, &cb, nullptr))
             volumeFlags &= ~FILE_SUPPORTS_SPARSE_FILES;
 }
 
-// return the suite if sparse files are supported, otherwise return NULL
+// return the suite if sparse files are supported, otherwise return nullptr
 //
 CppUnit::Test* GetlargeFileSuite()
 {
@@ -396,7 +393,7 @@ CppUnit::Test* GetlargeFileSuite()
     if ((volumeFlags & FILE_SUPPORTS_SPARSE_FILES) != 0)
         return largeFile::suite();
     else
-        return NULL;
+        return nullptr;
 }
 
 #else // __WINDOWS__
@@ -404,7 +401,7 @@ CppUnit::Test* GetlargeFileSuite()
 bool IsFAT(const wxString& WXUNUSED(path)) { return false; }
 void MakeSparse(const wxString& WXUNUSED(path), int WXUNUSED(fd)) { }
 
-// return the suite if sparse files are supported, otherwise return NULL
+// return the suite if sparse files are supported, otherwise return nullptr
 //
 CppUnit::Test* GetlargeFileSuite()
 {
@@ -432,10 +429,9 @@ CppUnit::Test* GetlargeFileSuite()
     if (st1.st_blocks != st2.st_blocks)
         return largeFile::suite();
     else
-        return NULL;
+        return nullptr;
 }
 
 #endif // __WINDOWS__
 
-CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(largeFile, "largeFile");
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(largeFile, "Streams.largeFile");

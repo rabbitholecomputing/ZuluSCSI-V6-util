@@ -2,7 +2,6 @@
 // Name:        wx/settings.h
 // Purpose:     wxSystemSettings class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -137,7 +136,10 @@ enum wxSystemMetric
     wxSYS_PENWINDOWS_PRESENT,
     wxSYS_SHOW_SOUNDS,
     wxSYS_SWAP_BUTTONS,
-    wxSYS_DCLICK_MSEC
+    wxSYS_DCLICK_MSEC,
+    wxSYS_CARET_ON_MSEC,
+    wxSYS_CARET_OFF_MSEC,
+    wxSYS_CARET_TIMEOUT_MSEC
 };
 
 // possible values for wxSystemSettings::HasFeature() parameter
@@ -157,6 +159,46 @@ enum wxSystemScreenType
     wxSYS_SCREEN_PDA,       //   >= 320x240
     wxSYS_SCREEN_SMALL,     //   >= 640x480
     wxSYS_SCREEN_DESKTOP    //   >= 800x600
+};
+
+// ----------------------------------------------------------------------------
+// wxSystemAppearance: describes the global appearance used for the UI
+// ----------------------------------------------------------------------------
+
+class WXDLLIMPEXP_CORE wxSystemAppearance
+{
+public:
+    // Return the name if available or empty string otherwise.
+    wxString GetName() const;
+
+    // Return true if the applications on this system use dark theme by default.
+    bool AreAppsDark() const;
+
+    // Return true if the system elements use dark theme: this can only differ
+    // from AreAppsDark() under MSW where it's possible to configure the system
+    // (taskbar etc) to use a different theme.
+    bool IsSystemDark() const;
+
+    // Return true if this application itself uses a dark theme.
+    bool IsDark() const;
+
+    // Return true if the background is darker than foreground. This is used by
+    // IsDark() if there is no platform-specific way to determine whether a
+    // dark mode is being used.
+    bool IsUsingDarkBackground() const;
+
+private:
+    friend class wxSystemSettingsNative;
+
+    // Ctor is private, even though it's trivial, because objects of this type
+    // are only supposed to be created by wxSystemSettingsNative.
+    wxSystemAppearance() = default;
+
+    // Currently this class doesn't have any internal state because the only
+    // available implementation doesn't need it. If we do need it later, we
+    // could add some "wxSystemAppearanceImpl* const m_impl" here, which we'd
+    // forward our public functions to (we'd also need to add the copy ctor and
+    // dtor to clone/free it).
 };
 
 // ----------------------------------------------------------------------------
@@ -180,7 +222,16 @@ public:
     static wxFont GetFont(wxSystemFont index);
 
     // get a system-dependent metric
-    static int GetMetric(wxSystemMetric index, wxWindow * win = NULL);
+    static int GetMetric(wxSystemMetric index, const wxWindow* win = nullptr);
+
+    // get the object describing the current system appearance
+    static wxSystemAppearance GetAppearance();
+
+    // get the first colour for light appearance and the second one for the dark
+    static wxColour SelectLightDark(wxColour colForLight, wxColour colForDark)
+    {
+        return GetAppearance().IsDark() ? colForDark : colForLight;
+    }
 
     // return true if the port has certain feature
     static bool HasFeature(wxSystemFeature index);
@@ -201,7 +252,7 @@ public:
 
     // some metrics are toolkit-dependent and provided by wxUniv, some are
     // lowlevel
-    static int GetMetric(wxSystemMetric index, wxWindow *win = NULL);
+    static int GetMetric(wxSystemMetric index, const wxWindow* win = nullptr);
 #endif // __WXUNIVERSAL__
 
     // Get system screen design (desktop, pda, ..) used for

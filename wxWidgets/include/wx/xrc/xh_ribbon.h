@@ -20,8 +20,8 @@ class WXDLLIMPEXP_RIBBON wxRibbonXmlHandler : public wxXmlResourceHandler
 {
 public:
     wxRibbonXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 
 private:
     const wxClassInfo *m_isInside;

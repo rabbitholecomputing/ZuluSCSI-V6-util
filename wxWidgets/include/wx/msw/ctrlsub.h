@@ -3,7 +3,7 @@
 // Purpose:     common functionality of wxItemContainer-derived controls
 // Author:      Vadim Zeitlin
 // Created:     2007-07-25
-// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -17,7 +17,7 @@
 class WXDLLIMPEXP_CORE wxControlWithItems : public wxControlWithItemsBase
 {
 public:
-    wxControlWithItems() { }
+    wxControlWithItems() = default;
 
 protected:
     // preallocate memory for inserting the given new items into the control
@@ -34,7 +34,7 @@ protected:
     virtual WXHWND MSWGetItemsHWND() const { return GetHWND(); }
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxControlWithItems)
+    wxDECLARE_ABSTRACT_CLASS(wxControlWithItems);
     wxDECLARE_NO_COPY_CLASS(wxControlWithItems);
 };
 

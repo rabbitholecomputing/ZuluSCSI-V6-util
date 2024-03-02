@@ -2,7 +2,6 @@
 // Name:        wx/richtext/richtextformatdlg.h
 // Purpose:     Formatting dialog for wxRichTextCtrl
 // Author:      Julian Smart
-// Modified by:
 // Created:     2006-10-01
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -22,6 +21,7 @@
 #include "wx/propdlg.h"
 #include "wx/bookctrl.h"
 #include "wx/withimages.h"
+#include "wx/colourdata.h"
 
 #if wxUSE_HTML
 #include "wx/htmllbox.h"
@@ -84,8 +84,8 @@ enum {
 class WXDLLIMPEXP_RICHTEXT wxRichTextFormattingDialogFactory: public wxObject
 {
 public:
-    wxRichTextFormattingDialogFactory() {}
-    virtual ~wxRichTextFormattingDialogFactory() {}
+    wxRichTextFormattingDialogFactory() = default;
+    virtual ~wxRichTextFormattingDialogFactory() = default;
 
 // Overridables
 
@@ -121,7 +121,7 @@ public:
 class WXDLLIMPEXP_RICHTEXT wxRichTextFormattingDialog: public wxPropertySheetDialog,
                                                        public wxWithImages
 {
-DECLARE_CLASS(wxRichTextFormattingDialog)
+    wxDECLARE_CLASS(wxRichTextFormattingDialog);
 DECLARE_HELP_PROVISION()
 
 public:
@@ -191,8 +191,8 @@ public:
     void SetObject(wxRichTextObject* obj) { m_object = obj; }
 
     /// Transfers the data and from to the window
-    virtual bool TransferDataToWindow();
-    virtual bool TransferDataFromWindow();
+    virtual bool TransferDataToWindow() override;
+    virtual bool TransferDataFromWindow() override;
 
     /// Apply the styles when a different tab is selected, so the previews are
     /// up to date
@@ -226,11 +226,11 @@ public:
 
     /// Set the dimension into the value and units controls. Optionally pass units to
     /// specify the ordering of units in the combobox.
-    static void SetDimensionValue(wxTextAttrDimension& dim, wxTextCtrl* valueCtrl, wxComboBox* unitsCtrl, wxCheckBox* checkBox, wxArrayInt* units = NULL);
+    static void SetDimensionValue(wxTextAttrDimension& dim, wxTextCtrl* valueCtrl, wxComboBox* unitsCtrl, wxCheckBox* checkBox, wxArrayInt* units = nullptr);
 
     /// Get the dimension from the value and units controls Optionally pass units to
     /// specify the ordering of units in the combobox.
-    static void GetDimensionValue(wxTextAttrDimension& dim, wxTextCtrl* valueCtrl, wxComboBox* unitsCtrl, wxCheckBox* checkBox, wxArrayInt* units = NULL);
+    static void GetDimensionValue(wxTextAttrDimension& dim, wxTextCtrl* valueCtrl, wxComboBox* unitsCtrl, wxCheckBox* checkBox, wxArrayInt* units = nullptr);
 
     /// Convert from a string to a dimension integer.
     static bool ConvertFromString(const wxString& str, int& ret, int unit);
@@ -241,6 +241,20 @@ public:
     /// Find a page by class
     wxWindow* FindPage(wxClassInfo* info) const;
 
+    /// Whether to restore the last-selected page.
+    static bool GetRestoreLastPage() { return sm_restoreLastPage; }
+    static void SetRestoreLastPage(bool b) { sm_restoreLastPage = b; }
+
+    /// The page identifier of the last page selected (not the control id)
+    static int GetLastPage() { return sm_lastPage; }
+    static void SetLastPage(int lastPage) { sm_lastPage = lastPage; }
+
+    /// Sets the custom colour data for use by the colour dialog.
+    static void SetColourData(const wxColourData& colourData) { sm_colourData = colourData; }
+
+    /// Returns the custom colour data for use by the colour dialog.
+    static wxColourData GetColourData() { return sm_colourData; }
+
 protected:
 
     wxRichTextAttr                              m_attributes;
@@ -249,11 +263,16 @@ protected:
     wxRichTextObject*                           m_object;
     wxArrayInt                                  m_pageIds; // mapping of book control indexes to page ids
     int                                         m_options; // UI options
+    bool                                        m_ignoreUpdates;
+    static wxColourData                         sm_colourData;
 
     static wxRichTextFormattingDialogFactory*   ms_FormattingDialogFactory;
     static bool                                 sm_showToolTips;
 
-DECLARE_EVENT_TABLE()
+    static bool                                 sm_restoreLastPage;
+    static int                                  sm_lastPage;
+
+    wxDECLARE_EVENT_TABLE();
 };
 
 //-----------------------------------------------------------------------------
@@ -272,7 +291,7 @@ private:
     int m_textEffects;
 
     void OnPaint(wxPaintEvent& event);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 /*
@@ -281,7 +300,7 @@ private:
 
 class WXDLLIMPEXP_RICHTEXT wxRichTextColourSwatchCtrl: public wxControl
 {
-    DECLARE_CLASS(wxRichTextColourSwatchCtrl)
+    wxDECLARE_CLASS(wxRichTextColourSwatchCtrl);
 public:
     wxRichTextColourSwatchCtrl(wxWindow* parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = 0);
     ~wxRichTextColourSwatchCtrl();
@@ -292,12 +311,12 @@ public:
 
     wxColour& GetColour() { return m_colour; }
 
-    virtual wxSize DoGetBestSize() const { return GetSize(); }
+    virtual wxSize DoGetBestSize() const override { return GetSize(); }
 
 protected:
     wxColour    m_colour;
 
-DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 /*!
@@ -307,8 +326,8 @@ DECLARE_EVENT_TABLE()
 
 class WXDLLIMPEXP_RICHTEXT wxRichTextFontListBox: public wxHtmlListBox
 {
-    DECLARE_CLASS(wxRichTextFontListBox)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_CLASS(wxRichTextFontListBox);
+    wxDECLARE_EVENT_TABLE();
 
 public:
     wxRichTextFontListBox()
@@ -346,7 +365,7 @@ public:
 
 protected:
     /// Returns the HTML for this item
-    virtual wxString OnGetItem(size_t n) const;
+    virtual wxString OnGetItem(size_t n) const override;
 
 private:
 

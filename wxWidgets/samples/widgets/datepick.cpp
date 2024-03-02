@@ -19,9 +19,6 @@
 // for compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_DATEPICKCTRL
 
@@ -57,6 +54,7 @@ enum
     DatePickerPage_Reset = wxID_HIGHEST,
     DatePickerPage_Set,
     DatePickerPage_SetRange,
+    DatePickerPage_SetNullText,
     DatePickerPage_Picker
 };
 
@@ -68,13 +66,12 @@ class DatePickerWidgetsPage : public WidgetsPage
 {
 public:
     DatePickerWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
-    virtual ~DatePickerWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_datePicker; }
-    virtual void RecreateWidget() { CreateDatePicker(); }
+    virtual wxWindow *GetWidget() const override { return m_datePicker; }
+    virtual void RecreateWidget() override { CreateDatePicker(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() override;
 
 protected:
     // event handlers
@@ -82,6 +79,7 @@ protected:
 
     void OnButtonSet(wxCommandEvent& event);
     void OnButtonSetRange(wxCommandEvent& event);
+    void OnButtonSetNullText(wxCommandEvent& event);
     void OnButtonReset(wxCommandEvent& event);
 
     // reset the date picker parameters
@@ -100,6 +98,7 @@ protected:
     wxTextCtrl *m_textCur;
     wxTextCtrl *m_textMin;
     wxTextCtrl *m_textMax;
+    wxTextCtrl *m_textNull;
 
     wxRadioBox* m_radioKind;
     wxCheckBox* m_chkStyleCentury;
@@ -121,6 +120,7 @@ wxBEGIN_EVENT_TABLE(DatePickerWidgetsPage, WidgetsPage)
     EVT_BUTTON(DatePickerPage_Reset, DatePickerWidgetsPage::OnButtonReset)
     EVT_BUTTON(DatePickerPage_Set, DatePickerWidgetsPage::OnButtonSet)
     EVT_BUTTON(DatePickerPage_SetRange, DatePickerWidgetsPage::OnButtonSetRange)
+    EVT_BUTTON(DatePickerPage_SetNullText, DatePickerWidgetsPage::OnButtonSetNullText)
 
     EVT_DATE_CHANGED(wxID_ANY, DatePickerWidgetsPage::OnDateChanged)
 wxEND_EVENT_TABLE()
@@ -135,7 +135,7 @@ wxEND_EVENT_TABLE()
     #define FAMILY_CTRLS GENERIC_CTRLS
 #endif
 
-IMPLEMENT_WIDGETS_PAGE(DatePickerWidgetsPage, wxT("DatePicker"),
+IMPLEMENT_WIDGETS_PAGE(DatePickerWidgetsPage, "DatePicker",
                        FAMILY_CTRLS | PICKER_CTRLS
                        );
 
@@ -159,9 +159,11 @@ void DatePickerWidgetsPage::CreateContent()
                                  1, wxRA_SPECIFY_COLS);
     sizerLeft->Add(m_radioKind, wxSizerFlags().Expand().Border());
 
-    wxSizer* const sizerStyle = new wxStaticBoxSizer(wxVERTICAL, this, "&Style");
-    m_chkStyleCentury = CreateCheckBoxAndAddToSizer(sizerStyle, "Show &century");
-    m_chkStyleAllowNone = CreateCheckBoxAndAddToSizer(sizerStyle, "Allow &no value");
+    wxStaticBoxSizer* const sizerStyle = new wxStaticBoxSizer(wxVERTICAL, this, "&Style");
+    wxStaticBox* const sizerStyleBox = sizerStyle->GetStaticBox();
+
+    m_chkStyleCentury = CreateCheckBoxAndAddToSizer(sizerStyle, "Show &century", wxID_ANY, sizerStyleBox);
+    m_chkStyleAllowNone = CreateCheckBoxAndAddToSizer(sizerStyle, "Allow &no value", wxID_ANY, sizerStyleBox);
 
     sizerLeft->Add(sizerStyle, wxSizerFlags().Expand().Border());
 
@@ -199,6 +201,20 @@ void DatePickerWidgetsPage::CreateContent()
                      ),
                      wxSizerFlags().Expand().Border());
     sizerMiddle->Add(new wxButton(this, DatePickerPage_SetRange, "Set &range"),
+                     wxSizerFlags().Centre().Border());
+
+    sizerMiddle->AddSpacer(10);
+
+    sizerMiddle->Add(CreateSizerWithTextAndLabel
+                     (
+                        "&Null text",
+                        wxID_ANY,
+                        &m_textNull
+                     ),
+                     wxSizerFlags().Expand().Border());
+
+    sizerMiddle->Add(new wxButton(this, DatePickerPage_SetNullText,
+                                  "Set &null text"),
                      wxSizerFlags().Centre().Border());
 
 
@@ -244,7 +260,7 @@ void DatePickerWidgetsPage::CreateDatePicker()
 
     delete m_datePicker;
 
-    long style = 0;
+    long style = GetAttrs().m_defaultFlags;
     switch ( m_radioKind->GetSelection() )
     {
         case 0:
@@ -268,6 +284,8 @@ void DatePickerWidgetsPage::CreateDatePicker()
     m_datePicker = new wxDatePickerCtrl(this, DatePickerPage_Picker, value,
                                         wxDefaultPosition, wxDefaultSize,
                                         style);
+
+    NotifyWidgetRecreation(m_datePicker);
 
     m_sizerDatePicker->Add(0, 0, 1, wxCENTRE);
     m_sizerDatePicker->Add(m_datePicker, 1, wxCENTRE);
@@ -331,11 +349,24 @@ void DatePickerWidgetsPage::OnButtonSetRange(wxCommandEvent& WXUNUSED(event))
     }
 }
 
+void DatePickerWidgetsPage::OnButtonSetNullText(wxCommandEvent& WXUNUSED(event))
+{
+    m_datePicker->SetNullText(m_textNull->GetValue());
+}
+
+// Helper function which has to be used here because the controls with
+// wxDP_ALLOWNONE style can have invalid date, both in the control itself and
+// in the event it generates.
+static wxString FormatPossiblyInvalidDate(const wxDateTime& dt)
+{
+    return dt.IsValid() ? dt.FormatISOCombined() : wxString("[none]");
+}
+
 void DatePickerWidgetsPage::OnDateChanged(wxDateEvent& event)
 {
     wxLogMessage("Date changed, now is %s (control value is %s).",
-                 event.GetDate().FormatISOCombined(),
-                 m_datePicker->GetValue().FormatISOCombined());
+                 FormatPossiblyInvalidDate(event.GetDate()),
+                 FormatPossiblyInvalidDate(m_datePicker->GetValue()));
 }
 
 #endif // wxUSE_DATEPICKCTRL

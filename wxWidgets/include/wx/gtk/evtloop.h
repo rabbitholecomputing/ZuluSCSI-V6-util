@@ -16,30 +16,32 @@
 
 typedef union  _GdkEvent        GdkEvent;
 
+#include <vector>
+
 class WXDLLIMPEXP_CORE wxGUIEventLoop : public wxEventLoopBase
 {
 public:
     wxGUIEventLoop();
 
-    virtual void ScheduleExit(int rc = 0);
-    virtual bool Pending() const;
-    virtual bool Dispatch();
-    virtual int DispatchTimeout(unsigned long timeout);
-    virtual void WakeUp();
-    virtual bool YieldFor(long eventsToProcess);
+    virtual void ScheduleExit(int rc = 0) override;
+    virtual bool Pending() const override;
+    virtual bool Dispatch() override;
+    virtual int DispatchTimeout(unsigned long timeout) override;
+    virtual void WakeUp() override;
 
     void StoreGdkEventForLaterProcessing(GdkEvent* ev)
-        { m_arrGdkEvents.Add(ev); }
+        { m_queuedGdkEvents.push_back(ev); }
 
 protected:
-    virtual int DoRun();
+    virtual int DoRun() override;
+    virtual void DoYieldFor(long eventsToProcess) override;
 
 private:
     // the exit code of this event loop
     int m_exitcode;
 
-    // used to temporarily store events in DoYield()
-    wxArrayPtrVoid m_arrGdkEvents;
+    // used to temporarily store events processed in DoYieldFor()
+    std::vector<GdkEvent*> m_queuedGdkEvents;
 
     wxDECLARE_NO_COPY_CLASS(wxGUIEventLoop);
 };

@@ -35,12 +35,12 @@ class wxWindowPtr : public wxSharedPtr<T>
 public:
     typedef T element_type;
 
-    wxEXPLICIT wxWindowPtr(element_type* win)
+    explicit wxWindowPtr(element_type* win)
         : wxSharedPtr<T>(win, wxPrivate::wxWindowDeleter())
     {
     }
 
-    wxWindowPtr() {}
+    wxWindowPtr() = default;
     wxWindowPtr(const wxWindowPtr& tocopy) : wxSharedPtr<T>(tocopy) {}
 
     wxWindowPtr& operator=(const wxWindowPtr& tocopy)
@@ -54,7 +54,7 @@ public:
         return operator=(wxWindowPtr(win));
     }
 
-    void reset(T* ptr = NULL)
+    void reset(T* ptr = nullptr)
     {
         wxSharedPtr<T>::reset(ptr, wxPrivate::wxWindowDeleter());
     }

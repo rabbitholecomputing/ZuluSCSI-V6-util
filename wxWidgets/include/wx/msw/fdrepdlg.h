@@ -37,16 +37,18 @@ public:
     wxFindReplaceDialogImpl *GetImpl() const { return m_impl; }
 
     // override some base class virtuals
-    virtual bool Show(bool show = true);
-    virtual void SetTitle( const wxString& title);
-    virtual wxString GetTitle() const;
+    virtual bool Show(bool show = true) override;
+    virtual void SetTitle( const wxString& title) override;
+    virtual wxString GetTitle() const override;
+
+    virtual bool MSWProcessMessage(WXMSG* pMsg) override;
 
 protected:
-    virtual void DoGetSize(int *width, int *height) const;
-    virtual void DoGetClientSize(int *width, int *height) const;
+    virtual void DoGetSize(int *width, int *height) const override;
+    virtual void DoGetClientSize(int *width, int *height) const override;
     virtual void DoSetSize(int x, int y,
                            int width, int height,
-                           int sizeFlags = wxSIZE_AUTO);
+                           int sizeFlags = wxSIZE_AUTO) override;
 
     void Init();
 
@@ -54,7 +56,7 @@ protected:
 
     wxFindReplaceDialogImpl *m_impl;
 
-    DECLARE_DYNAMIC_CLASS(wxFindReplaceDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxFindReplaceDialog);
     wxDECLARE_NO_COPY_CLASS(wxFindReplaceDialog);
 };
 

@@ -21,11 +21,11 @@ public:
     typedef T element_type;
 
     wxCOMPtr()
-        : m_ptr(NULL)
+        : m_ptr(nullptr)
     {
     }
 
-    wxEXPLICIT wxCOMPtr(T* ptr)
+    explicit wxCOMPtr(T* ptr)
         : m_ptr(ptr)
     {
         if ( m_ptr )
@@ -45,7 +45,7 @@ public:
             m_ptr->Release();
     }
 
-    void reset(T* ptr = NULL)
+    void reset(T* ptr = nullptr)
     {
         if ( m_ptr != ptr)
         {
@@ -96,6 +96,11 @@ public:
     }
 
     T* get() const
+    {
+        return m_ptr;
+    }
+
+    T* Get() const
     {
         return m_ptr;
     }

@@ -23,7 +23,6 @@ enum
 #define wxNB_FIXEDWIDTH       0x0100
 #define wxNB_MULTILINE        0x0200
 #define wxNB_NOPAGETHEME      0x0400
-#define wxNB_FLAT             0x0800
 
 wxEventType wxEVT_NOTEBOOK_PAGE_CHANGED;
 wxEventType wxEVT_NOTEBOOK_PAGE_CHANGING;
@@ -58,12 +57,10 @@ wxEventType wxEVT_NOTEBOOK_PAGE_CHANGING;
     @style{wxNB_NOPAGETHEME}
            (Windows only) Display a solid colour on notebook pages, and not a
            gradient, which can reduce performance.
-    @style{wxNB_FLAT}
-           (Windows CE only) Show tabs in a flat style.
     @endStyleTable
 
     The styles wxNB_LEFT, RIGHT and BOTTOM are not supported under
-    Microsoft Windows XP when using visual themes.
+    Microsoft Windows when using visual themes.
 
     @beginEventEmissionTable{wxBookCtrlEvent}
     @event{EVT_NOTEBOOK_PAGE_CHANGED(id, func)}
@@ -78,7 +75,7 @@ wxEventType wxEVT_NOTEBOOK_PAGE_CHANGING;
 
     @section notebook_bg Page backgrounds
 
-    On Windows XP, the default theme paints a gradient on the notebook's pages.
+    On Windows, the default theme paints a background on the notebook's pages.
     If you wish to suppress this theme, for aesthetic or performance reasons,
     there are three ways of doing it.
     You can use @c wxNB_NOPAGETHEME to disable themed drawing for a particular
@@ -128,7 +125,7 @@ public:
         window style.
 
         @param parent
-            The parent window. Must be non-@NULL.
+            The parent window. Must be non-null.
         @param id
             The window identifier.
         @param pos
@@ -148,6 +145,10 @@ public:
 
     /**
         Destroys the wxNotebook object.
+
+        @note When using wxGTK, destroying notebook can result in spurious GTK
+        diagnostic messages, you may use wxApp::GTKAllowDiagnosticsControl() to
+        suppress them.
     */
     virtual ~wxNotebook();
 
@@ -189,6 +190,30 @@ public:
         @note The vertical padding cannot be changed in wxGTK.
     */
     virtual void SetPadding(const wxSize& padding);
+
+    /**
+        This is a convenience function mapping wxBK_TOP etc styles to one of the
+        wxDirection enum elements.
+
+        @since 3.3.0
+    */
+    wxDirection GetTabOrientation() const;
+
+    /**
+        Return the rectangle of the given page tab in window coordinates.
+
+        This function always returns the rectangle for the specified tab, even
+        if the tab is currently not visible.
+
+        If @a page is invalid, an assert failure is triggered and an empty
+        rectangle is returned.
+
+        @note Currently only available in Univ and MSW and always asserts in
+        the other ports.
+
+        @since 3.3.0
+    */
+    virtual wxRect GetTabRect(size_t page) const;
 
     // implementations of pure virtuals
     virtual int GetPageImage(size_t nPage) const;

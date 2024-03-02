@@ -2,7 +2,6 @@
 // Name:        src/osx/brush.cpp
 // Purpose:     wxBrush
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -18,7 +17,7 @@
 
 #include "wx/osx/private.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxBrush, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBrush, wxGDIObject);
 
 class WXDLLEXPORT wxBrushRefData: public wxGDIRefData
 {
@@ -90,21 +89,15 @@ wxBrush::wxBrush()
 {
 }
 
-wxBrush::~wxBrush()
-{
-}
-
 wxBrush::wxBrush(const wxColour& col, wxBrushStyle style)
 {
     m_refData = new wxBrushRefData( col, style );
 }
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 wxBrush::wxBrush(const wxColour& col, int style)
 {
     m_refData = new wxBrushRefData(col, (wxBrushStyle)style);
 }
-#endif
 
 wxBrush::wxBrush(const wxBitmap& stipple)
 {
@@ -153,7 +146,7 @@ wxBrushStyle wxBrush::GetStyle() const
 
 wxBitmap *wxBrush::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), NULL, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid brush") );
 
     return M_BRUSHDATA->GetStipple();
 }

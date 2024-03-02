@@ -2,7 +2,6 @@
 // Name:        wx/msw/combo.h
 // Purpose:     wxComboCtrl class
 // Author:      Jaakko Salli
-// Modified by:
 // Created:     Apr-30-2006
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
@@ -17,11 +16,9 @@
 
 #if wxUSE_COMBOCTRL
 
-#if !defined(__WXWINCE__) && wxUSE_TIMER
+#if wxUSE_TIMER
     #include "wx/timer.h"
     #define wxUSE_COMBOCTRL_POPUP_ANIMATION     1
-#else
-    #define wxUSE_COMBOCTRL_POPUP_ANIMATION     0
 #endif
 
 
@@ -47,7 +44,7 @@ public:
                    const wxSize& size = wxDefaultSize,
                    long style = 0,
                    const wxValidator& validator = wxDefaultValidator,
-                   const wxString& name = wxComboBoxNameStr)
+                   const wxString& name = wxASCII_STR(wxComboBoxNameStr))
         : wxComboCtrlBase()
     {
         Init();
@@ -62,12 +59,12 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxComboBoxNameStr);
+                const wxString& name = wxASCII_STR(wxComboBoxNameStr));
 
     virtual ~wxComboCtrl();
 
-    virtual void PrepareBackground( wxDC& dc, const wxRect& rect, int flags ) const;
-    virtual bool IsKeyPopupToggle(const wxKeyEvent& event) const;
+    virtual void PrepareBackground( wxDC& dc, const wxRect& rect, int flags ) const override;
+    virtual bool IsKeyPopupToggle(const wxKeyEvent& event) const override;
 
     static int GetFeatures() { return wxComboCtrlFeatures::All; }
 
@@ -77,38 +74,38 @@ public:
 protected:
     void DoTimerEvent();
 
-    virtual bool AnimateShow( const wxRect& rect, int flags );
+    virtual bool AnimateShow( const wxRect& rect, int flags ) override;
 #endif // wxUSE_COMBOCTRL_POPUP_ANIMATION
 
 protected:
 
     // Dummy method - we override all functions that call this
-    virtual WXHWND GetEditHWND() const { return NULL; }
+    virtual WXHWND GetEditHWND() const override { return nullptr; }
 
     // customization
-    virtual void OnResize();
-    virtual wxCoord GetNativeTextIndent() const;
+    virtual void OnResize() override;
+    virtual wxCoord GetNativeTextIndent() const override;
 
     // event handlers
     void OnPaintEvent( wxPaintEvent& event );
     void OnMouseEvent( wxMouseEvent& event );
 
-    virtual bool HasTransparentBackground() { return IsDoubleBuffered(); }
+    virtual bool HasTransparentBackground() override { return IsDoubleBuffered(); }
 
 private:
     void Init();
 
 #if wxUSE_COMBOCTRL_POPUP_ANIMATION
     // Popup animation related
-    wxLongLong  m_animStart;
+    wxMilliClock_t m_animStart;
     wxTimer     m_animTimer;
     wxRect      m_animRect;
     int         m_animFlags;
 #endif
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
-    DECLARE_DYNAMIC_CLASS(wxComboCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxComboCtrl);
 };
 
 

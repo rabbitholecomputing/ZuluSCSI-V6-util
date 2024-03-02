@@ -16,12 +16,12 @@
 
 class WXDLLIMPEXP_XRC wxDialogXmlHandler : public wxXmlResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxDialogXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxDialogXmlHandler);
 
 public:
     wxDialogXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 };
 
 #endif // wxUSE_XRC

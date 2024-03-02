@@ -26,11 +26,11 @@
 
 class WXDLLIMPEXP_HTML wxHtmlFilter : public wxObject
 {
-    DECLARE_ABSTRACT_CLASS(wxHtmlFilter)
+    wxDECLARE_ABSTRACT_CLASS(wxHtmlFilter);
 
 public:
     wxHtmlFilter() : wxObject() {}
-    virtual ~wxHtmlFilter() {}
+    virtual ~wxHtmlFilter() = default;
 
     // returns true if this filter is able to open&read given file
     virtual bool CanRead(const wxFSFile& file) const = 0;
@@ -45,18 +45,18 @@ public:
 //--------------------------------------------------------------------------------
 // wxHtmlFilterPlainText
 //                  This filter is used as default filter if no other can
-//                  be used (= uknown type of file). It is used by
+//                  be used (= unknown type of file). It is used by
 //                  wxHtmlWindow itself.
 //--------------------------------------------------------------------------------
 
 
 class WXDLLIMPEXP_HTML wxHtmlFilterPlainText : public wxHtmlFilter
 {
-    DECLARE_DYNAMIC_CLASS(wxHtmlFilterPlainText)
+    wxDECLARE_DYNAMIC_CLASS(wxHtmlFilterPlainText);
 
 public:
-    virtual bool CanRead(const wxFSFile& file) const;
-    virtual wxString ReadFile(const wxFSFile& file) const;
+    virtual bool CanRead(const wxFSFile& file) const override;
+    virtual wxString ReadFile(const wxFSFile& file) const override;
 };
 
 //--------------------------------------------------------------------------------
@@ -66,11 +66,11 @@ public:
 
 class wxHtmlFilterHTML : public wxHtmlFilter
 {
-    DECLARE_DYNAMIC_CLASS(wxHtmlFilterHTML)
+    wxDECLARE_DYNAMIC_CLASS(wxHtmlFilterHTML);
 
     public:
-        virtual bool CanRead(const wxFSFile& file) const;
-        virtual wxString ReadFile(const wxFSFile& file) const;
+        virtual bool CanRead(const wxFSFile& file) const override;
+        virtual wxString ReadFile(const wxFSFile& file) const override;
 };
 
 

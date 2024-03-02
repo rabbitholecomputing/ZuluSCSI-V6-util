@@ -2,9 +2,8 @@
 // Name:        src/common/appbase.cpp
 // Purpose:     implements wxAppConsoleBase class
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     19.06.2003 (extracted from common/appcmn.cpp)
-// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -19,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #ifdef __WINDOWS__
@@ -45,18 +41,16 @@
 #include "wx/sysopt.h"
 #include "wx/tokenzr.h"
 #include "wx/thread.h"
+#include "wx/stdpaths.h"
 
-#if wxUSE_STL
-    #if wxUSE_EXCEPTIONS
-        #include <exception>
-        #include <typeinfo>
-    #endif
-    #if wxUSE_INTL
-        #include <locale>
-    #endif
-#endif // wxUSE_STL
+#if wxUSE_EXCEPTIONS
+    #include <exception>        // for std::current_exception()
+    #include <utility>          // for std::swap()
 
-#if !defined(__WINDOWS__) || defined(__WXMICROWIN__)
+    #include <typeinfo>
+#endif // wxUSE_EXCEPTIONS
+
+#if !defined(__WINDOWS__)
   #include  <signal.h>      // for SIGTRAP used by wxTrap()
 #endif  //Win/Unix
 
@@ -76,6 +70,8 @@
 
     #include "wx/recguard.h"
 #endif // wxDEBUG_LEVEL
+
+#include <memory>
 
 // wxABI_VERSION can be defined when compiling applications but it should be
 // left undefined when compiling the library itself, it is then set to its
@@ -100,7 +96,7 @@
                           const wxString& func,
                           const wxString& cond,
                           const wxString& msg,
-                          wxAppTraits *traits = NULL);
+                          wxAppTraits *traits = nullptr);
 #endif // wxDEBUG_LEVEL
 
 #ifdef __WXDEBUG__
@@ -112,11 +108,11 @@
 // global vars
 // ----------------------------------------------------------------------------
 
-wxAppConsole *wxAppConsoleBase::ms_appInstance = NULL;
+wxAppConsole *wxAppConsoleBase::ms_appInstance = nullptr;
 
-wxAppInitializerFunction wxAppConsoleBase::ms_appInitFn = NULL;
+wxAppInitializerFunction wxAppConsoleBase::ms_appInitFn = nullptr;
 
-wxSocketManager *wxAppTraitsBase::ms_manager = NULL;
+wxSocketManager *wxAppTraitsBase::ms_manager = nullptr;
 
 WXDLLIMPEXP_DATA_BASE(wxList) wxPendingDelete;
 
@@ -137,20 +133,10 @@ wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoopBase)
 
 wxAppConsoleBase::wxAppConsoleBase()
 {
-    m_traits = NULL;
-    m_mainLoop = NULL;
-    m_bDoPendingEventProcessing = true;
-
-    ms_appInstance = static_cast<wxAppConsole *>(this);
+    ms_appInstance = reinterpret_cast<wxAppConsole *>(this);
 
 #ifdef __WXDEBUG__
     SetTraceMasks();
-#if wxUSE_UNICODE
-    // In unicode mode the SetTraceMasks call can cause an apptraits to be
-    // created, but since we are still in the constructor the wrong kind will
-    // be created for GUI apps.  Destroy it so it can be created again later.
-    wxDELETE(m_traits);
-#endif
 #endif
 
     wxEvtHandler::AddFilter(this);
@@ -162,7 +148,7 @@ wxAppConsoleBase::~wxAppConsoleBase()
 
     // we're being destroyed and using this object from now on may not work or
     // even crash so don't leave dangling pointers to it
-    ms_appInstance = NULL;
+    ms_appInstance = nullptr;
 
     delete m_traits;
 }
@@ -171,9 +157,29 @@ wxAppConsoleBase::~wxAppConsoleBase()
 // initialization/cleanup
 // ----------------------------------------------------------------------------
 
+void wxAppConsoleBase::WXAppConstructed()
+{
+    wxASSERT_MSG( !m_fullyConstructed, "must be called only once" );
+
+    m_fullyConstructed = true;
+}
+
 bool wxAppConsoleBase::Initialize(int& WXUNUSED(argc), wxChar **WXUNUSED(argv))
 {
-#if defined(__WINDOWS__) && !defined(__WXWINCE__)
+    if ( IsGUI() )
+    {
+        // GUI wxApp code must call WXAppConstructed() at the very end.
+        wxASSERT_MSG( m_fullyConstructed, "Forgot to call WXAppConstructed()?" );
+    }
+    else // console application
+    {
+        // wxAppConsole doesn't call WXAppConstructed() as otherwise it would
+        // be called twice when it's used as base class of a GUI wxApp, so call
+        // it ourselves here.
+        WXAppConstructed();
+    }
+
+#if defined(__WINDOWS__)
     SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
 #endif
 
@@ -188,8 +194,18 @@ wxString wxAppConsoleBase::GetAppName() const
         if ( argv )
         {
             // the application name is, by default, the name of its executable file
-            wxFileName::SplitPath(argv[0], NULL, &name, NULL);
+            wxFileName::SplitPath(argv[0], nullptr, &name, nullptr);
         }
+#if wxUSE_STDPATHS
+        else // fall back to the executable file name, if we can determine it
+        {
+            const wxString pathExe = wxStandardPaths::Get().GetExecutablePath();
+            if ( !pathExe.empty() )
+            {
+                wxFileName::SplitPath(pathExe, nullptr, &name, nullptr);
+            }
+        }
+#endif // wxUSE_STDPATHS
     }
     return name;
 }
@@ -217,6 +233,11 @@ wxEventLoopBase *wxAppConsoleBase::CreateMainLoop()
 
 void wxAppConsoleBase::CleanUp()
 {
+#if wxUSE_CONFIG
+    // Delete the global wxConfig object, if any, and reset it.
+    delete wxConfigBase::Set(nullptr);
+#endif // wxUSE_CONFIG
+
     wxDELETE(m_mainLoop);
 }
 
@@ -260,15 +281,18 @@ int wxAppConsoleBase::OnRun()
 }
 
 void wxAppConsoleBase::OnLaunched()
-{    
+{
 }
 
 int wxAppConsoleBase::OnExit()
 {
+    // Delete all pending objects first, they might use wxConfig to save their
+    // state during their destruction.
+    DeletePendingObjects();
+
 #if wxUSE_CONFIG
-    // delete the config object if any (don't use Get() here, but Set()
-    // because Get() could create a new config object)
-    delete wxConfigBase::Set(NULL);
+    // Ensure we won't create it on demand any more if we hadn't done it yet.
+    wxConfigBase::DontCreateOnDemand();
 #endif // wxUSE_CONFIG
 
     return 0;
@@ -276,7 +300,7 @@ int wxAppConsoleBase::OnExit()
 
 void wxAppConsoleBase::Exit()
 {
-    if (m_mainLoop != NULL)
+    if (m_mainLoop != nullptr)
         ExitMainLoop();
     else
         exit(-1);
@@ -293,8 +317,12 @@ wxAppTraits *wxAppConsoleBase::CreateTraits()
 
 wxAppTraits *wxAppConsoleBase::GetTraits()
 {
-    // FIXME-MT: protect this with a CS?
-    if ( !m_traits )
+    // Check for m_fullyConstructed to prevent constructing wrong traits
+    // object: if it is false, it means that the object of the user-defined
+    // wxApp-derived class hasn't been fully constructed yet, and so its
+    // possibly overridden CreateTraits() wouldn't be called if we called it
+    // now, so avoid doing it.
+    if ( !m_traits && m_fullyConstructed )
     {
         m_traits = CreateTraits();
 
@@ -308,16 +336,16 @@ wxAppTraits *wxAppConsoleBase::GetTraits()
 wxAppTraits *wxAppConsoleBase::GetTraitsIfExists()
 {
     wxAppConsole * const app = GetInstance();
-    return app ? app->GetTraits() : NULL;
+    return app ? app->GetTraits() : nullptr;
 }
 
 /* static */
 wxAppTraits& wxAppConsoleBase::GetValidTraits()
 {
     static wxConsoleAppTraits s_traitsConsole;
-    wxAppTraits* const traits = wxTheApp ? wxTheApp->GetTraits() : NULL;
+    wxAppTraits* const traits = GetTraitsIfExists();
 
-    return traits ? *traits : s_traitsConsole;
+    return *(traits ? traits : &s_traitsConsole);
 }
 
 // ----------------------------------------------------------------------------
@@ -330,7 +358,7 @@ int wxAppConsoleBase::MainLoop()
 
     if (wxTheApp)
         wxTheApp->OnLaunched();
-    
+
     return m_mainLoop ? m_mainLoop->Run() : -1;
 }
 
@@ -368,7 +396,7 @@ bool wxAppConsoleBase::Yield(bool onlyIfNeeded)
     if ( loop )
        return loop->Yield(onlyIfNeeded);
 
-    wxScopedPtr<wxEventLoopBase> tmpLoop(CreateMainLoop());
+    std::unique_ptr<wxEventLoopBase> tmpLoop(CreateMainLoop());
     return tmpLoop->Yield(onlyIfNeeded);
 }
 
@@ -403,7 +431,7 @@ bool wxAppConsoleBase::UsesEventLoop() const
 {
     // in console applications we don't know whether we're going to have an
     // event loop so assume we won't -- unless we already have one running
-    return wxEventLoopBase::GetActive() != NULL;
+    return wxEventLoopBase::GetActive() != nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -415,7 +443,7 @@ bool wxAppConsoleBase::IsMainLoopRunning()
 {
     const wxAppConsole * const app = GetInstance();
 
-    return app && app->m_mainLoop != NULL;
+    return app && app->m_mainLoop != nullptr;
 }
 
 int wxAppConsoleBase::FilterEvent(wxEvent& WXUNUSED(event))
@@ -509,15 +537,18 @@ void wxAppConsoleBase::ProcessPendingEvents()
         // from it when they don't have any more pending events
         while (!m_handlersWithPendingEvents.IsEmpty())
         {
-            // In ProcessPendingEvents(), new handlers might be added
-            // and we can safely leave the critical section here.
-            wxLEAVE_CRIT_SECT(m_handlersWithPendingEventsLocker);
-
             // NOTE: we always call ProcessPendingEvents() on the first event handler
             //       with pending events because handlers auto-remove themselves
             //       from this list (see RemovePendingEventHandler) if they have no
             //       more pending events.
-            m_handlersWithPendingEvents[0]->ProcessPendingEvents();
+            wxEvtHandler* const handler = m_handlersWithPendingEvents[0];
+
+            // In ProcessPendingEvents(), new handlers might be added
+            // and we can safely leave the critical section here as we're not
+            // accessing m_handlersWithPendingEvents while we don't hold it.
+            wxLEAVE_CRIT_SECT(m_handlersWithPendingEventsLocker);
+
+            handler->ProcessPendingEvents();
 
             wxENTER_CRIT_SECT(m_handlersWithPendingEventsLocker);
         }
@@ -627,7 +658,6 @@ void wxAppConsoleBase::CallEventHandler(wxEvtHandler *handler,
 
 void wxAppConsoleBase::OnUnhandledException()
 {
-#ifdef __WXDEBUG__
     // we're called from an exception handler so we can re-throw the exception
     // to recover its type
     wxString what;
@@ -635,22 +665,25 @@ void wxAppConsoleBase::OnUnhandledException()
     {
         throw;
     }
-#if wxUSE_STL
     catch ( std::exception& e )
     {
-        what.Printf("std::exception of type \"%s\", what() = \"%s\"",
+#ifdef wxNO_RTTI
+        what.Printf("standard exception with message \"%s\"", e.what());
+#else
+        what.Printf("standard exception of type \"%s\" with message \"%s\"",
                     typeid(e).name(), e.what());
+#endif
     }
-#endif // wxUSE_STL
     catch ( ... )
     {
         what = "unknown exception";
     }
 
     wxMessageOutputBest().Printf(
-        "*** Caught unhandled %s; terminating\n", what
+        "Unhandled %s; terminating %s.\n",
+        what,
+        wxIsMainThread() ? "the application" : "the thread in which it happened"
     );
-#endif // __WXDEBUG__
 }
 
 // ----------------------------------------------------------------------------
@@ -660,11 +693,35 @@ void wxAppConsoleBase::OnUnhandledException()
 bool wxAppConsoleBase::OnExceptionInMainLoop()
 {
     throw;
+}
 
-    // some compilers are too stupid to know that we never return after throw
-#if defined(__DMC__) || (defined(_MSC_VER) && _MSC_VER < 1200)
-    return false;
-#endif
+static std::exception_ptr gs_storedException;
+
+bool wxAppConsoleBase::StoreCurrentException()
+{
+    if ( gs_storedException )
+    {
+        // We can't store more than one exception currently: while we could
+        // support this by just using a vector<exception_ptr>, it shouldn't be
+        // actually necessary because we should never have more than one active
+        // exception anyhow.
+        return false;
+    }
+
+    gs_storedException = std::current_exception();
+
+    return true;
+}
+
+void wxAppConsoleBase::RethrowStoredException()
+{
+    if ( gs_storedException )
+    {
+        std::exception_ptr storedException;
+        std::swap(storedException, gs_storedException);
+
+        std::rethrow_exception(storedException);
+    }
 }
 
 #endif // wxUSE_EXCEPTIONS
@@ -694,7 +751,7 @@ void wxAppConsoleBase::OnInitCmdLine(wxCmdLineParser& parser)
 #if wxUSE_LOG
         {
             wxCMD_LINE_SWITCH,
-            NULL,
+            nullptr,
             OPTION_VERBOSE,
             gettext_noop("generate verbose log messages"),
             wxCMD_LINE_VAL_NONE,
@@ -757,12 +814,9 @@ bool wxAppConsoleBase::CheckBuildOptions(const char *optionsSignature,
         wxString lib = wxString::FromAscii(WX_BUILD_OPTIONS_SIGNATURE);
         wxString prog = wxString::FromAscii(optionsSignature);
         wxString progName = wxString::FromAscii(componentName);
-        wxString msg;
 
-        msg.Printf(wxT("Mismatch between the program and library build versions detected.\nThe library used %s,\nand %s used %s."),
-                   lib.c_str(), progName.c_str(), prog.c_str());
-
-        wxLogFatalError(msg.c_str());
+        wxLogFatalError(wxT("Mismatch between the program and library build versions detected.\nThe library used %s,\nand %s used %s."),
+                        lib, progName, prog);
 
         // normally wxLogFatalError doesn't return
         return false;
@@ -796,7 +850,7 @@ void wxAppConsoleBase::OnAssert(const wxChar *file,
                                 const wxChar *cond,
                                 const wxChar *msg)
 {
-    OnAssertFailure(file, line, NULL, cond, msg);
+    OnAssertFailure(file, line, nullptr, cond, msg);
 }
 
 // ----------------------------------------------------------------------------
@@ -845,7 +899,7 @@ wxFontMapper *wxConsoleAppTraitsBase::CreateFontMapper()
 wxRendererNative *wxConsoleAppTraitsBase::CreateRenderer()
 {
     // console applications don't use renderers
-    return NULL;
+    return nullptr;
 }
 
 bool wxConsoleAppTraitsBase::ShowAssertDialog(const wxString& msg)
@@ -857,6 +911,14 @@ bool wxConsoleAppTraitsBase::HasStderr()
 {
     // console applications always have stderr, even under Mac/Windows
     return true;
+}
+
+bool wxConsoleAppTraitsBase::SafeMessageBox(const wxString& WXUNUSED(text),
+                                            const wxString& WXUNUSED(title))
+{
+    // console applications don't show message boxes by default, although this
+    // can be done in platform-specific cases
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -923,45 +985,56 @@ wxString wxAppTraitsBase::GetAssertStackTrace()
 #if !defined(__WINDOWS__)
     // on Unix stack frame generation may take some time, depending on the
     // size of the executable mainly... warn the user that we are working
-    wxFprintf(stderr, "Collecting stack trace information, please wait...");
+    wxFputs("Collecting stack trace information, please wait...", stderr);
     fflush(stderr);
 #endif // !__WINDOWS__
 
 
-    wxString stackTrace;
-
     class StackDump : public wxStackWalker
     {
     public:
-        StackDump() { }
+        StackDump() { m_numFrames = 0; }
 
         const wxString& GetStackTrace() const { return m_stackTrace; }
 
     protected:
-        virtual void OnStackFrame(const wxStackFrame& frame)
+        virtual void OnStackFrame(const wxStackFrame& frame) override
         {
-            m_stackTrace << wxString::Format
-                            (
-                              wxT("[%02d] "),
-                              wx_truncate_cast(int, frame.GetLevel())
-                            );
+            // don't show more than maxLines or we could get a dialog too tall
+            // to be shown on screen: 20 should be ok everywhere as even with
+            // 15 pixel high characters it is still only 300 pixels...
+            if ( m_numFrames++ > 20 )
+                return;
 
-            wxString name = frame.GetName();
+            m_stackTrace << wxString::Format(wxT("[%02u] "), m_numFrames);
+
+            const wxString name = frame.GetName();
+            if ( name.StartsWith("wxOnAssert") )
+            {
+                // Ignore all frames until the wxOnAssert() one, they are
+                // internal to wxWidgets and not interesting for the user
+                // (but notice that if we never find the wxOnAssert() frame,
+                // e.g. because we don't have symbol info at all, we would show
+                // everything which is better than not showing anything).
+                m_stackTrace.clear();
+                m_numFrames = 0;
+                return;
+            }
+
             if ( !name.empty() )
             {
-                m_stackTrace << wxString::Format(wxT("%-40s"), name.c_str());
+                m_stackTrace << wxString::Format("%-80s", name);
             }
             else
             {
-                m_stackTrace << wxString::Format(wxT("%p"), frame.GetAddress());
+                m_stackTrace << wxString::Format("%-80p", frame.GetAddress());
             }
 
             if ( frame.HasSourceLocation() )
             {
-                m_stackTrace << wxT('\t')
-                             << frame.GetFileName()
-                             << wxT(':')
-                             << frame.GetLine();
+                m_stackTrace << wxString::Format("%s:%zu",
+                                                 frame.GetFileName(),
+                                                 frame.GetLine());
             }
 
             m_stackTrace << wxT('\n');
@@ -969,22 +1042,12 @@ wxString wxAppTraitsBase::GetAssertStackTrace()
 
     private:
         wxString m_stackTrace;
+        unsigned m_numFrames;
     };
 
-    // don't show more than maxLines or we could get a dialog too tall to be
-    // shown on screen: 20 should be ok everywhere as even with 15 pixel high
-    // characters it is still only 300 pixels...
-    static const int maxLines = 20;
-
     StackDump dump;
-    dump.Walk(8, maxLines); // 8 is chosen to hide all OnAssert() calls
-    stackTrace = dump.GetStackTrace();
-
-    const int count = stackTrace.Freq(wxT('\n'));
-    for ( int i = 0; i < count - maxLines; i++ )
-        stackTrace = stackTrace.BeforeLast(wxT('\n'));
-
-    return stackTrace;
+    dump.Walk();
+    return dump.GetStackTrace();
 #else // !wxDEBUG_LEVEL
     // this function is still present for ABI-compatibility even in debug level
     // 0 build but is not used there and so can simply do nothing
@@ -1028,11 +1091,7 @@ bool wxAssertIsEqual(int x, int y)
 
 void wxAbort()
 {
-#ifdef __WXWINCE__
-    ExitThread(3);
-#else
     abort();
-#endif
 }
 
 #if wxDEBUG_LEVEL
@@ -1042,7 +1101,7 @@ void wxAbort()
 
 void wxTrap()
 {
-#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__)
     DebugBreak();
 #elif defined(_MSL_USING_MW_C_HEADERS) && _MSL_USING_MW_C_HEADERS
     Debugger();
@@ -1088,9 +1147,8 @@ wxDefaultAssertHandler(const wxString& file,
     else
     {
         // let the app process it as it wants
-        // FIXME-UTF8: use wc_str(), not c_str(), when ANSI build is removed
-        wxTheApp->OnAssertFailure(file.c_str(), line, func.c_str(),
-                                  cond.c_str(), msg.c_str());
+        wxTheApp->OnAssertFailure(file.wc_str(), line, func.wc_str(),
+                                  cond.wc_str(), msg.wc_str());
     }
 }
 
@@ -1118,21 +1176,6 @@ void wxOnAssert(const wxString& file,
     wxTheAssertHandler(file, line, func, cond, wxString());
 }
 
-void wxOnAssert(const wxChar *file,
-                int line,
-                const char *func,
-                const wxChar *cond,
-                const wxChar *msg)
-{
-    // this is the backwards-compatible version (unless we don't use Unicode)
-    // so it could be called directly from the user code and this might happen
-    // even when wxTheAssertHandler is NULL
-#if wxUSE_UNICODE
-    if ( wxTheAssertHandler )
-#endif // wxUSE_UNICODE
-        wxTheAssertHandler(file, line, func, cond, msg);
-}
-
 void wxOnAssert(const char *file,
                 int line,
                 const char *func,
@@ -1151,7 +1194,6 @@ void wxOnAssert(const char *file,
     wxTheAssertHandler(file, line, func, cond, msg);
 }
 
-#if wxUSE_UNICODE
 void wxOnAssert(const char *file,
                 int line,
                 const char *func,
@@ -1177,7 +1219,6 @@ void wxOnAssert(const char *file,
 {
     wxTheAssertHandler(file, line, func, cond, msg);
 }
-#endif // wxUSE_UNICODE
 
 #endif // wxDEBUG_LEVEL
 
@@ -1197,6 +1238,10 @@ static void LINKAGEMODE SetTraceMasks()
         while ( tkn.HasMoreTokens() )
             wxLog::AddTraceMask(tkn.GetNextToken());
     }
+
+    wxString ts;
+    if ( wxGetEnv("WXLOG_TIME_FORMAT", &ts) )
+        wxLog::SetTimestamp(ts);
 #endif // wxUSE_LOG
 }
 
@@ -1210,7 +1255,7 @@ static
 bool DoShowAssertDialog(const wxString& msg)
 {
     // under Windows we can show the dialog even in the console mode
-#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__)
     wxString msgDlg(msg);
 
     // this message is intentionally not translated -- it is for developers
@@ -1220,8 +1265,8 @@ bool DoShowAssertDialog(const wxString& msg)
               wxT("You can also choose [Cancel] to suppress ")
               wxT("further warnings.");
 
-    switch ( ::MessageBox(NULL, msgDlg.t_str(), wxT("wxWidgets Debug Alert"),
-                          MB_YESNOCANCEL | MB_ICONSTOP ) )
+    switch ( ::MessageBox(nullptr, msgDlg.t_str(), wxT("wxWidgets Debug Alert"),
+                          MB_YESNOCANCEL | MB_DEFBUTTON2 | MB_ICONSTOP ) )
     {
         case IDYES:
             // If we called wxTrap() directly from here, the programmer would
@@ -1283,8 +1328,6 @@ void ShowAssertDialog(const wxString& file,
     }
 
 #if wxUSE_THREADS
-    // if we are not in the main thread, output the assert directly and trap
-    // since dialogs cannot be displayed
     if ( !wxThread::IsMain() )
     {
         msg += wxString::Format(" [in thread %lx]", wxThread::GetCurrentId());

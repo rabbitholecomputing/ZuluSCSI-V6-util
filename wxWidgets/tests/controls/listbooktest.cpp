@@ -10,9 +10,6 @@
 
 #if wxUSE_LISTBOOK
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"
@@ -28,16 +25,16 @@ class ListbookTestCase : public BookCtrlBaseTestCase, public CppUnit::TestCase
 public:
     ListbookTestCase() { }
 
-    virtual void setUp();
-    virtual void tearDown();
+    virtual void setUp() override;
+    virtual void tearDown() override;
 
 private:
-    virtual wxBookCtrlBase *GetBase() const { return m_listbook; }
+    virtual wxBookCtrlBase *GetBase() const override { return m_listbook; }
 
-    virtual wxEventType GetChangedEvent() const
+    virtual wxEventType GetChangedEvent() const override
     { return wxEVT_LISTBOOK_PAGE_CHANGED; }
 
-    virtual wxEventType GetChangingEvent() const
+    virtual wxEventType GetChangingEvent() const override
     { return wxEVT_LISTBOOK_PAGE_CHANGING; }
 
     CPPUNIT_TEST_SUITE( ListbookTestCase );
@@ -49,7 +46,7 @@ private:
 
     wxListbook *m_listbook;
 
-    DECLARE_NO_COPY_CLASS(ListbookTestCase)
+    wxDECLARE_NO_COPY_CLASS(ListbookTestCase);
 };
 
 // register in the unnamed registry so that these tests are run by default

@@ -2,7 +2,6 @@
 // Name:        wx/access.h
 // Purpose:     Accessibility classes
 // Author:      Julian Smart
-// Modified by:
 // Created:     2003-02-12
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -21,14 +20,15 @@
 
 #include "wx/variant.h"
 
-typedef enum
+enum wxAccStatus
 {
     wxACC_FAIL,
     wxACC_FALSE,
     wxACC_OK,
     wxACC_NOT_IMPLEMENTED,
-    wxACC_NOT_SUPPORTED
-} wxAccStatus;
+    wxACC_NOT_SUPPORTED,
+    wxACC_INVALID_ARG
+};
 
 // Child ids are integer identifiers from 1 up.
 // So zero represents 'this' object.
@@ -36,7 +36,7 @@ typedef enum
 
 // Navigation constants
 
-typedef enum
+enum wxNavDir
 {
     wxNAVDIR_DOWN,
     wxNAVDIR_FIRSTCHILD,
@@ -46,11 +46,11 @@ typedef enum
     wxNAVDIR_PREVIOUS,
     wxNAVDIR_RIGHT,
     wxNAVDIR_UP
-} wxNavDir;
+};
 
 // Role constants
 
-typedef enum {
+enum wxAccRole {
     wxROLE_NONE,
     wxROLE_SYSTEM_ALERT,
     wxROLE_SYSTEM_ANIMATION,
@@ -113,11 +113,11 @@ typedef enum {
     wxROLE_SYSTEM_TOOLTIP,
     wxROLE_SYSTEM_WHITESPACE,
     wxROLE_SYSTEM_WINDOW
-} wxAccRole;
+};
 
 // Object types
 
-typedef enum {
+enum wxAccObject {
     wxOBJID_WINDOW =    0x00000000,
     wxOBJID_SYSMENU =   0xFFFFFFFF,
     wxOBJID_TITLEBAR =  0xFFFFFFFE,
@@ -130,7 +130,7 @@ typedef enum {
     wxOBJID_CURSOR =    0xFFFFFFF7,
     wxOBJID_ALERT =     0xFFFFFFF6,
     wxOBJID_SOUND =     0xFFFFFFF5
-} wxAccObject;
+};
 
 // Accessible states
 
@@ -163,7 +163,7 @@ typedef enum {
 
 // Selection flag
 
-typedef enum
+enum wxAccSelectionFlags
 {
     wxACC_SEL_NONE            = 0,
     wxACC_SEL_TAKEFOCUS       = 1,
@@ -171,7 +171,7 @@ typedef enum
     wxACC_SEL_EXTENDSELECTION = 4,
     wxACC_SEL_ADDSELECTION    = 8,
     wxACC_SEL_REMOVESELECTION = 16
-} wxAccSelectionFlags;
+};
 
 // Accessibility event identifiers
 
@@ -233,7 +233,7 @@ class WXDLLIMPEXP_CORE wxAccessibleBase : public wxObject
 
 public:
     wxAccessibleBase(wxWindow* win): m_window(win) {}
-    virtual ~wxAccessibleBase() {}
+    virtual ~wxAccessibleBase() = default;
 
 // Overridables
 
@@ -262,13 +262,13 @@ public:
          { return wxACC_NOT_IMPLEMENTED; }
 
         // Gets the specified child (starting from 1).
-        // If *child is NULL and return value is wxACC_OK,
+        // If *child is null and return value is wxACC_OK,
         // this means that the child is a simple element and
         // not an accessible object.
     virtual wxAccStatus GetChild(int WXUNUSED(childId), wxAccessible** WXUNUSED(child))
          { return wxACC_NOT_IMPLEMENTED; }
 
-        // Gets the parent, or NULL.
+        // Gets the parent, or nullptr.
     virtual wxAccStatus GetParent(wxAccessible** WXUNUSED(parent))
          { return wxACC_NOT_IMPLEMENTED; }
 
@@ -319,7 +319,7 @@ public:
          { return wxACC_NOT_IMPLEMENTED; }
 
         // Gets the window with the keyboard focus.
-        // If childId is 0 and child is NULL, no object in
+        // If childId is 0 and child is null, no object in
         // this subhierarchy has the focus.
         // If this object has the focus, child should be 'this'.
     virtual wxAccStatus GetFocus(int* WXUNUSED(childId), wxAccessible** WXUNUSED(child))

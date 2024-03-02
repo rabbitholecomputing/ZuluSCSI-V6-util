@@ -2,7 +2,6 @@
 // Name:        src/univ/themes/metal.cpp
 // Purpose:     wxUniversal theme implementing Win32-like LNF
 // Author:      Vadim Zeitlin, Robert Roebling
-// Modified by:
 // Created:     06.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/univ/theme.h"
 
@@ -145,7 +141,7 @@ private:
 class wxMetalTheme : public wxDelegateTheme
 {
 public:
-    wxMetalTheme() : wxDelegateTheme(wxT("win32")), m_renderer(NULL) {}
+    wxMetalTheme() : wxDelegateTheme(wxT("win32")), m_renderer(nullptr) {}
     ~wxMetalTheme() { delete m_renderer; }
 
 protected:
@@ -180,10 +176,10 @@ wxMetalRenderer::wxMetalRenderer(wxRenderer *renderer, wxColourScheme *scheme)
                : wxDelegateRenderer(renderer)
 {
     // init colours and pens
-    m_penBlack = wxPen(wxSCHEME_COLOUR(scheme, SHADOW_DARK), 0, wxSOLID);
-    m_penDarkGrey = wxPen(wxSCHEME_COLOUR(scheme, SHADOW_OUT), 0, wxSOLID);
-    m_penLightGrey = wxPen(wxSCHEME_COLOUR(scheme, SHADOW_IN), 0, wxSOLID);
-    m_penHighlight = wxPen(wxSCHEME_COLOUR(scheme, SHADOW_HIGHLIGHT), 0, wxSOLID);
+    m_penBlack = wxPen(wxSCHEME_COLOUR(scheme, SHADOW_DARK));
+    m_penDarkGrey = wxPen(wxSCHEME_COLOUR(scheme, SHADOW_OUT));
+    m_penLightGrey = wxPen(wxSCHEME_COLOUR(scheme, SHADOW_IN));
+    m_penHighlight = wxPen(wxSCHEME_COLOUR(scheme, SHADOW_HIGHLIGHT));
 
     // init the arrow bitmaps
     static const size_t ARROW_WIDTH = 7;
@@ -539,7 +535,7 @@ void wxMetalRenderer::DrawMetal(wxDC &dc, const wxRect &rect )
     for (int y = rect.y; y < rect.height+rect.y; y++)
     {
        unsigned char intens = (unsigned char)(230 + 80 * (rect.y-y) / rect.height);
-       dc.SetBrush( wxBrush( wxColour(intens,intens,intens), wxSOLID ) );
+       dc.SetBrush(wxColour(intens, intens, intens));
        dc.DrawRectangle( rect.x, y, rect.width, 1 );
     }
 }

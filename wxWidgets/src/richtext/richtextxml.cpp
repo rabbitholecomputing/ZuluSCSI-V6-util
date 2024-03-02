@@ -2,7 +2,6 @@
 // Name:        src/richtext/richtextxml.cpp
 // Purpose:     XML and HTML I/O for wxRichTextCtrl
 // Author:      Julian Smart
-// Modified by:
 // Created:     2005-09-30
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -11,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_RICHTEXT && wxUSE_XML
 
@@ -35,14 +31,7 @@
 #include "wx/stopwatch.h"
 #include "wx/xml/xml.h"
 
-// For use with earlier versions of wxWidgets
-#ifndef WXUNUSED_IN_UNICODE
-#if wxUSE_UNICODE
-#define WXUNUSED_IN_UNICODE(x) WXUNUSED(x)
-#else
-#define WXUNUSED_IN_UNICODE(x) x
-#endif
-#endif
+#include <unordered_map>
 
 // Set to 1 for slower wxXmlDocument method, 0 for faster direct method.
 // If we make wxXmlDocument::Save more efficient, we might switch to this
@@ -60,9 +49,14 @@
 // Set to 1 to time file saving
 #define wxRICHTEXT_USE_OUTPUT_TIMINGS 0
 
-IMPLEMENT_DYNAMIC_CLASS(wxRichTextXMLHandler, wxRichTextFileHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxRichTextXMLHandler, wxRichTextFileHandler);
 
-wxStringToStringHashMap wxRichTextXMLHandler::sm_nodeNameToClassMap;
+namespace
+{
+
+std::unordered_map<wxString, wxString> gs_nodeNameToClassMap;
+
+} // anonymous namespace
 
 void wxRichTextXMLHandler::Init()
 {
@@ -82,14 +76,7 @@ bool wxRichTextXMLHandler::DoLoadFile(wxRichTextBuffer *buffer, wxInputStream& s
     wxXmlDocument* xmlDoc = new wxXmlDocument;
     bool success = true;
 
-    // This is the encoding to convert to (memory encoding rather than file encoding)
-    wxString encoding(wxT("UTF-8"));
-
-#if !wxUSE_UNICODE && wxUSE_INTL
-    encoding = wxLocale::GetSystemEncodingName();
-#endif
-
-    if (!xmlDoc->Load(stream, encoding))
+    if (!xmlDoc->Load(stream))
     {
         buffer->ResetAndClearCommands();
         success = false;
@@ -127,13 +114,23 @@ bool wxRichTextXMLHandler::DoLoadFile(wxRichTextBuffer *buffer, wxInputStream& s
     return success;
 }
 
+void wxRichTextXMLHandler::RegisterNodeName(const wxString& nodeName, const wxString& className)
+{
+    gs_nodeNameToClassMap[nodeName] = className;
+}
+
+void wxRichTextXMLHandler::ClearNodeToClassMap()
+{
+    gs_nodeNameToClassMap.clear();
+}
+
 /// Creates an object given an XML element name
 wxRichTextObject* wxRichTextXMLHandler::CreateObjectForXMLName(wxRichTextObject* WXUNUSED(parent), const wxString& name) const
 {
     // The standard node to class mappings are added in wxRichTextModule::OnInit in richtextbuffer.cpp
-    wxStringToStringHashMap::const_iterator it = sm_nodeNameToClassMap.find(name);
-    if (it == sm_nodeNameToClassMap.end())
-        return NULL;
+    const auto it = gs_nodeNameToClassMap.find(name);
+    if (it == gs_nodeNameToClassMap.end())
+        return nullptr;
     else
         return wxDynamicCast(wxCreateDynamicObject(it->second), wxRichTextObject);
 }
@@ -251,7 +248,7 @@ bool wxRichTextXMLHandler::DoSaveFile(wxRichTextBuffer *buffer, wxOutputStream& 
 #endif
     }
     delete doc;
-    doc = NULL;
+    doc = nullptr;
 
 #else
     // !(wxRICHTEXT_HAVE_XMLDOCUMENT_OUTPUT && wxRICHTEXT_USE_XMLDOCUMENT_OUTPUT)
@@ -365,9 +362,7 @@ bool wxRichTextObject::ExportXML(wxOutputStream& stream, int indent, wxRichTextX
     handler->GetHelper().OutputIndentation(stream, indent);
     handler->GetHelper().OutputString(stream, wxT("<") + GetXMLNodeName());
 
-    wxString style = handler->GetHelper().AddAttributes(GetAttributes(), true);
-    if (!IsShown())
-        style << wxT(" show=\"0\"");
+    wxString style = handler->GetHelper().AddAttributes(this, true);
 
     handler->GetHelper().OutputString(stream, style + wxT(">"));
 
@@ -399,10 +394,8 @@ bool wxRichTextObject::ExportXML(wxXmlNode* parent, wxRichTextXMLHandler* handle
 {
     wxXmlNode* elementNode = new wxXmlNode(wxXML_ELEMENT_NODE, GetXMLNodeName());
     parent->AddChild(elementNode);
-    handler->GetHelper().AddAttributes(elementNode, GetAttributes(), true);
+    handler->GetHelper().AddAttributes(elementNode, this, true);
     handler->GetHelper().WriteProperties(elementNode, GetProperties());
-    if (!IsShown())
-        elementNode->AddAttribute(wxT("show"), wxT("0"));
 
     wxRichTextCompositeObject* composite = wxDynamicCast(this, wxRichTextCompositeObject);
     if (composite)
@@ -436,17 +429,17 @@ bool wxRichTextPlainText::ImportFromXML(wxRichTextBuffer* buffer, wxXmlNode* nod
             if ((n->GetType() == wxXML_ELEMENT_NODE) && n->GetName() == wxT("properties"))
             {
                 textChild = n->GetNext();
-                n = NULL;
+                n = nullptr;
 
                 // Skip past the whitespace after the properties
                 while (textChild && (textChild->GetType() == wxXML_TEXT_NODE))
                 {
-                    wxString text = textChild->GetContent();
-                    text.Trim(true);
-                    text.Trim(false);
-                    if (!text.IsEmpty())
+                    wxString cText = textChild->GetContent();
+                    cText.Trim(true);
+                    cText.Trim(false);
+                    if (!cText.IsEmpty())
                     {
-                        textChild->SetContent(text);
+                        textChild->SetContent(cText);
                         break;
                     }
                     else
@@ -512,12 +505,12 @@ bool wxRichTextPlainText::ImportFromXML(wxRichTextBuffer* buffer, wxXmlNode* nod
 // Export this object directly to the given stream.
 bool wxRichTextPlainText::ExportXML(wxOutputStream& stream, int indent, wxRichTextXMLHandler* handler)
 {
-        wxString style = handler->GetHelper().AddAttributes(GetAttributes(), false);
+    wxString style = handler->GetHelper().AddAttributes(this, false);
 
     int i;
     int last = 0;
     const wxString& text = GetText();
-    int len = (int) text.Length();
+    int len = (int) text.length();
 
     if (len == 0)
     {
@@ -534,12 +527,11 @@ bool wxRichTextPlainText::ExportXML(wxOutputStream& stream, int indent, wxRichTe
     }
     else for (i = 0; i < len; i++)
     {
-#if wxUSE_UNICODE
         int c = (int) text[i];
-#else
-        int c = (int) wxUChar(text[i]);
-#endif
-        if ((c < 32 || c == 34) && /* c != 9 && */ c != 10 && c != 13)
+        if (((c < 32 || c == 34) && /* c != 9 && */ c != 10 && c != 13)
+            // XML ranges
+            || (!(c >= 32 && c <= 55295) && !(c >= 57344 && c <= 65533))
+            )
         {
             if (i > 0)
             {
@@ -628,7 +620,7 @@ bool wxRichTextPlainText::ExportXML(wxXmlNode* parent, wxRichTextXMLHandler* han
     int i;
     int last = 0;
     const wxString& text = GetText();
-    int len = (int) text.Length();
+    int len = (int) text.length();
 
     if (len == 0)
     {
@@ -642,11 +634,7 @@ bool wxRichTextPlainText::ExportXML(wxXmlNode* parent, wxRichTextXMLHandler* han
     }
     else for (i = 0; i < len; i++)
     {
-#if wxUSE_UNICODE
         int c = (int) text[i];
-#else
-        int c = (int) wxUChar(text[i]);
-#endif
         if ((c < 32 || c == 34) && c != 10 && c != 13)
         {
             if (i > 0)
@@ -769,7 +757,7 @@ bool wxRichTextImage::ImportFromXML(wxRichTextBuffer* buffer, wxXmlNode* node, w
 // Export this object directly to the given stream.
 bool wxRichTextImage::ExportXML(wxOutputStream& stream, int indent, wxRichTextXMLHandler* handler)
 {
-    wxString style = handler->GetHelper().AddAttributes(GetAttributes(), false);
+    wxString style = handler->GetHelper().AddAttributes(this, false);
 
     handler->GetHelper().OutputIndentation(stream, indent);
     handler->GetHelper().OutputString(stream, wxT("<image"));
@@ -814,7 +802,7 @@ bool wxRichTextImage::ExportXML(wxXmlNode* parent, wxRichTextXMLHandler* handler
     if (GetImageBlock().IsOk())
         elementNode->AddAttribute(wxT("imagetype"), wxRichTextXMLHelper::MakeString((int) GetImageBlock().GetImageType()));
 
-    handler->GetHelper().AddAttributes(elementNode, GetAttributes(), false);
+    handler->GetHelper().AddAttributes(elementNode, this, false);
     handler->GetHelper().WriteProperties(elementNode, GetProperties());
 
     wxXmlNode* dataNode = new wxXmlNode(wxXML_ELEMENT_NODE, wxT("data"));
@@ -840,8 +828,6 @@ bool wxRichTextImage::ExportXML(wxXmlNode* parent, wxRichTextXMLHandler* handler
                 strData = wxString((const char*) data, wxConvUTF8, size);
                 delete[] data;
             }
-            else
-                strData = wxEmptyString;
         }
 
     }
@@ -907,7 +893,7 @@ bool wxRichTextParagraphLayoutBox::ExportXML(wxOutputStream& stream, int indent,
     wxString nodeName = GetXMLNodeName();
     handler->GetHelper().OutputString(stream, wxT("<") + nodeName);
 
-    wxString style = handler->GetHelper().AddAttributes(GetAttributes(), true);
+    wxString style = handler->GetHelper().AddAttributes(this, true);
 
     if (GetPartialParagraph())
         style << wxT(" partialparagraph=\"true\"");
@@ -938,7 +924,7 @@ bool wxRichTextParagraphLayoutBox::ExportXML(wxXmlNode* parent, wxRichTextXMLHan
 {
     wxXmlNode* elementNode = new wxXmlNode(wxXML_ELEMENT_NODE, GetXMLNodeName());
     parent->AddChild(elementNode);
-    handler->GetHelper().AddAttributes(elementNode, GetAttributes(), true);
+    handler->GetHelper().AddAttributes(elementNode, this, true);
     handler->GetHelper().WriteProperties(elementNode, GetProperties());
 
     if (GetPartialParagraph())
@@ -1005,7 +991,7 @@ bool wxRichTextTable::ExportXML(wxOutputStream& stream, int indent, wxRichTextXM
     wxString nodeName = GetXMLNodeName();
     handler->GetHelper().OutputString(stream, wxT("<") + nodeName);
 
-    wxString style = handler->GetHelper().AddAttributes(GetAttributes(), true);
+    wxString style = handler->GetHelper().AddAttributes(this, true);
 
     style << wxT(" rows=\"") << m_rowCount << wxT("\"");
     style << wxT(" cols=\"") << m_colCount << wxT("\"");
@@ -1040,7 +1026,7 @@ bool wxRichTextTable::ExportXML(wxXmlNode* parent, wxRichTextXMLHandler* handler
 {
     wxXmlNode* elementNode = new wxXmlNode(wxXML_ELEMENT_NODE, GetXMLNodeName());
     parent->AddChild(elementNode);
-    handler->GetHelper().AddAttributes(elementNode, GetAttributes(), true);
+    handler->GetHelper().AddAttributes(elementNode, this, true);
     handler->GetHelper().WriteProperties(elementNode, GetProperties());
 
     elementNode->AddAttribute(wxT("rows"), wxString::Format(wxT("%d"), m_rowCount));
@@ -1069,8 +1055,8 @@ void wxRichTextXMLHelper::Init()
 {
 #if wxRICHTEXT_HAVE_DIRECT_OUTPUT
     m_deleteConvFile = false;
-    m_convMem = NULL;
-    m_convFile = NULL;
+    m_convMem = nullptr;
+    m_convFile = nullptr;
 #endif
     m_flags = 0;
 }
@@ -1080,27 +1066,20 @@ void wxRichTextXMLHelper::Clear()
 #if wxRICHTEXT_HAVE_DIRECT_OUTPUT
     if (m_deleteConvFile)
         delete m_convFile;
-    m_convFile = NULL;
-    m_convMem = NULL;
+    m_convFile = nullptr;
+    m_convMem = nullptr;
     m_deleteConvFile = false;
 #endif
-    m_fileEncoding = wxEmptyString;
+    m_fileEncoding.clear();
 }
 
 void wxRichTextXMLHelper::SetupForSaving(const wxString& enc)
 {
     Clear();
 
-#if wxUSE_UNICODE
     m_fileEncoding = wxT("UTF-8");
 #if wxRICHTEXT_HAVE_DIRECT_OUTPUT
     m_convFile = & wxConvUTF8;
-#endif
-#else
-    m_fileEncoding = wxT("ISO-8859-1");
-#if wxRICHTEXT_HAVE_DIRECT_OUTPUT
-    m_convFile = & wxConvISO8859_1;
-#endif
 #endif
 
     // If we pass an explicit encoding, change the output encoding.
@@ -1120,11 +1099,7 @@ void wxRichTextXMLHelper::SetupForSaving(const wxString& enc)
 
         // GetSystemEncodingName may not have returned a name
         if (m_fileEncoding.empty())
-#if wxUSE_UNICODE
             m_fileEncoding = wxT("UTF-8");
-#else
-            m_fileEncoding = wxT("ISO-8859-1");
-#endif
 #if wxRICHTEXT_HAVE_DIRECT_OUTPUT
         m_convFile = new wxCSConv(m_fileEncoding);
         m_deleteConvFile = true;
@@ -1132,11 +1107,7 @@ void wxRichTextXMLHelper::SetupForSaving(const wxString& enc)
     }
 
 #if wxRICHTEXT_HAVE_DIRECT_OUTPUT
-#if !wxUSE_UNICODE
-    m_convMem = wxConvCurrent;
-#else
-    m_convMem = NULL;
-#endif
+    m_convMem = nullptr;
 #endif
 }
 
@@ -1168,12 +1139,12 @@ wxColour wxRichTextXMLHelper::HexStringToColour(const wxString& hex)
 
 bool wxRichTextXMLHelper::HasParam(wxXmlNode* node, const wxString& param)
 {
-    return (GetParamNode(node, param) != NULL);
+    return (GetParamNode(node, param) != nullptr);
 }
 
 wxXmlNode *wxRichTextXMLHelper::GetParamNode(wxXmlNode* node, const wxString& param)
 {
-    wxCHECK_MSG(node, NULL, wxT("You can't access node data before it was initialized!"));
+    wxCHECK_MSG(node, nullptr, wxT("You can't access node data before it was initialized!"));
 
     wxXmlNode *n = node->GetChildren();
 
@@ -1183,13 +1154,13 @@ wxXmlNode *wxRichTextXMLHelper::GetParamNode(wxXmlNode* node, const wxString& pa
             return n;
         n = n->GetNext();
     }
-    return NULL;
+    return nullptr;
 }
 
 wxString wxRichTextXMLHelper::GetNodeContent(wxXmlNode *node)
 {
     wxXmlNode *n = node;
-    if (n == NULL) return wxEmptyString;
+    if (n == nullptr) return wxEmptyString;
     n = n->GetChildren();
 
     while (n)
@@ -1231,7 +1202,7 @@ wxXmlNode* wxRichTextXMLHelper::FindNode(wxXmlNode* node, const wxString& name)
             return child;
         child = child->GetNext();
     }
-    return NULL;
+    return nullptr;
 }
 
 wxString wxRichTextXMLHelper::AttributeToXML(const wxString& str)
@@ -1277,11 +1248,7 @@ wxString wxRichTextXMLHelper::AttributeToXML(const wxString& str)
             str1 += str.Mid(last, i - last);
 
             wxString s(wxT("&#"));
-#if wxUSE_UNICODE
             s << (int) c;
-#else
-            s << (int) wxUChar(c);
-#endif
             s << wxT(";");
             str1 += s;
             last = i + 1;
@@ -1297,7 +1264,7 @@ wxString wxRichTextXMLHelper::MakeStringFromProperty(const wxVariant& var)
     return var.MakeString();
 }
 
-// Create a proprty from the string read from the XML file.
+// Create a property from the string read from the XML file.
 wxVariant wxRichTextXMLHelper::MakePropertyFromString(const wxString& name, const wxString& value, const wxString& WXUNUSED(type))
 {
     wxVariant var(value, name);
@@ -1632,6 +1599,10 @@ bool wxRichTextXMLHelper::ImportStyle(wxRichTextAttr& attr, wxXmlNode* node, boo
             {
                 attr.GetTextBoxAttr().GetMaxSize().GetHeight().SetValue(ParseDimension(value));
             }
+            else if (name == wxT("corner-radius"))
+            {
+                attr.GetTextBoxAttr().SetCornerRadius(ParseDimension(value));
+            }
 
             else if (name == wxT("verticalalignment"))
             {
@@ -1666,6 +1637,8 @@ bool wxRichTextXMLHelper::ImportStyle(wxRichTextAttr& attr, wxXmlNode* node, boo
             }
             else if (name == wxT("collapse-borders"))
                 attr.GetTextBoxAttr().SetCollapseBorders((wxTextBoxAttrCollapseMode) wxAtoi(value));
+            else if (name == wxT("whitespace-mode"))
+                attr.GetTextBoxAttr().SetWhitespaceMode((wxTextBoxAttrWhitespaceMode) wxAtoi(value));
 
             else if (name.Contains(wxT("border-")))
             {
@@ -1916,10 +1889,9 @@ bool wxRichTextXMLHelper::ImportProperties(wxRichTextProperties& properties, wxX
 #if wxRICHTEXT_HAVE_DIRECT_OUTPUT
 // write string to output
 void wxRichTextXMLHelper::OutputString(wxOutputStream& stream, const wxString& str,
-                                wxMBConv *WXUNUSED_IN_UNICODE(convMem), wxMBConv *convFile)
+                                wxMBConv *WXUNUSED(convMem), wxMBConv *convFile)
 {
     if (str.empty()) return;
-#if wxUSE_UNICODE
     if (convFile)
     {
         const wxWX2MBbuf buf(str.mb_str(*convFile));
@@ -1930,15 +1902,6 @@ void wxRichTextXMLHelper::OutputString(wxOutputStream& stream, const wxString& s
         const wxWX2MBbuf buf(str.mb_str(wxConvUTF8));
         stream.Write((const char*)buf, strlen((const char*)buf));
     }
-#else
-    if ( convFile == NULL )
-        stream.Write(str.mb_str(), str.Len());
-    else
-    {
-        wxString str2(str.wc_str(*convMem), *convFile);
-        stream.Write(str2.mb_str(), str2.Len());
-    }
-#endif
 }
 
 void wxRichTextXMLHelper::OutputIndentation(wxOutputStream& stream, int indent)
@@ -1946,7 +1909,7 @@ void wxRichTextXMLHelper::OutputIndentation(wxOutputStream& stream, int indent)
     wxString str = wxT("\n");
     for (int i = 0; i < indent; i++)
         str << wxT(' ') << wxT(' ');
-    OutputString(stream, str, NULL, NULL);
+    OutputString(stream, str, nullptr, nullptr);
 }
 
 // Same as above, but create entities first.
@@ -1975,16 +1938,16 @@ void wxRichTextXMLHelper::OutputStringEnt(wxOutputStream& stream, const wxString
             switch (c)
             {
             case wxT('<'):
-                OutputString(stream, wxT("&lt;"), NULL, NULL);
+                OutputString(stream, wxT("&lt;"), nullptr, nullptr);
                 break;
             case wxT('>'):
-                OutputString(stream, wxT("&gt;"), NULL, NULL);
+                OutputString(stream, wxT("&gt;"), nullptr, nullptr);
                 break;
             case wxT('&'):
-                OutputString(stream, wxT("&amp;"), NULL, NULL);
+                OutputString(stream, wxT("&amp;"), nullptr, nullptr);
                 break;
             case wxT('"'):
-                OutputString(stream, wxT("&quot;"), NULL, NULL);
+                OutputString(stream, wxT("&quot;"), nullptr, nullptr);
                 break;
             default: break;
             }
@@ -1995,13 +1958,9 @@ void wxRichTextXMLHelper::OutputStringEnt(wxOutputStream& stream, const wxString
             OutputString(stream, str.Mid(last, i - last), convMem, convFile);
 
             wxString s(wxT("&#"));
-#if wxUSE_UNICODE
             s << (int) c;
-#else
-            s << (int) wxUChar(c);
-#endif
             s << wxT(";");
-            OutputString(stream, s, NULL, NULL);
+            OutputString(stream, s, nullptr, nullptr);
             last = i + 1;
         }
     }
@@ -2030,7 +1989,7 @@ void wxRichTextXMLHelper::AddAttribute(wxString& str, const wxString& name, cons
 
 void wxRichTextXMLHelper::AddAttribute(wxString& str, const wxString& name, const double& v)
 {
-    str << wxT(" ") << name << wxT("=\"") << wxString::Format(wxT("%.2f"), (float) v) << wxT("\"");
+    str << wxS(" ") << name << wxS("=\"") << wxString::Format(wxS("%.2f"), v) << wxS("\"");
 }
 
 void wxRichTextXMLHelper::AddAttribute(wxString& str, const wxString& name, const wxChar* s)
@@ -2216,6 +2175,7 @@ wxString wxRichTextXMLHelper::AddAttributes(const wxRichTextAttr& attr, bool isP
     AddAttribute(str, wxT("minheight"), attr.GetTextBoxAttr().GetMinSize().GetHeight());
     AddAttribute(str, wxT("maxwidth"), attr.GetTextBoxAttr().GetMaxSize().GetWidth());
     AddAttribute(str, wxT("maxheight"), attr.GetTextBoxAttr().GetMaxSize().GetHeight());
+    AddAttribute(str, wxT("corner-radius"), attr.GetTextBoxAttr().GetCornerRadius());
 
     if (attr.GetTextBoxAttr().HasVerticalAlignment())
     {
@@ -2260,8 +2220,19 @@ wxString wxRichTextXMLHelper::AddAttributes(const wxRichTextAttr& attr, bool isP
     if (attr.GetTextBoxAttr().HasCollapseBorders())
         AddAttribute(str, wxT("collapse-borders"), (int) attr.GetTextBoxAttr().GetCollapseBorders());
 
+    if (attr.GetTextBoxAttr().HasWhitespaceMode())
+        AddAttribute(str, wxT("whitespace-mode"), (int) attr.GetTextBoxAttr().GetWhitespaceMode());
     return str;
 }
+
+// Create a string containing style attributes, plus further object 'attributes' (shown, id)
+wxString wxRichTextXMLHelper::AddAttributes(wxRichTextObject* obj, bool isPara)
+{
+    wxString style = AddAttributes(obj->GetAttributes(), isPara);
+    if (!obj->IsShown())
+        style << wxT(" show=\"0\"");
+    return style;
+}    
 
 // Write the properties
 bool wxRichTextXMLHelper::WriteProperties(wxOutputStream& stream, const wxRichTextProperties& properties, int level)
@@ -2370,11 +2341,11 @@ bool wxRichTextXMLHelper::ExportStyleDefinition(wxOutputStream& stream, wxRichTe
             wxRichTextAttr* levelAttr = listDef->GetLevelAttributes(i);
             if (levelAttr)
             {
-                wxString style = AddAttributes(def->GetStyle(), true);
+                wxString levelStyle = AddAttributes(def->GetStyle(), true);
                 wxString levelStr = wxString::Format(wxT(" level=\"%d\" "), (i+1));
 
                 OutputIndentation(stream, level);
-                OutputString(stream, wxT("<style ") + levelStr + style + wxT(">"));
+                OutputString(stream, wxT("<style ") + levelStr + levelStyle + wxT(">"));
 
                 OutputIndentation(stream, level);
                 OutputString(stream, wxT("</style>"));
@@ -2693,6 +2664,7 @@ bool wxRichTextXMLHelper::AddAttributes(wxXmlNode* node, wxRichTextAttr& attr, b
     AddAttribute(node, wxT("minheight"), attr.GetTextBoxAttr().GetMinSize().GetHeight());
     AddAttribute(node, wxT("maxwidth"), attr.GetTextBoxAttr().GetMaxSize().GetWidth());
     AddAttribute(node, wxT("maxheight"), attr.GetTextBoxAttr().GetMaxSize().GetHeight());
+    AddAttribute(node, wxT("corner-radius"), attr.GetTextBoxAttr().GetCornerRadius());
 
     if (attr.GetTextBoxAttr().HasVerticalAlignment())
     {
@@ -2737,7 +2709,21 @@ bool wxRichTextXMLHelper::AddAttributes(wxXmlNode* node, wxRichTextAttr& attr, b
     if (attr.GetTextBoxAttr().HasCollapseBorders())
         AddAttribute(node, wxT("collapse-borders"), (int) attr.GetTextBoxAttr().GetCollapseBorders());
 
+    if (attr.GetTextBoxAttr().HasWhitespaceMode())
+        AddAttribute(node, wxT("whitespace-mode"), (int) attr.GetTextBoxAttr().GetWhitespaceMode());
+
     return true;
+}
+
+bool wxRichTextXMLHelper::AddAttributes(wxXmlNode* node, wxRichTextObject* obj, bool isPara)
+{
+    if (obj)
+    {
+        if (!obj->IsShown())
+            node->AddAttribute(wxT("show"), wxT("0"));
+    }
+
+    return AddAttributes(node, obj->GetAttributes(), isPara);
 }
 
 bool wxRichTextXMLHelper::WriteProperties(wxXmlNode* node, const wxRichTextProperties& properties)

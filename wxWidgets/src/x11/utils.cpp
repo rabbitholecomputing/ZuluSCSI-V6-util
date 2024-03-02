@@ -2,7 +2,6 @@
 // Name:        src/x11/utils.cpp
 // Purpose:     Various utilities
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 //              (c) 2013 Rob Bresalier
@@ -12,9 +11,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#if defined(__BORLANDC__)
-    #pragma hdrstop
-#endif
 
 #include "wx/private/eventloopsourcesmanager.h"
 
@@ -100,7 +96,9 @@ void wxBell()
     XBell ((Display*) wxGetDisplay(), 0);
 }
 
-wxPortId wxGUIAppTraits::GetToolkitVersion(int *verMaj, int *verMin) const
+wxPortId wxGUIAppTraits::GetToolkitVersion(int *verMaj,
+                                           int *verMin,
+                                           int *verMicro) const
 {
     // get X protocol version
     Display *display = wxGlobalDisplay();
@@ -110,6 +108,8 @@ wxPortId wxGUIAppTraits::GetToolkitVersion(int *verMaj, int *verMin) const
             *verMaj = ProtocolVersion (display);
         if ( verMin )
             *verMin = ProtocolRevision (display);
+        if ( verMicro )
+            *verMicro = 0;
     }
 
     return wxPORT_X11;
@@ -144,49 +144,14 @@ void wxGetMousePosition( int* x, int* y )
 #endif
 };
 
-// Return true if we have a colour display
-bool wxColourDisplay()
-{
-    return wxDisplayDepth() > 1;
-}
-
-// Returns depth of screen
-int wxDisplayDepth()
-{
-    Display *dpy = (Display*) wxGetDisplay();
-
-    return DefaultDepth (dpy, DefaultScreen (dpy));
-}
-
-// Get size of display
-void wxDisplaySize(int *width, int *height)
-{
-    Display *dpy = (Display*) wxGetDisplay();
-
-    if ( width )
-        *width = DisplayWidth (dpy, DefaultScreen (dpy));
-    if ( height )
-        *height = DisplayHeight (dpy, DefaultScreen (dpy));
-}
-
-void wxDisplaySizeMM(int *width, int *height)
-{
-    Display *dpy = (Display*) wxGetDisplay();
-
-    if ( width )
-        *width = DisplayWidthMM(dpy, DefaultScreen (dpy));
-    if ( height )
-        *height = DisplayHeightMM(dpy, DefaultScreen (dpy));
-}
-
 wxWindow* wxFindWindowAtPoint(const wxPoint& pt)
 {
     return wxGenericFindWindowAtPoint(pt);
 }
 
 
-// Configurable display in wxX11 and wxMotif
-static Display *gs_currentDisplay = NULL;
+// Configurable display in wxX11
+static Display *gs_currentDisplay = nullptr;
 static wxString gs_displayName;
 
 WXDisplay *wxGetDisplay()
@@ -202,10 +167,10 @@ void wxCloseDisplay()
         if ( XCloseDisplay(gs_currentDisplay) != 0 )
         {
             wxLogWarning(_("Failed to close the display \"%s\""),
-                         gs_displayName.c_str());
+                         gs_displayName);
         }
 
-        gs_currentDisplay = NULL;
+        gs_currentDisplay = nullptr;
         gs_displayName.clear();
     }
 }
@@ -214,13 +179,13 @@ bool wxSetDisplay(const wxString& displayName)
 {
     Display *dpy = XOpenDisplay
                    (
-                    displayName.empty() ? NULL
+                    displayName.empty() ? nullptr
                                         : (const char *)displayName.mb_str()
                    );
 
     if ( !dpy )
     {
-        wxLogError(_("Failed to open display \"%s\"."), displayName.c_str());
+        wxLogError(_("Failed to open display \"%s\"."), displayName);
         return false;
     }
 
@@ -247,10 +212,10 @@ public:
     virtual void OnExit() { wxCloseDisplay(); }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxX11DisplayModule)
+    wxDECLARE_DYNAMIC_CLASS(wxX11DisplayModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxX11DisplayModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxX11DisplayModule, wxModule);
 
 // ----------------------------------------------------------------------------
 // Some colour manipulation routines
@@ -404,7 +369,7 @@ public:
     {
         wxFAIL_MSG("Monitoring FDs in the main loop is not implemented in wxX11");
 
-        return NULL;
+        return nullptr;
     }
 };
 

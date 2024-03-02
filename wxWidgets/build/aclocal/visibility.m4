@@ -36,7 +36,7 @@ AC_DEFUN([WX_VISIBILITY],
       wx_save_CXXFLAGS="$CXXFLAGS"
       CXXFLAGS="$CXXFLAGS $CXXFLAGS_VISIBILITY"
       AC_LANG_PUSH(C++)
-      AC_TRY_COMPILE(
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
         [
          /* we need gcc >= 4.0, older versions with visibility support
             didn't have class visibility: */
@@ -49,9 +49,22 @@ AC_DEFUN([WX_VISIBILITY],
          error this platform has no visibility;
          #endif
 
-         /* at the time of Xcode 4.1 / Clang 3, Clang++ still didn't have the bugs sorted out: */
-         #if defined(__clang__)
-         clang compiler is still broken w.r.t. visibility;
+         /* At the time of Xcode 4.1 / Clang 3, Clang++ still didn't
+            have the bugs sorted out. These were fixed starting with
+            Xcode 4.6.0 / Apple Clang 4.2 (which is based on Clang 3.2 so
+            check for that version too). */
+         #ifdef __clang__
+            #ifdef __APPLE__
+                #if __clang_major__ < 4 \
+                    || (__clang_major__ == 4 && __clang_minor__ < 2)
+                    error Clang compiler version < 4.2 is broken w.r.t. visibility;
+                #endif
+            #else
+                #if __clang_major__ < 3 \
+                    || (__clang_major__ == 3 && __clang_minor__ < 2)
+                    error Clang compiler version < 3.2 is broken w.r.t. visibility;
+                #endif
+            #endif
          #endif
 
          extern __attribute__((__visibility__("hidden"))) int hiddenvar;
@@ -62,7 +75,7 @@ AC_DEFUN([WX_VISIBILITY],
            Foo() {}
          };
         ],
-        [],
+        [])],
         wx_cv_cc_visibility=yes,
         wx_cv_cc_visibility=no)
       AC_LANG_POP()
@@ -80,14 +93,14 @@ AC_DEFUN([WX_VISIBILITY],
         CXXFLAGS="$CXXFLAGS $CXXFLAGS_VISIBILITY"
         LDFLAGS="$LDFLAGS -shared -fPIC"
         AC_LANG_PUSH(C++)
-        AC_TRY_LINK(
+        AC_LINK_IFELSE([AC_LANG_PROGRAM(
           [
             #include <string>
           ],
           [
             std::string s("hello");
             return s.length();
-          ],
+          ])],
           wx_cv_cc_broken_libstdcxx_visibility=no,
           wx_cv_cc_broken_libstdcxx_visibility=yes)
         AC_LANG_POP()
@@ -99,7 +112,7 @@ AC_DEFUN([WX_VISIBILITY],
         AC_MSG_CHECKING([whether we can work around it])
         AC_CACHE_VAL(wx_cv_cc_visibility_workaround, [
           AC_LANG_PUSH(C++)
-          AC_TRY_LINK(
+          AC_LINK_IFELSE([AC_LANG_PROGRAM(
             [
               #pragma GCC visibility push(default)
               #include <string>
@@ -108,7 +121,7 @@ AC_DEFUN([WX_VISIBILITY],
             [
               std::string s("hello");
               return s.length();
-            ],
+            ])],
             wx_cv_cc_visibility_workaround=no,
             wx_cv_cc_visibility_workaround=yes)
           AC_LANG_POP()

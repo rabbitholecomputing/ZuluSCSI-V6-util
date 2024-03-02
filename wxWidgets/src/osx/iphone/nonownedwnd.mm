@@ -2,7 +2,6 @@
 // Name:        src/osx/iphone/nonownedwnd.mm
 // Purpose:     non owned window for iphone
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     2008-06-20
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -69,20 +68,20 @@ wxPoint wxFromNSPoint( UIView* parent, const CGPoint& p )
 // c++ impl
 //
 
-IMPLEMENT_DYNAMIC_CLASS( wxNonOwnedWindowIPhoneImpl , wxNonOwnedWindowImpl )
+wxIMPLEMENT_DYNAMIC_CLASS(wxNonOwnedWindowIPhoneImpl , wxNonOwnedWindowImpl);
 
 wxNonOwnedWindowIPhoneImpl::wxNonOwnedWindowIPhoneImpl( wxNonOwnedWindow* nonownedwnd) :
     wxNonOwnedWindowImpl(nonownedwnd)
 {
-    m_macWindow = NULL;
-    m_macFullScreenData = NULL;
+    m_macWindow = nullptr;
+    m_macFullScreenData = nullptr;
     m_initialShowSent = false;
 }
 
 wxNonOwnedWindowIPhoneImpl::wxNonOwnedWindowIPhoneImpl()
 {
-    m_macWindow = NULL;
-    m_macFullScreenData = NULL;
+    m_macWindow = nullptr;
+    m_macFullScreenData = nullptr;
     m_initialShowSent = false;
 }
 
@@ -251,7 +250,7 @@ bool wxNonOwnedWindowIPhoneImpl::SetShape(const wxRegion& region)
     return false;
 }
 
-void wxNonOwnedWindowIPhoneImpl::SetTitle( const wxString& title, wxFontEncoding encoding )
+void wxNonOwnedWindowIPhoneImpl::SetTitle( const wxString& title )
 {
 // TODO change title of app ?
 }
@@ -281,7 +280,12 @@ void wxNonOwnedWindowIPhoneImpl::Maximize(bool maximize)
 
 bool wxNonOwnedWindowIPhoneImpl::IsFullScreen() const
 {
-    return m_macFullScreenData != NULL ;
+    return m_macFullScreenData != nullptr ;
+}
+
+bool wxNonOwnedWindowIPhoneImpl::EnableFullScreenView(bool WXUNUSED(enable), long WXUNUSED(style))
+{
+    return true;
 }
 
 bool wxNonOwnedWindowIPhoneImpl::ShowFullScreen(bool show, long style)
@@ -349,7 +353,7 @@ wxWidgetImpl* wxWidgetImpl::CreateContentView( wxNonOwnedWindow* now )
     [contentview setController:controller];
     [contentview setHidden:YES];
     
-    wxWidgetIPhoneImpl* impl = new wxWidgetIPhoneImpl( now, contentview, true );
+    wxWidgetIPhoneImpl* impl = new wxWidgetIPhoneImpl( now, contentview, Widget_IsRoot );
     impl->InstallEventHandler();
     
     if ([toplevelwindow respondsToSelector:@selector(setRootViewController:)])

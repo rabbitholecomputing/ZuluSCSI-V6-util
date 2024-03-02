@@ -34,7 +34,7 @@ public:
                const wxSize& size = wxDefaultSize,
                long style = 0,
                const wxValidator& validator = wxDefaultValidator,
-               const wxString& name = wxSearchCtrlNameStr);
+               const wxString& name = wxASCII_STR(wxSearchCtrlNameStr));
 
     virtual ~wxSearchCtrl();
 
@@ -44,153 +44,97 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxSearchCtrlNameStr);
+                const wxString& name = wxASCII_STR(wxSearchCtrlNameStr));
 
 #if wxUSE_MENUS
     // get/set search button menu
     // --------------------------
-    virtual void SetMenu( wxMenu* menu );
-    virtual wxMenu* GetMenu();
+    virtual void SetMenu( wxMenu* menu ) override;
+    virtual wxMenu* GetMenu() override;
 #endif // wxUSE_MENUS
 
     // get/set search options
     // ----------------------
-    virtual void ShowSearchButton( bool show );
-    virtual bool IsSearchButtonVisible() const;
+    virtual void ShowSearchButton( bool show ) override;
+    virtual bool IsSearchButtonVisible() const override;
 
-    virtual void ShowCancelButton( bool show );
-    virtual bool IsCancelButtonVisible() const;
+    virtual void ShowCancelButton( bool show ) override;
+    virtual bool IsCancelButtonVisible() const override;
 
-    // TODO: In 2.9 these should probably be virtual, and declared in the base class...
-    void SetDescriptiveText(const wxString& text);
-    wxString GetDescriptiveText() const;
+    virtual void SetDescriptiveText(const wxString& text) override;
+    virtual wxString GetDescriptiveText() const override;
 
     // accessors
     // ---------
 
-    virtual wxString GetRange(long from, long to) const;
+    virtual wxString GetRange(long from, long to) const override;
 
-    virtual int GetLineLength(long lineNo) const;
-    virtual wxString GetLineText(long lineNo) const;
-    virtual int GetNumberOfLines() const;
-
-    virtual bool IsModified() const;
-    virtual bool IsEditable() const;
-
-    // more readable flag testing methods
-    virtual bool IsSingleLine() const;
-    virtual bool IsMultiLine() const;
+    virtual bool IsEditable() const override;
 
     // If the return values from and to are the same, there is no selection.
-    virtual void GetSelection(long* from, long* to) const;
+    virtual void GetSelection(long* from, long* to) const override;
 
-    virtual wxString GetStringSelection() const;
+    virtual wxString GetStringSelection() const override;
 
     // operations
     // ----------
 
+    virtual void ChangeValue(const wxString& value) override;
+
     // editing
-    virtual void Clear();
-    virtual void Replace(long from, long to, const wxString& value);
-    virtual void Remove(long from, long to);
-
-    // load/save the controls contents from/to the file
-    virtual bool LoadFile(const wxString& file);
-    virtual bool SaveFile(const wxString& file = wxEmptyString);
-
-    // sets/clears the dirty flag
-    virtual void MarkDirty();
-    virtual void DiscardEdits();
+    virtual void Clear() override;
+    virtual void Replace(long from, long to, const wxString& value) override;
+    virtual void Remove(long from, long to) override;
 
     // set the max number of characters which may be entered in a single line
     // text control
-    virtual void SetMaxLength(unsigned long WXUNUSED(len));
+    virtual void SetMaxLength(unsigned long WXUNUSED(len)) override;
 
     // writing text inserts it at the current position, appending always
     // inserts it at the end
-    virtual void WriteText(const wxString& text);
-    virtual void AppendText(const wxString& text);
+    virtual void WriteText(const wxString& text) override;
+    virtual void AppendText(const wxString& text) override;
 
     // insert the character which would have resulted from this key event,
     // return true if anything has been inserted
     virtual bool EmulateKeyPress(const wxKeyEvent& event);
 
-    // text control under some platforms supports the text styles: these
-    // methods allow to apply the given text style to the given selection or to
-    // set/get the style which will be used for all appended text
-    virtual bool SetStyle(long start, long end, const wxTextAttr& style);
-    virtual bool GetStyle(long position, wxTextAttr& style);
-    virtual bool SetDefaultStyle(const wxTextAttr& style);
-    virtual const wxTextAttr& GetDefaultStyle() const;
-
-    // translate between the position (which is just an index in the text ctrl
-    // considering all its contents as a single strings) and (x, y) coordinates
-    // which represent column and line.
-    virtual long XYToPosition(long x, long y) const;
-    virtual bool PositionToXY(long pos, long *x, long *y) const;
-
-    virtual void ShowPosition(long pos);
-
-    // find the character at position given in pixels
-    //
-    // NB: pt is in device coords (not adjusted for the client area origin nor
-    //     scrolling)
-    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt, long *pos) const;
-    virtual wxTextCtrlHitTestResult HitTest(const wxPoint& pt,
-                                            wxTextCoord *col,
-                                            wxTextCoord *row) const;
-
     // Clipboard operations
-    virtual void Copy();
-    virtual void Cut();
-    virtual void Paste();
+    virtual void Copy() override;
+    virtual void Cut() override;
+    virtual void Paste() override;
 
-    virtual bool CanCopy() const;
-    virtual bool CanCut() const;
-    virtual bool CanPaste() const;
+    virtual bool CanCopy() const override;
+    virtual bool CanCut() const override;
+    virtual bool CanPaste() const override;
 
     // Undo/redo
-    virtual void Undo();
-    virtual void Redo();
+    virtual void Undo() override;
+    virtual void Redo() override;
 
-    virtual bool CanUndo() const;
-    virtual bool CanRedo() const;
+    virtual bool CanUndo() const override;
+    virtual bool CanRedo() const override;
 
     // Insertion point
-    virtual void SetInsertionPoint(long pos);
-    virtual void SetInsertionPointEnd();
-    virtual long GetInsertionPoint() const;
-    virtual wxTextPos GetLastPosition() const;
+    virtual void SetInsertionPoint(long pos) override;
+    virtual void SetInsertionPointEnd() override;
+    virtual long GetInsertionPoint() const override;
+    virtual wxTextPos GetLastPosition() const override;
 
-    virtual void SetSelection(long from, long to);
-    virtual void SelectAll();
-    virtual void SetEditable(bool editable);
+    virtual void SetSelection(long from, long to) override;
+    virtual void SelectAll() override;
+    virtual void SetEditable(bool editable) override;
 
-#if 0
+    // Autocomplete
+    virtual bool DoAutoCompleteStrings(const wxArrayString &choices) override;
+    virtual bool DoAutoCompleteFileNames(int flags) override;
+    virtual bool DoAutoCompleteCustom(wxTextCompleter *completer) override;
 
-    // override streambuf method
-#if wxHAS_TEXT_WINDOW_STREAM
-    int overflow(int i);
-#endif // wxHAS_TEXT_WINDOW_STREAM
-
-    // stream-like insertion operators: these are always available, whether we
-    // were, or not, compiled with streambuf support
-    wxTextCtrl& operator<<(const wxString& s);
-    wxTextCtrl& operator<<(int i);
-    wxTextCtrl& operator<<(long i);
-    wxTextCtrl& operator<<(float f);
-    wxTextCtrl& operator<<(double d);
-    wxTextCtrl& operator<<(const wxChar c);
-#endif
-
-    // do the window-specific processing after processing the update event
-    virtual void DoUpdateWindowUI(wxUpdateUIEvent& event);
-
-    virtual bool ShouldInheritColours() const;
+    virtual bool ShouldInheritColours() const override;
 
     // wxWindow overrides
-    virtual bool SetFont(const wxFont& font);
-    virtual bool SetBackgroundColour(const wxColour& colour);
+    virtual bool SetFont(const wxFont& font) override;
+    virtual bool SetBackgroundColour(const wxColour& colour) override;
 
     // search control generic only
     void SetSearchBitmap( const wxBitmap& bitmap );
@@ -200,16 +144,11 @@ public:
 #endif // wxUSE_MENUS
 
 protected:
-    virtual void DoSetValue(const wxString& value, int flags);
-    virtual wxString DoGetValue() const;
-
-    virtual bool DoLoadFile(const wxString& file, int fileType);
-    virtual bool DoSaveFile(const wxString& file, int fileType);
+    virtual void DoSetValue(const wxString& value, int flags) override;
+    virtual wxString DoGetValue() const override;
 
     // override the base class virtuals involved into geometry calculations
-    virtual wxSize DoGetBestSize() const;
-    virtual void DoMoveWindow(int x, int y, int width, int height);
-    virtual void LayoutControls(int x, int y, int width, int height);
+    virtual wxSize DoGetBestClientSize() const override;
 
     virtual void RecalcBitmaps();
 
@@ -220,13 +159,14 @@ protected:
 
     void OnCancelButton( wxCommandEvent& event );
 
-    void OnSetFocus( wxFocusEvent& event );
     void OnSize( wxSizeEvent& event );
+
+    void OnDPIChanged(wxDPIChangedEvent& event);
 
     bool HasMenu() const
     {
 #if wxUSE_MENUS
-        return m_menu != NULL;
+        return m_menu != nullptr;
 #else // !wxUSE_MENUS
         return false;
 #endif // wxUSE_MENUS/!wxUSE_MENUS
@@ -235,11 +175,17 @@ protected:
 private:
     friend class wxSearchButton;
 
+#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
+    // Implement wxMSW-specific pure virtual function by forwarding it to the
+    // real text entry.
+    virtual WXHWND GetEditHWND() const override;
+#endif
+
     // Implement pure virtual function inherited from wxCompositeWindow.
-    virtual wxWindowList GetCompositeWindowParts() const;
+    virtual wxWindowList GetCompositeWindowParts() const override;
 
     // Position the child controls using the current window size.
-    void DoLayoutControls();
+    void LayoutControls();
 
 #if wxUSE_MENUS
     void PopupSearchMenu();
@@ -252,9 +198,6 @@ private:
 #if wxUSE_MENUS
     wxMenu *m_menu;
 #endif // wxUSE_MENUS
-
-    bool m_searchButtonVisible;
-    bool m_cancelButtonVisible;
 
     bool m_searchBitmapUser;
     bool m_cancelBitmapUser;
@@ -269,9 +212,9 @@ private:
 #endif // wxUSE_MENUS
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxSearchCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxSearchCtrl);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // wxUSE_SEARCHCTRL

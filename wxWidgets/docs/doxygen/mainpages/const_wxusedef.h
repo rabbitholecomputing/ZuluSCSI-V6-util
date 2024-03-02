@@ -27,24 +27,23 @@ This table summarizes some of the global build features affecting the entire
 library:
 
 @beginDefList
-@itemdef{wxUSE_STL, Container classes and wxString are implemented using
-    standard classes and provide the same standard API.}
-@itemdef{wxUSE_STD_STRING, wxString is implemented using std::[w]string and can
-    be constructed from it (but provides wxWidgets-compatible API, in
-    particular is implicitly convertible to @c char* and not std::[w]string).}
-@itemdef{wxUSE_STD_IOSTREAM, Standard C++ classes are used instead of or in
-    addition to wx stream classes.}
-@itemdef{wxUSE_UNICODE, Compiled with Unicode support (default in wxWidgets
-    3.0, non-Unicode build will be deprecated in the future).}
+@itemdef{wxUSE_STD_CONTAINERS, Container classes are implemented using
+    standard classes (while still providing some compatibility with legacy
+    wxWidgets container classes).}
+@itemdef{wxUSE_UNICODE, Always defined as 1 in wxWidgets 3.3 and later, only
+    exists for compatibility.}
 @itemdef{wxUSE_UNICODE_WCHAR, wxString uses wchar_t buffer for internal storage
-    (default under MSW).}
-@itemdef{wxUSE_UNICODE_UTF8, wxString uses UTF-8 for internal storage (default
-    under Unix and Mac systems).}
+    (default).}
+@itemdef{wxUSE_UNICODE_UTF8, wxString uses UTF-8 for internal storage (mostly
+    useful for wxGTK where UTF-8 is used by the underlying toolkit).}
 @itemdef{wxUSE_UTF8_LOCALE_ONLY, Library supports running only under UTF-8 (and
     C) locale. This eliminates the code necessary for conversions from the
     other locales and reduces the library size; useful for embedded systems.}
 @itemdef{wxUSE_GUI, Use the GUI classes; if set to 0 only non-GUI classes are
     available.}
+@itemdef{wxUSE_UNSAFE_WXSTRING_CONV, Defined as 1 by default for compatibility,
+    but can be set to 0 to globally disable unsafe implicit conversions in
+    wxString class. See @ref string_conv for more details.}
 @endDefList
 
 
@@ -54,6 +53,7 @@ library:
 @itemdef{wxUSE_ABOUTDLG, Use wxAboutDialogInfo class.}
 @itemdef{wxUSE_ACCEL, Use wxAcceleratorTable/Entry classes and support for them in wxMenu, wxMenuBar.}
 @itemdef{wxUSE_AFM_FOR_POSTSCRIPT, In wxPostScriptDC class use AFM (adobe font metrics) file for character widths.}
+@itemdef{wxUSE_ACTIVITYINDICATOR, Use wxActivityIndicator class.}
 @itemdef{wxUSE_ANIMATIONCTRL, Use wxAnimationCtrl class.}
 @itemdef{wxUSE_ARTPROVIDER_STD, Use standard low quality icons in wxArtProvider.}
 @itemdef{wxUSE_ARTPROVIDER_TANGO, Use Tango icons in wxArtProvider.}
@@ -80,20 +80,18 @@ library:
 @itemdef{wxUSE_COLOURPICKERCTRL, Use wxColourPickerCtrl class.}
 @itemdef{wxUSE_COMBOBOX, Use wxComboBox class.}
 @itemdef{wxUSE_COMBOCTRL, Use wxComboCtrl class.}
-@itemdef{wxUSE_COMPILER_TLS, Can be set to 0 to prevent using compile thread-specific variables support.}
 @itemdef{wxUSE_CONFIG, Use wxConfig and related classes.}
 @itemdef{wxUSE_CONFIG_NATIVE, When enabled use native OS configuration instead of the wxFileConfig class.}
 @itemdef{wxUSE_CONSOLE_EVENTLOOP, Enable event loop in console programs.}
 @itemdef{wxUSE_CONSTRAINTS, Use wxLayoutConstraints}
 @itemdef{wxUSE_CONTROLS, If set to 0, no classes deriving from wxControl can be used.}
+@itemdef{wxUSE_CREDENTIALDLG, If set to 0, disabled wxCredentialEntryDialog used by wxWebRequest.}
 @itemdef{wxUSE_DATAOBJ, Use wxDataObject and related classes.}
 @itemdef{wxUSE_DATAVIEWCTRL, Use wxDataViewCtrl class.}
 @itemdef{wxUSE_DATEPICKCTRL, Use wxDatePickerCtrl class.}
 @itemdef{wxUSE_DATETIME, Use wxDateTime and related classes.}
 @itemdef{wxUSE_DBGHELP, Predefine as 0 to avoid using wxDbgHelpDLL and related classes.}
 @itemdef{wxUSE_DC_TRANSFORM_MATRIX, Use wxDC::SetTransformMatrix() and related methods.}
-@itemdef{wxUSE_DEBUG_CONTEXT, Use wxDebugContext class.}
-@itemdef{wxUSE_DEBUG_NEW_ALWAYS, See @ref overview_debugging}
 @itemdef{wxUSE_DEBUGREPORT, Use wxDebugReport class.}
 @itemdef{wxUSE_DIALUP_MANAGER, Use wxDialUpManager and related classes.}
 @itemdef{wxUSE_DIRDLG, Use wxDirDialog class.}
@@ -131,7 +129,6 @@ library:
 @itemdef{wxUSE_GEOMETRY, Use common geometry classes}
 @itemdef{wxUSE_GIF, Use GIF wxImageHandler}
 @itemdef{wxUSE_GLCANVAS, Enables OpenGL support.}
-@itemdef{wxUSE_GLOBAL_MEMORY_OPERATORS, Override global operators @c new and @c delete to use wxWidgets memory leak detection}
 @itemdef{wxUSE_GRAPHICS_CONTEXT, Use wxGraphicsContext and related classes.}
 @itemdef{wxUSE_GRID, Use wxGrid and related classes.}
 @itemdef{wxUSE_HELP, Use wxHelpController and related classes.}
@@ -142,18 +139,18 @@ library:
 @itemdef{wxUSE_IMAGE, Use wxImage and related classes.}
 @itemdef{wxUSE_IMAGLIST, Use wxImageList class.}
 @itemdef{wxUSE_INTL, Use wxLocale and related classes.}
-@itemdef{wxUSE_IOSTREAMH, Use header "iostream.h" instead of "iostream".}
 @itemdef{wxUSE_IPC, Use interprocess communication classes.}
 @itemdef{wxUSE_IPV6, Use experimental wxIPV6address and related classes.}
 @itemdef{wxUSE_JOYSTICK, Use wxJoystick class.}
 @itemdef{wxUSE_LIBJPEG, Enables JPEG format support (requires libjpeg).}
+@itemdef{wxUSE_LIBLZMA, Enables LZMA compression support (see @ref page_build_liblzma).}
 @itemdef{wxUSE_LIBPNG, Enables PNG format support (requires libpng). Also requires wxUSE_ZLIB.}
 @itemdef{wxUSE_LIBTIFF, Enables TIFF format support (requires libtiff).}
 @itemdef{wxUSE_LISTBOOK, Use wxListbook class.}
 @itemdef{wxUSE_LISTBOX, Use wxListBox class.}
 @itemdef{wxUSE_LISTCTRL, Use wxListCtrl class.}
 @itemdef{wxUSE_LOG, Use wxLog and related classes.}
-@itemdef{wxUSE_LOG_DEBUG, Enabled when wxLog used with __WXDEBUG__ defined.}
+@itemdef{wxUSE_LOG_DEBUG, Enabled when wxLog used with \__WXDEBUG__ defined.}
 @itemdef{wxUSE_LOG_DIALOG, Use wxLogDialog class.}
 @itemdef{wxUSE_LOGGUI, Use wxLogGui class.}
 @itemdef{wxUSE_LOGWINDOW, Use wxLogFrame class.}
@@ -164,13 +161,17 @@ library:
 @itemdef{wxUSE_MDI, Use wxMDIParentFrame, and wxMDIChildFrame}
 @itemdef{wxUSE_MDI_ARCHITECTURE, Use MDI-based document-view classes.}
 @itemdef{wxUSE_MEDIACTRL, Use wxMediaCtrl.}
-@itemdef{wxUSE_MEMORY_TRACING, Use wxWidgets memory leak detection, not recommended if using another memory debugging tool.}
-@itemdef{wxUSE_MENUS, Use wxMenu and related classes.}
+@itemdef{wxUSE_MENUS, Use wxMenu and wxMenuItem.}
+@itemdef{wxUSE_MENUBAR, Use wxMenubar.}
 @itemdef{wxUSE_METAFILE, Use wxMetaFile and related classes.}
 @itemdef{wxUSE_MIMETYPE, Use wxFileType class.}
 @itemdef{wxUSE_MINIFRAME, Use wxMiniFrame class.}
 @itemdef{wxUSE_MOUSEWHEEL, Support mouse wheel events.}
 @itemdef{wxUSE_MSGDLG, Use wxMessageDialog class and wxMessageBox function.}
+@itemdef{wxUSE_NANOSVG, Use NanoSVG for rasterizing SVG (this option is new since wxWidgets 3.1.7).}
+@itemdef{wxUSE_NANOSVG_EXTERNAL, Use an external NanoSVG library when wxUSE_NANOSVG is enabled.}
+@itemdef{wxUSE_NANOSVG_EXTERNAL_ENABLE_IMPL, When the external NanoSVG library is header only, define this to enable its implementation.}
+@itemdef{wxUSE_NATIVE_DATAVIEWCTRL, Use native wxDataViewCtrl class (this option is new since wxWidgets 3.1.4).}
 @itemdef{wxUSE_NATIVE_STATUSBAR, Use native wxStatusBar class.}
 @itemdef{wxUSE_NOTEBOOK, Use wxNotebook and related classes.}
 @itemdef{wxUSE_NUMBERDLG, Use wxNumberEntryDialog class.}
@@ -185,6 +186,7 @@ library:
 @itemdef{wxUSE_POSTSCRIPT, Use wxPostScriptPrinter class.}
 @itemdef{wxUSE_PRINTF_POS_PARAMS, Use wxVsnprintf which supports positional parameters.}
 @itemdef{wxUSE_PRINTING_ARCHITECTURE, Enable printer classes.}
+@itemdef{wxUSE_PRIVATE_FONTS, Implement wxFont::AddPrivateFont() method.}
 @itemdef{wxUSE_PROGRESSDLG, Enables progress dialog classes.}
 @itemdef{wxUSE_PROPGRID, Use wxPropertyGrid library.}
 @itemdef{wxUSE_PROTOCOL, Use wxProtocol and derived classes.}
@@ -193,6 +195,7 @@ library:
 @itemdef{wxUSE_PROTOCOL_HTTP, Use wxHTTP class. (requireswxProtocol)}
 @itemdef{wxUSE_RADIOBOX, Use wxRadioBox class.}
 @itemdef{wxUSE_RADIOBTN, Use wxRadioButton class.}
+@itemdef{wxUSE_REPRODUCIBLE_BUILD, Make library builds reproducible.}
 @itemdef{wxUSE_REGEX, Use wxRegEx class.}
 @itemdef{wxUSE_RICHTEXT, Use wxRichTextCtrl class.}
 @itemdef{wxUSE_RICHTEXT_XML_HANDLER, See src/xrc/xh_richtext.cpp file.}
@@ -218,6 +221,7 @@ library:
 @itemdef{wxUSE_STATUSBAR, Use wxStatusBar class.}
 @itemdef{wxUSE_STC, Use wxStyledTextCtrl.}
 @itemdef{wxUSE_STDPATHS, Use wxStandardPaths class.}
+@itemdef{wxUSE_STD_IOSTREAM, Use standard stream classes in addition to or, in wxDocument, instead of, wx streams.}
 @itemdef{wxUSE_STOPWATCH, Use wxStopWatch class.}
 @itemdef{wxUSE_STREAMS, Enable stream classes.}
 @itemdef{wxUSE_SVG, Use wxSVGFileDC class.}
@@ -246,6 +250,7 @@ library:
 @itemdef{wxUSE_URL_NATIVE, Use native support for some operations with wxURL.}
 @itemdef{wxUSE_VALIDATORS, Use wxValidator class.}
 @itemdef{wxUSE_VARIANT, Use wxVariant class.}
+@itemdef{wxUSE_WEBREQUEST, Use wxWebRequest class.}
 @itemdef{wxUSE_WEBVIEW, Use wxWebView class.}
 @itemdef{wxUSE_WIZARDDLG, Use wxWizard class.}
 @itemdef{wxUSE_WXHTML_HELP, Use wxHtmlHelpController and related classes.}
@@ -266,6 +271,7 @@ library:
 @itemdef{wxUSE_LIBSDL, Use SDL for wxSound implementation.}
 @itemdef{wxUSE_PLUGINS, See also wxUSE_LIBSDL.}
 @itemdef{wxUSE_UNIX, Enabled on Unix Platform.}
+@itemdef{wxUSE_XTEST, Use XTest extension.}
 @endDefList
 
 
@@ -283,7 +289,6 @@ library:
 @itemdef{wxUSE_DETECT_SM, Use code to detect X11 session manager.}
 @itemdef{wxUSE_GTKPRINT, Use GTK+ printing support.}
 @itemdef{wxUSE_LIBGNOMEVFS, Use GNOME VFS support. Currently has no effect. }
-@itemdef{wxUSE_LIBHILDON, Use Hildon framework for Nokia 770. Currently has no effect. }
 @endDefList
 
 
@@ -297,71 +302,43 @@ library:
 @endDefList
 
 
-@section page_wxusedef_motif wxMotif Symbols
-
-@beginDefList
-@itemdef{wxUSE_GADGETS, Use xmCascadeButtonGadgetClass, xmLabelGadgetClass, xmPushButtonGadgetClass and xmToggleButtonGadgetClass classes.}
-@itemdef{wxUSE_INVISIBLE_RESIZE, See src/motif/dialog.cpp file.}
-@endDefList
-
-
-@section page_wxusedef_cocoa Cocoa Symbols
-
-@beginDefList
-@itemdef{wxUSE_OBJC_UNIQUIFYING, Enable Objective-C class name uniquifying.}
-@endDefList
-
-
-@section page_wxusedef_os2 OS2 Symbols
-
-@beginDefList
-@itemdef{wxUSE_CONSOLEDEBUG, See src/os2/app.cpp file.}
-@itemdef{wxUSE_DDE, See src/os2/mimetype.cpp file.}
-@itemdef{wxUSE_IMAGE_LOADING_IN_MSW, See src/os2/clipbrd.cpp file.}
-@itemdef{wxUSE_IMAGE_LOADING_IN_OS2, See src/os2/gdiimage.cpp file.}
-@itemdef{wxUSE_NET_API, Use NetBios32GetInfo API call.}
-@itemdef{wxUSE_RESOURCE_LOADING_IN_OS2, See src/os2/gdiimage.cpp file.}
-@endDefList
-
-
 @section page_wxusedef_msw wxMSW Symbols
 
 @beginDefList
 @itemdef{wxUSE_ACCESSIBILITY, Enable accessibility support}
 @itemdef{wxUSE_ACTIVEX, Use wxActiveXContainer and related classes.}
 @itemdef{wxUSE_COMBOCTRL_POPUP_ANIMATION, See wx/msw/combo.h file.}
-@itemdef{wxUSE_COMCTL32_SAFELY, See src/msw/treectrl.cpp file.}
 @itemdef{wxUSE_COMMON_DIALOGS, Enable use of windows common dialogs from header commdlg.h; example PRINTDLG.}
 @itemdef{wxUSE_CRASHREPORT, Use wxCrashReport class.}
 @itemdef{wxUSE_DATEPICKCTRL_GENERIC, Use generic wxDatePickerCtrl implementation in addition to the native one.}
 @itemdef{wxUSE_DC_CACHEING, cache temporary wxDC objects.}
 @itemdef{wxUSE_DDE_FOR_IPC, See wx/ipc.h file.}
+@itemdef{wxUSE_DPI_AWARE_MANIFEST, Set the DPI awareness of the application
+(0=none, 1=system, 2=per-monitor). Used by CMake and when wxUSE_RC_MANIFEST is enabled.}
 @itemdef{wxUSE_ENH_METAFILE, Use wxEnhMetaFile.}
 @itemdef{wxUSE_HOTKEY, Use wxWindow::RegisterHotKey() and wxWindow::UnregisterHotKey}
 @itemdef{wxUSE_INKEDIT, Use InkEdit library. Related to Tablet PCs.}
 @itemdef{wxUSE_MS_HTML_HELP, Use wxCHMHelpController class.}
 @itemdef{wxUSE_NO_MANIFEST, Can be predefined to disable inclusion of the
 manifest from wxWidgets RC file. See also wxUSE_RC_MANIFEST.}
-@itemdef{wxUSE_NORLANDER_HEADERS, Using headers whose author is Anders Norlander.}
 @itemdef{wxUSE_OLE, Enables OLE helper routines.}
 @itemdef{wxUSE_OLE_AUTOMATION, Enable OLE automation utilities.}
-@itemdef{wxUSE_OLE_CLIPBOARD, Use OLE clipboard.}
-@itemdef{wxUSE_PENWINDOWS, See src/msw/penwin.cpp file.}
 @itemdef{wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW, Use PS printing in wxMSW.}
 @itemdef{wxUSE_PS_PRINTING, See src/msw/dcprint.cpp file.}
 @itemdef{wxUSE_RC_MANIFEST, Include manifest for common controls library v6
-from wxWidgets RC file. This may be needed to be defined explicitly for MSVC 6
-and 7 (98 and 2003) only as later versions of MSVC generate this manifest
-themselves and the manifest generation is enabled by default for the other
-compilers. See also wxUSE_NO_MANIFEST.}
+from wxWidgets RC file. This is disabled by default for MSVC but enabled for
+the other compilers. See also wxUSE_NO_MANIFEST.}
 @itemdef{wxUSE_REGKEY, Use wxRegKey class.}
 @itemdef{wxUSE_RICHEDIT, Enable use of riched32.dll in wxTextCtrl}
 @itemdef{wxUSE_RICHEDIT2, Enable use of riched20.dll in wxTextCtrl}
 @itemdef{wxUSE_VC_CRTDBG, See wx/msw/msvcrt.h file.}
-@itemdef{wxUSE_UNICODE_MSLU, Use MSLU for Unicode support under Windows 9x systems.}
 @itemdef{wxUSE_UXTHEME, Enable support for XP themes.}
 @itemdef{wxUSE_WIN_METAFILES_ALWAYS, Use wxMetaFile even when wxUSE_ENH_METAFILE=1.}
+@itemdef{wxUSE_WINRT, Enable WinRT support.}
 @itemdef{wxUSE_WXDIB, Use wxDIB class.}
+@itemdef{wxUSE_WINSOCK2, Include @c <winsock2.h> instead of @c <winsock.h>.
+Turned on automatically if wxUSE_IPV6 is on (this option is new since
+wxWidgets 3.1.3).}
 @endDefList
 
 

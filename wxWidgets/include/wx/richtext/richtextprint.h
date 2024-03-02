@@ -86,7 +86,7 @@ public:
     void SetTextColour(const wxColour& col) { m_colour = col; }
     const wxColour& GetTextColour() const { return m_colour; }
 
-    DECLARE_CLASS(wxRichTextHeaderFooterData)
+    wxDECLARE_CLASS(wxRichTextHeaderFooterData);
 
 private:
 
@@ -124,11 +124,11 @@ public:
     void CalculateScaling(wxDC* dc, wxRect& textRect, wxRect& headerRect, wxRect& footerRect);
 
     // wxPrintout virtual functions
-    virtual bool OnPrintPage(int page);
-    virtual bool HasPage(int page);
-    virtual void GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *selPageTo);
-    virtual bool OnBeginDocument(int startPage, int endPage);
-    virtual void OnPreparePrinting();
+    virtual bool OnPrintPage(int page) override;
+    virtual bool HasPage(int page) override;
+    virtual void GetPageInfo(int *minPage, int *maxPage, int *selPageFrom, int *selPageTo) override;
+    virtual bool OnBeginDocument(int startPage, int endPage) override;
+    virtual void OnPreparePrinting() override;
 
 private:
 
@@ -160,7 +160,7 @@ private:
 class WXDLLIMPEXP_RICHTEXT wxRichTextPrinting : public wxObject
 {
 public:
-    wxRichTextPrinting(const wxString& name = wxGetTranslation("Printing"), wxWindow *parentWindow = NULL);
+    wxRichTextPrinting(const wxString& name = wxGetTranslation("Printing"), wxWindow *parentWindow = nullptr);
     virtual ~wxRichTextPrinting();
 
     /// Preview the file or buffer

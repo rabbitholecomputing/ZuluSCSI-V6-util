@@ -2,7 +2,6 @@
 // Name:        src/osx/cocoa/radiobut.mm
 // Purpose:     wxRadioButton
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     ??/??/98
 // Copyright:   (c) AUTHOR
 // Licence:     wxWindows licence
@@ -109,6 +108,7 @@ wxWidgetImplType* wxWidgetImpl::CreateRadioButton( wxWindowMac* wxpeer,
     wxNSRadioButton* v = [[wxNSRadioButton alloc] initWithFrame:r];
 
     [v setButtonType:NSRadioButton];
+    [v setAlignment:NSLeftTextAlignment];
 
     static int alternateAction = 1;
  

@@ -57,12 +57,12 @@ public:
     unsigned char* GetPalette(unsigned int frame) const;
     unsigned int GetNcolours(unsigned int frame) const;
     int GetTransparentColourIndex(unsigned int frame) const;
-    wxColour GetTransparentColour(unsigned int frame) const;
+    wxColour GetTransparentColour(unsigned int frame) const override;
 
-    virtual wxSize GetFrameSize(unsigned int frame) const;
-    virtual wxPoint GetFramePosition(unsigned int frame) const;
-    virtual wxAnimationDisposal GetDisposalMethod(unsigned int frame) const;
-    virtual long GetDelay(unsigned int frame) const;
+    virtual wxSize GetFrameSize(unsigned int frame) const override;
+    virtual wxPoint GetFramePosition(unsigned int frame) const override;
+    virtual wxAnimationDisposal GetDisposalMethod(unsigned int frame) const override;
+    virtual long GetDelay(unsigned int frame) const override;
 
     // GIFs can contain both static images and animations
     bool IsAnimation() const
@@ -75,21 +75,22 @@ public:
     void Destroy();
 
     // implementation of wxAnimationDecoder's pure virtuals
-    virtual bool Load( wxInputStream& stream )
+    virtual bool Load( wxInputStream& stream ) override
         { return LoadGIF(stream) == wxGIF_OK; }
 
-    bool ConvertToImage(unsigned int frame, wxImage *image) const;
+    bool ConvertToImage(unsigned int frame, wxImage *image) const override;
 
-    wxAnimationDecoder *Clone() const
+    wxAnimationDecoder *Clone() const override
         { return new wxGIFDecoder; }
-    wxAnimationType GetType() const
+    wxAnimationType GetType() const override
         { return wxANIMATION_TYPE_GIF; }
 
-private:
+protected:
     // wxAnimationDecoder pure virtual
-    virtual bool DoCanRead( wxInputStream& stream ) const;
+    virtual bool DoCanRead( wxInputStream& stream ) const override;
         // modifies current stream position (see wxAnimationDecoder::CanRead)
 
+private:
     int getcode(wxInputStream& stream, int bits, int abfin);
     wxGIFErrorCode dgif(wxInputStream& stream,
                         GIFImage *img, int interl, int bits);

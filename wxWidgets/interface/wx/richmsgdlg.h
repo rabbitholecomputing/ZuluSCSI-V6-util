@@ -15,9 +15,8 @@
     extra explanatory text which is initially collapsed and not shown to the
     user but can be expanded to show more information.
 
-    Notice that currently the native dialog is used only under MSW when using
-    Vista or later Windows version. Elsewhere, or for older versions of
-    Windows, a generic implementation which is less familiar to the users is
+    Notice that currently the native dialog is used only under MSW. Elsewhere,
+    a generic implementation which is less familiar to the users is
     used. Because of this it's recommended to use this class only if you do
     need its extra functionality and use wxMessageDialog which does have native
     implementation under all platforms otherwise. However if you do need to put
@@ -106,6 +105,54 @@ public:
             The detailed text or empty if detailed text is not used.
      */
     wxString GetDetailedText() const;
+
+    /**
+        Shows or hides a footer text that is used at the bottom of
+        the dialog together with an optional icon.
+
+        @param footerText
+            The footer text if empty no footer text will be used.
+
+        @see SetFooterIcon(), GetFooterText()
+
+        @since 3.1.1
+    */
+    void SetFooterText(const wxString& footerText);
+
+    /**
+        Retrieves the footer text.
+
+        @return
+            The footer text or empty if footer text is not used.
+
+        @since 3.1.1
+    */
+    wxString GetFooterText() const;
+
+    /**
+        Specify the footer icon set together with the footer text.
+
+        Valid values are @c wxICON_INFORMATION, @c wxICON_WARNING,
+        @c wxICON_AUTH_NEEDED and @c wxICON_ERROR (notice that
+        @c wxICON_QUESTION is not allowed here).
+
+        @see GetFooterIcon(), SetFooterText()
+
+        @since 3.1.1
+    */
+    void SetFooterIcon(int icon);
+
+    /**
+        Retrieves the footer icon.
+
+        @return
+            The footer icon or 0 if footer icon is not used.
+
+        @see SetFooterIcon()
+
+        @since 3.1.1
+    */
+    int GetFooterIcon() const;
 
     /**
         Retrieves the state of the checkbox.

@@ -2,7 +2,6 @@
 // Name:        wx/osx/printmac.h
 // Purpose:     wxWindowsPrinter, wxWindowsPrintPreview classes
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -19,17 +18,17 @@
 
 class WXDLLIMPEXP_CORE wxMacPrinter: public wxPrinterBase
 {
-  DECLARE_DYNAMIC_CLASS(wxMacPrinter)
+    wxDECLARE_DYNAMIC_CLASS(wxMacPrinter);
 
- public:
-    wxMacPrinter(wxPrintDialogData *data = NULL);
+public:
+    wxMacPrinter(wxPrintDialogData *data = nullptr);
     virtual ~wxMacPrinter();
 
     virtual bool Print(wxWindow *parent,
                        wxPrintout *printout,
-                       bool prompt = true);
-    virtual wxDC* PrintDialog(wxWindow *parent);
-  virtual bool Setup(wxWindow *parent);
+                       bool prompt = true) override;
+    virtual wxDC* PrintDialog(wxWindow *parent) override;
+    virtual bool Setup(wxWindow *parent) override;
 
 };
 
@@ -40,19 +39,19 @@ class WXDLLIMPEXP_CORE wxMacPrinter: public wxPrinterBase
 
 class WXDLLIMPEXP_CORE wxMacPrintPreview: public wxPrintPreviewBase
 {
-  DECLARE_CLASS(wxMacPrintPreview)
+    wxDECLARE_CLASS(wxMacPrintPreview);
 
- public:
+public:
     wxMacPrintPreview(wxPrintout *printout,
-                          wxPrintout *printoutForPrinting = NULL,
-                          wxPrintDialogData *data = NULL);
+                          wxPrintout *printoutForPrinting = nullptr,
+                          wxPrintDialogData *data = nullptr);
     wxMacPrintPreview(wxPrintout *printout,
                           wxPrintout *printoutForPrinting,
                           wxPrintData *data);
     virtual ~wxMacPrintPreview();
 
-  virtual bool Print(bool interactive);
-    virtual void DetermineScaling();
+    virtual bool Print(bool interactive) override;
+    virtual void DetermineScaling() override;
 };
 
 #endif

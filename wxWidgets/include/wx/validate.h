@@ -2,7 +2,6 @@
 // Name:        wx/validate.h
 // Purpose:     wxValidator class
 // Author:      Julian Smart
-// Modified by:
 // Created:     29/01/98
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
@@ -43,12 +42,12 @@ public:
     }
     virtual ~wxValidator();
 
-    // Make a clone of this validator (or return NULL) - currently necessary
+    // Make a clone of this validator (or return nullptr) - currently necessary
     // if you're passing a reference to a validator.
     // Another possibility is to always pass a pointer to a new validator
     // (so the calling code can use a copy constructor of the relevant class).
     virtual wxObject *Clone() const
-        { return NULL; }
+        { return nullptr; }
     bool Copy(const wxValidator& val)
         { m_validatorWindow = val.m_validatorWindow; return true; }
 
@@ -62,9 +61,12 @@ public:
     // Called to transfer data from the window
     virtual bool TransferFromWindow() { return false; }
 
+    // Called when the validator is associated with a window, may be useful to
+    // override if it needs to somehow initialize the window.
+    virtual void SetWindow(wxWindow *win) { m_validatorWindow = win; }
+
     // accessors
-    wxWindow *GetWindow() const { return (wxWindow *)m_validatorWindow; }
-    void SetWindow(wxWindowBase *win) { m_validatorWindow = win; }
+    wxWindow *GetWindow() const { return m_validatorWindow; }
 
     // validators beep by default if invalid key is pressed, this function
     // allows to change this
@@ -77,35 +79,28 @@ public:
     // this function is deprecated because it handled its parameter
     // unnaturally: it disabled the bell when it was true, not false as could
     // be expected; use SuppressBellOnError() instead
-#if WXWIN_COMPATIBILITY_2_8
-    static wxDEPRECATED_INLINE(
-        void SetBellOnError(bool doIt = true),
-        ms_isSilent = doIt;
-    )
-#endif
 
 protected:
-    wxWindowBase *m_validatorWindow;
+    wxWindow *m_validatorWindow;
 
 private:
     static bool ms_isSilent;
 
-    DECLARE_DYNAMIC_CLASS(wxValidator)
+    wxDECLARE_DYNAMIC_CLASS(wxValidator);
     wxDECLARE_NO_ASSIGN_CLASS(wxValidator);
 };
 
-extern WXDLLIMPEXP_DATA_CORE(const wxValidator) wxDefaultValidator;
-
 #define wxVALIDATOR_PARAM(val) val
+
+extern WXDLLIMPEXP_DATA_CORE(const wxValidator) wxDefaultValidator;
 
 #else // !wxUSE_VALIDATORS
     // wxWidgets is compiled without support for wxValidator, but we still
     // want to be able to pass wxDefaultValidator to the functions which take
     // a wxValidator parameter to avoid using "#if wxUSE_VALIDATORS"
     // everywhere
-    class WXDLLIMPEXP_FWD_CORE wxValidator;
-    static const wxValidator* const wxDefaultValidatorPtr = NULL;
-    #define wxDefaultValidator (*wxDefaultValidatorPtr)
+    class wxValidator { };
+    #define wxDefaultValidator wxValidator()
 
     // this macro allows to avoid warnings about unused parameters when
     // wxUSE_VALIDATORS == 0
@@ -113,4 +108,3 @@ extern WXDLLIMPEXP_DATA_CORE(const wxValidator) wxDefaultValidator;
 #endif // wxUSE_VALIDATORS/!wxUSE_VALIDATORS
 
 #endif // _WX_VALIDATE_H_
-

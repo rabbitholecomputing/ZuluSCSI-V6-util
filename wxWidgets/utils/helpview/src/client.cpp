@@ -21,9 +21,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
@@ -55,31 +52,31 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_APP(MyApp)
+wxIMPLEMENT_APP(MyApp);
 
-BEGIN_EVENT_TABLE(MyFrame, wxFrame)
-EVT_MENU(CLIENT_QUIT, MyFrame::OnExit)
-EVT_MENU(CLIENT_HELPMAIN, MyFrame::OnHelp_Main)
-EVT_MENU(CLIENT_HELPBOOK1, MyFrame::OnHelp_Book1)
-EVT_MENU(CLIENT_HELPBOOK2, MyFrame::OnHelp_Book2)
+wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
+    EVT_MENU(CLIENT_QUIT, MyFrame::OnExit)
+    EVT_MENU(CLIENT_HELPMAIN, MyFrame::OnHelp_Main)
+    EVT_MENU(CLIENT_HELPBOOK1, MyFrame::OnHelp_Book1)
+    EVT_MENU(CLIENT_HELPBOOK2, MyFrame::OnHelp_Book2)
 
-EVT_MENU(CLIENT_HELPINDEX, MyFrame::OnHelp_Index)
-EVT_MENU(CLIENT_HELPCONTENTS, MyFrame::OnHelp_Contents)
-EVT_MENU(CLIENT_HELPSEARCH, MyFrame::OnHelp_Search)
-EVT_MENU(CLIENT_HELPTITLE, MyFrame::OnHelp_Title)
-EVT_MENU(CLIENT_HELPADDBOOK, MyFrame::OnHelp_Addbook)
-EVT_MENU(CLIENT_HELPTEMPDIR, MyFrame::OnHelp_Tempdir)
-EVT_MENU(CLIENT_HELPQUIT, MyFrame::OnHelp_Quitserver)
+    EVT_MENU(CLIENT_HELPINDEX, MyFrame::OnHelp_Index)
+    EVT_MENU(CLIENT_HELPCONTENTS, MyFrame::OnHelp_Contents)
+    EVT_MENU(CLIENT_HELPSEARCH, MyFrame::OnHelp_Search)
+    EVT_MENU(CLIENT_HELPTITLE, MyFrame::OnHelp_Title)
+    EVT_MENU(CLIENT_HELPADDBOOK, MyFrame::OnHelp_Addbook)
+    EVT_MENU(CLIENT_HELPTEMPDIR, MyFrame::OnHelp_Tempdir)
+    EVT_MENU(CLIENT_HELPQUIT, MyFrame::OnHelp_Quitserver)
 
-EVT_MENU(DIALOG_MODAL, MyFrame::ModalDlg)
-EVT_BUTTON(BUTTON_MODAL, MyFrame::ModalDlg)
-END_EVENT_TABLE()
+    EVT_MENU(DIALOG_MODAL, MyFrame::ModalDlg)
+    EVT_BUTTON(BUTTON_MODAL, MyFrame::ModalDlg)
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // globals
 // ----------------------------------------------------------------------------
 
-wxListBox *the_list = NULL;
+wxListBox *the_list = nullptr;
 
 // ============================================================================
 // implementation
@@ -95,7 +92,7 @@ bool MyApp::OnInit()
 {
     wxString a_appname, a_service, a_windowname, a_book;
 
-    m_help = NULL;
+    m_help = nullptr;
 
     // for MSW (DDE classes), a_service is 'service name', apparently an arbitrary string
     // for Unix, should be a valid file name (for a nonexistent file)
@@ -131,7 +128,7 @@ bool MyApp::OnInit()
     m_help->SetTitleFormat( a_windowname );
 
     // Create the main frame window
-    MyFrame* frame = new MyFrame(NULL, "Help Client");
+    MyFrame* frame = new MyFrame(nullptr, "Help Client");
     frame->Show(true);
 
     return true;
@@ -140,7 +137,7 @@ bool MyApp::OnInit()
 int MyApp::OnExit()
 {
     delete m_help;
-    delete wxConfig::Set(NULL);
+    delete wxConfig::Set(nullptr);
     return 0;
 }
 
@@ -148,7 +145,7 @@ int MyApp::OnExit()
 MyFrame::MyFrame(wxFrame *frame, const wxString& title)
 : wxFrame(frame, wxID_ANY, title, wxDefaultPosition, wxSize( 200, 100 ) )
 {
-    m_panel = NULL;
+    m_panel = nullptr;
 
     // Give it an icon
     SetIcon(wxICON(mondrian));
@@ -245,9 +242,9 @@ void MyFrame::ModalDlg(wxCommandEvent& WXUNUSED(event))
     dlg.ShowModal();
 }
 
-BEGIN_EVENT_TABLE(MyModalDialog, wxDialog)
-EVT_BUTTON(wxID_ANY, MyModalDialog::OnButton)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(MyModalDialog, wxDialog)
+    EVT_BUTTON(wxID_ANY, MyModalDialog::OnButton)
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // MyModalDialog

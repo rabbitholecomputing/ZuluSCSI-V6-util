@@ -2,7 +2,6 @@
 // Name:        src/common/panelcmn.cpp
 // Purpose:     wxPanel common code
 // Author:      Julian Smart, Robert Roebling, Vadim Zeitlin
-// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/object.h"
@@ -59,7 +55,6 @@ wxBEGIN_FLAGS( wxPanelStyle )
     // standard window styles
     wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
     wxFLAGS_MEMBER(wxCLIP_CHILDREN)
-    wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
     wxFLAGS_MEMBER(wxWANTS_CHARS)
     wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
     wxFLAGS_MEMBER(wxALWAYS_SHOW_SB)
@@ -67,7 +62,7 @@ wxBEGIN_FLAGS( wxPanelStyle )
     wxFLAGS_MEMBER(wxHSCROLL)
 wxEND_FLAGS( wxPanelStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxPanel, wxWindow, "wx/panel.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxPanel, wxWindow, "wx/panel.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxPanel)
     wxPROPERTY_FLAGS( WindowStyle, wxPanelStyle, long, \
@@ -89,14 +84,14 @@ wxCONSTRUCTOR_6( wxPanel, wxWindow*, Parent, wxWindowID, Id, \
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// wxPanelBase creation
+// wxPanel creation
 // ----------------------------------------------------------------------------
 
-bool wxPanelBase::Create(wxWindow *parent, wxWindowID id,
-                         const wxPoint& pos,
-                         const wxSize& size,
-                         long style,
-                         const wxString& name)
+bool wxPanel::Create(wxWindow *parent, wxWindowID id,
+                     const wxPoint& pos,
+                     const wxSize& size,
+                     long style,
+                     const wxString& name)
 {
     if ( !wxWindow::Create(parent, id, pos, size, style, name) )
         return false;
@@ -104,15 +99,10 @@ bool wxPanelBase::Create(wxWindow *parent, wxWindowID id,
     // so that non-solid background renders correctly under GTK+:
     SetThemeEnabled(true);
 
-#if defined(__WXWINCE__) && (defined(__POCKETPC__) || defined(__SMARTPHONE__))
-    // Required to get solid control backgrounds under WinCE
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-#endif
-
     return true;
 }
 
-void wxPanelBase::InitDialog()
+void wxPanel::InitDialog()
 {
     wxInitDialogEvent event(GetId());
     event.SetEventObject(this);

@@ -2,7 +2,6 @@
 // Name:        wx/richtext/richtextbuffer.h
 // Purpose:     Buffer for wxRichTextCtrl
 // Author:      Julian Smart
-// Modified by:
 // Created:     2005-09-30
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -183,7 +182,10 @@ enum wxTextBoxAttrFlags
     wxTEXT_BOX_ATTR_FLOAT                   = 0x00000001,
     wxTEXT_BOX_ATTR_CLEAR                   = 0x00000002,
     wxTEXT_BOX_ATTR_COLLAPSE_BORDERS        = 0x00000004,
-    wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT      = 0x00000008
+    wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT      = 0x00000008,
+    wxTEXT_BOX_ATTR_BOX_STYLE_NAME          = 0x00000010,
+    wxTEXT_BOX_ATTR_WHITESPACE              = 0x00000020,
+    wxTEXT_BOX_ATTR_CORNER_RADIUS           = 0x00000040
 };
 
 /**
@@ -260,7 +262,7 @@ public:
 
     /** Apply the dimension, but not those identical to @a compareWith if present.
     */
-    bool Apply(const wxTextAttrDimension& dim, const wxTextAttrDimension* compareWith = NULL);
+    bool Apply(const wxTextAttrDimension& dim, const wxTextAttrDimension* compareWith = nullptr);
 
     /** Collects the attributes that are common to a range of content, building up a note of
         which attributes are absent in some objects and which clash in some objects.
@@ -368,7 +370,7 @@ public:
     /**
         Default constructor.
     */
-    wxTextAttrDimensions() {}
+    wxTextAttrDimensions() = default;
 
     /**
         Resets the value and flags for all dimensions.
@@ -382,7 +384,7 @@ public:
 
     /**
         Partial equality test. If @a weakTest is @true, attributes of this object do not
-        have to be present if those attributes of @a dim sare present. If @a weakTest is
+        have to be present if those attributes of @a dims are present. If @a weakTest is
         @false, the function will fail if an attribute is present in @a dims but not
         in this object.
 
@@ -393,7 +395,7 @@ public:
         Apply to 'this', but not if the same as @a compareWith.
 
     */
-    bool Apply(const wxTextAttrDimensions& dims, const wxTextAttrDimensions* compareWith = NULL);
+    bool Apply(const wxTextAttrDimensions& dims, const wxTextAttrDimensions* compareWith = nullptr);
 
     /**
         Collects the attributes that are common to a range of content, building up a note of
@@ -462,7 +464,7 @@ public:
     /**
         Default constructor.
     */
-    wxTextAttrSize() {}
+    wxTextAttrSize() = default;
 
     /**
         Resets the width and height dimensions.
@@ -485,7 +487,7 @@ public:
     /**
         Apply to this object, but not if the same as @a compareWith.
     */
-    bool Apply(const wxTextAttrSize& dims, const wxTextAttrSize* compareWith = NULL);
+    bool Apply(const wxTextAttrSize& dims, const wxTextAttrSize* compareWith = nullptr);
 
     /**
         Collects the attributes that are common to a range of content, building up a note of
@@ -651,7 +653,7 @@ enum wxTextBoxAttrClearStyle
 };
 
 /**
-    Collapse mode styles. TODO: can they be switched on per side?
+    Collapse mode styles.
  */
 enum wxTextBoxAttrCollapseMode
 {
@@ -668,6 +670,21 @@ enum wxTextBoxAttrVerticalAlignment
     wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_TOP  =       1,
     wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_CENTRE =     2,
     wxTEXT_BOX_ATTR_VERTICAL_ALIGNMENT_BOTTOM  =    3
+};
+
+/**
+    Whitespace values mirroring the CSS white-space attribute.
+    Only wxTEXT_BOX_ATTR_WHITESPACE_NO_WRAP is currently implemented,
+    in table cells.
+ */
+enum wxTextBoxAttrWhitespaceMode
+{
+    wxTEXT_BOX_ATTR_WHITESPACE_NONE                 = 0,
+    wxTEXT_BOX_ATTR_WHITESPACE_NORMAL               = 1,
+    wxTEXT_BOX_ATTR_WHITESPACE_NO_WRAP              = 2,
+    wxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED         = 3,
+    wxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED_LINE    = 4,
+    wxTEXT_BOX_ATTR_WHITESPACE_PREFORMATTED_WRAP    = 5
 };
 
 /**
@@ -714,7 +731,7 @@ public:
         Applies the border to this object, but not if the same as @a compareWith.
 
     */
-    bool Apply(const wxTextAttrBorder& border, const wxTextAttrBorder* compareWith = NULL);
+    bool Apply(const wxTextAttrBorder& border, const wxTextAttrBorder* compareWith = nullptr);
 
     /**
         Removes the specified attributes from this object.
@@ -845,7 +862,7 @@ public:
     /**
         Default constructor.
     */
-    wxTextAttrBorders() { }
+    wxTextAttrBorders() = default;
 
     /**
         Equality operator.
@@ -897,7 +914,7 @@ public:
     /**
         Applies border to this object, but not if the same as @a compareWith.
     */
-    bool Apply(const wxTextAttrBorders& borders, const wxTextAttrBorders* compareWith = NULL);
+    bool Apply(const wxTextAttrBorders& borders, const wxTextAttrBorders* compareWith = nullptr);
 
     /**
         Removes the specified attributes from this object.
@@ -941,6 +958,183 @@ public:
 
     wxTextAttrBorder m_left, m_right, m_top, m_bottom;
 
+};
+
+/**
+    @class wxTextAttrShadow
+    A class representing a shadow.
+
+    @library{wxrichtext}
+    @category{richtext}
+
+    @see wxRichTextAttr, wxRichTextCtrl
+*/
+
+class WXDLLIMPEXP_RICHTEXT wxTextAttrShadow
+{
+public:
+    /**
+        Default constructor.
+    */
+    wxTextAttrShadow() { Reset(); }
+
+    /**
+        Equality operator.
+    */
+    bool operator==(const wxTextAttrShadow& shadow) const;
+
+    /**
+        Resets the shadow.
+    */
+    void Reset();
+
+    /**
+        Partial equality test. If @a weakTest is @true, attributes of this object do not
+        have to be present if those attributes of @a border are present. If @a weakTest is
+        @false, the function will fail if an attribute is present in @a border but not
+        in this object.
+    */
+    bool EqPartial(const wxTextAttrShadow& shadow, bool weakTest = true) const;
+
+    /**
+        Applies the border to this object, but not if the same as @a compareWith.
+
+    */
+    bool Apply(const wxTextAttrShadow& shadow, const wxTextAttrShadow* compareWith = nullptr);
+
+    /**
+        Removes the specified attributes from this object.
+    */
+    bool RemoveStyle(const wxTextAttrShadow& attr);
+
+    /**
+        Collects the attributes that are common to a range of content, building up a note of
+        which attributes are absent in some objects and which clash in some objects.
+    */
+    void CollectCommonAttributes(const wxTextAttrShadow& attr, wxTextAttrShadow& clashingAttr, wxTextAttrShadow& absentAttr);
+
+    /**
+        Sets the shadow colour.
+    */
+    void SetColour(unsigned long colour) { m_shadowColour = colour; m_flags |= wxTEXT_BOX_ATTR_BORDER_COLOUR; }
+
+    /**
+        Sets the shadow colour.
+    */
+    void SetColour(const wxColour& colour) { m_shadowColour = colour.GetRGB(); m_flags |= wxTEXT_BOX_ATTR_BORDER_COLOUR; }
+
+    /**
+        Gets the colour as a long.
+    */
+    unsigned long GetColourLong() const { return m_shadowColour; }
+
+    /**
+        Gets the colour.
+    */
+    wxColour GetColour() const { return wxColour(m_shadowColour); }
+
+    /**
+        True if the shadow has a valid colour.
+    */
+    bool HasColour() const { return (m_flags & wxTEXT_BOX_ATTR_BORDER_COLOUR) != 0; }
+
+    /**
+        Gets the shadow horizontal offset.
+    */
+    wxTextAttrDimension& GetOffsetX() { return m_offsetX; }
+    const wxTextAttrDimension& GetOffsetX() const { return m_offsetX; }
+
+    /**
+        Sets the shadow horizontal offset.
+    */
+    void SetOffsetX(const wxTextAttrDimension& offset) { m_offsetX = offset; }
+
+    /**
+        Gets the shadow vertical offset.
+    */
+    wxTextAttrDimension& GetOffsetY() { return m_offsetY; }
+    const wxTextAttrDimension& GetOffsetY() const { return m_offsetY; }
+
+    /**
+        Sets the shadow vertical offset.
+    */
+    void SetOffsetY(const wxTextAttrDimension& offset) { m_offsetY = offset; }
+
+    /**
+        Gets the shadow spread size.
+    */
+    wxTextAttrDimension& GetSpread() { return m_spread; }
+    const wxTextAttrDimension& GetSpread() const { return m_spread; }
+
+    /**
+        Sets the shadow spread size.
+    */
+    void SetSpread(const wxTextAttrDimension& spread) { m_spread = spread; }
+
+    /**
+        Gets the shadow blur distance.
+    */
+    wxTextAttrDimension& GetBlurDistance() { return m_blurDistance; }
+    const wxTextAttrDimension& GetBlurDistance() const { return m_blurDistance; }
+
+    /**
+        Sets the shadow blur distance.
+    */
+    void SetBlurDistance(const wxTextAttrDimension& blur) { m_blurDistance = blur; }
+
+    /**
+        Gets the shadow opacity.
+    */
+    wxTextAttrDimension& GetOpacity() { return m_opacity; }
+    const wxTextAttrDimension& GetOpacity() const { return m_opacity; }
+
+    /**
+        Returns @true if the dimension is valid.
+    */
+    bool IsValid() const { return (m_flags & wxTEXT_ATTR_VALUE_VALID) != 0; }
+
+    /**
+        Sets the valid flag.
+    */
+    void SetValid(bool b) { m_flags &= ~wxTEXT_ATTR_VALUE_VALID_MASK; m_flags |= (b ? wxTEXT_ATTR_VALUE_VALID : 0); }
+
+    /**
+        Returns the border flags.
+    */
+    int GetFlags() const { return m_flags; }
+
+    /**
+        Sets the border flags.
+    */
+    void SetFlags(int flags) { m_flags = flags; }
+
+    /**
+        Adds a border flag.
+    */
+    void AddFlag(int flag) { m_flags |= flag; }
+
+    /**
+        Removes a border flag.
+    */
+    void RemoveFlag(int flag) { m_flags &= ~flag; }
+
+    /**
+        Sets the shadow opacity.
+    */
+    void SetOpacity(const wxTextAttrDimension& opacity) { m_opacity = opacity; }
+
+    /**
+        True if the shadow has no attributes set.
+    */
+    bool IsDefault() const { return !HasColour() && !m_offsetX.IsValid() && !m_offsetY.IsValid() && !m_spread.IsValid() && !m_blurDistance.IsValid() && !m_opacity.IsValid(); }
+
+    int                         m_flags;
+    unsigned long               m_shadowColour;
+    wxTextAttrDimension         m_offsetX;
+    wxTextAttrDimension         m_offsetY;
+    wxTextAttrDimension         m_spread;
+    wxTextAttrDimension         m_blurDistance;
+    wxTextAttrDimension         m_opacity;
 };
 
 /**
@@ -997,11 +1191,11 @@ public:
     bool EqPartial(const wxTextBoxAttr& attr, bool weakTest = true) const;
 
     /**
-        Merges the given attributes. If @a compareWith is non-NULL, then it will be used
+        Merges the given attributes. If @a compareWith is non-null, then it will be used
         to mask out those attributes that are the same in style and @a compareWith, for
         situations where we don't want to explicitly set inherited attributes.
     */
-    bool Apply(const wxTextBoxAttr& style, const wxTextBoxAttr* compareWith = NULL);
+    bool Apply(const wxTextBoxAttr& style, const wxTextBoxAttr* compareWith = nullptr);
 
     /**
         Collects the attributes that are common to a range of content, building up a note of
@@ -1093,6 +1287,37 @@ public:
         Returns @true if the collapse borders flag is present.
     */
     bool HasCollapseBorders() const { return HasFlag(wxTEXT_BOX_ATTR_COLLAPSE_BORDERS); }
+
+    /**
+        Returns the whitespace mode.
+    */
+    wxTextBoxAttrWhitespaceMode GetWhitespaceMode() const { return m_whitespaceMode; }
+
+    /**
+        Sets the whitespace mode.
+    */
+    void SetWhitespaceMode(wxTextBoxAttrWhitespaceMode whitespace) { m_whitespaceMode = whitespace; m_flags |= wxTEXT_BOX_ATTR_WHITESPACE; }
+
+    /**
+        Returns @true if the whitespace flag is present.
+    */
+    bool HasWhitespaceMode() const { return HasFlag(wxTEXT_BOX_ATTR_WHITESPACE); }
+
+    /**
+        Returns @true if the corner radius flag is present.
+    */
+    bool HasCornerRadius() const { return HasFlag(wxTEXT_BOX_ATTR_CORNER_RADIUS); }
+
+    /**
+        Returns the corner radius value.
+    */
+    const wxTextAttrDimension& GetCornerRadius() const { return m_cornerRadius; }
+    wxTextAttrDimension& GetCornerRadius() { return m_cornerRadius; }
+
+    /**
+        Sets the corner radius value.
+    */
+    void SetCornerRadius(const wxTextAttrDimension& dim) { m_cornerRadius = dim; m_flags |= wxTEXT_BOX_ATTR_CORNER_RADIUS; }
 
     /**
         Returns the vertical alignment.
@@ -1321,6 +1546,12 @@ public:
     */
     bool HasBoxStyleName() const { return HasFlag(wxTEXT_BOX_ATTR_BOX_STYLE_NAME); }
 
+    /**
+        Returns the box shadow attributes.
+    */
+    wxTextAttrShadow& GetShadow() { return m_shadow; }
+    const wxTextAttrShadow& GetShadow() const { return m_shadow; }
+
 public:
 
     int                             m_flags;
@@ -1340,7 +1571,10 @@ public:
     wxTextBoxAttrClearStyle         m_clearMode;
     wxTextBoxAttrCollapseMode       m_collapseMode;
     wxTextBoxAttrVerticalAlignment  m_verticalAlignment;
+    wxTextBoxAttrWhitespaceMode     m_whitespaceMode;
+    wxTextAttrDimension             m_cornerRadius;
     wxString                        m_boxStyleName;
+    wxTextAttrShadow                m_shadow;
 };
 
 /**
@@ -1370,7 +1604,7 @@ public:
     /**
         Default constructor.
     */
-    wxRichTextAttr() {}
+    wxRichTextAttr() = default;
 
     /**
         Copy function.
@@ -1402,10 +1636,10 @@ public:
 
     /**
         Merges the given attributes. If @a compareWith
-        is non-NULL, then it will be used to mask out those attributes that are the same in style
+        is non-null, then it will be used to mask out those attributes that are the same in style
         and @a compareWith, for situations where we don't want to explicitly set inherited attributes.
     */
-    bool Apply(const wxRichTextAttr& style, const wxRichTextAttr* compareWith = NULL);
+    bool Apply(const wxRichTextAttr& style, const wxRichTextAttr* compareWith = nullptr);
 
     /**
         Collects the attributes that are common to a range of content, building up a note of
@@ -1458,7 +1692,7 @@ public:
     /**
         Default constructor.
     */
-    wxRichTextProperties() {}
+    wxRichTextProperties() = default;
 
     /**
         Copy constructor.
@@ -1642,7 +1876,7 @@ public:
     /**
         Returns @true if the font table is valid.
     */
-    bool IsOk() const { return m_refData != NULL; }
+    bool IsOk() const { return m_refData != nullptr; }
 
     /**
         Finds a font for the given attribute object.
@@ -1709,7 +1943,7 @@ public:
         Copy constructor.
     */
     wxRichTextRange(const wxRichTextRange& range) { m_start = range.m_start; m_end = range.m_end; }
-    ~wxRichTextRange() {}
+    ~wxRichTextRange() = default;
 
     /**
         Assigns @a range to this range.
@@ -1856,7 +2090,7 @@ public:
     /**
         Resets the selection.
     */
-    void Reset() { m_ranges.Clear(); m_container = NULL; }
+    void Reset() { m_ranges.Clear(); m_container = nullptr; }
 
     /**
         Sets the selection.
@@ -2060,7 +2294,47 @@ public:
 
     bool GetVirtualAttributesEnabled() const;
 
+    /**
+        Enable or disable images
+    */
+
+    void EnableImages(bool b) { m_enableImages = b; }
+
+    /**
+        Returns @true if images are enabled.
+    */
+
+    bool GetImagesEnabled() const { return m_enableImages; }
+
+    /**
+        Set laying out flag
+    */
+
+    void SetLayingOut(bool b) { m_layingOut = b; }
+
+    /**
+        Returns @true if laying out.
+    */
+
+    bool GetLayingOut() const { return m_layingOut; }
+
+    /**
+        Enable or disable delayed image loading
+    */
+
+    void EnableDelayedImageLoading(bool b) { m_enableDelayedImageLoading = b; }
+
+    /**
+        Returns @true if delayed image loading is enabled.
+    */
+
+    bool GetDelayedImageLoading() const { return m_enableDelayedImageLoading; }
+
     wxRichTextBuffer*   m_buffer;
+    bool                m_enableVirtualAttributes;
+    bool                m_enableImages;
+    bool                m_enableDelayedImageLoading;
+    bool                m_layingOut;
 };
 
 /**
@@ -2080,7 +2354,7 @@ public:
     /**
         Constructor, taking an optional parent pointer.
     */
-    wxRichTextObject(wxRichTextObject* parent = NULL);
+    wxRichTextObject(wxRichTextObject* parent = nullptr);
 
     virtual ~wxRichTextObject();
 
@@ -2141,7 +2415,7 @@ public:
                               wxDC& dc, wxRichTextDrawingContext& context, int flags,
                               const wxPoint& position = wxPoint(0,0),
                               const wxSize& parentSize = wxDefaultSize,
-                              wxArrayInt* partialExtents = NULL) const  = 0;
+                              wxArrayInt* partialExtents = nullptr) const  = 0;
 
     /**
         Do a split from @a pos, returning an object containing the second part, and setting
@@ -2415,7 +2689,8 @@ public:
 
     /**
         Returns the top-level container of this object.
-        Returns a different container than itself, unless there's no parent, in which case it will return NULL.
+        Returns a different container than itself, unless there's no parent, in
+        which case it will return @NULL.
     */
     virtual wxRichTextParagraphLayoutBox* GetParentContainer() const;
 
@@ -2597,12 +2872,12 @@ public:
         Draws the borders and background for the given rectangle and attributes.
         @a boxRect is taken to be the outer margin box, not the box around the content.
     */
-    static bool DrawBoxAttributes(wxDC& dc, wxRichTextBuffer* buffer, const wxRichTextAttr& attr, const wxRect& boxRect, int flags = 0, wxRichTextObject* obj = NULL);
+    static bool DrawBoxAttributes(wxDC& dc, wxRichTextBuffer* buffer, const wxRichTextAttr& attr, const wxRect& boxRect, int flags = 0, wxRichTextObject* obj = nullptr);
 
     /**
         Draws a border.
     */
-    static bool DrawBorder(wxDC& dc, wxRichTextBuffer* buffer, const wxTextAttrBorders& attr, const wxRect& rect, int flags = 0);
+    static bool DrawBorder(wxDC& dc, wxRichTextBuffer* buffer, const wxRichTextAttr& attr, const wxTextAttrBorders& borders, const wxRect& rect, int flags = 0);
 
     /**
         Returns the various rectangles of the box model in pixels. You can either specify @a contentRect (inner)
@@ -2671,7 +2946,7 @@ class wxRichTextCompositeObject: public wxRichTextObject
 public:
 // Constructors
 
-    wxRichTextCompositeObject(wxRichTextObject* parent = NULL);
+    wxRichTextCompositeObject(wxRichTextObject* parent = nullptr);
     virtual ~wxRichTextCompositeObject();
 
 // Overridables
@@ -2693,7 +2968,7 @@ public:
                               wxDC& dc, wxRichTextDrawingContext& context, int flags,
                               const wxPoint& position = wxPoint(0,0),
                               const wxSize& parentSize = wxDefaultSize,
-                              wxArrayInt* partialExtents = NULL) const;
+                              wxArrayInt* partialExtents = nullptr) const;
 
     virtual void Dump(wxTextOutputStream& stream);
 
@@ -2797,7 +3072,7 @@ class wxRichTextParagraphLayoutBox: public wxRichTextCompositeObject
 public:
 // Constructors
 
-    wxRichTextParagraphLayoutBox(wxRichTextObject* parent = NULL);
+    wxRichTextParagraphLayoutBox(wxRichTextObject* parent = nullptr);
     wxRichTextParagraphLayoutBox(const wxRichTextParagraphLayoutBox& obj): wxRichTextCompositeObject() { Init(); Copy(obj); }
     ~wxRichTextParagraphLayoutBox();
 
@@ -2809,7 +3084,7 @@ public:
 
     virtual bool Layout(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style);
 
-    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = NULL) const;
+    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = nullptr) const;
 
     virtual bool DeleteRange(const wxRichTextRange& range);
 
@@ -2825,7 +3100,7 @@ public:
     virtual bool ExportXML(wxXmlNode* parent, wxRichTextXMLHandler* handler);
 #endif
 
-    virtual wxString GetXMLNodeName() const { return wxT("paragraphlayout"); }
+    virtual wxString GetXMLNodeName() const { return "paragraphlayout"; }
 
     virtual bool AcceptsFocus() const { return true; }
 
@@ -2937,17 +3212,17 @@ public:
     /**
         Convenience function to add a paragraph of text.
     */
-    virtual wxRichTextRange AddParagraph(const wxString& text, wxRichTextAttr* paraStyle = NULL);
+    virtual wxRichTextRange AddParagraph(const wxString& text, wxRichTextAttr* paraStyle = nullptr);
 
     /**
         Convenience function to add an image.
     */
-    virtual wxRichTextRange AddImage(const wxImage& image, wxRichTextAttr* paraStyle = NULL);
+    virtual wxRichTextRange AddImage(const wxImage& image, wxRichTextAttr* paraStyle = nullptr);
 
     /**
         Adds multiple paragraphs, based on newlines.
     */
-    virtual wxRichTextRange AddParagraphs(const wxString& text, wxRichTextAttr* paraStyle = NULL);
+    virtual wxRichTextRange AddParagraphs(const wxString& text, wxRichTextAttr* paraStyle = nullptr);
 
     /**
         Returns the line at the given position. If @a caretPosition is true, the position is
@@ -3164,11 +3439,11 @@ public:
         - wxRICHTEXT_SETSTYLE_SPECIFY_LEVEL: specifies that @a listLevel should be used
           as the level for all paragraphs, otherwise the current indentation will be used.
 
-        @a def can be NULL to indicate that the existing list style should be used.
+        @a def can be @NULL to indicate that the existing list style should be used.
 
         @see SetListStyle(), PromoteList(), ClearListStyle()
     */
-    virtual bool NumberList(const wxRichTextRange& range, wxRichTextListStyleDefinition* def = NULL, int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO, int startFrom = 1, int specifiedLevel = -1);
+    virtual bool NumberList(const wxRichTextRange& range, wxRichTextListStyleDefinition* def = nullptr, int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO, int startFrom = 1, int specifiedLevel = -1);
     virtual bool NumberList(const wxRichTextRange& range, const wxString& defName, int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO, int startFrom = 1, int specifiedLevel = -1);
     //@}
 
@@ -3189,13 +3464,13 @@ public:
 
         @see SetListStyle(), SetListStyle(), ClearListStyle()
     */
-    virtual bool PromoteList(int promoteBy, const wxRichTextRange& range, wxRichTextListStyleDefinition* def = NULL, int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO, int specifiedLevel = -1);
+    virtual bool PromoteList(int promoteBy, const wxRichTextRange& range, wxRichTextListStyleDefinition* def = nullptr, int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO, int specifiedLevel = -1);
     virtual bool PromoteList(int promoteBy, const wxRichTextRange& range, const wxString& defName, int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO, int specifiedLevel = -1);
     //@}
 
     /**
         Helper for NumberList and PromoteList, that does renumbering and promotion simultaneously
-        @a def can be NULL/empty to indicate that the existing list style should be used.
+        @a def can be @NULL/empty to indicate that the existing list style should be used.
     */
     virtual bool DoNumberList(const wxRichTextRange& range, const wxRichTextRange& promotionRange, int promoteBy, wxRichTextListStyleDefinition* def, int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO, int startFrom = 1, int specifiedLevel = -1);
 
@@ -3229,7 +3504,7 @@ public:
     /**
         Sets with undo the properties for the given object.
     */
-    virtual bool SetObjectPropertiesWithUndo(wxRichTextObject& obj, const wxRichTextProperties& properties, wxRichTextObject* objToSet = NULL);
+    virtual bool SetObjectPropertiesWithUndo(wxRichTextObject& obj, const wxRichTextProperties& properties, wxRichTextObject* objToSet = nullptr);
 
     /**
         Test if this whole range has character attributes of the specified kind. If any
@@ -3339,11 +3614,11 @@ public:
     virtual void InvalidateHierarchy(const wxRichTextRange& invalidRange = wxRICHTEXT_ALL);
 
     /**
-        Gather information about floating objects. If untilObj is non-NULL,
+        Gather information about floating objects. If untilObj is non-null,
         will stop getting information if the current object is this, since we
         will collect the rest later.
     */
-    virtual bool UpdateFloatingObjects(const wxRect& availableRect, wxRichTextObject* untilObj = NULL);
+    virtual bool UpdateFloatingObjects(const wxRect& availableRect, wxRichTextObject* untilObj = nullptr);
 
     /**
         Get invalid range, rounding to entire paragraphs if argument is true.
@@ -3404,7 +3679,7 @@ public:
         Default constructor; optionally pass the parent object.
     */
 
-    wxRichTextBox(wxRichTextObject* parent = NULL);
+    wxRichTextBox(wxRichTextObject* parent = nullptr);
 
     /**
         Copy constructor.
@@ -3416,7 +3691,7 @@ public:
 
     virtual bool Draw(wxDC& dc, wxRichTextDrawingContext& context, const wxRichTextRange& range, const wxRichTextSelection& selection, const wxRect& rect, int descent, int style);
 
-    virtual wxString GetXMLNodeName() const { return wxT("textbox"); }
+    virtual wxString GetXMLNodeName() const { return "textbox"; }
 
     virtual bool CanEditProperties() const { return true; }
 
@@ -3485,7 +3760,7 @@ public:
         Default constructor; optionally pass the parent object.
     */
 
-    wxRichTextField(const wxString& fieldType = wxEmptyString, wxRichTextObject* parent = NULL);
+    wxRichTextField(const wxString& fieldType = wxEmptyString, wxRichTextObject* parent = nullptr);
 
     /**
         Copy constructor.
@@ -3499,9 +3774,9 @@ public:
 
     virtual bool Layout(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style);
 
-    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = NULL) const;
+    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = nullptr) const;
 
-    virtual wxString GetXMLNodeName() const { return wxT("field"); }
+    virtual wxString GetXMLNodeName() const { return "field"; }
 
     virtual bool CanEditProperties() const;
 
@@ -3524,8 +3799,8 @@ public:
 
 // Accessors
 
-    void SetFieldType(const wxString& fieldType) { GetProperties().SetProperty(wxT("FieldType"), fieldType); }
-    wxString GetFieldType() const { return GetProperties().GetPropertyString(wxT("FieldType")); }
+    void SetFieldType(const wxString& fieldType) { GetProperties().SetProperty("FieldType", fieldType); }
+    wxString GetFieldType() const { return GetProperties().GetPropertyString("FieldType"); }
 
 // Operations
 
@@ -3594,7 +3869,7 @@ public:
         Returns the object size for the given range. Returns @false if the range
         is invalid for this object.
     */
-    virtual bool GetRangeSize(wxRichTextField* obj, const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = NULL) const = 0;
+    virtual bool GetRangeSize(wxRichTextField* obj, const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = nullptr) const = 0;
 
     /**
         Returns @true if we can edit the object's properties via a GUI.
@@ -3759,7 +4034,7 @@ public:
         Returns the object size for the given range. Returns @false if the range
         is invalid for this object.
     */
-    virtual bool GetRangeSize(wxRichTextField* obj, const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = NULL) const;
+    virtual bool GetRangeSize(wxRichTextField* obj, const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = nullptr) const;
 
     /**
         Get the size of the field, given the label, font size, and so on.
@@ -3915,8 +4190,8 @@ public:
 // Constructors
 
     wxRichTextLine(wxRichTextParagraph* parent);
-    wxRichTextLine(const wxRichTextLine& obj) { Init( NULL); Copy(obj); }
-    virtual ~wxRichTextLine() {}
+    wxRichTextLine(const wxRichTextLine& obj);
+    virtual ~wxRichTextLine() = default;
 
 // Overridables
 
@@ -4030,7 +4305,7 @@ protected:
 #endif
 };
 
-class wxRichTextLineList;
+typedef wxVector<wxRichTextLine*> wxRichTextLineVector;
 
 /**
     @class wxRichTextParagraph
@@ -4051,13 +4326,15 @@ public:
     /**
         Constructor taking a parent and style.
     */
-    wxRichTextParagraph(wxRichTextObject* parent = NULL, wxRichTextAttr* style = NULL);
+    wxRichTextParagraph(wxRichTextObject* parent = nullptr, wxRichTextAttr* style = nullptr);
     /**
         Constructor taking a text string, a parent and paragraph and character attributes.
     */
-    wxRichTextParagraph(const wxString& text, wxRichTextObject* parent = NULL, wxRichTextAttr* paraStyle = NULL, wxRichTextAttr* charStyle = NULL);
+    wxRichTextParagraph(const wxString& text, wxRichTextObject* parent = nullptr, wxRichTextAttr* paraStyle = nullptr, wxRichTextAttr* charStyle = nullptr);
     virtual ~wxRichTextParagraph();
     wxRichTextParagraph(const wxRichTextParagraph& obj): wxRichTextCompositeObject() { Copy(obj); }
+
+    void Init();
 
 // Overridables
 
@@ -4065,7 +4342,7 @@ public:
 
     virtual bool Layout(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style);
 
-    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = NULL) const;
+    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = nullptr) const;
 
     virtual bool FindPosition(wxDC& dc, wxRichTextDrawingContext& context, long index, wxPoint& pt, int* height, bool forceLineStart);
 
@@ -4073,14 +4350,14 @@ public:
 
     virtual void CalculateRange(long start, long& end);
 
-    virtual wxString GetXMLNodeName() const { return wxT("paragraph"); }
+    virtual wxString GetXMLNodeName() const { return "paragraph"; }
 
 // Accessors
 
     /**
         Returns the cached lines.
     */
-    wxRichTextLineList& GetLines() { return m_cachedLines; }
+    const wxRichTextLineVector& GetLines() const { return m_cachedLines; }
 
 // Operations
 
@@ -4110,9 +4387,9 @@ public:
 
     /**
         Splits an object at this position if necessary, and returns
-        the previous object, or NULL if inserting at the beginning.
+        the previous object, or @NULL if inserting at the beginning.
     */
-    virtual wxRichTextObject* SplitAt(long pos, wxRichTextObject** previousObject = NULL);
+    virtual wxRichTextObject* SplitAt(long pos, wxRichTextObject** previousObject = nullptr);
 
     /**
         Moves content to a list from this point.
@@ -4192,10 +4469,23 @@ public:
     */
     void LayoutFloat(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style, wxRichTextFloatCollector* floatCollector);
 
+    /**
+        Whether the paragraph is impacted by floating objects from above.
+    */
+    int GetImpactedByFloatingObjects() const { return m_impactedByFloatingObjects; }
+
+    /**
+        Sets whether the paragraph is impacted by floating objects from above.
+    */
+    void SetImpactedByFloatingObjects(int i) { m_impactedByFloatingObjects = i; }
+
 protected:
 
     // The lines that make up the wrapped paragraph
-    wxRichTextLineList m_cachedLines;
+    wxRichTextLineVector m_cachedLines;
+
+    // Whether the paragraph is impacted by floating objects from above
+    int                 m_impactedByFloatingObjects;
 
     // Default tabstops
     static wxArrayInt  sm_defaultTabs;
@@ -4222,7 +4512,7 @@ public:
     /**
         Constructor.
     */
-    wxRichTextPlainText(const wxString& text = wxEmptyString, wxRichTextObject* parent = NULL, wxRichTextAttr* style = NULL);
+    wxRichTextPlainText(const wxString& text = wxEmptyString, wxRichTextObject* parent = nullptr, wxRichTextAttr* style = nullptr);
 
     /**
         Copy constructor.
@@ -4235,7 +4525,7 @@ public:
 
     virtual bool Layout(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style);
 
-    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = NULL) const;
+    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = nullptr) const;
 
     virtual wxString GetTextForRange(const wxRichTextRange& range) const;
 
@@ -4275,7 +4565,7 @@ public:
     virtual bool ExportXML(wxXmlNode* parent, wxRichTextXMLHandler* handler);
 #endif
 
-    virtual wxString GetXMLNodeName() const { return wxT("text"); }
+    virtual wxString GetXMLNodeName() const { return "text"; }
 
 // Accessors
 
@@ -4430,9 +4720,9 @@ public:
     void SetImageType(wxBitmapType imageType) { m_imageType = imageType; }
 
     /**
-        Returns @true if the data is non-NULL.
+        Returns @true if the data is non-null.
     */
-    bool IsOk() const { return GetData() != NULL; }
+    bool IsOk() const { return GetData() != nullptr; }
     bool Ok() const { return IsOk(); }
 
     /**
@@ -4489,17 +4779,17 @@ public:
     /**
         Default constructor.
     */
-    wxRichTextImage(wxRichTextObject* parent = NULL): wxRichTextObject(parent) { }
+    wxRichTextImage(wxRichTextObject* parent = nullptr): wxRichTextObject(parent) { }
 
     /**
         Creates a wxRichTextImage from a wxImage.
     */
-    wxRichTextImage(const wxImage& image, wxRichTextObject* parent = NULL, wxRichTextAttr* charStyle = NULL);
+    wxRichTextImage(const wxImage& image, wxRichTextObject* parent = nullptr, wxRichTextAttr* charStyle = nullptr);
 
     /**
         Creates a wxRichTextImage from an image block.
     */
-    wxRichTextImage(const wxRichTextImageBlock& imageBlock, wxRichTextObject* parent = NULL, wxRichTextAttr* charStyle = NULL);
+    wxRichTextImage(const wxRichTextImageBlock& imageBlock, wxRichTextObject* parent = nullptr, wxRichTextAttr* charStyle = nullptr);
 
     /**
         Copy constructor.
@@ -4512,7 +4802,7 @@ public:
 
     virtual bool Layout(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style);
 
-    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = NULL) const;
+    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = nullptr) const;
 
     /**
         Returns the 'natural' size for this object - the image size.
@@ -4542,7 +4832,7 @@ public:
     // Images can be floatable (optionally).
     virtual bool IsFloatable() const { return true; }
 
-    virtual wxString GetXMLNodeName() const { return wxT("image"); }
+    virtual wxString GetXMLNodeName() const { return "image"; }
 
 // Accessors
 
@@ -4591,11 +4881,28 @@ public:
     /**
         Creates a cached image at the required size.
     */
-    virtual bool LoadImageCache(wxDC& dc, bool resetCache = false, const wxSize& parentSize = wxDefaultSize);
+    virtual bool LoadImageCache(wxDC& dc, wxRichTextDrawingContext& context, wxSize& retImageSize, bool resetCache = false, const wxSize& parentSize = wxDefaultSize);
+
+    /**
+        Do the loading and scaling
+    */
+    virtual bool LoadAndScaleImageCache(wxImage& image, const wxSize& sz, wxRichTextDrawingContext& context, bool& changed);
+
+    /**
+        Gets the image state.
+    */
+    int GetImageState() const { return m_imageState; }
+
+    /**
+        Sets the image state.
+    */
+    void SetImageState(int state) { m_imageState = state; }
 
 protected:
     wxRichTextImageBlock    m_imageBlock;
     wxBitmap                m_imageCache;
+    wxSize                  m_originalImageSize;
+    int                     m_imageState;
 };
 
 class wxRichTextCommand;
@@ -4748,7 +5055,7 @@ public:
     /**
         Convenience function to add a paragraph of text.
     */
-    virtual wxRichTextRange AddParagraph(const wxString& text, wxRichTextAttr* paraStyle = NULL) { Modify(); return wxRichTextParagraphLayoutBox::AddParagraph(text, paraStyle); }
+    virtual wxRichTextRange AddParagraph(const wxString& text, wxRichTextAttr* paraStyle = nullptr) { Modify(); return wxRichTextParagraphLayoutBox::AddParagraph(text, paraStyle); }
 
     /**
         Begin collapsing undo/redo commands. Note that this may not work properly
@@ -5200,7 +5507,7 @@ public:
         it will be filled with the file type corresponding to each filter. This can be
         used to determine the type to pass to LoadFile given a selected filter.
     */
-    static wxString GetExtWildcard(bool combine = false, bool save = false, wxArrayInt* types = NULL);
+    static wxString GetExtWildcard(bool combine = false, bool save = false, wxArrayInt* types = nullptr);
 
     /**
         Clean up file handlers.
@@ -5395,7 +5702,7 @@ protected:
 
     wxRichTextCell is the cell in a table, in which the user can type. As well as
     text, it can also contain objects e.g. an image, or even another wxRichTextTable.
-    
+
     A cell's appearance can be changed via its associated wxRichTextAttr; for example
     its size altered or its background colour set. It also has the properties of
     column- and row-span. By default these are 1, meaning that the cell only spans
@@ -5412,7 +5719,7 @@ public:
         Default constructor; optionally pass the parent object.
     */
 
-    wxRichTextCell(wxRichTextObject* parent = NULL);
+    wxRichTextCell(wxRichTextObject* parent = nullptr);
 
     /**
         Copy constructor.
@@ -5426,7 +5733,7 @@ public:
 
     virtual int HitTest(wxDC& dc, wxRichTextDrawingContext& context, const wxPoint& pt, long& textPosition, wxRichTextObject** obj, wxRichTextObject** contextObj, int flags = 0);
 
-    virtual wxString GetXMLNodeName() const { return wxT("cell"); }
+    virtual wxString GetXMLNodeName() const { return "cell"; }
 
     virtual bool CanEditProperties() const { return true; }
 
@@ -5438,46 +5745,46 @@ public:
 
     /**
         Returns the number of columns spanned by the cell.
-        
+
         By default a cell doesn't span extra columns, so this function returns 1.
-        
+
         @since 2.9.5
-        
+
         @see SetColSpan(), GetRowSpan()
     */
     int GetColSpan() const;
 
     /**
         Set the number of columns spanned by the cell.
-        
+
         By default colspan is 1 i.e. a cell doesn't span extra columns. Pass a value >1
         to change this. Attempting to set a colspan <1 will assert and be ignored.
-        
+
         @since 2.9.5
-        
+
         @see GetColSpan(), SetRowSpan()
     */
     void SetColSpan(long span);
 
     /**
         Returns the number of rows spanned by the cell.
-        
+
         By default a cell doesn't span extra rows, so this function returns 1.
-        
+
         @since 2.9.5
-        
+
         @see SetRowSpan(), GetColSpan()
     */
     int GetRowSpan() const;
 
     /**
         Set the number of rows spanned by the cell.
-        
+
         By default colspan is 1 i.e. a cell doesn't span extra rows. Pass a value >1
         to change this. Attempting to set a rowspan <1 will assert and be ignored.
-        
+
         @since 2.9.5
-        
+
         @see GetRowSpan(), SetColSpan()
     */
     void SetRowSpan(long span);
@@ -5510,7 +5817,7 @@ public:
         Default constructor; optionally pass the parent object.
     */
 
-    wxRichTextTable(wxRichTextObject* parent = NULL);
+    wxRichTextTable(wxRichTextObject* parent = nullptr);
 
     /**
         Copy constructor.
@@ -5524,11 +5831,11 @@ public:
 
     virtual int HitTest(wxDC& dc, wxRichTextDrawingContext& context, const wxPoint& pt, long& textPosition, wxRichTextObject** obj, wxRichTextObject** contextObj, int flags = 0);
 
-    virtual wxString GetXMLNodeName() const { return wxT("table"); }
+    virtual wxString GetXMLNodeName() const { return "table"; }
 
     virtual bool Layout(wxDC& dc, wxRichTextDrawingContext& context, const wxRect& rect, const wxRect& parentRect, int style);
 
-    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = NULL) const;
+    virtual bool GetRangeSize(const wxRichTextRange& range, wxSize& size, int& descent, wxDC& dc, wxRichTextDrawingContext& context, int flags, const wxPoint& position = wxPoint(0,0), const wxSize& parentSize = wxDefaultSize, wxArrayInt* partialExtents = nullptr) const;
 
     virtual bool DeleteRange(const wxRichTextRange& range);
 
@@ -5605,7 +5912,7 @@ public:
 
     /**
         Returns the coordinates of the cell with keyboard focus, or (-1,-1) if none.
-    */    
+    */
     virtual wxPosition GetFocusedCell() const;
 
 // Operations
@@ -5689,7 +5996,7 @@ public:
     wxRichTextTableBlock(const wxRichTextTableBlock& block) { Copy(block); }
 
     void Init() { m_colStart = 0; m_colEnd = 0; m_rowStart = 0; m_rowEnd = 0; }
-    
+
     void Copy(const wxRichTextTableBlock& block)
     {
         m_colStart = block.m_colStart; m_colEnd = block.m_colEnd; m_rowStart = block.m_rowStart; m_rowEnd = block.m_rowEnd;
@@ -5906,7 +6213,9 @@ public:
         Updates the control appearance, optimizing if possible given information from the call to Layout.
     */
     void UpdateAppearance(long caretPosition, bool sendUpdateEvent = false,
-                            wxArrayInt* optimizationLineCharPositions = NULL, wxArrayInt* optimizationLineYPositions = NULL, bool isDoCmd = true);
+                          const wxRect& oldFloatRect = wxRect(),
+                          wxArrayInt* optimizationLineCharPositions = nullptr, wxArrayInt* optimizationLineYPositions = nullptr,
+                          bool isDoCmd = true);
 
     /**
         Replaces the buffer paragraphs with the given fragment.
@@ -5961,7 +6270,8 @@ public:
     /**
         Calculate arrays for refresh optimization.
     */
-    void CalculateRefreshOptimizations(wxArrayInt& optimizationLineCharPositions, wxArrayInt& optimizationLineYPositions);
+    void CalculateRefreshOptimizations(wxArrayInt& optimizationLineCharPositions, wxArrayInt& optimizationLineYPositions,
+                                       wxRect& oldFloatRect);
 
     /**
         Sets the position used for e.g. insertion.
@@ -6093,6 +6403,10 @@ protected:
 // Convert the more common face names to names that will work on the current platform
 // in a larger document
 #define wxRICHTEXT_HANDLER_CONVERT_FACENAMES        0x0100
+
+// Use CSS where possible in the HTML handler, otherwise use workarounds that will
+// show in wxHtmlWindow.
+#define wxRICHTEXT_HANDLER_USE_CSS                  0x1000
 
 /**
     @class wxRichTextFileHandler
@@ -6366,7 +6680,7 @@ public:
         The constructor doesn't copy the pointer, so it shouldn't go away while this object
         is alive.
     */
-    wxRichTextBufferDataObject(wxRichTextBuffer* richTextBuffer = NULL);
+    wxRichTextBufferDataObject(wxRichTextBuffer* richTextBuffer = nullptr);
     virtual ~wxRichTextBufferDataObject();
 
     /**
@@ -6417,8 +6731,8 @@ public:
     /**
         Constructor.
     */
-    wxRichTextRenderer() {}
-    virtual ~wxRichTextRenderer() {}
+    wxRichTextRenderer() = default;
+    virtual ~wxRichTextRenderer() = default;
 
     /**
         Draws a standard bullet, as specified by the value of GetBulletName. This function should be overridden.
@@ -6439,6 +6753,11 @@ public:
         Enumerate the standard bullet names currently supported. This function should be overridden.
     */
     virtual bool EnumerateStandardBulletNames(wxArrayString& bulletNames) = 0;
+
+    /**
+        Measure the bullet.
+    */
+    virtual bool MeasureBullet(wxRichTextParagraph* paragraph, wxDC& dc, const wxRichTextAttr& attr, wxSize& sz) = 0;
 };
 
 /**
@@ -6458,7 +6777,7 @@ public:
     /**
         Constructor.
     */
-    wxRichTextStdRenderer() {}
+    wxRichTextStdRenderer() = default;
 
     // Draw a standard bullet, as specified by the value of GetBulletName
     virtual bool DrawStandardBullet(wxRichTextParagraph* paragraph, wxDC& dc, const wxRichTextAttr& attr, const wxRect& rect);
@@ -6471,6 +6790,9 @@ public:
 
     // Enumerate the standard bullet names currently supported
     virtual bool EnumerateStandardBulletNames(wxArrayString& bulletNames);
+
+    // Measure the bullet.
+    virtual bool MeasureBullet(wxRichTextParagraph* paragraph, wxDC& dc, const wxRichTextAttr& attr, wxSize& sz);
 };
 
 /*!
@@ -6488,7 +6810,7 @@ bool wxTextAttrEq(const wxRichTextAttr& attr1, const wxRichTextAttr& attr2);
 bool wxTextAttrEq(const wxRichTextAttr& attr1, const wxRichTextAttr& attr2);
 
 /// Apply one style to another
-bool wxRichTextApplyStyle(wxRichTextAttr& destStyle, const wxRichTextAttr& style, wxRichTextAttr* compareWith = NULL);
+bool wxRichTextApplyStyle(wxRichTextAttr& destStyle, const wxRichTextAttr& style, wxRichTextAttr* compareWith = nullptr);
 
 // Remove attributes
 bool wxRichTextRemoveStyle(wxRichTextAttr& destStyle, const wxRichTextAttr& style);

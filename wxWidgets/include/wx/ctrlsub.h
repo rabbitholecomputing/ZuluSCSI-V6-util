@@ -2,7 +2,6 @@
 // Name:        wx/ctrlsub.h (read: "wxConTRoL with SUBitems")
 // Purpose:     wxControlWithItems interface
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     22.10.99
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -18,6 +17,8 @@
 #include "wx/arrstr.h"
 #include "wx/control.h"      // base class
 
+#include <vector>
+
 // ----------------------------------------------------------------------------
 // wxItemContainer defines an interface which is implemented by all controls
 // which have string subitems each of which may be selected.
@@ -32,7 +33,7 @@
 class WXDLLIMPEXP_CORE wxItemContainerImmutable
 {
 public:
-    wxItemContainerImmutable() { }
+    wxItemContainerImmutable() = default;
     virtual ~wxItemContainerImmutable();
 
     // accessing strings
@@ -115,7 +116,7 @@ private:
 
     int AppendItems(const wxArrayStringsAdapter& items)
     {
-        return AppendItems(items, NULL, wxClientData_None);
+        return AppendItems(items, nullptr, wxClientData_None);
     }
 
     int AppendItems(const wxArrayStringsAdapter& items, void **clientData)
@@ -158,7 +159,7 @@ private:
 
     int InsertItems(const wxArrayStringsAdapter& items, unsigned int pos)
     {
-        return InsertItems(items, pos, NULL, wxClientData_None);
+        return InsertItems(items, pos, nullptr, wxClientData_None);
     }
 
     int InsertItems(const wxArrayStringsAdapter& items,
@@ -215,6 +216,8 @@ public:
                const wxString *items,
                wxClientData **clientData)
         { return AppendItems(wxArrayStringsAdapter(n, items), clientData); }
+    int Append(const std::vector<wxString>& items)
+        { return AppendItems(items); }
 
     // only for RTTI needs (separate name)
     void AppendString(const wxString& item)
@@ -254,7 +257,8 @@ public:
                unsigned int pos,
                wxClientData **clientData)
         { return InsertItems(wxArrayStringsAdapter(n, items), pos, clientData); }
-
+    int Insert(const std::vector<wxString>& items, unsigned int pos)
+        { return InsertItems(items, pos); }
 
     // replacing items
     // ---------------
@@ -271,11 +275,13 @@ public:
         { Clear(); Append(n, items, clientData); }
     void Set(unsigned int n, const wxString *items, wxClientData **clientData)
         { Clear(); Append(n, items, clientData); }
+    void Set(const std::vector<wxString>& items)
+        { Clear(); Append(items); }
 
     // deleting items
     // --------------
 
-    void Clear();
+    virtual void Clear();
     void Delete(unsigned int pos);
 
 
@@ -298,7 +304,7 @@ public:
     // SetClientObject() takes ownership of the pointer, GetClientObject()
     // returns it but keeps the ownership while DetachClientObject() expects
     // the caller to delete the pointer and also resets the internally stored
-    // one to NULL for this item
+    // one to nullptr for this item
     void SetClientObject(unsigned int n, wxClientData* clientData);
     wxClientData* GetClientObject(unsigned int n) const;
     wxClientData* DetachClientObject(unsigned int n);
@@ -379,7 +385,7 @@ protected:
                                  wxClientDataType type);
 
     // free the client object associated with the item at given position and
-    // set it to NULL (must only be called if HasClientObjectData())
+    // set it to nullptr (must only be called if HasClientObjectData())
     void ResetItemClientObject(unsigned int n);
 
     // set the type of the client data stored in this control: override this if
@@ -409,7 +415,7 @@ public:
     typedef W BaseWindowClass;
     typedef C BaseContainerInterface;
 
-    wxWindowWithItems() { }
+    wxWindowWithItems() = default;
 
     void SetClientData(void *data)
         { BaseWindowClass::SetClientData(data); }
@@ -434,11 +440,11 @@ class WXDLLIMPEXP_CORE wxControlWithItemsBase :
     public wxWindowWithItems<wxControl, wxItemContainer>
 {
 public:
-    wxControlWithItemsBase() { }
+    wxControlWithItemsBase() = default;
 
     // usually the controls like list/combo boxes have their own background
     // colour
-    virtual bool ShouldInheritColours() const { return false; }
+    virtual bool ShouldInheritColours() const override { return false; }
 
 
     // Implementation only from now on.
@@ -460,16 +466,16 @@ private:
 // define the platform-specific wxControlWithItems class
 #if defined(__WXMSW__)
     #include "wx/msw/ctrlsub.h"
-#elif defined(__WXMOTIF__)
-    #include "wx/motif/ctrlsub.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/ctrlsub.h"
 #else
     class WXDLLIMPEXP_CORE wxControlWithItems : public wxControlWithItemsBase
     {
     public:
-        wxControlWithItems() { }
+        wxControlWithItems() = default;
 
     private:
-        DECLARE_ABSTRACT_CLASS(wxControlWithItems)
+        wxDECLARE_ABSTRACT_CLASS(wxControlWithItems);
         wxDECLARE_NO_COPY_CLASS(wxControlWithItems);
     };
 #endif

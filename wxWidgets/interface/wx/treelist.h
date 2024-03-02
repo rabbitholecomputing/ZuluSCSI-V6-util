@@ -24,7 +24,7 @@ enum
         Don't show the column headers.
 
         By default this control shows the column headers, using this class
-        allows to avoid this and show only the data.
+        allows avoiding this and showing only the data.
 
         @since 2.9.5
      */
@@ -41,7 +41,7 @@ enum
 
 /**
     @class wxTreeListItem
-   
+
     Unique identifier of an item in wxTreeListCtrl.
 
     This is an opaque class which can't be used by the application in any other
@@ -50,7 +50,7 @@ enum
 
     @see wxTreeListCtrl
 
-    @library{wxadv}
+    @library{wxcore}
     @category{ctrl}
 
     @since 2.9.3
@@ -74,12 +74,12 @@ public:
 
 /**
     @class wxTreeListItemComparator
-   
+
     Class defining sort order for the items in wxTreeListCtrl.
 
     @see wxTreeListCtrl
 
-    @library{wxadv}
+    @library{wxcore}
     @category{ctrl}
 
     @since 2.9.3
@@ -90,7 +90,7 @@ public:
     /**
         Default constructor.
 
-        Notice that this class is not copyable, comparators are not passed by
+        Notice that this class is not copiable, comparators are not passed by
         value.
      */
     wxTreeListItemComparator();
@@ -212,6 +212,9 @@ extern const wxTreeListItem wxTLI_LAST;
     @style{wxTL_USER_3STATE}
         Same as wxTL_3STATE but the user can also set the checkboxes to the
         undetermined state. Implies wxTL_3STATE.
+    @style{wxTL_NO_HEADER}
+        Don't show the column headers, that are shown by default. Notice that
+        this style is only available since wxWidgets 2.9.5.
     @style{wxTL_DEFAULT_STYLE}
         Style used by the control by default, just wxTL_SINGLE currently.
     @endStyleTable
@@ -252,7 +255,7 @@ extern const wxTreeListItem wxTLI_LAST;
         if you need to know it.
     @endEventTable
 
-    @library{wxadv}
+    @library{wxcore}
     @category{ctrl}
 
     @since 2.9.3
@@ -290,7 +293,7 @@ public:
         constructor and exactly once.
 
         @param parent
-            The parent window, must be non-NULL.
+            The parent window, must be non-null.
         @param id
             The window identifier, may be ::wxID_ANY.
         @param pos
@@ -311,14 +314,14 @@ public:
 
 
     /**
-        Image list methods.
+        @name Image list methods.
 
         Like wxTreeCtrl and wxListCtrl this class uses wxImageList so if you
         intend to use item icons with it, you must construct wxImageList
         containing them first and then specify the indices of the icons in this
         image list when adding the items later.
      */
-    //@{
+    ///@{
 
     /// A constant indicating that no image should be used for an item.
     static const int NO_IMAGE = -1;
@@ -345,13 +348,13 @@ public:
     */
     void SetImageList(wxImageList* imageList);
 
-    //@}
+    ///@}
 
 
     /**
-        Column methods.
+        @name Column methods.
      */
-    //@{
+    ///@{
 
     /**
         Add a column with the given title and attributes.
@@ -361,7 +364,7 @@ public:
         @param width
             The width of the column in pixels or the special
             wxCOL_WIDTH_AUTOSIZE value indicating that the column should adjust
-            to its contents. Notice that the first column is special and will
+            to its contents. Notice that the last column is special and will
             be always resized to fill all the space not taken by the other
             columns, i.e. the width specified here is ignored for it.
         @param align
@@ -405,7 +408,7 @@ public:
         Set column width to either the given value in pixels or to the value
         large enough to fit all of the items if width is wxCOL_WIDTH_AUTOSIZE.
 
-        Notice that setting the width of the first column is ignored as this
+        Notice that setting the width of the last column is ignored as this
         column is always resized to fill the space left by the other columns.
      */
     void SetColumnWidth(unsigned col, int width);
@@ -421,11 +424,11 @@ public:
      */
     int WidthFor(const wxString& text) const;
 
-    //@}
+    ///@}
 
 
     /**
-        Adding and removing items.
+        @name Adding and removing items.
 
         When adding items, the parent and text of the first column of the new item
         must always be specified, the rest is optional.
@@ -439,14 +442,14 @@ public:
         (either by an explicit DeleteItem() call or because the entire control
         is destroyed).
      */
-    //@{
+    ///@{
 
     /// Same as InsertItem() with wxTLI_LAST.
     wxTreeListItem AppendItem(wxTreeListItem parent,
                               const wxString& text,
                               int imageClosed = NO_IMAGE,
                               int imageOpened = NO_IMAGE,
-                              wxClientData* data = NULL);
+                              wxClientData* data = nullptr);
 
     /**
         Insert a new item into the tree.
@@ -475,14 +478,14 @@ public:
                               const wxString& text,
                               int imageClosed = NO_IMAGE,
                               int imageOpened = NO_IMAGE,
-                              wxClientData* data = NULL);
+                              wxClientData* data = nullptr);
 
     /// Same as InsertItem() with wxTLI_FIRST.
     wxTreeListItem PrependItem(wxTreeListItem parent,
                                const wxString& text,
                                int imageClosed = NO_IMAGE,
                                int imageOpened = NO_IMAGE,
-                               wxClientData* data = NULL);
+                               wxClientData* data = nullptr);
 
     /// Delete the specified item.
     void DeleteItem(wxTreeListItem item);
@@ -490,21 +493,21 @@ public:
     /// Delete all tree items.
     void DeleteAllItems();
 
-    //@}
+    ///@}
 
 
     /**
-        Methods for the tree navigation.
+        @name Methods for the tree navigation.
 
         The tree has an invisible root item which is the hidden parent of all
-        top-level items in the tree. Starting from it it is possible to iterate
+        top-level items in the tree. Starting from it is possible to iterate
         over all tree items using GetNextItem().
 
         It is also possible to iterate over just the children of the given item
         by using GetFirstChild() to get the first of them and then calling
         GetNextSibling() to retrieve all the others.
      */
-    //@{
+    ///@{
 
     /// Return the (never shown) root item.
     wxTreeListItem GetRootItem() const;
@@ -560,13 +563,13 @@ public:
      */
     wxTreeListItem GetNextItem(wxTreeListItem item) const;
 
-    //@}
+    ///@}
 
 
     /**
-        Items attributes
+        @name Items attributes
      */
-    //@{
+    ///@{
 
     /**
         Return the text of the given item.
@@ -612,16 +615,16 @@ public:
      */
     void SetItemData(wxTreeListItem item, wxClientData* data);
 
-    //@}
+    ///@}
 
 
     /**
-        Expanding and collapsing tree branches.
+        @name Expanding and collapsing tree branches.
 
         Notice that calling neither Expand() nor Collapse() method generates
         any events.
      */
-    //@{
+    ///@{
 
     /**
         Expand the given tree branch.
@@ -638,18 +641,18 @@ public:
      */
     bool IsExpanded(wxTreeListItem item) const;
 
-    //@}
+    ///@}
 
 
     /**
-        Selection methods.
+        @name Selection methods.
 
         The behaviour of the control is different in single selection mode (the
         default) and multi-selection mode (if @c wxTL_MULTIPLE was specified
         when creating it). Not all methods can be used in both modes and some
         of those that can don't behave in the same way in two cases.
      */
-    //@{
+    ///@{
 
     /**
         Return the currently selected item.
@@ -710,16 +713,23 @@ public:
      */
     void UnselectAll();
 
-    //@}
+    /**
+        Call this to ensure that the given item is visible.
+
+        @since 3.1.0
+     */
+    void EnsureVisible(wxTreeListItem item);
+
+    ///@}
 
 
     /**
-        Checkbox handling
+        @name Checkbox handling
 
         Methods in this section can only be used with the controls created with
         wxTL_CHECKBOX style.
      */
-    //@{
+    ///@{
 
     /**
         Change the item checked state.
@@ -789,10 +799,10 @@ public:
     bool AreAllChildrenInState(wxTreeListItem item,
                                wxCheckBoxState state) const;
 
-    //@}
+    ///@}
 
     /**
-        Sorting.
+        @name Sorting.
 
         If some control columns were added with wxCOL_SORTABLE flag, clicking
         on them will automatically resort the control using the custom
@@ -804,7 +814,7 @@ public:
         and call GetSortColumn() to determine whether it's sorted now and, if
         so, by which column and in which order.
      */
-    //@{
+    ///@{
 
     /**
         Set the column to use for sorting and the order in which to sort.
@@ -831,14 +841,14 @@ public:
         @false and doesn't modify any of its output parameters.
 
         @param col
-            Receives the index of the column used for sorting if non-@NULL.
+            Receives the index of the column used for sorting if non-null.
         @param ascendingOrder
             Receives @true or @false depending on whether the items are sorted
             in ascending or descending order.
         @return
             @true if the control is sorted or @false if it isn't sorted at all.
      */
-    bool GetSortColumn(unsigned* col, bool* ascendingOrder = NULL);
+    bool GetSortColumn(unsigned* col, bool* ascendingOrder = nullptr);
 
     /**
         Set the object to use for comparing the items.
@@ -853,11 +863,11 @@ public:
      */
     void SetItemComparator(wxTreeListItemComparator* comparator);
 
-    //@}
+    ///@}
 
 
     /**
-        View window.
+        @name View window.
 
         This control itself is entirely covered by the "view window" which is
         currently a wxDataViewCtrl but if you want to avoid relying on this to
@@ -865,12 +875,12 @@ public:
         wxDataViewCtrl-based, use GetView() function only and only use
         GetDataView() if you really need to call wxDataViewCtrl methods on it.
      */
-    //@{
+    ///@{
 
     /**
         Return the view part of this control as a wxWindow.
 
-        This method always returns non-@NULL pointer once the window was
+        This method always returns non-null pointer once the window was
         created.
      */
     wxWindow* GetView() const;
@@ -884,13 +894,16 @@ public:
      */
     wxDataViewCtrl* GetDataView() const;
 
-    //@}
+    ///@}
 };
 
 
 
 /**
     Event generated by wxTreeListCtrl.
+
+    @category{ctrl,events}
+
 
     @since 2.9.3
  */

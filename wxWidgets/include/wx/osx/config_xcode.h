@@ -2,7 +2,6 @@
 // Name:        wx/osx/config_xcode.h
 // Purpose:     configurations for xcode builds
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     29.04.04
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -20,57 +19,44 @@
 #define __BSD__ 1
 #define __DARWIN__ 1
 #define wx_USE_NANOX 0
-#define TARGET_CARBON 1
 
-#define HAVE_EXPLICIT 1
 #define HAVE_VA_COPY 1
-#define HAVE_VARIADIC_MACROS 1
-#define HAVE_STD_WSTRING 1
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
 #if __GNUC__ > 4 || (  __GNUC__ == 4 && __GNUC_MINOR__ >= 2 )
-  #if !defined(__has_include)
-    #define HAVE_TR1_UNORDERED_MAP 1
-    #define HAVE_TR1_UNORDERED_SET 1
-    #define HAVE_TR1_TYPE_TRAITS 1
-  #endif
   #define HAVE_GCC_ATOMIC_BUILTINS 1
-#endif
 #endif
 #define HAVE_VISIBILITY 1
 #define wxHAVE_PTHREAD_CLEANUP 1
-#define CONST_COMPATIBILITY 0
 #define WX_TIMEZONE timezone
 #define WX_SOCKLEN_T socklen_t
 #define SOCKOPTLEN_T socklen_t
 #define WX_STATFS_T struct statfs
-#define wxTYPE_SA_HANDLER int
 #define WX_GMTOFF_IN_TM 1
 #define HAVE_PW_GECOS 1
 #define HAVE_DLOPEN 1
 #define HAVE_CXA_DEMANGLE 1
 #define HAVE_GETTIMEOFDAY 1
 #define HAVE_FSYNC 1
-#define HAVE_ROUND 1
 #define HAVE_SCHED_YIELD 1
 #define HAVE_PTHREAD_MUTEXATTR_T 1
 #define HAVE_PTHREAD_MUTEXATTR_SETTYPE_DECL 1
 #define HAVE_PTHREAD_CANCEL 1
 #define HAVE_PTHREAD_ATTR_SETSTACKSIZE 1
 #define HAVE_SNPRINTF 1
-#define HAVE_SNPRINTF_DECL 1
 #define HAVE_UNIX98_PRINTF 1
 #define HAVE_STATFS 1
 #define HAVE_STATFS_DECL 1
+#define HAVE_STRNLEN 1
 #define HAVE_STRPTIME 1
 #define HAVE_STRPTIME_DECL 1
-#define HAVE_STRTOULL 1
 #define HAVE_THREAD_PRIORITY_FUNCTIONS 1
 #define HAVE_VSNPRINTF 1
-#define HAVE_VSNPRINTF_DECL 1
 #define HAVE_VSSCANF 1
-#define HAVE_VSSCANF_DECL 1
 #define HAVE_USLEEP 1
+#define HAVE_WCSCASECMP 1
+#define HAVE_WCSDUP 1
 #define HAVE_WCSLEN 1
+#define HAVE_WCSNCASECMP 1
+#define HAVE_WCSNLEN 1
 #define SIZEOF_WCHAR_T 4
 #define SIZEOF_SHORT 2
 #define SIZEOF_INT 4
@@ -86,7 +72,6 @@
 #define SIZEOF_LONG_LONG 8
 #define wxSIZE_T_IS_ULONG 1
 #define wxWCHAR_T_IS_REAL_TYPE 1
-#define HAVE_DLERROR 1
 #define HAVE_FCNTL 1
 #define HAVE_GETHOSTBYNAME 1
 #define HAVE_GETSERVBYNAME 1
@@ -120,17 +105,8 @@
 #define HAVE_GETPWUID_R 1
 #define HAVE_GETGRGID_R 1
 #define HAVE_LOCALE_T 1
+#define HAVE_XLOCALE_H 1
 #define wxHAS_KQUEUE 1
-
-#define WXWIN_OS_DESCRIPTION "Darwin 7.9.0 Power Macintosh"
-#define PACKAGE_BUGREPORT "wx-dev@lists.wxwidgets.org"
-#define PACKAGE_NAME "wxWidgets"
-#define PACKAGE_STRING "wxWidgets 3.0.2"
-#define PACKAGE_TARNAME "wxwidgets"
-#define PACKAGE_VERSION "3.0.2"
-
-// for regex
-#define WX_NO_REGEX_ADVANCED 1
 
 // for jpeg
 

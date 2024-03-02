@@ -36,13 +36,13 @@ class WXDLLIMPEXP_FWD_HTML wxHtmlHelpWindow;
 
 class WXDLLIMPEXP_HTML wxHtmlHelpDialog : public wxDialog
 {
-    DECLARE_DYNAMIC_CLASS(wxHtmlHelpDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxHtmlHelpDialog);
 
 public:
-    wxHtmlHelpDialog(wxHtmlHelpData* data = NULL) { Init(data); }
-    wxHtmlHelpDialog(wxWindow* parent, wxWindowID wxWindowID,
+    wxHtmlHelpDialog(wxHtmlHelpData* data = nullptr) { Init(data); }
+    wxHtmlHelpDialog(wxWindow* parent, wxWindowID id,
                     const wxString& title = wxEmptyString,
-                    int style = wxHF_DEFAULT_STYLE, wxHtmlHelpData* data = NULL);
+                    int style = wxHF_DEFAULT_STYLE, wxHtmlHelpData* data = nullptr);
     virtual ~wxHtmlHelpDialog();
 
     bool Create(wxWindow* parent, wxWindowID id, const wxString& title = wxEmptyString,
@@ -68,7 +68,7 @@ public:
     virtual void AddToolbarButtons(wxToolBar* WXUNUSED(toolBar), int WXUNUSED(style)) {}
 
 protected:
-    void Init(wxHtmlHelpData* data = NULL);
+    void Init(wxHtmlHelpData* data = nullptr);
 
     void OnCloseWindow(wxCloseEvent& event);
 
@@ -79,7 +79,7 @@ protected:
     wxHtmlHelpWindow *m_HtmlHelpWin;
     wxHtmlHelpController* m_helpController;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxHtmlHelpDialog);
 };
 

@@ -2,7 +2,6 @@
 // Name:        wx/encinfo.h
 // Purpose:     declares wxNativeEncodingInfo struct
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     19.09.2003 (extracted from wx/fontenc.h)
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -23,8 +22,8 @@
 // Under X, it contains the last 2 elements of the font specifications
 // (registry and encoding).
 //
-// Under Windows, it contains a number which is one of predefined CHARSET_XXX
-// values.
+// Under Windows, it contains a number which is one of predefined XXX_CHARSET
+// values (https://msdn.microsoft.com/en-us/library/cc250412.aspx).
 //
 // Under all platforms it also contains a facename string which should be
 // used, if not empty, to create fonts in this encoding (this is the only way
@@ -37,9 +36,8 @@ struct WXDLLIMPEXP_CORE wxNativeEncodingInfo
     wxFontEncoding encoding;    // so that we know what this struct represents
 
 #if defined(__WXMSW__) || \
-    defined(__WXPM__)  || \
     defined(__WXMAC__) || \
-    defined(__WXCOCOA__) // FIXME: __WXCOCOA__
+    defined(__WXQT__)
 
     wxNativeEncodingInfo()
         : facename()
@@ -48,9 +46,6 @@ struct WXDLLIMPEXP_CORE wxNativeEncodingInfo
     { }
 
     int      charset;
-#elif defined(_WX_X_FONTLIKE)
-    wxString xregistry,
-             xencoding;
 #elif defined(wxHAS_UTF8_FONTS)
     // ports using UTF-8 for text don't need encoding information for fonts
 #else

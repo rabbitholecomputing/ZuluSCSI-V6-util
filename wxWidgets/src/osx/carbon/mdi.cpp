@@ -2,7 +2,6 @@
 // Name:        src/osx/carbon/mdi.cpp
 // Purpose:     MDI classes
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -24,14 +23,14 @@
 #include "wx/osx/private.h"
 #include "wx/osx/uma.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxMDIParentFrame, wxFrame)
-IMPLEMENT_DYNAMIC_CLASS(wxMDIChildFrame, wxFrame)
-IMPLEMENT_DYNAMIC_CLASS(wxMDIClientWindow, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIParentFrame, wxFrame);
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIChildFrame, wxFrame);
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIClientWindow, wxWindow);
 
-BEGIN_EVENT_TABLE(wxMDIParentFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(wxMDIParentFrame, wxFrame)
     EVT_ACTIVATE(wxMDIParentFrame::OnActivate)
     EVT_SYS_COLOUR_CHANGED(wxMDIParentFrame::OnSysColourChanged)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #define TRACE_MDI "mdi"
 
@@ -45,31 +44,7 @@ static const int IDM_WINDOWTILEVERT = 4005;
 
 void UMAHighlightAndActivateWindow( WindowRef inWindowRef , bool inActivate )
 {
-#if wxOSX_USE_CARBON // TODO REMOVE
-    if ( inWindowRef )
-    {
-//        bool isHighlighted = IsWindowHighlited( inWindowRef ) ;
-//        if ( inActivate != isHighlighted )
-#ifndef __LP64__
-        GrafPtr port ;
-        GetPort( &port ) ;
-        SetPortWindowPort( inWindowRef ) ;
-#endif
-        HiliteWindow( inWindowRef , inActivate ) ;
-        ControlRef control = NULL ;
-        ::GetRootControl( inWindowRef , &control ) ;
-        if ( control )
-        {
-            if ( inActivate )
-                ::ActivateControl( control ) ;
-            else
-                ::DeactivateControl( control ) ;
-        }
-#ifndef __LP64__
-        SetPort( port ) ;
-#endif
-    }
-#elif defined(wxOSX_USE_COCOA)
+#if defined(wxOSX_USE_COCOA)
     wxUnusedVar(inActivate);
     wxUnusedVar(inWindowRef);
 // TODO: implement me!
@@ -98,7 +73,7 @@ bool wxMDIParentFrame::Create(wxWindow *parent,
     // "Window" menu
     if ( style & wxFRAME_NO_WINDOW_MENU )
     {
-        m_windowMenu = NULL;
+        m_windowMenu = nullptr;
         style -= wxFRAME_NO_WINDOW_MENU ;
     }
     else // normal case: we have the window menu, so construct it
@@ -130,7 +105,7 @@ wxMDIParentFrame::~wxMDIParentFrame()
     DestroyChildren();
 
     // already deleted by DestroyChildren()
-    m_clientWindow = NULL ;
+    m_clientWindow = nullptr ;
 }
 
 void wxMDIParentFrame::SetMenuBar(wxMenuBar *menu_bar)
@@ -171,7 +146,7 @@ void wxMDIParentFrame::RemoveChild(wxWindowBase *child)
     if ( child == m_currentChild )
     {
         // the current child isn't active any more, try to find another one
-        m_currentChild = NULL;
+        m_currentChild = nullptr;
 
         for ( wxWindowList::compatibility_iterator node = GetChildren().GetFirst();
               node;
@@ -218,15 +193,15 @@ void wxMDIParentFrame::MacActivate(long timestamp, bool activating)
 
             wxLogTrace(TRACE_MDI, wxT("finished highliting child"));
 
-            s_macDeactivateWindow = NULL;
+            s_macDeactivateWindow = nullptr;
         }
         else if (s_macDeactivateWindow == this)
         {
             wxLogTrace(TRACE_MDI, wxT("Avoided deactivation/activation of this=%p"), this);
 
-            s_macDeactivateWindow = NULL;
+            s_macDeactivateWindow = nullptr;
         }
-        else // window to deactivate is NULL or is not us or one of our kids
+        else // window to deactivate is null or is not us or one of our kids
         {
             // activate kid instead
             if (m_currentChild)
@@ -240,7 +215,7 @@ void wxMDIParentFrame::MacActivate(long timestamp, bool activating)
         // We were scheduled for deactivation, and now we do it.
         if (s_macDeactivateWindow == this)
         {
-            s_macDeactivateWindow = NULL;
+            s_macDeactivateWindow = nullptr;
             if (m_currentChild)
                 m_currentChild->MacActivate(timestamp, activating);
             wxFrame::MacActivate(timestamp, activating);
@@ -372,7 +347,7 @@ void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
 
             wxLogTrace(TRACE_MDI, wxT("finished highliting parent"));
 
-            s_macDeactivateWindow = NULL;
+            s_macDeactivateWindow = nullptr;
         }
         else if ((mdiparent->m_currentChild == this) || !s_macDeactivateWindow)
             mdiparent->wxFrame::MacActivate(timestamp, activating);
@@ -385,7 +360,7 @@ void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
         {
             wxLogTrace(TRACE_MDI, wxT("Avoided deactivation/activation of this=%p"), this);
 
-            s_macDeactivateWindow = NULL;
+            s_macDeactivateWindow = nullptr;
         }
         else
             wxFrame::MacActivate(timestamp, activating);
@@ -395,7 +370,7 @@ void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
         // We were scheduled for deactivation, and now we do it.
         if (s_macDeactivateWindow == this)
         {
-            s_macDeactivateWindow = NULL;
+            s_macDeactivateWindow = nullptr;
             wxFrame::MacActivate(timestamp, activating);
             if (mdiparent->m_currentChild == this)
                 mdiparent->wxFrame::MacActivate(timestamp, activating);

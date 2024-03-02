@@ -3,7 +3,7 @@
 // Purpose:     declares wxTextEntry interface defining a simple text entry
 // Author:      Vadim Zeitlin
 // Created:     2007-09-24
-// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -29,7 +29,7 @@ class WXDLLIMPEXP_FWD_CORE wxWindow;
 class WXDLLIMPEXP_CORE wxTextEntryBase
 {
 public:
-    wxTextEntryBase() { m_eventsBlock = 0; m_hintData = NULL; }
+    wxTextEntryBase() { m_eventsBlock = 0; m_hintData = nullptr; }
     virtual ~wxTextEntryBase();
 
 
@@ -57,7 +57,7 @@ public:
 
     virtual void Replace(long from, long to, const wxString& value);
     virtual void Remove(long from, long to) = 0;
-    virtual void Clear() { SetValue(wxString()); }
+    virtual void Clear() { Remove(0, -1); }
     void RemoveSelection();
 
 
@@ -126,7 +126,7 @@ public:
 
     // notice that we take ownership of the pointer and will delete it
     //
-    // if the pointer is NULL auto-completion is disabled
+    // if the pointer is null auto-completion is disabled
     bool AutoComplete(wxTextCompleter *completer)
         { return DoAutoCompleteCustom(completer); }
 
@@ -138,9 +138,15 @@ public:
     virtual void SetEditable(bool editable) = 0;
 
 
+    // input restrictions
+    // ------------------
+
     // set the max number of characters which may be entered in a single line
     // text control
     virtual void SetMaxLength(unsigned long WXUNUSED(len)) { }
+
+    // convert any lower-case characters to upper-case on the fly in this entry
+    virtual void ForceUpper();
 
 
     // hints
@@ -207,6 +213,10 @@ public:
         else
             SuppressTextChangedEvents();
     }
+
+    // change the entry value to be in upper case only, if needed (i.e. if it's
+    // not already the case)
+    void ConvertToUpperCase();
 
 protected:
     // flags for DoSetValue(): common part of SetValue() and ChangeValue() and
@@ -311,16 +321,14 @@ private:
     class WXDLLIMPEXP_CORE wxTextEntry : public wxTextEntryBase
     {
     };
-#elif defined(__WXGTK20__)
+#elif defined(__WXGTK__)
     #include "wx/gtk/textentry.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/textentry.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/textentry.h"
-#elif defined(__WXMOTIF__)
-    #include "wx/motif/textentry.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/textentry.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/textentry.h"
 #else
     // no platform-specific implementation of wxTextEntry yet
     class WXDLLIMPEXP_CORE wxTextEntry : public wxTextEntryBase

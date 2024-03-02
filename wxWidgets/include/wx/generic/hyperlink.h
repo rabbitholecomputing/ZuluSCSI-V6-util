@@ -28,7 +28,7 @@ public:
                             const wxPoint& pos = wxDefaultPosition,
                             const wxSize& size = wxDefaultSize,
                             long style = wxHL_DEFAULT_STYLE,
-                            const wxString& name = wxHyperlinkCtrlNameStr)
+                            const wxString& name = wxASCII_STR(wxHyperlinkCtrlNameStr))
     {
         Init();
         (void) Create(parent, id, label, url, pos, size, style, name);
@@ -41,28 +41,32 @@ public:
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxHL_DEFAULT_STYLE,
-                const wxString& name = wxHyperlinkCtrlNameStr);
+                const wxString& name = wxASCII_STR(wxHyperlinkCtrlNameStr));
 
 
     // get/set
-    wxColour GetHoverColour() const { return m_hoverColour; }
-    void SetHoverColour(const wxColour &colour) { m_hoverColour = colour; }
+    wxColour GetHoverColour() const override { return m_hoverColour; }
+    void SetHoverColour(const wxColour &colour) override { m_hoverColour = colour; }
 
-    wxColour GetNormalColour() const { return m_normalColour; }
-    void SetNormalColour(const wxColour &colour);
+    wxColour GetNormalColour() const override { return m_normalColour; }
+    void SetNormalColour(const wxColour &colour) override;
 
-    wxColour GetVisitedColour() const { return m_visitedColour; }
-    void SetVisitedColour(const wxColour &colour);
+    wxColour GetVisitedColour() const override { return m_visitedColour; }
+    void SetVisitedColour(const wxColour &colour) override;
 
-    wxString GetURL() const { return m_url; }
-    void SetURL (const wxString &url) { m_url=url; }
+    wxString GetURL() const override { return m_url; }
+    void SetURL (const wxString &url) override { m_url=url; }
 
-    void SetVisited(bool visited = true) { m_visited=visited; }
-    bool GetVisited() const { return m_visited; }
+    void SetVisited(bool visited = true) override { m_visited=visited; }
+    bool GetVisited() const override { return m_visited; }
 
     // NOTE: also wxWindow::Set/GetLabel, wxWindow::Set/GetBackgroundColour,
     //       wxWindow::Get/SetFont, wxWindow::Get/SetCursor are important !
 
+    // overridden/inherited wxWindow methods
+    virtual wxVisualAttributes GetDefaultAttributes() const override;
+    static wxVisualAttributes
+    GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
 protected:
     // Helper used by this class itself and native MSW implementation that
@@ -110,7 +114,7 @@ protected:
 
     // Returns the best size for the window, which is the size needed
     // to display the text label.
-    virtual wxSize DoGetBestClientSize() const;
+    virtual wxSize DoGetBestClientSize() const override;
 
     // creates a context menu with "Copy URL" menuitem
     virtual void DoContextMenu(const wxPoint &);

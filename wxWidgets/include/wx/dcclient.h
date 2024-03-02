@@ -24,7 +24,7 @@ protected:
     wxWindowDC(wxDCImpl *impl) : wxDC(impl) { }
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxWindowDC)
+    wxDECLARE_ABSTRACT_CLASS(wxWindowDC);
 };
 
 //-----------------------------------------------------------------------------
@@ -36,11 +36,13 @@ class WXDLLIMPEXP_CORE wxClientDC : public wxWindowDC
 public:
     wxClientDC(wxWindow *win);
 
+    static bool CanBeUsedForDrawing(const wxWindow* window);
+
 protected:
     wxClientDC(wxDCImpl *impl) : wxWindowDC(impl) { }
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxClientDC)
+    wxDECLARE_ABSTRACT_CLASS(wxClientDC);
 };
 
 //-----------------------------------------------------------------------------
@@ -56,7 +58,7 @@ protected:
     wxPaintDC(wxDCImpl *impl) : wxClientDC(impl) { }
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxPaintDC)
+    wxDECLARE_ABSTRACT_CLASS(wxPaintDC);
 };
 
 #endif // _WX_DCCLIENT_H_BASE_

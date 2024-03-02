@@ -2,7 +2,6 @@
 // Name:        src/generic/combog.cpp
 // Purpose:     Generic wxComboCtrl
 // Author:      Jaakko Salli
-// Modified by:
 // Created:     Apr-30-2006
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
@@ -18,9 +17,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_COMBOCTRL
 
@@ -45,7 +41,6 @@
 // meaningless if LEFT_MARGIN_CAN_BE_SET set to 1 in combocmn.cpp
 #define TEXTCTRLXADJUST                 0
 
-#define TEXTXADJUST                     0 // how much is read-only text's x adjusted
 #define DEFAULT_DROPBUTTON_WIDTH        19
 
 #elif defined(__WXMSW__)
@@ -54,7 +49,6 @@
 // meaningless if LEFT_MARGIN_CAN_BE_SET set to 1 in combocmn.cpp
 #define TEXTCTRLXADJUST                 2
 
-#define TEXTXADJUST                     0 // how much is read-only text's x adjusted
 #define DEFAULT_DROPBUTTON_WIDTH        17
 
 #elif defined(__WXGTK__)
@@ -63,7 +57,6 @@
 // meaningless if LEFT_MARGIN_CAN_BE_SET set to 1 in combocmn.cpp
 #define TEXTCTRLXADJUST                 -1
 
-#define TEXTXADJUST                     1 // how much is read-only text's x adjusted
 #define DEFAULT_DROPBUTTON_WIDTH        23
 
 #elif defined(__WXMAC__)
@@ -72,7 +65,6 @@
 // meaningless if LEFT_MARGIN_CAN_BE_SET set to 1 in combocmn.cpp
 #define TEXTCTRLXADJUST                 0
 
-#define TEXTXADJUST                     0 // how much is read-only text's x adjusted
 #define DEFAULT_DROPBUTTON_WIDTH        22
 
 #else
@@ -81,7 +73,6 @@
 // meaningless if LEFT_MARGIN_CAN_BE_SET set to 1 in combocmn.cpp
 #define TEXTCTRLXADJUST                 0
 
-#define TEXTXADJUST                     0 // how much is read-only text's x adjusted
 #define DEFAULT_DROPBUTTON_WIDTH        19
 
 #endif
@@ -99,13 +90,13 @@
 // wxGenericComboCtrl
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxGenericComboCtrl, wxComboCtrlBase)
+wxBEGIN_EVENT_TABLE(wxGenericComboCtrl, wxComboCtrlBase)
     EVT_PAINT(wxGenericComboCtrl::OnPaintEvent)
     EVT_MOUSE_EVENTS(wxGenericComboCtrl::OnMouseEvent)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxGenericComboCtrl, wxComboCtrlBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGenericComboCtrl, wxComboCtrlBase);
 
 void wxGenericComboCtrl::Init()
 {
@@ -130,14 +121,7 @@ bool wxGenericComboCtrl::Create(wxWindow *parent,
         border = wxBORDER_SIMPLE;
 #elif defined(__WXMSW__)
     if ( !border )
-        // For XP, have 1-width custom border, for older version use sunken
-        /*if ( wxUxThemeEngine::GetIfActive() )
-        {
-            border = wxBORDER_NONE;
-            m_widthCustomBorder = 1;
-        }
-        else*/
-            border = wxBORDER_SUNKEN;
+        border = wxBORDER_SUNKEN;
 #else
 
     //
@@ -192,9 +176,6 @@ bool wxGenericComboCtrl::Create(wxWindow *parent,
     // Create textctrl, if necessary
     CreateTextCtrl( tcBorder );
 
-    // Add keyboard input handlers for main control and textctrl
-    InstallInputHandlers();
-
     // Set background style for double-buffering, when needed
     // (cannot use when system draws background automatically)
     if ( !HasTransparentBackground() )
@@ -208,6 +189,20 @@ bool wxGenericComboCtrl::Create(wxWindow *parent,
 
 wxGenericComboCtrl::~wxGenericComboCtrl()
 {
+}
+
+bool wxGenericComboCtrl::HasTransparentBackground()
+{
+#if wxALWAYS_NATIVE_DOUBLE_BUFFER
+  #ifdef __WXGTK__
+    // Sanity check for GTK+
+    return IsDoubleBuffered();
+  #else
+    return true;
+  #endif
+#else
+    return false;
+#endif
 }
 
 void wxGenericComboCtrl::OnResize()
@@ -257,7 +252,7 @@ void wxGenericComboCtrl::OnPaintEvent( wxPaintEvent& WXUNUSED(event) )
 #ifdef __WXMAC__
         wxPen pen1( wxColour(133,133,133),
                     customBorder,
-                    wxSOLID );
+                    wxPENSTYLE_SOLID );
 #else
         wxPen pen1( wxSystemSettings::GetColour(wxSYS_COLOUR_GRAYTEXT),
                     customBorder,
@@ -320,7 +315,7 @@ void wxGenericComboCtrl::OnPaintEvent( wxPaintEvent& WXUNUSED(event) )
         dc.SetPen(tcCol);
         dc.DrawRectangle(tcRect);
 
-        // this is intentionally here to allow drawed rectangle's
+        // this is intentionally here to allow drawn rectangle's
         // right edge to be hidden
         if ( m_text )
             tcRect.width = m_widthCustomPaint;
@@ -420,12 +415,7 @@ void wxGenericComboCtrl::SetCustomPaintWidth( int width )
         // Common textctrl re-creation code
         if ( tcCreateStyle != -1 )
         {
-            tc->RemoveEventHandler(m_textEvtHandler);
-            delete m_textEvtHandler;
-
             CreateTextCtrl( tcCreateStyle );
-
-            InstallInputHandlers();
         }
     }
 #endif // UNRELIABLE_TEXTCTRL_BORDER
@@ -455,6 +445,13 @@ bool wxGenericComboCtrl::IsKeyPopupToggle(const wxKeyEvent& event) const
 
     return false;
 }
+
+#if defined(__WXOSX__)
+wxTextWidgetImpl * wxGenericComboCtrl::GetTextPeer() const
+{
+    return m_text ? m_text->GetTextPeer() : nullptr;
+}
+#endif
 
 #ifdef __WXUNIVERSAL__
 
@@ -496,7 +493,7 @@ bool wxGenericComboCtrl::PerformAction(const wxControlAction& action,
 // If native wxComboCtrl was not defined, then prepare a simple
 // front-end so that wxRTTI works as expected.
 #ifndef _WX_COMBOCONTROL_H_
-IMPLEMENT_DYNAMIC_CLASS(wxComboCtrl, wxGenericComboCtrl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxComboCtrl, wxGenericComboCtrl);
 #endif
 
 #endif // !wxCOMBOCONTROL_FULLY_FEATURED

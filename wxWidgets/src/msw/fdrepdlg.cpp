@@ -2,7 +2,6 @@
 // Name:        src/msw/fdrepdlg.cpp
 // Purpose:     wxFindReplaceDialog class
 // Author:      Markus Greither and Vadim Zeitlin
-// Modified by:
 // Created:     23/03/2001
 // Copyright:   (c) Markus Greither
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_FINDREPLDLG
 
@@ -33,7 +29,9 @@
 
 #include "wx/fdrepdlg.h"
 
-#include "wx/msw/mslu.h"
+// Use functions from src/msw/window.cpp
+extern void wxRemoveHandleAssociation(wxWindowMSW *win);
+extern void wxAssociateWinWithHandle(HWND hWnd, wxWindowMSW *win);
 
 // ----------------------------------------------------------------------------
 // functions prototypes
@@ -48,7 +46,7 @@ UINT_PTR CALLBACK wxFindReplaceDialogHookProc(HWND hwnd,
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxFindReplaceDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFindReplaceDialog, wxDialog);
 
 // ----------------------------------------------------------------------------
 // wxFindReplaceDialogImpl: the internals of wxFindReplaceDialog
@@ -199,32 +197,9 @@ wxFindReplaceDialogImpl::FindMessageHandler(wxWindow * WXUNUSED(win),
                                             WPARAM WXUNUSED(wParam),
                                             LPARAM lParam)
 {
-#if wxUSE_UNICODE_MSLU
-    static unsigned long s_lastMsgFlags = 0;
-
-    // This flag helps us to identify the bogus ANSI message
-    // sent by UNICOWS.DLL (see below)
-    // while we're sending our message to the dialog
-    // we ignore possible messages sent in between
-    static bool s_blockMsg = false;
-#endif // wxUSE_UNICODE_MSLU
-
     wxASSERT_MSG( nMsg == ms_msgFindDialog, wxT("unexpected message received") );
 
     FINDREPLACE *pFR = (FINDREPLACE *)lParam;
-
-#if wxUSE_UNICODE_MSLU
-    // This is a hack for a MSLU problem: Versions up to 1.0.4011
-    // of UNICOWS.DLL send the correct UNICODE item after button press
-    // and a bogus ANSI mode item right after this, so let's ignore
-    // the second bogus message
-    if ( wxUsingUnicowsDll() && s_lastMsgFlags == pFR->Flags )
-    {
-        s_lastMsgFlags = 0;
-        return 0;
-    }
-    s_lastMsgFlags = pFR->Flags;
-#endif // wxUSE_UNICODE_MSLU
 
     wxFindReplaceDialog *dialog = (wxFindReplaceDialog *)pFR->lCustData;
 
@@ -281,15 +256,7 @@ wxFindReplaceDialogImpl::FindMessageHandler(wxWindow * WXUNUSED(win),
         event.SetReplaceString(pFR->lpstrReplaceWith);
     }
 
-#if wxUSE_UNICODE_MSLU
-    s_blockMsg = true;
-#endif // wxUSE_UNICODE_MSLU
-
     dialog->Send(event);
-
-#if wxUSE_UNICODE_MSLU
-    s_blockMsg = false;
-#endif // wxUSE_UNICODE_MSLU
 
     return true;
 }
@@ -328,8 +295,8 @@ wxFindReplaceDialogHookProc(HWND hwnd,
 
 void wxFindReplaceDialog::Init()
 {
-    m_impl = NULL;
-    m_FindReplaceData = NULL;
+    m_impl = nullptr;
+    m_FindReplaceData = nullptr;
 
     // as we're created in the hidden state, bring the internal flag in sync
     m_isShown = false;
@@ -370,7 +337,8 @@ wxFindReplaceDialog::~wxFindReplaceDialog()
     m_isShown = false;
 
     // and from destroying our window [again]
-    m_hWnd = (WXHWND)NULL;
+    wxRemoveHandleAssociation(this);
+    m_hWnd = (WXHWND)nullptr;
 }
 
 bool wxFindReplaceDialog::Create(wxWindow *parent,
@@ -380,12 +348,14 @@ bool wxFindReplaceDialog::Create(wxWindow *parent,
 {
     m_windowStyle = flags;
     m_FindReplaceData = data;
-    m_parent = parent;
+
+    if ( parent )
+        parent->AddChild(this);
 
     SetTitle(title);
 
     // we must have a parent as it will get the messages from us
-    return parent != NULL;
+    return parent != nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -453,6 +423,7 @@ bool wxFindReplaceDialog::Show(bool show)
     }
 
     m_hWnd = (WXHWND)hwnd;
+    wxAssociateWinWithHandle(m_hWnd, this);
 
     return true;
 }
@@ -472,6 +443,19 @@ void wxFindReplaceDialog::SetTitle( const wxString& title)
 wxString wxFindReplaceDialog::GetTitle() const
 {
     return m_title;
+}
+
+// ----------------------------------------------------------------------------
+// wxFindReplaceDialog message handling
+// ----------------------------------------------------------------------------
+
+bool wxFindReplaceDialog::MSWProcessMessage(WXMSG* pMsg)
+{
+    // The base class MSWProcessMessage() doesn't work for us because we don't
+    // have wxTAB_TRAVERSAL style, but then we don't need it anyhow: as this
+    // dialog only ever contains standard controls, just using the standard
+    // function is enough to make TAB navigation work in it.
+    return m_hWnd && ::IsDialogMessage(m_hWnd, pMsg);
 }
 
 // ----------------------------------------------------------------------------

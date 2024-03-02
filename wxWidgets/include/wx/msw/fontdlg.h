@@ -2,7 +2,6 @@
 // Name:        wx/msw/fontdlg.h
 // Purpose:     wxFontDialog class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -24,22 +23,15 @@ public:
     wxFontDialog(wxWindow *parent, const wxFontData& data)
         : wxFontDialogBase(parent, data) { Create(parent, data); }
 
-    virtual int ShowModal();
-
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated interface, don't use
-    wxDEPRECATED( wxFontDialog(wxWindow *parent, const wxFontData *data) );
-#endif // WXWIN_COMPATIBILITY_2_6
+    virtual int ShowModal() override;
+    virtual void SetTitle(const wxString& title) override;
+    virtual wxString GetTitle() const override;
 
 protected:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxFontDialog)
-};
+    wxString m_title;
 
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated interface, don't use
-inline wxFontDialog::wxFontDialog(wxWindow *parent, const wxFontData *data)
-        : wxFontDialogBase(parent) { InitFontData(data); Create(parent); }
-#endif // WXWIN_COMPATIBILITY_2_6
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxFontDialog);
+};
 
 #endif
     // _WX_MSW_FONTDLG_H_

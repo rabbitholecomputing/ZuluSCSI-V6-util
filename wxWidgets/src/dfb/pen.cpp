@@ -10,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/pen.h"
 
@@ -43,7 +40,7 @@ public:
     {
         if ( style != wxPENSTYLE_SOLID && style != wxPENSTYLE_TRANSPARENT )
         {
-            wxFAIL_MSG( "only wxSOLID and wxTRANSPARENT styles are supported" );
+            wxFAIL_MSG( "only wxPENSTYLE_SOLID and wxPENSTYLE_TRANSPARENT styles are supported" );
             style = wxPENSTYLE_SOLID;
         }
 
@@ -58,7 +55,7 @@ public:
 
 #define M_PENDATA ((wxPenRefData *)m_refData)
 
-IMPLEMENT_DYNAMIC_CLASS(wxPen, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPen, wxGDIObject);
 
 wxPen::wxPen(const wxColour &colour, int width, wxPenStyle style)
 {
@@ -67,18 +64,21 @@ wxPen::wxPen(const wxColour &colour, int width, wxPenStyle style)
     m_refData = new wxPenRefData(colour, style);
 }
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 wxPen::wxPen(const wxColour& col, int width, int style)
 {
     m_refData = new wxPenRefData(col, (wxPenStyle)style);
 }
-#endif
 
 wxPen::wxPen(const wxBitmap& WXUNUSED(stipple), int WXUNUSED(width))
 {
     wxFAIL_MSG( "stipple pens not supported" );
 
     m_refData = new wxPenRefData();
+}
+
+wxPen::wxPen(const wxPenInfo& info)
+{
+    m_refData = new wxPenRefData(info.GetColour(), info.GetStyle());
 }
 
 bool wxPen::operator==(const wxPen& pen) const
@@ -134,7 +134,7 @@ int wxPen::GetDashes(wxDash **ptr) const
 {
     wxFAIL_MSG( "GetDashes not implemented" );
 
-    *ptr = NULL;
+    *ptr = nullptr;
     return 0;
 }
 
@@ -149,7 +149,7 @@ wxDash* wxPen::GetDash() const
 {
     wxFAIL_MSG( "GetDash not implemented" );
 
-    return NULL;
+    return nullptr;
 }
 
 wxPenCap wxPen::GetCap() const
@@ -191,10 +191,10 @@ wxColour wxPen::GetColour() const
 
 wxBitmap *wxPen::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), NULL, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid pen") );
 
     wxFAIL_MSG( "GetStipple not implemented" );
-    return NULL;
+    return nullptr;
 }
 
 wxGDIRefData *wxPen::CreateGDIRefData() const

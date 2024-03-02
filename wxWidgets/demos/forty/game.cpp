@@ -2,7 +2,6 @@
 // Name:        game.cpp
 // Purpose:     Forty Thieves patience game
 // Author:      Chris Breeze
-// Modified by:
 // Created:     21/07/97
 // Copyright:   (c) 1993-1998 Chris Breeze
 // Licence:     wxWindows licence
@@ -12,10 +11,6 @@
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
 #include "wx/wx.h"
@@ -183,7 +178,7 @@ void Game::DoMove(wxDC& dc, Pile* src, Pile* dest)
     if (HaveYouWon())
     {
         wxWindow *frame = wxTheApp->GetTopWindow();
-        wxWindow *canvas = (wxWindow *) NULL;
+        wxWindow *canvas = nullptr;
 
         if (frame)
         {
@@ -215,7 +210,7 @@ void Game::DoMove(wxDC& dc, Pile* src, Pile* dest)
 void Game::DisplayScore(wxDC& dc)
 {
     wxColour bgColour = FortyApp::BackgroundColour();
-    wxPen* pen = wxThePenList->FindOrCreatePen(bgColour, 1, wxSOLID);
+    wxPen* pen = wxThePenList->FindOrCreatePen(bgColour);
     dc.SetTextBackground(bgColour);
     dc.SetTextForeground(FortyApp::TextColour());
     dc.SetBrush(FortyApp::BackgroundBrush());
@@ -795,7 +790,7 @@ void Pack::Redraw(wxDC& dc)
     wxString str;
     str.Printf(wxT("%d  "), m_topCard + 1);
 
-    dc.SetBackgroundMode( wxSOLID );
+    dc.SetBackgroundMode( wxBRUSHSTYLE_SOLID );
     dc.SetTextBackground(FortyApp::BackgroundColour());
     dc.SetTextForeground(FortyApp::TextColour());
     dc.DrawText(str, m_x + CardWidth + 5, m_y + CardHeight / 2);

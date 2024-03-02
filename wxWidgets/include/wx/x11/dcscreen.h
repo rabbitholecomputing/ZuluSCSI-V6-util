@@ -2,7 +2,6 @@
 // Name:        wx/x11/dcscreen.h
 // Purpose:     wxScreenDC class
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -28,7 +27,7 @@ protected:
     virtual void DoGetSize(int *width, int *height) const;
 
 private:
-    DECLARE_CLASS(wxScreenDCImpl)
+    wxDECLARE_CLASS(wxScreenDCImpl);
 };
 
 

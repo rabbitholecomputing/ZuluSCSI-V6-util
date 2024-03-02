@@ -2,7 +2,6 @@
 // Name:        wx/osx/core/joystick.h
 // Purpose:     wxJoystick class
 // Author:      Ryan Norton
-// Modified by:
 // Created:     2/13/2005
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
@@ -17,7 +16,7 @@ class WXDLLIMPEXP_FWD_CORE wxJoystickThread;
 
 class WXDLLIMPEXP_ADV wxJoystick: public wxObject
 {
-    DECLARE_DYNAMIC_CLASS(wxJoystick)
+    wxDECLARE_DYNAMIC_CLASS(wxJoystick);
  public:
 
     wxJoystick(int joystick = wxJOYSTICK1);

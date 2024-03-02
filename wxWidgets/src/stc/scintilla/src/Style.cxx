@@ -5,48 +5,75 @@
 // Copyright 1998-2001 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
-#include <string.h>
+#include <stdexcept>
+#include <vector>
+#include <memory>
 
 #include "Platform.h"
 
 #include "Scintilla.h"
 #include "Style.h"
 
-#ifdef SCI_NAMESPACE
 using namespace Scintilla;
-#endif
 
-FontAlias::FontAlias() {
+FontAlias::FontAlias() noexcept {
+}
+
+FontAlias::FontAlias(const FontAlias &other) noexcept : Font() {
+	SetID(other.fid);
+}
+
+FontAlias::FontAlias(FontAlias &&other) noexcept : Font() {
+	SetID(other.fid);
+	other.ClearFont();
 }
 
 FontAlias::~FontAlias() {
-	SetID(0);
-	// ~Font will not release the actual font resource sine it is now 0
+	SetID(FontID{});
+	// ~Font will not release the actual font resource since it is now 0
 }
 
-void FontAlias::MakeAlias(Font &fontOrigin) {
+void FontAlias::MakeAlias(const Font &fontOrigin) noexcept {
 	SetID(fontOrigin.GetID());
 }
 
-void FontAlias::ClearFont() {
-	SetID(0);
+void FontAlias::ClearFont() noexcept {
+	SetID(FontID{});
 }
 
-bool FontSpecification::EqualTo(const FontSpecification &other) const {
-	return weight == other.weight &&
+bool FontSpecification::operator==(const FontSpecification &other) const noexcept {
+	return fontName == other.fontName &&
+	       weight == other.weight &&
 	       italic == other.italic &&
 	       size == other.size &&
 	       characterSet == other.characterSet &&
-	       fontName == other.fontName;
+	       extraFontFlag == other.extraFontFlag;
 }
 
-FontMeasurements::FontMeasurements() {
-	Clear();
+bool FontSpecification::operator<(const FontSpecification &other) const noexcept {
+	if (fontName != other.fontName)
+		return fontName < other.fontName;
+	if (weight != other.weight)
+		return weight < other.weight;
+	if (italic != other.italic)
+		return italic == false;
+	if (size != other.size)
+		return size < other.size;
+	if (characterSet != other.characterSet)
+		return characterSet < other.characterSet;
+	if (extraFontFlag != other.extraFontFlag)
+		return extraFontFlag < other.extraFontFlag;
+	return false;
 }
 
-void FontMeasurements::Clear() {
+FontMeasurements::FontMeasurements() noexcept {
+	ClearMeasurements();
+}
+
+void FontMeasurements::ClearMeasurements() noexcept {
 	ascent = 1;
 	descent = 1;
+	capitalHeight = 1;
 	aveCharWidth = 1;
 	spaceWidth = 1;
 	sizeZoomed = 2;
@@ -54,13 +81,13 @@ void FontMeasurements::Clear() {
 
 Style::Style() : FontSpecification() {
 	Clear(ColourDesired(0, 0, 0), ColourDesired(0xff, 0xff, 0xff),
-	      Platform::DefaultFontSize() * SC_FONT_SIZE_MULTIPLIER, 0, SC_CHARSET_DEFAULT,
+	      Platform::DefaultFontSize() * SC_FONT_SIZE_MULTIPLIER, nullptr, SC_CHARSET_DEFAULT,
 	      SC_WEIGHT_NORMAL, false, false, false, caseMixed, true, true, false);
 }
 
-Style::Style(const Style &source) : FontSpecification(), FontMeasurements() {
+Style::Style(const Style &source) noexcept : FontSpecification(), FontMeasurements() {
 	Clear(ColourDesired(0, 0, 0), ColourDesired(0xff, 0xff, 0xff),
-	      0, 0, 0,
+	      0, nullptr, 0,
 	      SC_WEIGHT_NORMAL, false, false, false, caseMixed, true, true, false);
 	fore = source.fore;
 	back = source.back;
@@ -68,6 +95,7 @@ Style::Style(const Style &source) : FontSpecification(), FontMeasurements() {
 	weight = source.weight;
 	italic = source.italic;
 	size = source.size;
+	fontName = source.fontName;
 	eolFilled = source.eolFilled;
 	underline = source.underline;
 	caseForce = source.caseForce;
@@ -79,11 +107,11 @@ Style::Style(const Style &source) : FontSpecification(), FontMeasurements() {
 Style::~Style() {
 }
 
-Style &Style::operator=(const Style &source) {
+Style &Style::operator=(const Style &source) noexcept {
 	if (this == &source)
 		return * this;
 	Clear(ColourDesired(0, 0, 0), ColourDesired(0xff, 0xff, 0xff),
-	      0, 0, SC_CHARSET_DEFAULT,
+	      0, nullptr, SC_CHARSET_DEFAULT,
 	      SC_WEIGHT_NORMAL, false, false, false, caseMixed, true, true, false);
 	fore = source.fore;
 	back = source.back;
@@ -91,6 +119,7 @@ Style &Style::operator=(const Style &source) {
 	weight = source.weight;
 	italic = source.italic;
 	size = source.size;
+	fontName = source.fontName;
 	eolFilled = source.eolFilled;
 	underline = source.underline;
 	caseForce = source.caseForce;
@@ -103,7 +132,7 @@ void Style::Clear(ColourDesired fore_, ColourDesired back_, int size_,
         const char *fontName_, int characterSet_,
         int weight_, bool italic_, bool eolFilled_,
         bool underline_, ecaseForced caseForce_,
-        bool visible_, bool changeable_, bool hotspot_) {
+        bool visible_, bool changeable_, bool hotspot_) noexcept {
 	fore = fore_;
 	back = back_;
 	characterSet = characterSet_;
@@ -118,10 +147,10 @@ void Style::Clear(ColourDesired fore_, ColourDesired back_, int size_,
 	changeable = changeable_;
 	hotspot = hotspot_;
 	font.ClearFont();
-	FontMeasurements::Clear();
+	FontMeasurements::ClearMeasurements();
 }
 
-void Style::ClearTo(const Style &source) {
+void Style::ClearTo(const Style &source) noexcept {
 	Clear(
 	    source.fore,
 	    source.back,
@@ -138,10 +167,7 @@ void Style::ClearTo(const Style &source) {
 	    source.hotspot);
 }
 
-void Style::Copy(Font &font_, const FontMeasurements &fm_) {
+void Style::Copy(const Font &font_, const FontMeasurements &fm_) noexcept {
 	font.MakeAlias(font_);
-#if PLAT_WX
-	font.SetAscent(fm_.ascent);
-#endif
 	(FontMeasurements &)(*this) = fm_;
 }

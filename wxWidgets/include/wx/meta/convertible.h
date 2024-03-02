@@ -10,27 +10,25 @@
 #ifndef _WX_META_CONVERTIBLE_H_
 #define _WX_META_CONVERTIBLE_H_
 
-//
-// Introduce an extra class to make this header compilable with g++3.2
-//
-template <class D, class B>
-struct wxConvertibleTo_SizeHelper
-{
-    static char Match(B* pb);
-    static int  Match(...);
-};
+#include <type_traits>
 
+// NOTE: this class is obsolete and provided only for compatibility, please use
+// the standard class instead.
+//
 // Helper to decide if an object of type D is convertible to type B (the test
 // succeeds in particular when D derives from B)
 template <class D, class B>
-struct wxConvertibleTo
+using wxConvertibleTo = std::is_convertible<D*, B*>;
+
+// This is similar to wxConvertibleTo, except that the case of D deriving from
+// B non-publicly will be detected and the correct value (false) will be
+// deduced.
+template <class D, class B>
+struct wxIsPubliclyDerived
 {
     enum
     {
-        value =
-            sizeof(wxConvertibleTo_SizeHelper<D,B>::Match(static_cast<D*>(NULL)))
-            ==
-            sizeof(char)
+        value = std::is_base_of<B, D>::value && std::is_convertible<D*, B*>::value
     };
 };
 

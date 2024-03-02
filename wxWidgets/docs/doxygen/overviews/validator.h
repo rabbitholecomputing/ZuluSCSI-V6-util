@@ -26,7 +26,7 @@ Here is an example of wxTextValidator usage.
 
 @code
 wxTextCtrl *txt1 = new wxTextCtrl(
-    this, -1, wxT(""), wxDefaultPosition, wxDefaultSize, 0,
+    this, -1, "", wxDefaultPosition, wxDefaultSize, 0,
     wxTextValidator(wxFILTER_ALPHA, &g_data.m_string));
 @endcode
 
@@ -48,8 +48,8 @@ The second type of validation is performed when the dialog is about to be dismis
 so if the default string contained invalid characters already, a dialog box is shown
 giving the error, and the dialog is not dismissed.
 
-Note that any wxWindow may have a validator; using the @c wxWS_EX_VALIDATE_RECURSIVELY
-style (see wxWindow extended styles) you can also implement recursive validation.
+Note that any wxWindow may have a validator and it will be used when
+transferring data to or from the parent window.
 
 @see wxValidator, wxTextValidator, wxGenericValidator, wxIntegerValidator,
      wxFloatingPointValidator

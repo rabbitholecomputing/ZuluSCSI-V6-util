@@ -2,7 +2,6 @@
 // Name:        wx/osx/textctrl.h
 // Purpose:     wxTextCtrl class
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -27,7 +26,7 @@
 
 class WXDLLIMPEXP_CORE wxTextCtrl: public wxTextCtrlBase
 {
-  DECLARE_DYNAMIC_CLASS(wxTextCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxTextCtrl);
 
 public:
     wxTextCtrl()
@@ -40,7 +39,7 @@ public:
         const wxSize& size = wxDefaultSize,
         long style = 0,
         const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = wxTextCtrlNameStr)
+        const wxString& name = wxASCII_STR(wxTextCtrlNameStr))
     {
         Init();
         Create(parent, id, value, pos, size, style, validator, name);
@@ -55,51 +54,60 @@ public:
         const wxSize& size = wxDefaultSize,
         long style = 0,
         const wxValidator& validator = wxDefaultValidator,
-        const wxString& name = wxTextCtrlNameStr);
+        const wxString& name = wxASCII_STR(wxTextCtrlNameStr));
 
     // accessors
     // ---------
 
-    virtual int GetLineLength(long lineNo) const;
-    virtual wxString GetLineText(long lineNo) const;
-    virtual int GetNumberOfLines() const;
+    virtual int GetLineLength(long lineNo) const override;
+    virtual wxString GetLineText(long lineNo) const override;
+    virtual int GetNumberOfLines() const override;
 
-    virtual bool IsModified() const;
+    virtual bool IsModified() const override;
 
     // operations
     // ----------
 
 
     // sets/clears the dirty flag
-    virtual void MarkDirty();
-    virtual void DiscardEdits();
+    virtual void MarkDirty() override;
+    virtual void DiscardEdits() override;
+
+    virtual void EmptyUndoBuffer() override;
 
     // text control under some platforms supports the text styles: these
     // methods apply the given text style to the given selection or to
     // set/get the style which will be used for all appended text
-    virtual bool SetFont( const wxFont &font );
-    virtual bool GetStyle(long position, wxTextAttr& style);
-    virtual bool SetStyle(long start, long end, const wxTextAttr& style);
-    virtual bool SetDefaultStyle(const wxTextAttr& style);
+    virtual bool SetFont( const wxFont &font ) override;
+    virtual bool GetStyle(long position, wxTextAttr& style) override;
+    virtual bool SetStyle(long start, long end, const wxTextAttr& style) override;
+    virtual bool SetDefaultStyle(const wxTextAttr& style) override;
 
     // translate between the position (which is just an index into the textctrl
     // considering all its contents as a single strings) and (x, y) coordinates
     // which represent column and line.
-    virtual long XYToPosition(long x, long y) const;
-    virtual bool PositionToXY(long pos, long *x, long *y) const;
+    virtual long XYToPosition(long x, long y) const override;
+    virtual bool PositionToXY(long pos, long *x, long *y) const override;
 
-    virtual void ShowPosition(long pos);
+    virtual void ShowPosition(long pos) override;
 
     // overrides so that we can send text updated events
-    virtual void Copy();
-    virtual void Cut();
-    virtual void Paste();
+    virtual void Copy() override;
+    virtual void Cut() override;
+    virtual void Paste() override;
+
+#if wxUSE_SPELLCHECK
+    // Use native spelling and grammar checking functions (multiline only).
+    virtual bool EnableProofCheck(const wxTextProofOptions& options
+                                    = wxTextProofOptions::Default()) override;
+    virtual wxTextProofOptions GetProofCheckOptions() const override;
+#endif // wxUSE_SPELLCHECK
 
     // Implementation
     // --------------
-    virtual void Command(wxCommandEvent& event);
+    virtual void Command(wxCommandEvent& event) override;
 
-    virtual bool AcceptsFocus() const;
+    virtual void SetWindowStyleFlag(long style) override;
 
     // callbacks
     void OnDropFiles(wxDropFilesEvent& event);
@@ -124,22 +132,32 @@ public:
 
     void OnContextMenu(wxContextMenuEvent& event);
 
-    virtual bool MacSetupCursor( const wxPoint& pt );
+    virtual bool MacSetupCursor( const wxPoint& pt ) override;
 
-    virtual void MacVisibilityChanged();
-    virtual void MacSuperChangedPosition();
-    virtual void MacCheckSpelling(bool check);
+    virtual void MacVisibilityChanged() override;
+    virtual void MacSuperChangedPosition() override;
+
+    // Use portable EnableProofCheck() instead now.
+#if WXWIN_COMPATIBILITY_3_0 && wxUSE_SPELLCHECK
+    wxDEPRECATED( virtual void MacCheckSpelling(bool check) );
+#endif // WXWIN_COMPATIBILITY_3_0 && wxUSE_SPELLCHECK
+
+    void OSXEnableNewLineReplacement(bool enable);
+    void OSXEnableAutomaticQuoteSubstitution(bool enable);
+    void OSXEnableAutomaticDashSubstitution(bool enable);
+    void OSXDisableAllSmartSubstitutions();
 
 protected:
     // common part of all ctors
     void Init();
 
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen) const override;
 
     // flag is set to true when the user edits the controls contents
     bool m_dirty;
 
-    virtual void EnableTextChangedEvents(bool WXUNUSED(enable))
+    virtual void EnableTextChangedEvents(bool WXUNUSED(enable)) override
     {
         // nothing to do here as the events are never generated when we change
         // the controls value programmatically anyhow
@@ -148,7 +166,7 @@ protected:
 private :
     wxMenu  *m_privateContextMenu;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_TEXTCTRL_H_

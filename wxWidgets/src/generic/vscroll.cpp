@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Brad Anderson, David Warkentin
 // Created:     30.05.03
-// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -18,10 +18,6 @@
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/dc.h"
@@ -49,7 +45,7 @@ public:
         m_scrollHelper = scrollHelper;
     }
 
-    virtual bool ProcessEvent(wxEvent& event);
+    virtual bool ProcessEvent(wxEvent& event) override;
 
 private:
     wxVarScrollHelperBase *m_scrollHelper;
@@ -89,9 +85,6 @@ bool wxVarScrollHelperEvtHandler::ProcessEvent(wxEvent& event)
         return true;
     }
 
-    if ( processed && event.IsCommandEvent())
-        return true;
-
     // For wxEVT_PAINT the user code can either handle this event as usual or
     // override virtual OnDraw(), so if the event hasn't been handled we need
     // to call this virtual function ourselves.
@@ -109,6 +102,11 @@ bool wxVarScrollHelperEvtHandler::ProcessEvent(wxEvent& event)
         m_scrollHelper->HandleOnPaint((wxPaintEvent &)event);
         return true;
     }
+
+    // If the user code handled this event, it should prevent the default
+    // handling from taking place, so don't do anything else in this case.
+    if ( processed )
+        return true;
 
     // reset the skipped flag (which might have been set to true in
     // ProcessEvent() above) to be able to test it below
@@ -138,7 +136,7 @@ bool wxVarScrollHelperEvtHandler::ProcessEvent(wxEvent& event)
     }
 #if wxUSE_MOUSEWHEEL
     // Use GTK's own scroll wheel handling in GtkScrolledWindow
-#ifndef __WXGTK20__
+#ifndef __WXGTK__
     else if ( evType == wxEVT_MOUSEWHEEL )
     {
         m_scrollHelper->HandleOnMouseWheel((wxMouseEvent &)event);
@@ -194,7 +192,7 @@ wxVarScrollHelperBase::wxVarScrollHelperBase(wxWindow *win)
     m_unitFirst = 0;
 
     m_physicalScrolling = true;
-    m_handler = NULL;
+    m_handler = nullptr;
 
     // by default, the associated window is also the target window
     DoSetTargetWindow(win);
@@ -334,7 +332,7 @@ size_t wxVarScrollHelperBase::GetNewScrollPosition(wxScrollWinEvent& event) cons
     }
     else if ( evtType == wxEVT_SCROLLWIN_BOTTOM )
     {
-        return m_unitMax;
+        return m_unitMax - 1;
     }
     else if ( evtType == wxEVT_SCROLLWIN_LINEUP )
     {
@@ -342,7 +340,7 @@ size_t wxVarScrollHelperBase::GetNewScrollPosition(wxScrollWinEvent& event) cons
     }
     else if ( evtType == wxEVT_SCROLLWIN_LINEDOWN )
     {
-        return m_unitFirst + 1;
+        return wxMin(m_unitFirst + 1, m_unitMax - 1);
     }
     else if ( evtType == wxEVT_SCROLLWIN_PAGEUP )
     {
@@ -354,9 +352,9 @@ size_t wxVarScrollHelperBase::GetNewScrollPosition(wxScrollWinEvent& event) cons
     {
         // And page down should do at least as much as line down.
         if ( GetVisibleEnd() )
-            return wxMax(GetVisibleEnd() - 1, m_unitFirst + 1);
+            return wxMax(GetVisibleEnd() - 1, wxMin(m_unitFirst + 1, m_unitMax - 1));
         else
-            return wxMax(GetVisibleEnd(), m_unitFirst + 1);
+            return wxMax(GetVisibleEnd(), wxMin(m_unitFirst + 1, m_unitMax - 1));
     }
     else if ( evtType == wxEVT_SCROLLWIN_THUMBRELEASE )
     {
@@ -429,7 +427,7 @@ void wxVarScrollHelperBase::DeleteEvtHandler()
         //else: something is very wrong, so better [maybe] leak memory than
         //      risk a crash because of double deletion
 
-        m_handler = NULL;
+        m_handler = nullptr;
     }
 }
 
@@ -437,7 +435,7 @@ void wxVarScrollHelperBase::DoSetTargetWindow(wxWindow *target)
 {
     m_targetWindow = target;
 #ifdef __WXMAC__
-    target->MacSetClipChildren( true ) ;
+    target->MacSetClipChildren() ;
 #endif
 
     // install the event handler which will intercept the events we're
@@ -459,7 +457,7 @@ void wxVarScrollHelperBase::DoSetTargetWindow(wxWindow *target)
 
 void wxVarScrollHelperBase::SetTargetWindow(wxWindow *target)
 {
-    wxCHECK_RET( target, wxT("target window must not be NULL") );
+    wxCHECK_RET( target, wxT("target window must not be null") );
 
     if ( target == m_targetWindow )
         return;
@@ -994,64 +992,6 @@ bool wxVarHVScrollHelper::IsVisible(size_t row, size_t column) const
 // wx[V/H/HV]ScrolledWindow implementations
 // ============================================================================
 
-IMPLEMENT_ABSTRACT_CLASS(wxVScrolledWindow, wxPanel)
-IMPLEMENT_ABSTRACT_CLASS(wxHScrolledWindow, wxPanel)
-IMPLEMENT_ABSTRACT_CLASS(wxHVScrolledWindow, wxPanel)
-
-
-#if WXWIN_COMPATIBILITY_2_8
-
-// ===========================================================================
-// wxVarVScrollLegacyAdaptor
-// ===========================================================================
-
-size_t wxVarVScrollLegacyAdaptor::GetFirstVisibleLine() const
-{ return GetVisibleRowsBegin(); }
-
-size_t wxVarVScrollLegacyAdaptor::GetLastVisibleLine() const
-{ return GetVisibleRowsEnd() - 1; }
-
-size_t wxVarVScrollLegacyAdaptor::GetLineCount() const
-{ return GetRowCount(); }
-
-void wxVarVScrollLegacyAdaptor::SetLineCount(size_t count)
-{ SetRowCount(count); }
-
-void wxVarVScrollLegacyAdaptor::RefreshLine(size_t line)
-{ RefreshRow(line); }
-
-void wxVarVScrollLegacyAdaptor::RefreshLines(size_t from, size_t to)
-{ RefreshRows(from, to); }
-
-bool wxVarVScrollLegacyAdaptor::ScrollToLine(size_t line)
-{ return ScrollToRow(line); }
-
-bool wxVarVScrollLegacyAdaptor::ScrollLines(int lines)
-{ return ScrollRows(lines); }
-
-bool wxVarVScrollLegacyAdaptor::ScrollPages(int pages)
-{ return ScrollRowPages(pages); }
-
-wxCoord wxVarVScrollLegacyAdaptor::OnGetLineHeight(size_t WXUNUSED(n)) const
-{
-    wxFAIL_MSG( wxT("OnGetLineHeight() must be overridden if OnGetRowHeight() isn't!") );
-    return -1;
-}
-
-void wxVarVScrollLegacyAdaptor::OnGetLinesHint(size_t WXUNUSED(lineMin),
-                                               size_t WXUNUSED(lineMax)) const
-{
-}
-
-wxCoord wxVarVScrollLegacyAdaptor::OnGetRowHeight(size_t n) const
-{
-    return OnGetLineHeight(n);
-}
-
-void wxVarVScrollLegacyAdaptor::OnGetRowsHeightHint(size_t rowMin,
-                                                    size_t rowMax) const
-{
-    OnGetLinesHint(rowMin, rowMax);
-}
-
-#endif // WXWIN_COMPATIBILITY_2_8
+wxIMPLEMENT_ABSTRACT_CLASS(wxVScrolledWindow, wxPanel);
+wxIMPLEMENT_ABSTRACT_CLASS(wxHScrolledWindow, wxPanel);
+wxIMPLEMENT_ABSTRACT_CLASS(wxHVScrolledWindow, wxPanel);

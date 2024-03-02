@@ -2,7 +2,6 @@
 // Name:        wx/notebook.h
 // Purpose:     wxNotebook interface
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     01.02.01
 // Copyright:   (c) 1996-2000 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -48,7 +47,6 @@ enum
 #define wxNB_FIXEDWIDTH       0x0100
 #define wxNB_MULTILINE        0x0200
 #define wxNB_NOPAGETHEME      0x0400
-#define wxNB_FLAT             0x0800
 
 
 typedef wxWindow wxNotebookPage;  // so far, any window can be a page
@@ -64,9 +62,9 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxNotebookNameStr[];
 class WXDLLEXPORT wxNotebookPageInfo : public wxObject
 {
 public:
-    wxNotebookPageInfo() { m_page = NULL; m_imageId = -1; m_selected = false; }
-    virtual ~wxNotebookPageInfo() { }
-    
+    wxNotebookPageInfo() { m_page = nullptr; m_imageId = -1; m_selected = false; }
+    virtual ~wxNotebookPageInfo() = default;
+
     bool Create(wxNotebookPage *page,
                 const wxString& text,
                 bool selected,
@@ -78,19 +76,19 @@ public:
         m_imageId = imageId;
         return true;
     }
-    
+
     wxNotebookPage* GetPage() const { return m_page; }
     wxString GetText() const { return m_text; }
     bool GetSelected() const { return m_selected; }
     int GetImageId() const { return m_imageId; }
-    
+
 private:
     wxNotebookPage *m_page;
     wxString m_text;
     bool m_selected;
     int m_imageId;
-    
-    DECLARE_DYNAMIC_CLASS(wxNotebookPageInfo)
+
+    wxDECLARE_DYNAMIC_CLASS(wxNotebookPageInfo);
 };
 
 WX_DECLARE_EXPORTED_LIST(wxNotebookPageInfo, wxNotebookPageInfoList );
@@ -107,7 +105,7 @@ public:
     // ctors
     // -----
 
-    wxNotebookBase() { }
+    wxNotebookBase() = default;
 
     // wxNotebook-specific additions to wxBookCtrlBase interface
     // ---------------------------------------------------------
@@ -125,7 +123,7 @@ public:
 
 
     // implement some base class functions
-    virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const;
+    virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const override;
 
     // On platforms that support it, get the theme page background colour, else invalid colour
     virtual wxColour GetThemeBackgroundColour() const { return wxNullColour; }
@@ -140,20 +138,23 @@ public:
     // new is wxNOT_FOUND)
     void SendPageChangedEvent(int nPageOld, int nPageNew = wxNOT_FOUND);
 
-    // wxBookCtrlBase overrides this method to return false but we do need
-    // focus because we have tabs
-    virtual bool AcceptsFocus() const { return wxControl::AcceptsFocus(); }
+    // return wxTOP/wxBOTTOM/wxRIGHT/wxLEFT
+    wxDirection GetTabOrientation() const;
 
-#if wxUSE_EXTENDED_RTTI    
+    // return the rectangle in window coordinates of the page selector.
+    // For example, for a wxNotebook this would be its tab.
+    virtual wxRect GetTabRect(size_t page) const;
+
+#if wxUSE_EXTENDED_RTTI
     // XTI accessors
     virtual void AddPageInfo( wxNotebookPageInfo* info );
     virtual const wxNotebookPageInfoList& GetPageInfos() const;
 #endif
-        
+
 protected:
-#if wxUSE_EXTENDED_RTTI    
+#if wxUSE_EXTENDED_RTTI
     wxNotebookPageInfoList m_pageInfos;
-#endif    
+#endif
     wxDECLARE_NO_COPY_CLASS(wxNotebookBase);
 };
 
@@ -185,18 +186,12 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_NOTEBOOK_PAGE_CHANGING, wxBook
     #include "wx/univ/notebook.h"
 #elif defined(__WXMSW__)
     #include  "wx/msw/notebook.h"
-#elif defined(__WXMOTIF__)
-    #include  "wx/generic/notebook.h"
-#elif defined(__WXGTK20__)
-    #include  "wx/gtk/notebook.h"
 #elif defined(__WXGTK__)
-    #include  "wx/gtk1/notebook.h"
+    #include  "wx/gtk/notebook.h"
 #elif defined(__WXMAC__)
     #include  "wx/osx/notebook.h"
-#elif defined(__WXCOCOA__)
-    #include  "wx/cocoa/notebook.h"
-#elif defined(__WXPM__)
-    #include  "wx/os2/notebook.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/notebook.h"
 #endif
 
 // old wxEVT_COMMAND_* constants

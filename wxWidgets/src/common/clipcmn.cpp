@@ -2,7 +2,6 @@
 // Name:        src/common/clipcmn.cpp
 // Purpose:     common (to all ports) wxClipboard functions
 // Author:      Robert Roebling
-// Modified by:
 // Created:     28.06.99
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_CLIPBOARD
 
@@ -36,13 +32,13 @@
 // wxClipboardEvent
 // ---------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxClipboardEvent,wxEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxClipboardEvent,wxEvent);
 
 wxDEFINE_EVENT( wxEVT_CLIPBOARD_CHANGED, wxClipboardEvent );
 
 bool wxClipboardEvent::SupportsFormat( const wxDataFormat &format ) const
 {
-#ifdef __WXGTK20__
+#ifdef __WXGTK__
     for (wxVector<wxDataFormat>::size_type n = 0; n < m_formats.size(); n++)
     {
         if (m_formats[n] == format)
@@ -67,7 +63,7 @@ void wxClipboardEvent::AddFormat(const wxDataFormat& format)
 // wxClipboardBase
 // ---------------------------------------------------------
 
-static wxClipboard *gs_clipboard = NULL;
+static wxClipboard *gs_clipboard = nullptr;
 
 /*static*/ wxClipboard *wxClipboardBase::Get()
 {
@@ -99,13 +95,13 @@ bool wxClipboardBase::IsSupportedAsync( wxEvtHandler *sink )
 class wxClipboardModule : public wxModule
 {
 public:
-    bool OnInit() { return true; }
-    void OnExit() { wxDELETE(gs_clipboard); }
+    bool OnInit() override { return true; }
+    void OnExit() override { wxDELETE(gs_clipboard); }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxClipboardModule)
+    wxDECLARE_DYNAMIC_CLASS(wxClipboardModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxClipboardModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxClipboardModule, wxModule);
 
 #endif // wxUSE_CLIPBOARD

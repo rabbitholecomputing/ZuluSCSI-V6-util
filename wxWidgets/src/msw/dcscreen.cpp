@@ -2,7 +2,6 @@
 // Name:        src/msw/dcscreen.cpp
 // Purpose:     wxScreenDC class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -11,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/msw/dcscreen.h"
 
@@ -24,16 +20,24 @@
 
 #include "wx/msw/private.h"
 
-IMPLEMENT_ABSTRACT_CLASS(wxScreenDCImpl, wxMSWDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxScreenDCImpl, wxMSWDCImpl);
 
-// Create a DC representing the whole screen
+// Create a DC representing the whole virtual screen (all monitors)
 wxScreenDCImpl::wxScreenDCImpl( wxScreenDC *owner ) :
     wxMSWDCImpl( owner )
 {
-    m_hDC = (WXHDC) ::GetDC((HWND) NULL);
+    m_hDC = (WXHDC) ::GetDC(nullptr);
 
     // the background mode is only used for text background and is set in
     // DrawText() to OPAQUE as required, otherwise always TRANSPARENT
     ::SetBkMode( GetHdc(), TRANSPARENT );
 }
 
+// Return the size of the whole virtual screen (all monitors)
+void wxScreenDCImpl::DoGetSize(int *width, int *height) const
+{
+    if ( width )
+        *width = ::GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    if ( height )
+        *height = ::GetSystemMetrics(SM_CYVIRTUALSCREEN);
+}

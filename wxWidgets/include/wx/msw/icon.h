@@ -2,7 +2,6 @@
 // Name:        wx/msw/icon.h
 // Purpose:     wxIcon class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -26,10 +25,10 @@
 class WXDLLIMPEXP_CORE wxIconRefData : public wxGDIImageRefData
 {
 public:
-    wxIconRefData() { }
+    wxIconRefData() = default;
     virtual ~wxIconRefData() { Free(); }
 
-    virtual void Free();
+    virtual void Free() override;
 };
 
 // ---------------------------------------------------------------------------
@@ -41,16 +40,13 @@ class WXDLLIMPEXP_CORE wxIcon : public wxGDIImage
 public:
     // ctors
         // default
-    wxIcon() { }
+    wxIcon() = default;
 
         // from raw data
     wxIcon(const char bits[], int width, int height);
 
         // from XPM data
     wxIcon(const char* const* data) { CreateIconFromXpm(data); }
-#ifdef wxNEEDS_CHARPP
-    wxIcon(char **data) { CreateIconFromXpm(const_cast<const char* const*>(data)); }
-#endif
         // from resource/file
     wxIcon(const wxString& name,
            wxBitmapType type = wxICON_DEFAULT_TYPE,
@@ -69,27 +65,33 @@ public:
     // implementation only from now on
     wxIconRefData *GetIconData() const { return (wxIconRefData *)m_refData; }
 
-    void SetHICON(WXHICON icon) { SetHandle((WXHANDLE)icon); }
+#if WXWIN_COMPATIBILITY_3_0
+    wxDEPRECATED_INLINE(void SetHICON(WXHICON icon), SetHandle((WXHANDLE)icon); )
+#endif // WXWIN_COMPATIBILITY_3_0
+
     WXHICON GetHICON() const { return (WXHICON)GetHandle(); }
+    bool InitFromHICON(WXHICON icon, int width, int height, double scale = 1.0);
 
     // create from bitmap (which should have a mask unless it's monochrome):
     // there shouldn't be any implicit bitmap -> icon conversion (i.e. no
     // ctors, assignment operators...), but it's ok to have such function
     void CopyFromBitmap(const wxBitmap& bmp);
 
+    wxDECLARE_VARIANT_OBJECT_EXPORTED(wxIcon, WXDLLIMPEXP_CORE);
+
 protected:
-    virtual wxGDIImageRefData *CreateData() const
+    virtual wxGDIImageRefData *CreateData() const override
     {
         return new wxIconRefData;
     }
 
-    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const;
+    virtual wxObjectRefData *CloneRefData(const wxObjectRefData *data) const override;
 
     // create from XPM data
     void CreateIconFromXpm(const char* const* data);
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxIcon)
+    wxDECLARE_DYNAMIC_CLASS(wxIcon);
 };
 
 #endif

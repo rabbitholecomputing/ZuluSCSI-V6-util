@@ -25,12 +25,13 @@ inclusion into future versions of the library!
 The wxWidgets approach to i18n closely follows the GNU gettext package.
 wxWidgets uses the message catalogs which are binary compatible with gettext
 catalogs and this allows to use all of the programs in this package to work
-with them. But note that no additional libraries are needed during run-time,
-however, so you have only the message catalogs to distribute and nothing else.
+with them as well as using any of the tools working with message catalogs in
+this format such as <a href="http://poedit.net/">Poedit</a>.
 
-During program development you will need the gettext package for working with
-message catalogs. @b Warning: gettext versions @< 0.10 are known to be buggy,
-so you should find a later version of it!
+Because of this, you will need to use the gettext package to work with the
+translations during the program development. However no additional libraries
+are needed during run-time, so you have only the message catalogs to distribute
+and nothing else.
 
 There are two kinds of message catalogs: source catalogs which are text files
 with extension .po and binary catalogs which are created from the source ones
@@ -53,9 +54,14 @@ Translating your application involves several steps:
     language(s). It involves editing the .po file.
 @li Compiling the .po file into .mo file to be used by the program.
 @li Installing the .mo files with your application in the appropriate location
-    for the target system (@see overview_i18n_mofiles).
+    for the target system (see @ref overview_i18n_mofiles).
 @li Setting the appropriate locale in your program to use the strings for the
     given language: see wxLocale.
+
+
+@note Under macOS you also need to list all the supported languages under
+      @c CFBundleLocalizations key in your application @c Info.plist file
+      in order to allow the application to support the corresponding locale.
 
 
 @section overview_i18n_mofiles Installing translation catalogs
@@ -74,12 +80,12 @@ locations when possible.
 
 Depending on the platform, the default location differs. On Windows, it is
 alongside the executable. On Unix, translations are expected to be in
-"$prefix/share/locale". On OS X, application bundle's @em Resources subdirectory
+"$prefix/share/locale". On macOS, application bundle's @em Resources subdirectory
 is used.
 
 In all cases, translations are searched for in subdirectories named using the
 languages codes from ISO 639. The .mo file(s) should be located either directly
-in that directory or in LC_MESSAGES subdirectory. On OS X, ".lproj" extension
+in that directory or in LC_MESSAGES subdirectory. On macOS, ".lproj" extension
 is used for the per-languages Resources subdirectories.
 
 Here's how an app would typically install the files on Unix:
@@ -88,7 +94,7 @@ Here's how an app would typically install the files on Unix:
 /usr/share/locale/de/LC_MESSAGES/myapp.mo
 /usr/share/locale/fr/LC_MESSAGES/myapp.mo
 @endcode
-And on OS X:
+And on macOS:
 @code
 MyApp.app/Contents/MacOS/MyApp
 MyApp.app/Contents/Resources/de.lproj/myapp.mo

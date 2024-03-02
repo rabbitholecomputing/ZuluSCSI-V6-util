@@ -2,7 +2,6 @@
 // Name:        playerdg.h
 // Purpose:     Forty Thieves patience game
 // Author:      Chris Breeze
-// Modified by:
 // Created:     21/07/97
 // Copyright:   (c) 1993-1998 Chris Breeze
 // Licence:     wxWindows licence
@@ -16,14 +15,14 @@ class PlayerSelectionDialog : public wxDialog
 {
 public:
     PlayerSelectionDialog(wxWindow* parent, ScoreFile* file);
-    virtual ~PlayerSelectionDialog(){};
+    virtual ~PlayerSelectionDialog(){}
 
     const wxString& GetPlayersName();
     void ButtonCallback(wxCommandEvent& event);
     void SelectCallback(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
 protected:
     friend void SelectCallback(wxListBox&, wxCommandEvent&);

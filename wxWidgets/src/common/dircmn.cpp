@@ -2,7 +2,6 @@
 // Name:        src/common/dircmn.cpp
 // Purpose:     wxDir methods common to all implementations
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     19.05.01
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/string.h"
@@ -61,7 +57,7 @@ bool wxDir::HasFiles(const wxString& spec) const
 }
 
 // we have a (much) faster version for Unix
-#if (defined(__CYGWIN__) && defined(__WINDOWS__)) || !defined(__UNIX_LIKE__) || defined(__EMX__) || defined(__WINE__)
+#if (defined(__CYGWIN__) && defined(__WINDOWS__)) || !defined(__UNIX_LIKE__) || defined(__WINE__)
 
 bool wxDir::HasSubDirs(const wxString& spec) const
 {
@@ -126,7 +122,7 @@ size_t wxDir::Traverse(wxDirTraverser& sink,
             {
                 default:
                     wxFAIL_MSG(wxT("unexpected OnDir() return value") );
-                    // fall through
+                    wxFALLTHROUGH;
 
                 case wxDIR_STOP:
                     cont = false;
@@ -154,11 +150,11 @@ size_t wxDir::Traverse(wxDirTraverser& sink,
                                 {
                                     default:
                                         wxFAIL_MSG(wxT("unexpected OnOpenError() return value") );
-                                        // fall through
+                                        wxFALLTHROUGH;
 
                                     case wxDIR_STOP:
                                         cont = false;
-                                        // fall through
+                                        wxFALLTHROUGH;
 
                                     case wxDIR_IGNORE:
                                         tryagain = false;
@@ -222,13 +218,13 @@ class wxDirTraverserSimple : public wxDirTraverser
 public:
     wxDirTraverserSimple(wxArrayString& files) : m_files(files) { }
 
-    virtual wxDirTraverseResult OnFile(const wxString& filename)
+    virtual wxDirTraverseResult OnFile(const wxString& filename) override
     {
         m_files.push_back(filename);
         return wxDIR_CONTINUE;
     }
 
-    virtual wxDirTraverseResult OnDir(const wxString& WXUNUSED(dirname))
+    virtual wxDirTraverseResult OnDir(const wxString& WXUNUSED(dirname)) override
     {
         return wxDIR_CONTINUE;
     }
@@ -245,7 +241,7 @@ size_t wxDir::GetAllFiles(const wxString& dirname,
                           const wxString& filespec,
                           int flags)
 {
-    wxCHECK_MSG( files, (size_t)-1, wxT("NULL pointer in wxDir::GetAllFiles") );
+    wxCHECK_MSG( files, (size_t)-1, wxT("null pointer in wxDir::GetAllFiles") );
 
     size_t nFiles = 0;
 
@@ -269,13 +265,13 @@ class wxDirTraverserFindFirst : public wxDirTraverser
 public:
     wxDirTraverserFindFirst() { }
 
-    virtual wxDirTraverseResult OnFile(const wxString& filename)
+    virtual wxDirTraverseResult OnFile(const wxString& filename) override
     {
         m_file = filename;
         return wxDIR_STOP;
     }
 
-    virtual wxDirTraverseResult OnDir(const wxString& WXUNUSED(dirname))
+    virtual wxDirTraverseResult OnDir(const wxString& WXUNUSED(dirname)) override
     {
         return wxDIR_CONTINUE;
     }
@@ -320,7 +316,7 @@ class wxDirTraverserSumSize : public wxDirTraverser
 public:
     wxDirTraverserSumSize() { }
 
-    virtual wxDirTraverseResult OnFile(const wxString& filename)
+    virtual wxDirTraverseResult OnFile(const wxString& filename) override
     {
         // wxFileName::GetSize won't use this class again as
         // we're passing it a file and not a directory;
@@ -342,7 +338,7 @@ public:
         return wxDIR_CONTINUE;
     }
 
-    virtual wxDirTraverseResult OnDir(const wxString& WXUNUSED(dirname))
+    virtual wxDirTraverseResult OnDir(const wxString& WXUNUSED(dirname)) override
     {
         return wxDIR_CONTINUE;
     }

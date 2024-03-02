@@ -14,17 +14,17 @@
 
 #if wxUSE_XRC && wxUSE_WIZARDDLG
 
-class WXDLLIMPEXP_FWD_ADV wxWizard;
-class WXDLLIMPEXP_FWD_ADV wxWizardPageSimple;
+class WXDLLIMPEXP_FWD_CORE wxWizard;
+class WXDLLIMPEXP_FWD_CORE wxWizardPageSimple;
 
 class WXDLLIMPEXP_XRC wxWizardXmlHandler : public wxXmlResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxWizardXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxWizardXmlHandler);
 
 public:
     wxWizardXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 
 private:
     wxWizard *m_wizard;

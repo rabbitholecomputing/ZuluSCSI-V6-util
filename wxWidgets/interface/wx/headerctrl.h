@@ -17,6 +17,9 @@ enum
     // right clicking the header
     wxHD_ALLOW_HIDE = 0x0002,
 
+    // force putting column images on right
+    wxHD_BITMAP_ON_RIGHT = 0x0004,
+
     // style used by default when creating the control
     wxHD_DEFAULT_STYLE = wxHD_ALLOW_REORDER
 };
@@ -76,6 +79,11 @@ enum
         user to change the columns visibility on right mouse click. Notice that
         the program can always hide or show the columns, this style only
         affects the users capability to do it.
+    @style{wxHD_BITMAP_ON_RIGHT}
+        The column image, if any, will be shown on the right side if this style
+        is used. Note that this style is only implemented in wxMSW currently
+        and doesn't do anything under the other platforms. It is available
+        since wxWidgets 3.1.1.
     @style{wxHD_DEFAULT_STYLE}
         Symbolic name for the default control style, currently equal to
         @c wxHD_ALLOW_REORDER.
@@ -396,6 +404,16 @@ public:
      */
     int GetColumnTitleWidth(const wxHeaderColumn& col);
 
+    /**
+        Returns width needed for the column with the given index.
+
+        This is just a convenient wrapper for the overload taking
+        wxHeaderColumn.
+
+        @since 3.1.3
+     */
+    int GetColumnTitleWidth(unsigned int idx);
+
 protected:
     /**
         Method to be implemented by the derived classes to return the
@@ -429,13 +447,15 @@ protected:
 
     /**
         Method called when the columns order is changed in the customization
-        dialog.
+        dialog @em or when the EVT_HEADER_END_REORDER event is not handled after
+        dragging a single column.
 
-        This method is only called from ShowCustomizeDialog() when the user
-        changes the order of columns. In particular it is @em not called if a
-        single column changes place because the user dragged it to the new
-        location, the EVT_HEADER_END_REORDER event handler should be used to
-        react to this.
+        This method is always called from ShowCustomizeDialog() when the user
+        changes the order of columns. In case a single column changes place
+        because the user dragged it to a new location, the EVT_HEADER_END_REORDER
+        event handler can be used to react to this. If this event
+        handler is not defined though UpdateColumnsOrder() will be called
+        instead.
 
         A typical implementation in a derived class will update the display
         order of the columns in the associated control, if any. Notice that
@@ -684,7 +704,7 @@ public:
      */
     int GetColumn() const;
     void SetColumn(int col);
-    
+
     /**
         Return the current width of the column.
 
@@ -692,7 +712,7 @@ public:
      */
     int GetWidth() const;
     void SetWidth(int width);
-    
+
     /**
         Return the new order of the column.
 

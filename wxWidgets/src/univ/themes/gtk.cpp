@@ -2,7 +2,6 @@
 // Name:        src/univ/themes/gtk.cpp
 // Purpose:     wxUniversal theme implementing GTK-like LNF
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     06.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/univ/theme.h"
 
@@ -87,7 +83,7 @@ public:
                                 wxBorder border,
                                 const wxRect& rect,
                                 int flags = 0,
-                                wxRect *rectIn = NULL);
+                                wxRect *rectIn = nullptr);
     virtual void DrawButtonLabel(wxDC& dc,
                                  const wxString& label,
                                  const wxBitmap& image,
@@ -99,7 +95,7 @@ public:
     virtual void DrawButtonBorder(wxDC& dc,
                                   const wxRect& rect,
                                   int flags = 0,
-                                  wxRect *rectIn = NULL);
+                                  wxRect *rectIn = nullptr);
     virtual void DrawArrow(wxDC& dc,
                            wxDirection dir,
                            const wxRect& rect,
@@ -148,7 +144,7 @@ public:
                                  wxOrientation orient,
                                  int flags = 0,
                                  long style = 0,
-                                 wxRect *rectShaft = NULL);
+                                 wxRect *rectShaft = nullptr);
     virtual void DrawSliderThumb(wxDC& dc,
                                  const wxRect& rect,
                                  wxOrientation orient,
@@ -201,9 +197,9 @@ public:
 #endif // wxUSE_SCROLLBAR
 
     virtual wxSize GetCheckBitmapSize() const
-        { return wxSize(10, 10); }
+        { return wxSize(14, 14); }
     virtual wxSize GetRadioBitmapSize() const
-        { return wxSize(11, 11); }
+        { return wxSize(14, 14); }
     virtual wxCoord GetCheckItemMargin() const
         { return 2; }
 
@@ -335,7 +331,7 @@ protected:
                         int indexAccel,
                         const wxString& accel = wxEmptyString,
                         const wxBitmap& bitmap = wxNullBitmap,
-                        const wxGTKMenuGeometryInfo *geometryInfo = NULL);
+                        const wxGTKMenuGeometryInfo *geometryInfo = nullptr);
 
     // initialize the combo bitmaps
     void InitComboBitmaps();
@@ -530,9 +526,9 @@ WX_IMPLEMENT_THEME(wxGTKTheme, gtk, wxTRANSLATE("GTK+ theme"));
 
 wxGTKTheme::wxGTKTheme()
 {
-    m_scheme = NULL;
-    m_renderer = NULL;
-    m_artProvider = NULL;
+    m_scheme = nullptr;
+    m_renderer = nullptr;
+    m_artProvider = nullptr;
 }
 
 wxGTKTheme::~wxGTKTheme()
@@ -574,7 +570,7 @@ wxColourScheme *wxGTKTheme::GetColourScheme()
 wxInputHandler *wxGTKTheme::GetInputHandler(const wxString& control,
                                             wxInputConsumer *consumer)
 {
-    wxInputHandler *handler = NULL;
+    wxInputHandler *handler = nullptr;
     int n = m_handlerNames.Index(control);
     if ( n == wxNOT_FOUND )
     {
@@ -828,14 +824,10 @@ void wxGTKRenderer::DrawTextBorder(wxDC& dc,
 
     if ( border != wxBORDER_NONE )
     {
+        DrawRect(dc, &rect, m_penBlack);
         if ( flags & wxCONTROL_FOCUSED )
         {
-            DrawRect(dc, &rect, m_penBlack);
             DrawAntiShadedRect(dc, &rect, m_penDarkGrey, m_penHighlight);
-        }
-        else // !focused
-        {
-            DrawInnerShadedRect(dc, &rect);
         }
     }
 
@@ -939,7 +931,7 @@ void wxGTKRenderer::DrawUndeterminedBitmap(wxDC& dc,
                                            bool isPressed)
 {
     // FIXME: For sure it is not GTK look but it is better than nothing.
-    // Show me correct look and I will immediatelly make it better (ABX)
+    // Show me correct look and I will immediately make it better (ABX)
     wxRect rect = rectTotal;
 
     wxColour col1, col2;
@@ -998,48 +990,46 @@ void wxGTKRenderer::DrawRadioButtonBitmap(wxDC& dc,
                                           const wxRect& rect,
                                           int flags)
 {
-    wxCoord x = rect.x,
-            y = rect.y,
+    wxCoord y = rect.y,
             xRight = rect.GetRight(),
             yBottom = rect.GetBottom();
 
     wxCoord yMid = (y + yBottom) / 2;
+    DrawBackground(dc, wxSCHEME_COLOUR(m_scheme, CONTROL_CURRENT), rect);
 
-    // then draw the upper half
-    dc.SetPen(flags & wxCONTROL_CHECKED ? m_penDarkGrey : m_penHighlight);
-    DrawUpZag(dc, x, xRight, yMid, y);
-    DrawUpZag(dc, x + 1, xRight - 1, yMid, y + 1);
+    dc.SetPen(m_penDarkGrey);
+    dc.SetBrush(wxSCHEME_COLOUR(m_scheme, CONTROL_CURRENT)); 
+    // draw the normal border
+    dc.DrawCircle(xRight/2,yBottom/2,yMid);
+
+    wxColor checkedCol, uncheckedCol;
+    checkedCol = wxSCHEME_COLOUR(m_scheme, SHADOW_DARK);
+    uncheckedCol = wxSCHEME_COLOUR(m_scheme, SHADOW_HIGHLIGHT);
+    dc.SetBrush(flags & wxCONTROL_CHECKED ? checkedCol : uncheckedCol);
+
+    // inner dot
+    dc.DrawCircle(xRight/2,yBottom/2,yMid/2);
 
     bool drawIt = true;
-    if ( flags & wxCONTROL_CHECKED )
-        dc.SetPen(m_penBlack);
-    else if ( flags & wxCONTROL_PRESSED )
-        dc.SetPen(wxPen(wxSCHEME_COLOUR(m_scheme, CONTROL_PRESSED)));
+
+    if ( flags & wxCONTROL_PRESSED )
+        dc.SetBrush(wxSCHEME_COLOUR(m_scheme, CONTROL_PRESSED));
     else // unchecked and unpressed
         drawIt = false;
 
     if ( drawIt )
-        DrawUpZag(dc, x + 2, xRight - 2, yMid, y + 2);
+        dc.DrawCircle(xRight/2, yBottom/2, yMid/2);
 
-    // and then the lower one
-    dc.SetPen(flags & wxCONTROL_CHECKED ? m_penHighlight : m_penBlack);
-    DrawDownZag(dc, x, xRight, yMid, yBottom);
-    if ( !(flags & wxCONTROL_CHECKED) )
-        dc.SetPen(m_penDarkGrey);
-    DrawDownZag(dc, x + 1, xRight - 1, yMid, yBottom - 1);
-
-    if ( !(flags & wxCONTROL_CHECKED) )
-        drawIt = true; // with the same pen
-    else if ( flags & wxCONTROL_PRESSED )
+    if ( flags & wxCONTROL_PRESSED )
     {
-        dc.SetPen(wxPen(wxSCHEME_COLOUR(m_scheme, CONTROL_PRESSED)));
+        dc.SetBrush(wxSCHEME_COLOUR(m_scheme, CONTROL_PRESSED));
         drawIt = true;
     }
     else // checked and unpressed
         drawIt = false;
 
     if ( drawIt )
-        DrawDownZag(dc, x + 2, xRight - 2, yMid, yBottom - 2);
+        dc.DrawCircle(xRight/2, yBottom/2, yMid/2);
 }
 
 void wxGTKRenderer::DrawUpZag(wxDC& dc,
@@ -1089,7 +1079,7 @@ wxBitmap wxGTKRenderer::GetCheckBitmap(int flags)
         dc.SelectObject(m_bitmapsCheckbox[0][1]);
         DrawUncheckBitmap(dc, rect, false);
 
-        // normal undeterminated
+        // normal undetermined
         dc.SelectObject(m_bitmapsCheckbox[0][2]);
         DrawUndeterminedBitmap(dc, rect, false);
 
@@ -1100,7 +1090,7 @@ wxBitmap wxGTKRenderer::GetCheckBitmap(int flags)
         dc.SelectObject(m_bitmapsCheckbox[1][1]);
         DrawUncheckBitmap(dc, rect, true);
 
-        // pressed undeterminated
+        // pressed undetermined
         dc.SelectObject(m_bitmapsCheckbox[1][2]);
         DrawUndeterminedBitmap(dc, rect, true);
     }
@@ -1779,14 +1769,14 @@ wxMenuGeometryInfo *wxGTKRenderer::GetMenuGeometry(wxWindow *win,
             h = heightText;
 
             wxCoord widthLabel;
-            dc.GetTextExtent(item->GetItemLabelText(), &widthLabel, NULL);
+            dc.GetTextExtent(item->GetItemLabelText(), &widthLabel, nullptr);
             if ( widthLabel > widthLabelMax )
             {
                 widthLabelMax = widthLabel;
             }
 
             wxCoord widthAccel;
-            dc.GetTextExtent(item->GetAccelString(), &widthAccel, NULL);
+            dc.GetTextExtent(item->GetAccelString(), &widthAccel, nullptr);
             if ( widthAccel > widthAccelMax )
             {
                 widthAccelMax = widthAccel;
@@ -1818,7 +1808,7 @@ wxMenuGeometryInfo *wxGTKRenderer::GetMenuGeometry(wxWindow *win,
     gi->m_ofsAccel = gi->m_ofsLabel + widthLabelMax;
     if ( widthAccelMax > 0 )
     {
-        // if we actually have any accesl, add a margin
+        // if we actually have any accels, add a margin
         gi->m_ofsAccel += MENU_ACCEL_MARGIN;
     }
 
@@ -2597,11 +2587,11 @@ bool wxGTKInputHandler::HandleMouseMove(wxInputConsumer *control,
 {
     if ( event.Entering() )
     {
-        control->GetInputWindow()->SetCurrent(true);
+        control->GetInputWindow()->WXMakeCurrent(true);
     }
     else if ( event.Leaving() )
     {
-        control->GetInputWindow()->SetCurrent(false);
+        control->GetInputWindow()->WXMakeCurrent(false);
     }
     else
     {

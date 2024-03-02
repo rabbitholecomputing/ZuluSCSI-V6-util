@@ -11,9 +11,6 @@
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_GRID
 
@@ -59,7 +56,6 @@ wxBEGIN_FLAGS( wxGridStyle )
     // standard window styles
     wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
     wxFLAGS_MEMBER(wxCLIP_CHILDREN)
-    wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
     wxFLAGS_MEMBER(wxWANTS_CHARS)
     wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
     wxFLAGS_MEMBER(wxALWAYS_SHOW_SB)
@@ -67,7 +63,7 @@ wxBEGIN_FLAGS( wxGridStyle )
     wxFLAGS_MEMBER(wxHSCROLL)
 wxEND_FLAGS( wxGridStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxGrid, wxScrolledWindow, "wx/grid.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxGrid, wxScrolledWindow, "wx/grid.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxGrid)
     wxHIDE_PROPERTY( Children )

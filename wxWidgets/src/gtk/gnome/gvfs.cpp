@@ -10,9 +10,6 @@
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_MIMETYPE && wxUSE_LIBGNOMEVFS
 
@@ -93,7 +90,7 @@ bool wxGnomeVFSLibrary::InitializeMethods()
     return true;
 }
 
-static wxGnomeVFSLibrary* gs_lgvfs = NULL;
+static wxGnomeVFSLibrary* gs_lgvfs = nullptr;
 
 //----------------------------------------------------------------------------
 // wxGnomeVFSMimeTypesManagerFactory
@@ -138,7 +135,7 @@ public:
     void OnExit();
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxGnomeVFSModule)
+    wxDECLARE_DYNAMIC_CLASS(wxGnomeVFSModule);
 };
 
 bool wxGnomeVFSModule::OnInit()
@@ -160,6 +157,6 @@ void wxGnomeVFSModule::OnExit()
     delete gs_lgvfs;
 }
 
-IMPLEMENT_DYNAMIC_CLASS(wxGnomeVFSModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGnomeVFSModule, wxModule);
 
 #endif // wxUSE_LIBGNOMEVFS && wxUSE_MIMETYPE

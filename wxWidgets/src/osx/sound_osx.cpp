@@ -2,7 +2,6 @@
 // Name:        src/osx/sound_osx.cpp
 // Purpose:     wxSound class common osx code
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     2009-09-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -20,43 +19,16 @@
     #include "wx/string.h"
     #include "wx/intl.h"
     #include "wx/log.h"
-    #include "wx/timer.h"
 #endif
 
 #include "wx/file.h"
 
 #include "wx/vector.h"
 
-class wxSoundTimer : public wxTimer
-{
-public:
-    wxSoundTimer(wxSoundData* snd)
-    : m_sound(snd)
-    {
-    }
-
-    virtual ~wxSoundTimer()
-    {
-        Stop();
-        if (m_sound)
-            m_sound->DoStop();
-    }
-
-    void Notify()
-    {
-        if (m_sound)
-            m_sound->SoundTask();
-    }
-
-protected:
-    wxSoundData* m_sound;
-};
-
 wxVector<wxSoundData*> s_soundsPlaying;
 
 wxSoundData::wxSoundData()
 {
-    m_pTimer = NULL;
     m_markedForDeletion = false;
 }
 
@@ -72,21 +44,6 @@ void wxSoundData::MarkForDeletion()
 void wxSoundData::Stop()
 {
     DoStop();
-    wxDELETE(m_pTimer);
-}
-
-//Time between timer calls
-#define MOVIE_DELAY 100
-
-void wxSoundData::SoundTask()
-{
-}
-
-void wxSoundData::CreateAndStartTimer()
-{
-    //Start timer and play movie asyncronously
-    m_pTimer = new wxSoundTimer(this);
-    m_pTimer->Start(MOVIE_DELAY, wxTIMER_CONTINUOUS);
 }
 
 wxSound::wxSound()
@@ -130,7 +87,7 @@ wxSound::~wxSound()
 
 void wxSound::Init()
 {
-    m_data = NULL;
+    m_data = nullptr;
 }
 
 bool wxSound::DoPlay(unsigned flags) const

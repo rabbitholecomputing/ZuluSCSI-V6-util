@@ -2,7 +2,6 @@
 // Name:        listctrl.h
 // Purpose:     wxListCtrl sample
 // Author:      Julian Smart
-// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -10,7 +9,7 @@
 
 // not all ports have support for EVT_CONTEXT_MENU yet, don't define
 // USE_CONTEXT_MENU for those which don't
-#if defined(__WXMOTIF__) || defined(__WXPM__) || defined(__WXX11__)
+#if defined(__WXX11__)
     #define USE_CONTEXT_MENU 0
 #else
     #define USE_CONTEXT_MENU 1
@@ -21,11 +20,10 @@ class MyApp: public wxApp
 {
 public:
     MyApp() { }
+    MyApp(const MyApp&) = delete;
+    MyApp& operator=(const MyApp&) = delete;
 
-    virtual bool OnInit();
-
-private:
-    wxDECLARE_NO_COPY_CLASS(MyApp);
+    virtual bool OnInit() override;
 };
 
 class MyListCtrl: public wxListCtrl
@@ -40,10 +38,9 @@ public:
         {
             m_updated = -1;
 
-#ifdef __POCKETPC__
-            EnableContextMenu();
-#endif
         }
+    MyListCtrl(const MyListCtrl&) = delete;
+    MyListCtrl &operator=(const MyListCtrl&) = delete;
 
     // add one item to the listctrl in report mode
     void InsertItemInReportView(int i);
@@ -64,6 +61,9 @@ public:
     void OnListKeyDown(wxListEvent& event);
     void OnActivated(wxListEvent& event);
     void OnFocused(wxListEvent& event);
+    void OnItemRightClick(wxListEvent& event);
+    void OnChecked(wxListEvent& event);
+    void OnUnChecked(wxListEvent& event);
     void OnCacheHint(wxListEvent& event);
 
     void OnChar(wxKeyEvent& event);
@@ -75,21 +75,22 @@ public:
     void OnRightClick(wxMouseEvent& event);
 
 private:
-    void ShowContextMenu(const wxPoint& pos);
-    wxLog *m_logOld;
+    void ShowContextMenu(const wxPoint& pos, long item);
     void SetColumnImage(int col, int image);
 
-    void LogEvent(const wxListEvent& event, const wxChar *eventName);
-    void LogColEvent(const wxListEvent& event, const wxChar *eventName);
+    void LogEvent(const wxListEvent& event, const wxString& eventName);
+    void LogColEvent(const wxListEvent& event, const wxString& eventName);
 
-    virtual wxString OnGetItemText(long item, long column) const;
-    virtual int OnGetItemColumnImage(long item, long column) const;
-    virtual wxListItemAttr *OnGetItemAttr(long item) const;
+    virtual wxString OnGetItemText(long item, long column) const override;
+    virtual bool OnGetItemIsChecked(long item) const override;
+    virtual int OnGetItemColumnImage(long item, long column) const override;
+    virtual wxItemAttr *OnGetItemAttr(long item) const override;
 
     long m_updated;
 
+    // checked boxes in virtual list
+    wxSelectionStore m_checked;
 
-    wxDECLARE_NO_COPY_CLASS(MyListCtrl);
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -97,14 +98,13 @@ private:
 class MyFrame: public wxFrame
 {
 public:
-    MyFrame(const wxChar *title);
+    MyFrame(const wxString& title);
+    MyFrame(const MyFrame&) = delete;
+    MyFrame &operator=(const MyFrame&) = delete;
+
     virtual ~MyFrame();
 
-    void DoSize();
-
 protected:
-    void OnSize(wxSizeEvent& event);
-
     void OnQuit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnListView(wxCommandEvent& event);
@@ -115,7 +115,8 @@ protected:
     void OnSmallIconTextView(wxCommandEvent& event);
     void OnVirtualView(wxCommandEvent& event);
     void OnSmallVirtualView(wxCommandEvent& event);
-
+    void OnCheckVisibility(wxCommandEvent& event);
+    void OnAutoResize(wxCommandEvent& event);
     void OnSetItemsCount(wxCommandEvent& event);
 
 
@@ -132,6 +133,8 @@ protected:
     void OnSetFgColour(wxCommandEvent& event);
     void OnSetBgColour(wxCommandEvent& event);
     void OnSetRowLines(wxCommandEvent& event);
+    void OnSetRowLinesOnBlank(wxCommandEvent& event);
+    void OnCustomHeaderAttr(wxCommandEvent& event);
     void OnToggleMultiSel(wxCommandEvent& event);
     void OnShowColInfo(wxCommandEvent& event);
     void OnShowSelInfo(wxCommandEvent& event);
@@ -145,18 +148,19 @@ protected:
     void OnToggleLines(wxCommandEvent& event);
     void OnToggleHeader(wxCommandEvent& event);
     void OnToggleBell(wxCommandEvent& event);
-#ifdef __WXOSX__
-    void OnToggleMacUseGeneric(wxCommandEvent& event);
-#endif // __WXOSX__
     void OnFind(wxCommandEvent& event);
+    void OnToggleItemCheckBox(wxCommandEvent& event);
+    void OnGetItemCheckBox(wxCommandEvent& event);
+    void OnToggleCheckBoxes(wxCommandEvent& event);
 
     void OnUpdateUIEnableInReport(wxUpdateUIEvent& event);
     void OnUpdateToggleMultiSel(wxUpdateUIEvent& event);
+    void OnUpdateToggleCheckBoxes(wxUpdateUIEvent& event);
     void OnUpdateToggleHeader(wxUpdateUIEvent& event);
     void OnUpdateRowLines(wxUpdateUIEvent& event);
 
-    wxImageList *m_imageListNormal;
-    wxImageList *m_imageListSmall;
+    wxVector<wxBitmapBundle> m_imagesNormal;
+    wxVector<wxBitmapBundle> m_imagesSmall;
 
     wxPanel *m_panel;
     MyListCtrl *m_listCtrl;
@@ -184,8 +188,6 @@ private:
     // number of items to initialize list/report view with
     int m_numListItems;
 
-
-    wxDECLARE_NO_COPY_CLASS(MyFrame);
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -217,9 +219,14 @@ enum
     LIST_SET_FG_COL,
     LIST_SET_BG_COL,
     LIST_ROW_LINES,
+    LIST_ROW_LINES_ON_BLANK,
+    LIST_CUSTOM_HEADER_ATTR,
     LIST_TOGGLE_MULTI_SEL,
     LIST_TOGGLE_HEADER,
     LIST_TOGGLE_BELL,
+    LIST_TOGGLE_CHECKBOX,
+    LIST_GET_CHECKBOX,
+    LIST_TOGGLE_CHECKBOXES,
     LIST_TOGGLE_FIRST,
     LIST_SHOW_COL_INFO,
     LIST_SHOW_SEL_INFO,
@@ -233,9 +240,8 @@ enum
     LIST_FREEZE,
     LIST_THAW,
     LIST_TOGGLE_LINES,
-#ifdef __WXOSX__
-    LIST_MAC_USE_GENERIC,
-#endif
-
+    LIST_CHECKVISIBILITY,
+    LIST_AUTOSIZE,
+    LIST_AUTOSIZE_USEHEADER,
     LIST_CTRL                   = 1000
 };

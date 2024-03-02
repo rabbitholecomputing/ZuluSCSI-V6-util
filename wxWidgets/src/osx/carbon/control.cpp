@@ -2,7 +2,6 @@
 // Name:        src/osx/carbon/control.cpp
 // Purpose:     wxControl class
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -28,7 +27,7 @@
 
 #include "wx/osx/private.h"
 
-IMPLEMENT_ABSTRACT_CLASS(wxControl, wxWindow)
+wxIMPLEMENT_ABSTRACT_CLASS(wxControl, wxWindow);
 
 
 wxControl::wxControl()
@@ -72,19 +71,8 @@ bool wxControl::ProcessCommand( wxCommandEvent &event )
 
 void  wxControl::OnKeyDown( wxKeyEvent &WXUNUSED(event) )
 {
-    if ( GetPeer() == NULL || !GetPeer()->IsOk() )
+    if ( GetPeer() == nullptr || !GetPeer()->IsOk() )
         return;
 
-#if wxOSX_USE_CARBON
-    UInt32 keyCode, modifiers;
-    char charCode;
-
-    GetEventParameter( (EventRef)wxTheApp->MacGetCurrentEvent(), kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode  );
-    GetEventParameter( (EventRef)wxTheApp->MacGetCurrentEvent(), kEventParamKeyMacCharCodes, typeChar, NULL, 1, NULL, &charCode );
-    GetEventParameter( (EventRef)wxTheApp->MacGetCurrentEvent(), kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers );
-
-    GetPeer()->HandleKey( keyCode, charCode, modifiers );
-#else
     // TODO
-#endif
 }

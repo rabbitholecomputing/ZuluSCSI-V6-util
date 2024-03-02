@@ -2,7 +2,6 @@
 // Name:        wx/generic/clrpickerg.h
 // Purpose:     wxGenericColourButton header
 // Author:      Francesco Montorsi (based on Vadim Zeitlin's code)
-// Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
 // Licence:     wxWindows Licence
@@ -15,6 +14,8 @@
 #include "wx/bmpbuttn.h"
 #include "wx/colourdata.h"
 
+class wxColourDialogEvent;
+
 //-----------------------------------------------------------------------------
 // wxGenericColourButton: a button which brings up a wxColourDialog
 //-----------------------------------------------------------------------------
@@ -23,7 +24,7 @@ class WXDLLIMPEXP_CORE wxGenericColourButton : public wxBitmapButton,
                                                public wxColourPickerWidgetBase
 {
 public:
-    wxGenericColourButton() {}
+    wxGenericColourButton() = default;
     wxGenericColourButton(wxWindow *parent,
                           wxWindowID id,
                           const wxColour& col = *wxBLACK,
@@ -31,12 +32,12 @@ public:
                           const wxSize& size = wxDefaultSize,
                           long style = wxCLRBTN_DEFAULT_STYLE,
                           const wxValidator& validator = wxDefaultValidator,
-                          const wxString& name = wxColourPickerWidgetNameStr)
+                          const wxString& name = wxASCII_STR(wxColourPickerWidgetNameStr))
     {
         Create(parent, id, col, pos, size, style, validator, name);
     }
 
-    virtual ~wxGenericColourButton() {}
+    virtual ~wxGenericColourButton() = default;
 
 
 public:     // API extensions specific for wxGenericColourButton
@@ -57,7 +58,7 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = wxCLRBTN_DEFAULT_STYLE,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxColourPickerWidgetNameStr);
+                const wxString& name = wxASCII_STR(wxColourPickerWidgetNameStr));
 
     void OnButtonClick(wxCommandEvent &);
 
@@ -65,9 +66,11 @@ public:
 protected:
     wxBitmap    m_bitmap;
 
-    wxSize DoGetBestSize() const;
+    wxSize DoGetBestSize() const override;
 
-    void UpdateColour();
+    void UpdateColour() override;
+
+    void OnDPIChanged(wxDPIChangedEvent& event);
 
     // the colour data shown in wxColourPickerCtrlGeneric
     // controls. This member is static so that all colour pickers
@@ -75,7 +78,9 @@ protected:
     static wxColourData ms_data;
 
 private:
-   DECLARE_DYNAMIC_CLASS(wxGenericColourButton)
+    void OnColourChanged(wxColourDialogEvent& event);
+
+    wxDECLARE_DYNAMIC_CLASS(wxGenericColourButton);
 };
 
 

@@ -19,9 +19,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/utils.h"
@@ -43,8 +40,8 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxMetafile, wxObject)
-IMPLEMENT_ABSTRACT_CLASS(wxMetafileDC, wxDC)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMetafile, wxObject);
+wxIMPLEMENT_ABSTRACT_CLASS(wxMetafileDC, wxDC);
 
 // ============================================================================
 // implementation
@@ -112,18 +109,7 @@ bool wxMetafile::SetClipboard(int width, int height)
     if (!m_refData)
         return false;
 
-    bool alreadyOpen = wxClipboardOpen();
-    if (!alreadyOpen)
-    {
-        wxOpenClipboard();
-        if (!wxEmptyClipboard())
-            return false;
-    }
-    bool success = wxSetClipboardData(wxDF_METAFILE, this, width,height);
-    if (!alreadyOpen)
-        wxCloseClipboard();
-
-    return success;
+    return wxTheClipboard->SetData(new wxMetafileDataObject(*this));
 #endif
 }
 
@@ -169,18 +155,18 @@ void wxMetafile::SetWindowsMappingMode(int mm)
 wxMetafileDCImpl::wxMetafileDCImpl(wxDC *owner, const wxString& file)
     : wxMSWDCImpl(owner)
 {
-    m_metaFile = NULL;
+    m_metaFile = nullptr;
     m_minX = 10000;
     m_minY = 10000;
     m_maxX = -10000;
     m_maxY = -10000;
-    //  m_title = NULL;
+    //  m_title = nullptr;
 
     if ( wxFileExists(file) )
         wxRemoveFile(file);
 
     if ( file.empty() )
-        m_hDC = (WXHDC) CreateMetaFile(NULL);
+        m_hDC = (WXHDC) CreateMetaFile(nullptr);
     else
         m_hDC = (WXHDC) CreateMetaFile(file);
 
@@ -204,12 +190,12 @@ wxMetafileDCImpl::wxMetafileDCImpl(wxDC *owner, const wxString& file,
     m_maxY = -10000;
     if ( !file.empty() && wxFileExists(file) )
         wxRemoveFile(file);
-    m_hDC = (WXHDC) CreateMetaFile(file.empty() ? NULL : wxMSW_CONV_LPCTSTR(file));
+    m_hDC = (WXHDC) CreateMetaFile(file.empty() ? nullptr : wxMSW_CONV_LPCTSTR(file));
 
     m_ok = true;
 
-    ::SetWindowOrgEx((HDC) m_hDC,xorg,yorg, NULL);
-    ::SetWindowExtEx((HDC) m_hDC,xext,yext, NULL);
+    ::SetWindowOrgEx((HDC) m_hDC,xorg,yorg, nullptr);
+    ::SetWindowExtEx((HDC) m_hDC,xext,yext, nullptr);
 
     // Actual Windows mapping mode, for future reference.
     m_windowsMappingMode = MM_ANISOTROPIC;
@@ -236,7 +222,7 @@ void wxMetafileDCImpl::DoGetTextExtent(const wxString& string,
 
     SIZE sizeRect;
     TEXTMETRIC tm;
-    ::GetTextExtentPoint32(dc, WXSTRINGCAST string, wxStrlen(WXSTRINGCAST string), &sizeRect);
+    ::GetTextExtentPoint32(dc, string.c_str(), string.length(), &sizeRect);
     ::GetTextMetrics(dc, &tm);
 
     if ( x )
@@ -271,7 +257,7 @@ wxMetafile *wxMetafileDCImpl::Close()
         wx_mf->SetWindowsMappingMode(m_windowsMappingMode);
         return wx_mf;
     }
-    return NULL;
+    return nullptr;
 }
 
 void wxMetafileDCImpl::SetMapMode(wxMappingMode mode)
@@ -283,21 +269,21 @@ void wxMetafileDCImpl::SetMapMode(wxMappingMode mode)
     //  int mm_width = 0;
     //  int mm_height = 0;
 
-    float mm2pixelsX = 10.0;
-    float mm2pixelsY = 10.0;
+    const double mm2pixelsX = 10;
+    const double mm2pixelsY = 10;
 
     switch (mode)
     {
         case wxMM_TWIPS:
             {
-                m_logicalScaleX = (float)(twips2mm * mm2pixelsX);
-                m_logicalScaleY = (float)(twips2mm * mm2pixelsY);
+                m_logicalScaleX = twips2mm * mm2pixelsX;
+                m_logicalScaleY = twips2mm * mm2pixelsY;
                 break;
             }
         case wxMM_POINTS:
             {
-                m_logicalScaleX = (float)(pt2mm * mm2pixelsX);
-                m_logicalScaleY = (float)(pt2mm * mm2pixelsY);
+                m_logicalScaleX = pt2mm * mm2pixelsX;
+                m_logicalScaleY = pt2mm * mm2pixelsY;
                 break;
             }
         case wxMM_METRIC:
@@ -308,8 +294,8 @@ void wxMetafileDCImpl::SetMapMode(wxMappingMode mode)
             }
         case wxMM_LOMETRIC:
             {
-                m_logicalScaleX = (float)(mm2pixelsX/10.0);
-                m_logicalScaleY = (float)(mm2pixelsY/10.0);
+                m_logicalScaleX = mm2pixelsX / 10;
+                m_logicalScaleY = mm2pixelsY / 10;
                 break;
             }
         default:
@@ -326,7 +312,6 @@ void wxMetafileDCImpl::SetMapMode(wxMappingMode mode)
 // wxMakeMetafilePlaceable
 // ----------------------------------------------------------------------------
 
-#ifdef __WIN32__
 struct RECT32
 {
   short left;
@@ -343,16 +328,6 @@ struct mfPLACEABLEHEADER {
     DWORD    reserved;
     WORD    checksum;
 };
-#else
-struct mfPLACEABLEHEADER {
-    DWORD    key;
-    HANDLE    hmf;
-    RECT    bbox;
-    WORD    inch;
-    DWORD    reserved;
-    WORD    checksum;
-};
-#endif
 
 /*
  * Pass filename of existing non-placeable metafile, and bounding box.
@@ -467,7 +442,7 @@ bool wxMakeMetafilePlaceable(const wxString& filename, int x1, int y1, int x2, i
 }
 
 
-#if wxUSE_DRAG_AND_DROP
+#if wxUSE_DATAOBJ
 
 // ----------------------------------------------------------------------------
 // wxMetafileDataObject
@@ -494,7 +469,7 @@ bool wxMetafileDataObject::GetDataHere(void *buf) const
     // what DC the picture will be rendered to, use the default display one
     PixelToHIMETRIC(&mfpict->xExt, &mfpict->yExt);
 
-    mfpict->hMF  = CopyMetaFile((HMETAFILE)mf.GetHMETAFILE(), NULL);
+    mfpict->hMF  = CopyMetaFile((HMETAFILE)mf.GetHMETAFILE(), nullptr);
 
     return true;
 }
@@ -526,6 +501,6 @@ bool wxMetafileDataObject::SetData(size_t WXUNUSED(len), const void *buf)
     return true;
 }
 
-#endif // wxUSE_DRAG_AND_DROP
+#endif // wxUSE_DATAOBJ
 
 #endif // wxUSE_METAFILE

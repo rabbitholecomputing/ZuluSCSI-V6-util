@@ -384,8 +384,18 @@ public:
         Sets the paper id. This indicates the type of paper to be used. For a
         mapping between paper id, paper size and string name, see
         wxPrintPaperDatabase in @c "paper.h" (not yet documented).
+
+        @see SetPaperSize()
     */
     void SetPaperId(wxPaperSize paperId);
+
+    /**
+        Sets custom paper size.
+
+        This method can be used to set up custom paper size. When using a
+        standard size, prefer to use SetPaperId() instead.
+     */
+    void SetPaperSize(const wxSize& size);
 
     /**
         Sets the printer name. This can be the empty string to indicate that
@@ -480,6 +490,18 @@ public:
     void EnableSelection(bool flag);
 
     /**
+        Allows or disallows selecting printing the "Current Page" in the
+        dialog.
+
+        This currently only has an effect under MSW, where the native dialog
+        enables the "Current Page" radio button if this function is called to
+        allow the user to print the current page only.
+
+        @since 3.3.0
+    */
+    void EnableCurrentPage(bool flag);
+
+    /**
         Returns @true if the user requested that all pages be printed.
     */
     bool GetAllPages() const;
@@ -524,6 +546,18 @@ public:
         (where "selection" is a concept specific to the application).
     */
     bool GetSelection() const;
+
+    /**
+        Returns @true if the user requested that the current page be printed.
+
+        Note that the "current page" is defined by the application.
+
+        It only makes sense to call this function if EnableCurrentPage() had been
+        called before, otherwise it always returns @false.
+
+        @since 3.3.0
+    */
+    bool GetCurrentPage() const;
 
     /**
         Returns the @e "print to" page number, as entered by the user.
@@ -579,6 +613,19 @@ public:
         all.
     */
     void SetSelection(bool flag);
+
+    /**
+        Selects the "Current Page" radio button when the dialog is initially
+        shown.
+
+        This function can only be called when EnableCurrentPage() is used as
+        well.
+
+        @see GetCurrentPage()
+
+        @since 3.3.0
+    */
+    void SetCurrentPage(bool flag);
 
     /**
         @deprecated This function has been deprecated since version 2.5.4.

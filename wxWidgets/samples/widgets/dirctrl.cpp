@@ -19,9 +19,6 @@
 // for compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_DIRDLG
 
@@ -61,16 +58,16 @@ enum
 
 static const wxString stdPaths[] =
 {
-    wxT("&none"),
-    wxT("&config"),
-    wxT("&data"),
-    wxT("&documents"),
-    wxT("&local data"),
-    wxT("&plugins"),
-    wxT("&resources"),
-    wxT("&user config"),
-    wxT("&user data"),
-    wxT("&user local data")
+    "&none",
+    "&config",
+    "&data",
+    "&documents",
+    "&local data",
+    "&plugins",
+    "&resources",
+    "&user config",
+    "&user data",
+    "&user local data"
 };
 
 enum
@@ -98,11 +95,11 @@ public:
     DirCtrlWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
     virtual ~DirCtrlWidgetsPage() {}
 
-    virtual wxControl *GetWidget() const { return m_dirCtrl; }
-    virtual void RecreateWidget() { CreateDirCtrl(); }
+    virtual wxWindow *GetWidget() const override { return m_dirCtrl; }
+    virtual void RecreateWidget() override { CreateDirCtrl(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() override;
 
 protected:
     // event handlers
@@ -118,7 +115,7 @@ protected:
     void Reset();
 
     // (re)create the m_dirCtrl
-    void CreateDirCtrl();
+    void CreateDirCtrl(bool defaultPath = false);
 
     // the controls
     // ------------
@@ -164,7 +161,7 @@ wxEND_EVENT_TABLE()
 // implementation
 // ============================================================================
 
-IMPLEMENT_WIDGETS_PAGE(DirCtrlWidgetsPage, wxT("DirCtrl"),
+IMPLEMENT_WIDGETS_PAGE(DirCtrlWidgetsPage, "DirCtrl",
                        GENERIC_CTRLS
                        );
 
@@ -172,7 +169,7 @@ DirCtrlWidgetsPage::DirCtrlWidgetsPage(WidgetsBookCtrl *book,
                                        wxImageList *imaglist)
                    :WidgetsPage(book, imaglist, dirctrl_xpm)
 {
-    m_dirCtrl = NULL;
+    m_dirCtrl = nullptr;
 }
 
 void DirCtrlWidgetsPage::CreateContent()
@@ -180,39 +177,41 @@ void DirCtrlWidgetsPage::CreateContent()
     wxSizer *sizerTop = new wxBoxSizer(wxHORIZONTAL);
 
     // left pane
-    wxStaticBox *box = new wxStaticBox(this, wxID_ANY, wxT("Dir control details"));
+    wxStaticBoxSizer *sizerLeft = new wxStaticBoxSizer(wxVERTICAL, this, "Dir control details");
+    wxStaticBox* const sizerLeftBox = sizerLeft->GetStaticBox();
 
-    wxSizer *sizerLeft = new wxStaticBoxSizer(box, wxVERTICAL);
-
-    sizerLeft->Add( CreateSizerWithTextAndButton( DirCtrlPage_SetPath , wxT("Set &path"), wxID_ANY, &m_path ),
+    sizerLeft->Add( CreateSizerWithTextAndButton( DirCtrlPage_SetPath , "Set &path", wxID_ANY, &m_path, sizerLeftBox),
                     0, wxALL | wxALIGN_RIGHT , 5 );
 
-    wxSizer *sizerUseFlags =
-        new wxStaticBoxSizer(wxVERTICAL, this, wxT("&Flags"));
-    m_chkDirOnly = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_DIR_ONLY"));
-    m_chk3D      = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_3D_INTERNAL"));
-    m_chkFirst   = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_SELECT_FIRST"));
-    m_chkFilters = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_SHOW_FILTERS"));
-    m_chkLabels  = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_EDIT_LABELS"));
-    m_chkMulti   = CreateCheckBoxAndAddToSizer(sizerUseFlags, wxT("wxDIRCTRL_MULTIPLE"));
-    sizerLeft->Add(sizerUseFlags, wxSizerFlags().Expand().Border());
+    wxStaticBoxSizer *sizerFlags = new wxStaticBoxSizer(wxVERTICAL, sizerLeftBox, "&Flags");
+    wxStaticBox* const sizerFlagsBox = sizerFlags->GetStaticBox();
 
-    wxSizer *sizerFilters =
-        new wxStaticBoxSizer(wxVERTICAL, this, wxT("&Filters"));
-    m_fltr[0] = CreateCheckBoxAndAddToSizer(sizerFilters, wxString::Format(wxT("all files (%s)|%s"),
-                            wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr));
-    m_fltr[1] = CreateCheckBoxAndAddToSizer(sizerFilters, wxT("C++ files (*.cpp; *.h)|*.cpp;*.h"));
-    m_fltr[2] = CreateCheckBoxAndAddToSizer(sizerFilters, wxT("PNG images (*.png)|*.png"));
+    m_chkDirOnly = CreateCheckBoxAndAddToSizer(sizerFlags, "wxDIRCTRL_DIR_ONLY", wxID_ANY, sizerFlagsBox);
+    m_chk3D      = CreateCheckBoxAndAddToSizer(sizerFlags, "wxDIRCTRL_3D_INTERNAL", wxID_ANY, sizerFlagsBox);
+    m_chkFirst   = CreateCheckBoxAndAddToSizer(sizerFlags, "wxDIRCTRL_SELECT_FIRST", wxID_ANY, sizerFlagsBox);
+    m_chkFilters = CreateCheckBoxAndAddToSizer(sizerFlags, "wxDIRCTRL_SHOW_FILTERS", wxID_ANY, sizerFlagsBox);
+    m_chkLabels  = CreateCheckBoxAndAddToSizer(sizerFlags, "wxDIRCTRL_EDIT_LABELS", wxID_ANY, sizerFlagsBox);
+    m_chkMulti   = CreateCheckBoxAndAddToSizer(sizerFlags, "wxDIRCTRL_MULTIPLE", wxID_ANY, sizerFlagsBox);
+    sizerLeft->Add(sizerFlags, wxSizerFlags().Expand().Border());
+
+    wxStaticBoxSizer *sizerFilters = new wxStaticBoxSizer(wxVERTICAL, sizerLeftBox, "&Filters");
+    wxStaticBox* const sizerFiltersBox = sizerFilters->GetStaticBox();
+
+    m_fltr[0] = CreateCheckBoxAndAddToSizer(sizerFilters, wxString::Format("all files (%s)|%s",
+                            wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
+                            wxID_ANY, sizerFiltersBox);
+    m_fltr[1] = CreateCheckBoxAndAddToSizer(sizerFilters, "C++ files (*.cpp; *.h)|*.cpp;*.h", wxID_ANY, sizerFiltersBox);
+    m_fltr[2] = CreateCheckBoxAndAddToSizer(sizerFilters, "PNG images (*.png)|*.png", wxID_ANY, sizerFiltersBox);
     sizerLeft->Add(sizerFilters, wxSizerFlags().Expand().Border());
 
-    wxButton *btn = new wxButton(this, DirCtrlPage_Reset, wxT("&Reset"));
+    wxButton *btn = new wxButton(sizerFiltersBox, DirCtrlPage_Reset, "&Reset");
     sizerLeft->Add(btn, 0, wxALIGN_CENTRE_HORIZONTAL | wxALL, 15);
 
     // keep consistency between enum and labels of radiobox
     wxCOMPILE_TIME_ASSERT( stdPathMax == WXSIZEOF(stdPaths), EnumForRadioBoxMismatch);
 
     // middle pane
-    m_radioStdPath = new wxRadioBox(this, wxID_ANY, wxT("Standard path"),
+    m_radioStdPath = new wxRadioBox(this, wxID_ANY, "Standard path",
                                     wxDefaultPosition, wxDefaultSize,
                                     WXSIZEOF(stdPaths), stdPaths, 1);
 
@@ -231,33 +230,57 @@ void DirCtrlWidgetsPage::CreateContent()
     sizerTop->Add(m_radioStdPath, 0, wxGROW | wxALL , 10);
     sizerTop->Add(m_dirCtrl, 1, wxGROW | (wxALL & ~wxRIGHT), 10);
 
+    SetSizer(sizerTop);
+
     // final initializations
     Reset();
-
-    SetSizer(sizerTop);
 }
 
 void DirCtrlWidgetsPage::Reset()
 {
-    m_path->SetValue(m_dirCtrl->GetPath());
+    m_path->Clear();
+
+    m_chkDirOnly->SetValue(false);
+    m_chk3D->SetValue(false);
+    m_chkFirst->SetValue(false);
+    m_chkFilters->SetValue(false);
+    m_chkLabels->SetValue(false);
+    m_chkMulti->SetValue(false);
+
+    m_radioStdPath->SetSelection(0);
+
+    for ( size_t i = 0; i < WXSIZEOF(m_fltr); ++i )
+        m_fltr[i]->SetValue(false);
+
+    CreateDirCtrl(true);
 }
 
-void DirCtrlWidgetsPage::CreateDirCtrl()
+void DirCtrlWidgetsPage::CreateDirCtrl(bool defaultPath)
 {
     wxWindowUpdateLocker noUpdates(this);
+
+    long style = GetAttrs().m_defaultFlags;
+    if ( m_chkDirOnly->IsChecked() )
+        style |= wxDIRCTRL_DIR_ONLY;
+    if ( m_chk3D->IsChecked() )
+        style |= wxDIRCTRL_3D_INTERNAL;
+    if ( m_chkFirst->IsChecked() )
+        style |= wxDIRCTRL_SELECT_FIRST;
+    if ( m_chkFilters->IsChecked() )
+        style |= wxDIRCTRL_SHOW_FILTERS;
+    if ( m_chkLabels->IsChecked() )
+        style |= wxDIRCTRL_EDIT_LABELS;
+    if ( m_chkMulti->IsChecked() )
+        style |= wxDIRCTRL_MULTIPLE;
+
 
     wxGenericDirCtrl *dirCtrl = new wxGenericDirCtrl(
         this,
         DirCtrlPage_Ctrl,
-        wxDirDialogDefaultFolderStr,
+        defaultPath ? wxString(wxDirDialogDefaultFolderStr) : m_dirCtrl->GetPath(),
         wxDefaultPosition,
         wxDefaultSize,
-        ( m_chkDirOnly->IsChecked() ? wxDIRCTRL_DIR_ONLY : 0 ) |
-        ( m_chk3D->IsChecked() ? wxDIRCTRL_3D_INTERNAL : 0 ) |
-        ( m_chkFirst->IsChecked() ? wxDIRCTRL_SELECT_FIRST : 0 ) |
-        ( m_chkFilters->IsChecked() ? wxDIRCTRL_SHOW_FILTERS : 0 ) |
-        ( m_chkLabels->IsChecked() ? wxDIRCTRL_EDIT_LABELS : 0 ) |
-        ( m_chkMulti->IsChecked() ? wxDIRCTRL_MULTIPLE : 0)
+        style
     );
 
     wxString filter;
@@ -266,7 +289,7 @@ void DirCtrlWidgetsPage::CreateDirCtrl()
         if (m_fltr[i]->IsChecked())
         {
             if (!filter.IsEmpty())
-                filter += wxT("|");
+                filter += "|";
             filter += m_fltr[i]->GetLabel();
         }
     }
@@ -278,6 +301,8 @@ void DirCtrlWidgetsPage::CreateDirCtrl()
     // update our pointer
     delete m_dirCtrl;
     m_dirCtrl = dirCtrl;
+
+    NotifyWidgetRecreation(m_dirCtrl);
 
     // relayout the sizer
     GetSizer()->Layout();
@@ -308,7 +333,7 @@ void DirCtrlWidgetsPage::OnRadioBox(wxCommandEvent& WXUNUSED(event))
 {
     wxString path;
 
-    wxTheApp->SetAppName(wxT("widgets"));
+    wxTheApp->SetAppName("widgets");
     wxStandardPathsBase& stdp = wxStandardPaths::Get();
 
     switch ( m_radioStdPath->GetSelection() )

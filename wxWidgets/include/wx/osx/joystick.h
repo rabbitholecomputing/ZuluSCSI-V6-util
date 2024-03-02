@@ -2,7 +2,6 @@
 // Name:        wx/osx/joystick.h
 // Purpose:     wxJoystick class
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -15,8 +14,8 @@
 
 class WXDLLIMPEXP_ADV wxJoystick: public wxObject
 {
-  DECLARE_DYNAMIC_CLASS(wxJoystick)
- public:
+  wxDECLARE_DYNAMIC_CLASS(wxJoystick);
+public:
   /*
    * Public interface
    */

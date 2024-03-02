@@ -2,7 +2,6 @@
 // Name:        wx/progdlg.h
 // Purpose:     Base header for wxProgressDialog
 // Author:      Julian Smart
-// Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
@@ -30,16 +29,24 @@
 
 #include "wx/generic/progdlgg.h"
 
-#if defined(__WXMSW__) && wxUSE_THREADS && !defined(__WXUNIVERSAL__)
-    #include "wx/msw/progdlg.h"
-#else
+#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
+    // The native implementation requires the use of threads and still has some
+    // problems, so it can be explicitly disabled.
+    #if wxUSE_THREADS && wxUSE_NATIVE_PROGRESSDLG
+        #define wxHAS_NATIVE_PROGRESSDIALOG
+        #include "wx/msw/progdlg.h"
+    #endif
+#endif
+
+// If there is no native one, just use the generic version.
+#ifndef wxHAS_NATIVE_PROGRESSDIALOG
     class WXDLLIMPEXP_CORE wxProgressDialog
                            : public wxGenericProgressDialog
     {
     public:
         wxProgressDialog( const wxString& title, const wxString& message,
                           int maximum = 100,
-                          wxWindow *parent = NULL,
+                          wxWindow *parent = nullptr,
                           int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE )
             : wxGenericProgressDialog( title, message, maximum,
                                        parent, style )
@@ -48,7 +55,7 @@
     private:
         wxDECLARE_DYNAMIC_CLASS_NO_COPY( wxProgressDialog );
     };
-#endif // defined(__WXMSW__) && wxUSE_THREADS
+#endif // !wxHAS_NATIVE_PROGRESSDIALOG
 
 #endif // wxUSE_PROGRESSDLG
 

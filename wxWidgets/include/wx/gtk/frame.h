@@ -24,7 +24,7 @@ public:
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                long style = wxDEFAULT_FRAME_STYLE,
-               const wxString& name = wxFrameNameStr)
+               const wxString& name = wxASCII_STR(wxFrameNameStr))
     {
         Init();
 
@@ -37,38 +37,31 @@ public:
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxDEFAULT_FRAME_STYLE,
-                const wxString& name = wxFrameNameStr);
-
-    virtual ~wxFrame();
+                const wxString& name = wxASCII_STR(wxFrameNameStr));
 
 #if wxUSE_STATUSBAR
-    void SetStatusBar(wxStatusBar *statbar);
+    void SetStatusBar(wxStatusBar *statbar) override;
 #endif // wxUSE_STATUSBAR
 
 #if wxUSE_TOOLBAR
-    void SetToolBar(wxToolBar *toolbar);
+    void SetToolBar(wxToolBar *toolbar) override;
 #endif // wxUSE_TOOLBAR
 
-    virtual bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL);
-    wxPoint GetClientAreaOrigin() const { return wxPoint(0, 0); }
-
-#if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
-    // in Hildon environment all frames are always shown maximized
-    virtual bool IsMaximized() const { return true; }
-#endif // wxUSE_LIBHILDON || wxUSE_LIBHILDON2
+    virtual bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) override;
+    wxPoint GetClientAreaOrigin() const override { return wxPoint(0, 0); }
 
     // implementation from now on
     // --------------------------
 
-    virtual bool SendIdleEvents(wxIdleEvent& event);
+    virtual bool SendIdleEvents(wxIdleEvent& event) override;
 
 protected:
     // override wxWindow methods to take into account tool/menu/statusbars
-    virtual void DoGetClientSize( int *width, int *height ) const;
+    virtual void DoGetClientSize( int *width, int *height ) const override;
 
 #if wxUSE_MENUS_NATIVE
-    virtual void DetachMenuBar();
-    virtual void AttachMenuBar(wxMenuBar *menubar);
+    virtual void DetachMenuBar() override;
+    virtual void AttachMenuBar(wxMenuBar *menubar) override;
 #endif // wxUSE_MENUS_NATIVE
 
 private:
@@ -76,7 +69,7 @@ private:
 
     long m_fsSaveFlag;
 
-    DECLARE_DYNAMIC_CLASS(wxFrame)
+    wxDECLARE_DYNAMIC_CLASS(wxFrame);
 };
 
 #endif // _WX_GTK_FRAME_H_

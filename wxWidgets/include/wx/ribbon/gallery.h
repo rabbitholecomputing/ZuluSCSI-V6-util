@@ -2,7 +2,6 @@
 // Name:        wx/ribbon/gallery.h
 // Purpose:     Ribbon control which displays a gallery of items to choose from
 // Author:      Peter Cawley
-// Modified by:
 // Created:     2009-07-22
 // Copyright:   (C) Peter Cawley
 // Licence:     wxWindows licence
@@ -63,16 +62,16 @@ public:
     wxRibbonGalleryButtonState GetExtensionButtonState() const;
 
     bool IsHovered() const;
-    virtual bool IsSizingContinuous() const;
-    virtual bool Realize();
-    virtual bool Layout();
+    virtual bool IsSizingContinuous() const override;
+    virtual bool Realize() override;
+    virtual bool Layout() override;
 
-    virtual bool ScrollLines(int lines);
+    virtual bool ScrollLines(int lines) override;
     bool ScrollPixels(int pixels);
     void EnsureVisible(const wxRibbonGalleryItem* item);
 
 protected:
-    wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
+    wxBorder GetDefaultBorder() const override { return wxBORDER_NONE; }
     void CommonInit(long style);
     void CalculateMinSize();
     bool TestButtonHover(const wxRect& rect, wxPoint pos,
@@ -89,11 +88,11 @@ protected:
     void OnSize(wxSizeEvent& evt);
     int GetScrollLineSize() const;
 
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const override;
     virtual wxSize DoGetNextSmallerSize(wxOrientation direction,
-                                        wxSize relative_to) const;
+                                        wxSize relative_to) const override;
     virtual wxSize DoGetNextLargerSize(wxOrientation direction,
-                                       wxSize relative_to) const;
+                                       wxSize relative_to) const override;
 
     wxArrayRibbonGalleryItem m_items;
     wxRibbonGalleryItem* m_selected_item;
@@ -106,7 +105,7 @@ protected:
     wxRect m_scroll_up_button_rect;
     wxRect m_scroll_down_button_rect;
     wxRect m_extension_button_rect;
-    const wxRect* m_mouse_active_rect;
+    const wxRect* m_mouse_active_rect = nullptr;
     int m_item_separation_x;
     int m_item_separation_y;
     int m_scroll_amount;
@@ -117,8 +116,8 @@ protected:
     bool m_hovered;
 
 #ifndef SWIG
-    DECLARE_CLASS(wxRibbonGallery)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_CLASS(wxRibbonGallery);
+    wxDECLARE_EVENT_TABLE();
 #endif
 };
 
@@ -127,8 +126,8 @@ class WXDLLIMPEXP_RIBBON wxRibbonGalleryEvent : public wxCommandEvent
 public:
     wxRibbonGalleryEvent(wxEventType command_type = wxEVT_NULL,
                        int win_id = 0,
-                       wxRibbonGallery* gallery = NULL,
-                       wxRibbonGalleryItem* item = NULL)
+                       wxRibbonGallery* gallery = nullptr,
+                       wxRibbonGalleryItem* item = nullptr)
         : wxCommandEvent(command_type, win_id)
         , m_gallery(gallery), m_item(item)
     {
@@ -140,7 +139,7 @@ public:
         m_item = e.m_item;
     }
 #endif
-    wxEvent *Clone() const { return new wxRibbonGalleryEvent(*this); }
+    wxEvent *Clone() const override { return new wxRibbonGalleryEvent(*this); }
 
     wxRibbonGallery* GetGallery() {return m_gallery;}
     wxRibbonGalleryItem* GetGalleryItem() {return m_item;}
@@ -148,12 +147,12 @@ public:
     void SetGalleryItem(wxRibbonGalleryItem* item) {m_item = item;}
 
 protected:
-    wxRibbonGallery* m_gallery;
-    wxRibbonGalleryItem* m_item;
+    wxRibbonGallery* m_gallery = nullptr;
+    wxRibbonGalleryItem* m_item = nullptr;
 
 #ifndef SWIG
 private:
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxRibbonGalleryEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxRibbonGalleryEvent);
 #endif
 };
 
@@ -179,10 +178,13 @@ typedef void (wxEvtHandler::*wxRibbonGalleryEventFunction)(wxRibbonGalleryEvent&
 // wxpython/swig event work
 %constant wxEventType wxEVT_RIBBONGALLERY_HOVER_CHANGED;
 %constant wxEventType wxEVT_RIBBONGALLERY_SELECTED;
+%constant wxEventType wxEVT_RIBBONGALLERY_CLICKED;
+
 
 %pythoncode {
     EVT_RIBBONGALLERY_HOVER_CHANGED = wx.PyEventBinder( wxEVT_RIBBONGALLERY_HOVER_CHANGED, 1 )
     EVT_RIBBONGALLERY_SELECTED = wx.PyEventBinder( wxEVT_RIBBONGALLERY_SELECTED, 1 )
+    EVT_RIBBONGALLERY_CLICKED = wx.PyEventBinder( wxEVT_RIBBONGALLERY_CLICKED, 1 )
 }
 #endif // SWIG
 

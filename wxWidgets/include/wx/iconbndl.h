@@ -2,7 +2,6 @@
 // Name:        wx/iconbndl.h
 // Purpose:     wxIconBundle
 // Author:      Mattia barbon
-// Modified by:
 // Created:     23.03.02
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
@@ -19,11 +18,11 @@
 
 class WXDLLIMPEXP_FWD_BASE wxInputStream;
 
-WX_DECLARE_EXPORTED_OBJARRAY(wxIcon, wxIconArray);
+// This declaration is preserved solely for backwards compatibility, this type
+// is not used by wxWidgets itself.
+using wxIconArray = wxBaseArray<wxIcon>;
 
-// this class can't load bitmaps of type wxBITMAP_TYPE_ICO_RESOURCE,
-// if you need them, you have to load them manually and call
-// wxIconCollection::AddIcon
+// Load icons of multiple sizes from files or resources (MSW-only).
 class WXDLLIMPEXP_CORE wxIconBundle : public wxGDIObject
 {
 public:
@@ -36,7 +35,7 @@ public:
 
         // Return the icon of the system icon size if exact size is not found.
         // May be combined with other non-NONE enum elements to determine what
-        // happens if the system icon size is not found neither.
+        // happens if the system icon size is not found either.
         FALLBACK_SYSTEM = 1,
 
         // Return the icon of closest larger size or, if there is no icon of
@@ -58,6 +57,11 @@ public:
     // initializes the bundle with a single icon
     wxIconBundle(const wxIcon& icon);
 
+#if defined(__WINDOWS__) && wxUSE_ICO_CUR
+    // initializes the bundle with the icons from a group icon stored as an MS Windows resource
+    wxIconBundle(const wxString& resourceName, WXHINSTANCE module);
+#endif
+
     // default copy ctor and assignment operator are OK
 
     // adds all the icons contained in the file to the collection,
@@ -69,6 +73,11 @@ public:
 #endif // wxUSE_FFILE || wxUSE_FILE
     void AddIcon(wxInputStream& stream, wxBitmapType type = wxBITMAP_TYPE_ANY);
 #endif // wxUSE_STREAMS && wxUSE_IMAGE
+
+#if defined(__WINDOWS__) && wxUSE_ICO_CUR
+    // loads all the icons from a group icon stored in an MS Windows resource
+    void AddIcon(const wxString& resourceName, WXHINSTANCE module);
+#endif
 
     // adds the icon to the collection, if the collection already
     // contains an icon with the same width and height, it is
@@ -102,31 +111,15 @@ public:
     // check if we have any icons at all
     bool IsEmpty() const { return GetIconCount() == 0; }
 
-#if WXWIN_COMPATIBILITY_2_8
-#if wxUSE_STREAMS && wxUSE_IMAGE && (wxUSE_FFILE || wxUSE_FILE)
-    wxDEPRECATED( void AddIcon(const wxString& file, long type)
-        {
-            AddIcon(file, (wxBitmapType)type);
-        }
-    )
-
-    wxDEPRECATED_CONSTRUCTOR( wxIconBundle (const wxString& file, long type)
-        {
-            AddIcon(file, (wxBitmapType)type);
-        }
-    )
-#endif // wxUSE_STREAMS && wxUSE_IMAGE && (wxUSE_FFILE || wxUSE_FILE)
-#endif // WXWIN_COMPATIBILITY_2_8
-
 protected:
-    virtual wxGDIRefData *CreateGDIRefData() const;
-    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
+    virtual wxGDIRefData *CreateGDIRefData() const override;
+    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const override;
 
 private:
     // delete all icons
     void DeleteIcons();
 
-    DECLARE_DYNAMIC_CLASS(wxIconBundle)
+    wxDECLARE_DYNAMIC_CLASS(wxIconBundle);
 };
 
 #endif // _WX_ICONBNDL_H_

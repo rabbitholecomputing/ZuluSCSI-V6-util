@@ -2,7 +2,6 @@
 // Name:        src/univ/bmpbuttn.cpp
 // Purpose:     wxBitmapButton implementation
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     25.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -18,9 +17,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_BMPBUTTON
 
@@ -37,10 +33,10 @@
 // implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxBitmapButton, wxButton)
+wxBEGIN_EVENT_TABLE(wxBitmapButton, wxButton)
     EVT_SET_FOCUS(wxBitmapButton::OnSetFocus)
     EVT_KILL_FOCUS(wxBitmapButton::OnKillFocus)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // wxBitmapButton
@@ -48,7 +44,7 @@ END_EVENT_TABLE()
 
 bool wxBitmapButton::Create(wxWindow *parent,
                             wxWindowID id,
-                            const wxBitmap& bitmap,
+                            const wxBitmapBundle& bitmap,
                             const wxPoint &pos,
                             const wxSize &size,
                             long style,
@@ -94,6 +90,7 @@ bool wxBitmapButton::ChangeBitmap(const wxBitmap& bmp)
         return false;
 
     m_bitmap = bitmap;
+    SetInitialSize(bitmap.GetSize());
 
     return true;
 }
@@ -109,11 +106,11 @@ bool wxBitmapButton::Enable(bool enable)
     return true;
 }
 
-bool wxBitmapButton::SetCurrent(bool doit)
+bool wxBitmapButton::WXMakeCurrent(bool doit)
 {
     ChangeBitmap(doit ? GetBitmapFocus() : GetBitmapLabel());
 
-    return wxButton::SetCurrent(doit);
+    return wxButton::WXMakeCurrent(doit);
 }
 
 void wxBitmapButton::OnSetFocus(wxFocusEvent& event)

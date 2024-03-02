@@ -19,9 +19,6 @@
 // for compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_FONTPICKERCTRL
 
@@ -30,6 +27,7 @@
     #include "wx/app.h"
     #include "wx/log.h"
     #include "wx/radiobox.h"
+    #include "wx/statbox.h"
 #endif
 
 #include "wx/artprov.h"
@@ -63,13 +61,12 @@ class FontPickerWidgetsPage : public WidgetsPage
 {
 public:
     FontPickerWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
-    virtual ~FontPickerWidgetsPage(){};
 
-    virtual wxControl *GetWidget() const { return m_fontPicker; }
-    virtual void RecreateWidget() { RecreatePicker(); }
+    virtual wxWindow *GetWidget() const override { return m_fontPicker; }
+    virtual void RecreateWidget() override { RecreatePicker(); }
 
     // lazy creation of the content
-    virtual void CreateContent();
+    virtual void CreateContent() override;
 
 protected:
 
@@ -81,9 +78,6 @@ protected:
 
     // restore the checkboxes state to the initial values
     void Reset();
-
-    // get the initial style for the picker of the given kind
-    long GetPickerStyle();
 
 
     void OnFontChange(wxFontPickerEvent &ev);
@@ -123,13 +117,13 @@ wxEND_EVENT_TABLE()
 // implementation
 // ============================================================================
 
-#if defined(__WXGTK24__)
+#if defined(__WXGTK__)
     #define FAMILY_CTRLS NATIVE_CTRLS
 #else
     #define FAMILY_CTRLS GENERIC_CTRLS
 #endif
 
-IMPLEMENT_WIDGETS_PAGE(FontPickerWidgetsPage, wxT("FontPicker"),
+IMPLEMENT_WIDGETS_PAGE(FontPickerWidgetsPage, "FontPicker",
                        PICKER_CTRLS | FAMILY_CTRLS);
 
 FontPickerWidgetsPage::FontPickerWidgetsPage(WidgetsBookCtrl *book,
@@ -141,21 +135,22 @@ FontPickerWidgetsPage::FontPickerWidgetsPage(WidgetsBookCtrl *book,
 void FontPickerWidgetsPage::CreateContent()
 {
     // left pane
-    wxSizer *boxleft = new wxBoxSizer(wxVERTICAL);
+    wxSizer *leftSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticBoxSizer *styleSizer = new wxStaticBoxSizer(wxVERTICAL, this, "&FontPicker style");
+    wxStaticBox* const styleSizerBox = styleSizer->GetStaticBox();
 
-    wxStaticBoxSizer *fontbox = new wxStaticBoxSizer(wxVERTICAL, this, wxT("&FontPicker style"));
-    m_chkFontTextCtrl = CreateCheckBoxAndAddToSizer(fontbox, wxT("With textctrl"));
-    m_chkFontDescAsLabel = CreateCheckBoxAndAddToSizer(fontbox, wxT("Font desc as btn label"));
-    m_chkFontUseFontForLabel = CreateCheckBoxAndAddToSizer(fontbox, wxT("Use font for label"));
-    boxleft->Add(fontbox, 0, wxALL|wxGROW, 5);
+    m_chkFontTextCtrl = CreateCheckBoxAndAddToSizer(styleSizer, "With textctrl", wxID_ANY, styleSizerBox);
+    m_chkFontDescAsLabel = CreateCheckBoxAndAddToSizer(styleSizer, "Font desc as btn label", wxID_ANY, styleSizerBox);
+    m_chkFontUseFontForLabel = CreateCheckBoxAndAddToSizer(styleSizer, "Use font for label", wxID_ANY, styleSizerBox);
+    leftSizer->Add(styleSizer, 0, wxALL|wxGROW, 5);
 
-    boxleft->Add(new wxButton(this, PickerPage_Reset, wxT("&Reset")),
+    leftSizer->Add(new wxButton(this, PickerPage_Reset, "&Reset"),
                  0, wxALIGN_CENTRE_HORIZONTAL | wxALL, 15);
 
     Reset();    // set checkboxes state
 
     // create pickers
-    m_fontPicker = NULL;
+    m_fontPicker = nullptr;
     CreatePicker();
 
     // right pane
@@ -166,7 +161,7 @@ void FontPickerWidgetsPage::CreateContent()
 
     // global pane
     wxSizer *sz = new wxBoxSizer(wxHORIZONTAL);
-    sz->Add(boxleft, 0, wxGROW|wxALL, 5);
+    sz->Add(leftSizer, 0, wxGROW|wxALL, 5);
     sz->Add(m_sizer, 1, wxGROW|wxALL, 5);
 
     SetSizer(sz);
@@ -176,15 +171,7 @@ void FontPickerWidgetsPage::CreatePicker()
 {
     delete m_fontPicker;
 
-    m_fontPicker = new wxFontPickerCtrl(this, PickerPage_Font,
-                                        *wxSWISS_FONT,
-                                        wxDefaultPosition, wxDefaultSize,
-                                        GetPickerStyle());
-}
-
-long FontPickerWidgetsPage::GetPickerStyle()
-{
-    long style = 0;
+    long style = GetAttrs().m_defaultFlags;
 
     if ( m_chkFontTextCtrl->GetValue() )
         style |= wxFNTP_USE_TEXTCTRL;
@@ -193,9 +180,14 @@ long FontPickerWidgetsPage::GetPickerStyle()
         style |= wxFNTP_USEFONT_FOR_LABEL;
 
     if ( m_chkFontDescAsLabel->GetValue() )
-            style |= wxFNTP_FONTDESC_AS_LABEL;
+        style |= wxFNTP_FONTDESC_AS_LABEL;
 
-    return style;
+    m_fontPicker = new wxFontPickerCtrl(this, PickerPage_Font,
+                                        *wxSWISS_FONT,
+                                        wxDefaultPosition, wxDefaultSize,
+                                        style);
+
+    NotifyWidgetRecreation(m_fontPicker);
 }
 
 void FontPickerWidgetsPage::RecreatePicker()
@@ -227,8 +219,8 @@ void FontPickerWidgetsPage::OnButtonReset(wxCommandEvent& WXUNUSED(event))
 
 void FontPickerWidgetsPage::OnFontChange(wxFontPickerEvent& event)
 {
-    wxLogMessage(wxT("The font changed to '%s' with size %d !"),
-                 event.GetFont().GetFaceName().c_str(), event.GetFont().GetPointSize());
+    wxLogMessage("The font changed to '%s' with size %d !",
+                 event.GetFont().GetFaceName(), event.GetFont().GetPointSize());
 }
 
 void FontPickerWidgetsPage::OnCheckBox(wxCommandEvent &event)

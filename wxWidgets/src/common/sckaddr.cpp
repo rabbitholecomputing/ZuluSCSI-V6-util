@@ -20,9 +20,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_SOCKETS
 
@@ -59,14 +56,14 @@
 // wxRTTI macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxSockAddress, wxObject)
-IMPLEMENT_ABSTRACT_CLASS(wxIPaddress, wxSockAddress)
-IMPLEMENT_DYNAMIC_CLASS(wxIPV4address, wxIPaddress)
+wxIMPLEMENT_ABSTRACT_CLASS(wxSockAddress, wxObject);
+wxIMPLEMENT_ABSTRACT_CLASS(wxIPaddress, wxSockAddress);
+wxIMPLEMENT_DYNAMIC_CLASS(wxIPV4address, wxIPaddress);
 #if wxUSE_IPV6
-IMPLEMENT_DYNAMIC_CLASS(wxIPV6address, wxIPaddress)
+wxIMPLEMENT_DYNAMIC_CLASS(wxIPV6address, wxIPaddress);
 #endif
 #if defined(__UNIX__) && !defined(__WINDOWS__) && !defined(__WINE__)
-IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
+wxIMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress);
 #endif
 
 // ============================================================================
@@ -91,28 +88,21 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
     #define wxHAS_MT_SAFE_GETBY_FUNCS
 
     #if wxUSE_IPV6
-        #ifdef __VISUALC__
-            // this header does dynamic dispatching of getaddrinfo/freeaddrinfo()
-            // by implementing them in its own code if the system versions are
-            // not available (as is the case for anything < XP)
-            #pragma warning(push)
-            #pragma warning(disable:4706)
-            #include <wspiapi.h>
-            #pragma warning(pop)
-        #else
-            // TODO: Use wxDynamicLibrary to bind to these functions
-            //       dynamically on older Windows systems, currently a program
-            //       built with wxUSE_IPV6==1 won't even start there, even if
-            //       it doesn't actually use the socket stuff.
-            #include <ws2tcpip.h>
-        #endif
+        #include <ws2tcpip.h>
     #endif
 #endif // __WINDOWS__
 
 // we assume that we have gethostbyaddr_r() if and only if we have
 // gethostbyname_r() and that it uses the similar conventions to it (see
 // comment in configure)
+//
+// this used not to be the case under older Android systems, where
+// gethostbyname_r() was available, but gethostbyaddr_r() wasn't, but it's not
+// clear if we still need to support the old NDKs, so for now keep things
+// simple -- and if we really need to account for this case, we'll add the
+// tests for gethostbyaddr_r() to configure later
 #define HAVE_GETHOSTBYADDR HAVE_GETHOSTBYNAME
+
 #ifdef HAVE_FUNC_GETHOSTBYNAME_R_3
     #define HAVE_FUNC_GETHOSTBYADDR_R_3
 #endif
@@ -136,7 +126,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
         }
     };
 #else
-    typedef char wxGethostBuf[1024];
+    typedef char wxGethostBuf[4096];
 #endif
 
 #ifdef HAVE_FUNC_GETSERVBYNAME_R_4
@@ -148,7 +138,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
         }
     };
 #else
-    typedef char wxGetservBuf[1024];
+    typedef char wxGetservBuf[4096];
 #endif
 
 #if defined(wxHAS_MT_SAFE_GETBY_FUNCS) || !wxUSE_THREADS
@@ -174,7 +164,11 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
 namespace
 {
 
-#if defined(HAVE_GETHOSTBYNAME)
+#if defined(HAVE_GETHOSTBYNAME) && \
+    !defined(HAVE_FUNC_GETHOSTBYNAME_R_6) && \
+    !defined(HAVE_FUNC_GETHOSTBYNAME_R_5) && \
+    !defined(HAVE_FUNC_GETHOSTBYNAME_R_3)
+
 hostent *deepCopyHostent(hostent *h,
                          const hostent *he,
                          char *buffer,
@@ -189,7 +183,7 @@ hostent *deepCopyHostent(hostent *h,
     if (len > size)
     {
         *err = ENOMEM;
-        return NULL;
+        return nullptr;
     }
     memcpy(buffer, h->h_name, len);
     buffer[len] = '\0';
@@ -209,22 +203,22 @@ hostent *deepCopyHostent(hostent *h,
     /* leave space for pointer list */
     char **p = h->h_addr_list, **q;
     char **h_addr_list = (char **)(buffer + pos);
-    while(*(p++) != 0)
+    while(*(p++) != nullptr)
         pos += sizeof(char *);
 
     /* copy addresses and fill new pointer list */
-    for (p = h->h_addr_list, q = h_addr_list; *p != 0; p++, q++)
+    for (p = h->h_addr_list, q = h_addr_list; *p != nullptr; p++, q++)
     {
         if (size < pos + len)
         {
             *err = ENOMEM;
-            return NULL;
+            return nullptr;
         }
         memcpy(buffer + pos, *p, len); /* copy content */
         *q = buffer + pos; /* set copied pointer to copied content */
         pos += len;
     }
-    *++q = 0; /* null terminate the pointer list */
+    *++q = nullptr; /* null terminate the pointer list */
     h->h_addr_list = h_addr_list; /* copy pointer to pointers */
 
     /* ensure word alignment of pointers */
@@ -235,24 +229,24 @@ hostent *deepCopyHostent(hostent *h,
     /* leave space for pointer list */
     p = h->h_aliases;
     char **h_aliases = (char **)(buffer + pos);
-    while(*(p++) != 0)
+    while(*(p++) != nullptr)
         pos += sizeof(char *);
 
     /* copy aliases and fill new pointer list */
-    for (p = h->h_aliases, q = h_aliases; *p != 0; p++, q++)
+    for (p = h->h_aliases, q = h_aliases; *p != nullptr; p++, q++)
     {
         len = strlen(*p);
         if (size <= pos + len)
         {
             *err = ENOMEM;
-            return NULL;
+            return nullptr;
         }
         memcpy(buffer + pos, *p, len); /* copy content */
         buffer[pos + len] = '\0';
         *q = buffer + pos; /* set copied pointer to copied content */
         pos += len + 1;
     }
-    *++q = 0; /* null terminate the pointer list */
+    *++q = nullptr; /* null terminate the pointer list */
     h->h_aliases = h_aliases; /* copy pointer to pointers */
 
     return h;
@@ -334,7 +328,7 @@ servent *deepCopyServent(servent *s,
     int len = strlen(s->s_name);
     if (len >= size)
     {
-        return NULL;
+        return nullptr;
     }
     memcpy(buffer, s->s_name, len);
     buffer[len] = '\0';
@@ -347,7 +341,7 @@ servent *deepCopyServent(servent *s,
     len = strlen(s->s_proto);
     if (pos + len >= size)
     {
-        return NULL;
+        return nullptr;
     }
     memcpy(buffer + pos, s->s_proto, len);
     buffer[pos + len] = '\0';
@@ -364,22 +358,22 @@ servent *deepCopyServent(servent *s,
     /* leave space for pointer list */
     char **p = s->s_aliases, **q;
     char **s_aliases = (char **)(buffer + pos);
-    while(*(p++) != 0)
+    while(*(p++) != nullptr)
         pos += sizeof(char *);
 
     /* copy addresses and fill new pointer list */
-    for (p = s->s_aliases, q = s_aliases; *p != 0; p++, q++){
+    for (p = s->s_aliases, q = s_aliases; *p != nullptr; p++, q++){
         len = strlen(*p);
         if (size <= pos + len)
         {
-            return NULL;
+            return nullptr;
         }
         memcpy(buffer + pos, *p, len); /* copy content */
         buffer[pos + len] = '\0';
         *q = buffer + pos; /* set copied pointer to copied content */
         pos += len + 1;
     }
-    *++q = 0; /* null terminate the pointer list */
+    *++q = nullptr; /* null terminate the pointer list */
     s->s_aliases = s_aliases; /* copy pointer to pointers */
     return s;
 }
@@ -399,7 +393,7 @@ servent *wxGetservbyname_r(const char *port,
 #elif defined(HAVE_FUNC_GETSERVBYNAME_R_4)
     wxUnusedVar(size);
     if ( getservbyname_r(port, protocol, serv, &buffer) != 0 )
-        return NULL;
+        return nullptr;
 #elif defined(HAVE_GETSERVBYNAME)
     wxLOCK_GETBY_MUTEX(serv);
 
@@ -418,10 +412,6 @@ servent *wxGetservbyname_r(const char *port,
 // wxSockAddressImpl implementation
 // ============================================================================
 
-// FIXME-VC6: helper macros to call Alloc/Get() hiding the ugly dummy argument
-#define ALLOC(T) Alloc(static_cast<T *>(NULL))
-#define GET(T) Get(static_cast<T *>(NULL))
-
 // ----------------------------------------------------------------------------
 // INET or INET6 address family
 // ----------------------------------------------------------------------------
@@ -434,14 +424,14 @@ wxString wxSockAddressImpl::GetHostName() const
 #if wxUSE_IPV6
     if ( m_family == FAMILY_INET6 )
     {
-        sockaddr_in6 * const addr6 = GET(sockaddr_in6);
+        sockaddr_in6 * const addr6 = Get<sockaddr_in6>();
         addrbuf = &addr6->sin6_addr;
         addrbuflen = sizeof(addr6->sin6_addr);
     }
     else
 #endif // wxUSE_IPV6
     {
-        sockaddr_in * const addr = GET(sockaddr_in);
+        sockaddr_in * const addr = Get<sockaddr_in>();
         if ( !addr )
             return wxString();
 
@@ -504,13 +494,13 @@ void wxSockAddressImpl::CreateINET()
     wxASSERT_MSG( Is(FAMILY_UNSPEC), "recreating address as different type?" );
 
     m_family = FAMILY_INET;
-    sockaddr_in * const addr = ALLOC(sockaddr_in);
+    sockaddr_in * const addr = Alloc<sockaddr_in>();
     addr->sin_family = FAMILY_INET;
 }
 
 bool wxSockAddressImpl::SetHostName4(const wxString& name)
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return false;
 
@@ -541,7 +531,7 @@ bool wxSockAddressImpl::SetHostName4(const wxString& name)
 
 bool wxSockAddressImpl::GetHostAddress(wxUint32 *address) const
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return false;
 
@@ -552,7 +542,7 @@ bool wxSockAddressImpl::GetHostAddress(wxUint32 *address) const
 
 bool wxSockAddressImpl::SetHostAddress(wxUint32 address)
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return false;
 
@@ -563,7 +553,7 @@ bool wxSockAddressImpl::SetHostAddress(wxUint32 address)
 
 wxUint16 wxSockAddressImpl::GetPort4() const
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return 0;
 
@@ -572,7 +562,7 @@ wxUint16 wxSockAddressImpl::GetPort4() const
 
 bool wxSockAddressImpl::SetPort4(wxUint16 port)
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return false;
 
@@ -592,13 +582,13 @@ void wxSockAddressImpl::CreateINET6()
     wxASSERT_MSG( Is(FAMILY_UNSPEC), "recreating address as different type?" );
 
     m_family = FAMILY_INET6;
-    sockaddr_in6 * const addr = ALLOC(sockaddr_in6);
+    sockaddr_in6 * const addr = Alloc<sockaddr_in6>();
     addr->sin6_family = FAMILY_INET6;
 }
 
 bool wxSockAddressImpl::SetHostName6(const wxString& hostname)
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return false;
 
@@ -606,8 +596,8 @@ bool wxSockAddressImpl::SetHostName6(const wxString& hostname)
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET6;
 
-    addrinfo *info = NULL;
-    int rc = getaddrinfo(hostname.utf8_str(), NULL, &hints, &info);
+    addrinfo *info = nullptr;
+    int rc = getaddrinfo(hostname.utf8_str(), nullptr, &hints, &info);
     if ( rc )
     {
         // use gai_strerror()?
@@ -626,7 +616,7 @@ bool wxSockAddressImpl::SetHostName6(const wxString& hostname)
 
 bool wxSockAddressImpl::GetHostAddress(in6_addr *address) const
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return false;
 
@@ -637,7 +627,7 @@ bool wxSockAddressImpl::GetHostAddress(in6_addr *address) const
 
 bool wxSockAddressImpl::SetHostAddress(const in6_addr& address)
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return false;
 
@@ -648,7 +638,7 @@ bool wxSockAddressImpl::SetHostAddress(const in6_addr& address)
 
 wxUint16 wxSockAddressImpl::GetPort6() const
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return 0;
 
@@ -657,7 +647,7 @@ wxUint16 wxSockAddressImpl::GetPort6() const
 
 bool wxSockAddressImpl::SetPort6(wxUint16 port)
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return false;
 
@@ -682,7 +672,7 @@ bool wxSockAddressImpl::SetToAnyAddress6()
 // ----------------------------------------------------------------------------
 
 #ifndef UNIX_PATH_MAX
-    #define UNIX_PATH_MAX (WXSIZEOF(((sockaddr_un *)NULL)->sun_path))
+    #define UNIX_PATH_MAX (WXSIZEOF(((sockaddr_un *)nullptr)->sun_path))
 #endif
 
 void wxSockAddressImpl::CreateUnix()
@@ -690,14 +680,14 @@ void wxSockAddressImpl::CreateUnix()
     wxASSERT_MSG( Is(FAMILY_UNSPEC), "recreating address as different type?" );
 
     m_family = FAMILY_UNIX;
-    sockaddr_un * const addr = ALLOC(sockaddr_un);
+    sockaddr_un * const addr = Alloc<sockaddr_un>();
     addr->sun_family = FAMILY_UNIX;
     addr->sun_path[0] = '\0';
 }
 
 bool wxSockAddressImpl::SetPath(const wxString& path)
 {
-    sockaddr_un * const addr = GET(sockaddr_un);
+    sockaddr_un * const addr = Get<sockaddr_un>();
     if ( !addr )
         return false;
 
@@ -712,7 +702,7 @@ bool wxSockAddressImpl::SetPath(const wxString& path)
 
 wxString wxSockAddressImpl::GetPath() const
 {
-    sockaddr_un * const addr = GET(sockaddr_un);
+    sockaddr_un * const addr = Get<sockaddr_un>();
     if ( !addr )
         return wxString();
 
@@ -720,9 +710,6 @@ wxString wxSockAddressImpl::GetPath() const
 }
 
 #endif // wxHAS_UNIX_DOMAIN_SOCKETS
-
-#undef GET
-#undef ALLOC
 
 // ----------------------------------------------------------------------------
 // wxSockAddress
@@ -795,7 +782,7 @@ void wxSockAddress::Clear()
 wxSockAddressImpl& wxIPaddress::GetImpl()
 {
     if ( m_impl->GetFamily() == wxSockAddressImpl::FAMILY_UNSPEC )
-        m_impl->CreateINET();
+        DoInitImpl();
 
     return *m_impl;
 }
@@ -862,7 +849,14 @@ bool wxIPV4address::Hostname(unsigned long addr)
         return false;
     }
 
-    m_origHostname = Hostname();
+    const wxUint8
+        addr1 = (addr >> 24) & 0xFF,
+        addr2 = (addr >> 16) & 0xFF,
+        addr3 = (addr >>  8) & 0xFF,
+        addr4 = (addr >>  0) & 0xFF;
+
+    m_origHostname = wxString::Format("%hhu.%hhu.%hhu.%hhu", addr1, addr2, addr3, addr4);
+
     return true;
 }
 

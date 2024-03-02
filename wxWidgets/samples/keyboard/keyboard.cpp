@@ -10,9 +10,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -33,6 +30,11 @@ enum
     IDInputCustom,
     IDInputEntry,
     IDInputText,
+
+#if wxUSE_HOTKEY
+    HotKeyRegister,
+    HotKeyUnregister,
+#endif // wxUSE_HOTKEY
 
     TestAccelA,
     TestAccelCtrlA,
@@ -58,6 +60,33 @@ private:
         { m_logText->AppendText("Test accelerator \"Ctrl-A\" used.\n"); }
     void OnTestAccelEsc(wxCommandEvent& WXUNUSED(event))
         { m_logText->AppendText("Test accelerator \"Esc\" used.\n"); }
+
+#if wxUSE_HOTKEY
+    void OnRegisterHotKey(wxCommandEvent& WXUNUSED(event))
+    {
+        if ( RegisterHotKey(0, wxMOD_ALT | wxMOD_SHIFT, WXK_HOME) )
+        {
+            m_logText->AppendText("Try pressing Alt-Shift-Home anywhere now.\n");
+        }
+        else
+        {
+            m_logText->AppendText("Failed to register hot key.\n");
+        }
+    }
+
+    void OnUnregisterHotKey(wxCommandEvent& WXUNUSED(event))
+    {
+        if ( !UnregisterHotKey(0) )
+        {
+            m_logText->AppendText("Failed to unregister hot key.\n");
+        }
+    }
+
+    void OnHotkey(wxKeyEvent& event)
+    {
+        LogEvent("Hot key", event);
+    }
+#endif // wxUSE_HOTKEY
 
     void OnClear(wxCommandEvent& WXUNUSED(event)) { m_logText->Clear(); }
     void OnSkipDown(wxCommandEvent& event) { m_skipDown = event.IsChecked(); }
@@ -90,6 +119,8 @@ private:
 
     void OnPaintInputWin(wxPaintEvent& event);
 
+    void OnIdle(wxIdleEvent& event);
+
     void LogEvent(const wxString& name, wxKeyEvent& event);
 
     // Set m_inputWin to either a new window of the given kind:
@@ -114,7 +145,7 @@ class MyApp : public wxApp
 {
 public:
     // 'Main program' equivalent: the program execution "starts" here
-    virtual bool OnInit()
+    virtual bool OnInit() override
     {
         // create the main application window
         new MyFrame("Keyboard wxWidgets App");
@@ -129,7 +160,7 @@ public:
 // static object for many reasons) and also declares the accessor function
 // wxGetApp() which will return the reference of the right type (i.e. MyApp and
 // not wxApp)
-IMPLEMENT_APP(MyApp)
+wxIMPLEMENT_APP(MyApp);
 
 
 // ============================================================================
@@ -138,8 +169,8 @@ IMPLEMENT_APP(MyApp)
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title)
-       : wxFrame(NULL, wxID_ANY, title),
-         m_inputWin(NULL),
+       : wxFrame(nullptr, wxID_ANY, title),
+         m_inputWin(nullptr),
          m_skipHook(true),
          m_skipDown(true)
 {
@@ -186,6 +217,14 @@ MyFrame::MyFrame(const wxString& title)
     // now append the freshly created menu to the menu bar...
     wxMenuBar *menuBar = new wxMenuBar();
     menuBar->Append(menuFile, "&File");
+
+#if wxUSE_HOTKEY
+    wxMenu* menuHotkey = new wxMenu;
+    menuHotkey->Append(HotKeyRegister, "&Register hot key");
+    menuHotkey->Append(HotKeyUnregister, "&Unregister hot key");
+    menuBar->Append(menuHotkey, "Hot&key");
+#endif // wxUSE_HOTKEY
+
     menuBar->Append(menuHelp, "&Help");
 
     // ... and attach this menu bar to the frame
@@ -197,8 +236,8 @@ MyFrame::MyFrame(const wxString& title)
                                             wxDefaultPosition, wxDefaultSize,
                                             wxTE_READONLY);
     headerText->SetValue(
-               " event          key     KeyCode mod   UnicodeKey  "
-               "  RawKeyCode RawKeyFlags  Position");
+               " event            key   KeyCode mod    UnicodeKey "
+               " RawKeyCode RawKeyFlags  Position  Repeat?  Category");
 
 
     m_logText = new wxTextCtrl(this, wxID_ANY, "",
@@ -206,8 +245,7 @@ MyFrame::MyFrame(const wxString& title)
                                wxTE_MULTILINE|wxTE_READONLY|wxTE_RICH|wxHSCROLL);
 
     // set monospace font to have output in nice columns
-    wxFont font(10, wxFONTFAMILY_TELETYPE,
-                wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    wxFont font(wxFontInfo(10).Family(wxFONTFAMILY_TELETYPE));
     headerText->SetFont(font);
     m_logText->SetFont(font);
 
@@ -219,43 +257,34 @@ MyFrame::MyFrame(const wxString& title)
     SetSizerAndFit(sizer);
 
     // set size and position on screen
-    SetSize(700, 340);
+    SetSize(FromDIP(wxSize(700, 340)));
     CentreOnScreen();
 
     // connect menu event handlers
 
-    Connect(QuitID, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnQuit));
-
-    Connect(wxID_ABOUT, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnAbout));
-
-    Connect(ClearID, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnClear));
-
-    Connect(SkipHook, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnSkipHook));
-    Connect(SkipDown, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnSkipDown));
-
-    Connect(IDInputCustom, IDInputText, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnInputWindowKind));
-
-    Connect(TestAccelA, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnTestAccelA));
-
-    Connect(TestAccelCtrlA, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnTestAccelCtrlA));
-
-    Connect(TestAccelEsc, wxEVT_MENU,
-            wxCommandEventHandler(MyFrame::OnTestAccelEsc));
+    Bind(wxEVT_MENU, &MyFrame::OnQuit, this, QuitID);
+    Bind(wxEVT_MENU, &MyFrame::OnAbout, this, wxID_ABOUT);
+    Bind(wxEVT_MENU, &MyFrame::OnClear, this, ClearID);
+    Bind(wxEVT_MENU, &MyFrame::OnSkipHook, this, SkipHook);
+    Bind(wxEVT_MENU, &MyFrame::OnSkipDown, this, SkipDown);
+    Bind(wxEVT_MENU, &MyFrame::OnInputWindowKind, this, IDInputCustom, IDInputText);
+    Bind(wxEVT_MENU, &MyFrame::OnTestAccelA, this, TestAccelA);
+    Bind(wxEVT_MENU, &MyFrame::OnTestAccelCtrlA, this, TestAccelCtrlA);
+    Bind(wxEVT_MENU, &MyFrame::OnTestAccelEsc, this, TestAccelEsc);
+#if wxUSE_HOTKEY
+    Bind(wxEVT_MENU, &MyFrame::OnRegisterHotKey, this, HotKeyRegister);
+    Bind(wxEVT_MENU, &MyFrame::OnUnregisterHotKey, this, HotKeyUnregister);
+    Bind(wxEVT_HOTKEY, &MyFrame::OnHotkey, this);
+#endif // wxUSE_HOTKEY
 
     // notice that we don't connect OnCharHook() to the input window, unlike
     // the usual key events this one is propagated upwards
-    Connect(wxEVT_CHAR_HOOK, wxKeyEventHandler(MyFrame::OnCharHook));
+    Bind(wxEVT_CHAR_HOOK, &MyFrame::OnCharHook, this);
 
-    // status bar is useful for showing the menu items help strings
-    CreateStatusBar();
+    Bind(wxEVT_IDLE, &MyFrame::OnIdle, this);
+
+    // second status bar field is used by OnIdle() to show the modifiers state
+    CreateStatusBar(2);
 
     // and show itself (the frames, unlike simple controls, are not shown when
     // created initially)
@@ -300,18 +329,13 @@ void MyFrame::DoCreateInputWindow(InputKind inputKind)
     m_inputWin->SetForegroundColour(*wxWHITE);
 
     // connect event handlers for the blue input window
-    m_inputWin->Connect(wxEVT_KEY_DOWN, wxKeyEventHandler(MyFrame::OnKeyDown),
-                        NULL, this);
-    m_inputWin->Connect(wxEVT_KEY_UP, wxKeyEventHandler(MyFrame::OnKeyUp),
-                        NULL, this);
-    m_inputWin->Connect(wxEVT_CHAR, wxKeyEventHandler(MyFrame::OnChar),
-                        NULL, this);
+    m_inputWin->Bind(wxEVT_KEY_DOWN, &MyFrame::OnKeyDown, this);
+    m_inputWin->Bind(wxEVT_KEY_UP, &MyFrame::OnKeyUp, this);
+    m_inputWin->Bind(wxEVT_CHAR, &MyFrame::OnChar, this);
 
     if ( inputKind == Input_Custom )
     {
-        m_inputWin->Connect(wxEVT_PAINT,
-                            wxPaintEventHandler(MyFrame::OnPaintInputWin),
-                            NULL, this);
+        m_inputWin->Bind(wxEVT_PAINT, &MyFrame::OnPaintInputWin, this);
     }
 
     if ( oldWin )
@@ -362,7 +386,7 @@ const char* GetVirtualKeyCodeName(int keycode)
         WXK_(RBUTTON)
         WXK_(CANCEL)
         WXK_(MBUTTON)
-        WXK_(CLEAR)
+        WXK_(NUMPAD_CENTER)
         WXK_(SHIFT)
         WXK_(ALT)
         WXK_(CONTROL)
@@ -440,7 +464,6 @@ const char* GetVirtualKeyCodeName(int keycode)
         WXK_(NUMPAD_PAGEUP)
         WXK_(NUMPAD_PAGEDOWN)
         WXK_(NUMPAD_END)
-        WXK_(NUMPAD_BEGIN)
         WXK_(NUMPAD_INSERT)
         WXK_(NUMPAD_DELETE)
         WXK_(NUMPAD_EQUAL)
@@ -456,10 +479,42 @@ const char* GetVirtualKeyCodeName(int keycode)
 #ifdef __WXOSX__
         WXK_(RAW_CONTROL)
 #endif
+        WXK_(BROWSER_BACK)
+        WXK_(BROWSER_FORWARD)
+        WXK_(BROWSER_REFRESH)
+        WXK_(BROWSER_STOP)
+        WXK_(BROWSER_SEARCH)
+        WXK_(BROWSER_FAVORITES)
+        WXK_(BROWSER_HOME)
+        WXK_(VOLUME_MUTE)
+        WXK_(VOLUME_DOWN)
+        WXK_(VOLUME_UP)
+        WXK_(MEDIA_NEXT_TRACK)
+        WXK_(MEDIA_PREV_TRACK)
+        WXK_(MEDIA_STOP)
+        WXK_(MEDIA_PLAY_PAUSE)
+        WXK_(LAUNCH_MAIL)
+        WXK_(LAUNCH_APP1)
+        WXK_(LAUNCH_APP2)
+        WXK_(LAUNCH_0)
+        WXK_(LAUNCH_1)
+        WXK_(LAUNCH_2)
+        WXK_(LAUNCH_3)
+        WXK_(LAUNCH_4)
+        WXK_(LAUNCH_5)
+        WXK_(LAUNCH_6)
+        WXK_(LAUNCH_7)
+        WXK_(LAUNCH_8)
+        WXK_(LAUNCH_9)
+        // skip A/B which are duplicate cases of APP1/2
+        WXK_(LAUNCH_C)
+        WXK_(LAUNCH_D)
+        WXK_(LAUNCH_E)
+        WXK_(LAUNCH_F)
 #undef WXK_
 
     default:
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -475,13 +530,38 @@ wxString GetKeyName(const wxKeyEvent &event)
     if ( keycode >= 32 && keycode < 128 )
         return wxString::Format("'%c'", (unsigned char)keycode);
 
-#if wxUSE_UNICODE
     int uc = event.GetUnicodeKey();
     if ( uc != WXK_NONE )
         return wxString::Format("'%c'", uc);
-#endif
 
     return "unknown";
+}
+
+// another helper showing the key category as determined by IsKeyInCategory().
+wxString GetKeyCategory(const wxKeyEvent& event)
+{
+    struct Category
+    {
+        wxKeyCategoryFlags category;
+        const char* name;
+    };
+
+    const Category categories[] =
+    {
+        { WXK_CATEGORY_ARROW,   "arrow" },
+        { WXK_CATEGORY_PAGING,  "page" },
+        { WXK_CATEGORY_JUMP,    "jump" },
+        { WXK_CATEGORY_TAB,     "tab" },
+        { WXK_CATEGORY_CUT,     "cut" },
+    };
+
+    for ( const auto& cat : categories )
+    {
+        if ( event.IsKeyInCategory(cat.category) )
+            return cat.name;
+    }
+
+    return {};
 }
 
 
@@ -490,17 +570,15 @@ void MyFrame::LogEvent(const wxString& name, wxKeyEvent& event)
     wxString msg;
     // event  key_name  KeyCode  modifiers  Unicode  raw_code raw_flags pos
     msg.Printf("%7s %15s %5d   %c%c%c%c"
-#if wxUSE_UNICODE
                    "%5d (U+%04x)"
-#else
-                   "    none   "
-#endif
 #ifdef wxHAS_RAW_KEY_CODES
                    "  %7lu    0x%08lx"
 #else
                    "  not-set    not-set"
 #endif
                    "  (%5d,%5d)"
+                   "  %s"
+                   "     %s"
                    "\n",
                name,
                GetKeyName(event),
@@ -509,19 +587,30 @@ void MyFrame::LogEvent(const wxString& name, wxKeyEvent& event)
                event.AltDown()     ? 'A' : '-',
                event.ShiftDown()   ? 'S' : '-',
                event.MetaDown()    ? 'M' : '-'
-#if wxUSE_UNICODE
                , event.GetUnicodeKey()
                , event.GetUnicodeKey()
-#endif
 #ifdef wxHAS_RAW_KEY_CODES
                , (unsigned long) event.GetRawKeyCode()
                , (unsigned long) event.GetRawKeyFlags()
 #endif
                , event.GetX()
                , event.GetY()
+               , event.IsAutoRepeat() ? "Yes" : "No"
+               , GetKeyCategory(event)
                );
 
     m_logText->AppendText(msg);
 }
 
+void MyFrame::OnIdle(wxIdleEvent& WXUNUSED(event))
+{
+    wxString state;
+    if ( wxGetKeyState(WXK_CONTROL) )
+        state += "CTRL ";
+    if ( wxGetKeyState(WXK_ALT) )
+        state += "ALT ";
+    if ( wxGetKeyState(WXK_SHIFT) )
+        state += "SHIFT ";
 
+    SetStatusText(state, 1);
+}

@@ -96,10 +96,9 @@ public:
 
     @remarks
     Notice that only the first 127 characters of a string will be shown in
-    status bar fields under pre-XP MSW systems (or even under later systems if
-    a proper manifest indicating that the program uses version 6 of common
-    controls library is not used). This is a limitation of the native control
-    on these platforms.
+    status bar fields under Windows if a proper manifest indicating that the
+    program uses version 6 of common controls library is not used. This is a
+    limitation of the native control on these platforms.
 
     @library{wxcore}
     @category{miscwnd}
@@ -125,9 +124,7 @@ public:
         @param style
             The window style. See wxStatusBar.
         @param name
-            The name of the window. This parameter is used to associate a name with the
-            item, allowing the application user to set Motif resource values for
-            individual windows.
+            The name of the window.
 
         @see Create()
     */
@@ -249,7 +246,23 @@ public:
         Use SetStatusWidths to set the field widths.
         @endWxPerlOnly
     */
-    virtual void SetFieldsCount(int number = 1, const int* widths = NULL);
+    virtual void SetFieldsCount(int number = 1, const int* widths = nullptr);
+
+    /**
+        Add a control (child of the wxStatusBar) to be shown at the specified
+        field position in the status bar.
+
+        @param i
+            The field index where the control will be shown.
+        @param win
+            The control in question. Must be a child of the wxStatusBar itself.
+
+        @note You must delete the control to remove it from the status bar, as
+            simply passing @NULL will not do that.
+
+        @since 3.3.0
+    */
+    bool AddFieldControl(int i, wxWindow* win);
 
     /**
         Sets the minimal possible height for the status bar.
@@ -280,7 +293,9 @@ public:
     /**
         Sets the status text for the @a i-th field.
 
-        The given text will replace the current text.
+        The given text will replace the current text. The display of the status
+        bar is updated immediately, so there is no need to call
+        wxWindow::Update() after calling this function.
 
         Note that if PushStatusText() had been called before the new text will
         also replace the last saved value to make sure that the next call to

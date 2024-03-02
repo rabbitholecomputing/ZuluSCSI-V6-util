@@ -23,13 +23,13 @@ class WXDLLIMPEXP_BASE wxFilterFSHandler : public wxFileSystemHandler
 {
 public:
     wxFilterFSHandler() : wxFileSystemHandler() { }
-    virtual ~wxFilterFSHandler() { }
+    virtual ~wxFilterFSHandler() = default;
 
-    virtual bool CanOpen(const wxString& location);
-    virtual wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location);
+    virtual bool CanOpen(const wxString& location) override;
+    virtual wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location) override;
 
-    virtual wxString FindFirst(const wxString& spec, int flags = 0);
-    virtual wxString FindNext();
+    virtual wxString FindFirst(const wxString& spec, int flags = 0) override;
+    virtual wxString FindNext() override;
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxFilterFSHandler);

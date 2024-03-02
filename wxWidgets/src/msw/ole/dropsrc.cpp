@@ -2,7 +2,6 @@
 // Name:        src/msw/ole/dropsrc.cpp
 // Purpose:     implementation of wxIDropSource and wxDropSource
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     10.05.98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#if defined(__BORLANDC__)
-  #pragma hdrstop
-#endif
 
 #if wxUSE_OLE && wxUSE_DRAG_AND_DROP
 
@@ -33,11 +29,6 @@
 #include "wx/dnd.h"
 
 #include "wx/msw/private.h"
-
-// for some compilers, the entire ole2.h must be included, not only oleauto.h
-#if wxUSE_NORLANDER_HEADERS || defined(__WATCOMC__) || defined(__WXWINCE__)
-    #include <ole2.h>
-#endif
 
 #include <oleauto.h>
 
@@ -54,8 +45,8 @@ public:
   virtual ~wxIDropSource() { }
 
   // IDropSource
-  STDMETHODIMP QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState);
-  STDMETHODIMP GiveFeedback(DWORD dwEffect);
+  STDMETHODIMP QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) override;
+  STDMETHODIMP GiveFeedback(DWORD dwEffect) override;
 
     DECLARE_IUNKNOWN_METHODS;
 
@@ -82,7 +73,7 @@ IMPLEMENT_IUNKNOWN_METHODS(wxIDropSource)
 
 wxIDropSource::wxIDropSource(wxDropSource *pDropSource)
 {
-  wxASSERT( pDropSource != NULL );
+  wxASSERT( pDropSource != nullptr );
 
   m_pDropSource = pDropSource;
   m_grfInitKeyState = 0;
@@ -179,11 +170,11 @@ wxDropSource::~wxDropSource()
 // Name    : DoDragDrop
 // Purpose : start drag and drop operation
 // Returns : wxDragResult - the code of performed operation
-// Params  : [in] int flags: specifies if moving is allowe (or only copying)
+// Params  : [in] int flags: specifies if moving is allowed (or only copying)
 // Notes   : you must call SetData() before if you had used def ctor
 wxDragResult wxDropSource::DoDragDrop(int flags)
 {
-  wxCHECK_MSG( m_data != NULL, wxDragNone, wxT("No data in wxDropSource!") );
+  wxCHECK_MSG( m_data != nullptr, wxDragNone, wxT("No data in wxDropSource!") );
 
   DWORD dwEffect;
   HRESULT hr = ::DoDragDrop(m_data->GetInterface(),

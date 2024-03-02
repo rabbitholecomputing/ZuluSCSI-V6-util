@@ -2,7 +2,6 @@
 // Name:        src/x11/dcmemory.cpp
 // Purpose:     wxMemoryDC class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -21,7 +20,7 @@
 #include "wx/x11/private.h"
 #include "wx/x11/dcmemory.h"
 
-IMPLEMENT_ABSTRACT_CLASS(wxMemoryDCImpl,wxWindowDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxMemoryDCImpl, wxWindowDCImpl);
 
 wxMemoryDCImpl::wxMemoryDCImpl( wxDC *owner )
   : wxWindowDCImpl( owner )
@@ -79,7 +78,7 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
     else
     {
         m_ok = false;
-        m_x11window = NULL;
+        m_x11window = nullptr;
     }
 }
 

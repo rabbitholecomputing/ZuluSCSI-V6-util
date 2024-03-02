@@ -2,7 +2,6 @@
 // Name:        wx/filepicker.h
 // Purpose:     wxFilePickerCtrl, wxDirPickerCtrl base header
 // Author:      Francesco Montorsi
-// Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
@@ -38,7 +37,7 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxDirSelectorPromptStr[];
 class WXDLLIMPEXP_CORE wxFileDirPickerEvent : public wxCommandEvent
 {
 public:
-    wxFileDirPickerEvent() {}
+    wxFileDirPickerEvent() = default;
     wxFileDirPickerEvent(wxEventType type, wxObject *generator, int id, const wxString &path)
         : wxCommandEvent(type, id),
           m_path(path)
@@ -50,12 +49,12 @@ public:
     void SetPath(const wxString &p) { m_path = p; }
 
     // default copy ctor, assignment operator and dtor are ok
-    virtual wxEvent *Clone() const { return new wxFileDirPickerEvent(*this); }
+    virtual wxEvent *Clone() const override { return new wxFileDirPickerEvent(*this); }
 
 private:
     wxString m_path;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFileDirPickerEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxFileDirPickerEvent);
 };
 
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_FILEPICKER_CHANGED, wxFileDirPickerEvent );
@@ -83,8 +82,8 @@ typedef void (wxEvtHandler::*wxFileDirPickerEventFunction)(wxFileDirPickerEvent&
 class WXDLLIMPEXP_CORE wxFileDirPickerWidgetBase
 {
 public:
-    wxFileDirPickerWidgetBase() {  }
-    virtual ~wxFileDirPickerWidgetBase() {  }
+    wxFileDirPickerWidgetBase() = default;
+    virtual ~wxFileDirPickerWidgetBase() = default;
 
     // Path here is the name of the selected file or directory.
     wxString GetPath() const { return m_path; }
@@ -126,9 +125,9 @@ protected:
 // under the name "wxFilePickerWidget" and "wxDirPickerWidget".
 // NOTE: wxFileDirPickerCtrlBase will allocate a wx{File|Dir}PickerWidget and this
 //       requires that all classes being mapped as wx{File|Dir}PickerWidget have the
-//       same prototype for the contructor...
+//       same prototype for the constructor...
 // since GTK >= 2.6, there is GtkFileButton
-#if defined(__WXGTK20__) && !defined(__WXUNIVERSAL__)
+#if defined(__WXGTK__) && !defined(__WXUNIVERSAL__)
     #include "wx/gtk/filepicker.h"
     #define wxFilePickerWidget      wxFileButton
     #define wxDirPickerWidget       wxDirButton
@@ -147,7 +146,10 @@ protected:
 class WXDLLIMPEXP_CORE wxFileDirPickerCtrlBase : public wxPickerBase
 {
 public:
-    wxFileDirPickerCtrlBase() {}
+    wxFileDirPickerCtrlBase()
+        : m_pickerIface(nullptr)
+    {
+    }
 
 protected:
     // NB: no default values since this function will never be used
@@ -176,8 +178,8 @@ public:         // public API
 
 public:        // internal functions
 
-    void UpdatePickerFromTextCtrl();
-    void UpdateTextCtrlFromPicker();
+    void UpdatePickerFromTextCtrl() override;
+    void UpdateTextCtrlFromPicker() override;
 
     // event handler for our picker
     void OnFileDirChange(wxFileDirPickerEvent &);
@@ -230,18 +232,18 @@ protected:
 class WXDLLIMPEXP_CORE wxFilePickerCtrl : public wxFileDirPickerCtrlBase
 {
 public:
-    wxFilePickerCtrl() {}
+    wxFilePickerCtrl() = default;
 
     wxFilePickerCtrl(wxWindow *parent,
                      wxWindowID id,
                      const wxString& path = wxEmptyString,
-                     const wxString& message = wxFileSelectorPromptStr,
-                     const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
+                     const wxString& message = wxASCII_STR(wxFileSelectorPromptStr),
+                     const wxString& wildcard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize,
                      long style = wxFLP_DEFAULT_STYLE,
                      const wxValidator& validator = wxDefaultValidator,
-                     const wxString& name = wxFilePickerCtrlNameStr)
+                     const wxString& name = wxASCII_STR(wxFilePickerCtrlNameStr))
     {
         Create(parent, id, path, message, wildcard, pos, size, style,
                validator, name);
@@ -250,13 +252,13 @@ public:
     bool Create(wxWindow *parent,
                 wxWindowID id,
                 const wxString& path = wxEmptyString,
-                const wxString& message = wxFileSelectorPromptStr,
-                const wxString& wildcard = wxFileSelectorDefaultWildcardStr,
+                const wxString& message = wxASCII_STR(wxFileSelectorPromptStr),
+                const wxString& wildcard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxFLP_DEFAULT_STYLE,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxFilePickerCtrlNameStr);
+                const wxString& name = wxASCII_STR(wxFilePickerCtrlNameStr));
 
     void SetFileName(const wxFileName &filename)
         { SetPath(filename.GetFullPath()); }
@@ -267,19 +269,18 @@ public:
 public:     // overrides
 
     // return the text control value in canonical form
-    wxString GetTextCtrlValue() const;
+    wxString GetTextCtrlValue() const override;
 
-    bool IsCwdToUpdate() const
+    bool IsCwdToUpdate() const override
         { return HasFlag(wxFLP_CHANGE_DIR); }
 
-    wxEventType GetEventType() const
+    wxEventType GetEventType() const override
         { return wxEVT_FILEPICKER_CHANGED; }
 
-    virtual void DoConnect( wxControl *sender, wxFileDirPickerCtrlBase *eventSink )
+    virtual void DoConnect( wxControl *sender, wxFileDirPickerCtrlBase *eventSink ) override
     {
-        sender->Connect( wxEVT_FILEPICKER_CHANGED,
-            wxFileDirPickerEventHandler( wxFileDirPickerCtrlBase::OnFileDirChange ),
-            NULL, eventSink );
+        sender->Bind(wxEVT_FILEPICKER_CHANGED,
+            &wxFileDirPickerCtrlBase::OnFileDirChange, eventSink );
     }
 
 
@@ -288,7 +289,7 @@ protected:
     wxFileDirPickerWidgetBase *CreatePicker(wxWindow *parent,
                                             const wxString& path,
                                             const wxString& message,
-                                            const wxString& wildcard)
+                                            const wxString& wildcard) override
     {
         return new wxFilePickerWidget(parent, wxID_ANY,
                                       wxGetTranslation(wxFilePickerWidgetLabel),
@@ -298,7 +299,7 @@ protected:
     }
 
     // extracts the style for our picker from wxFileDirPickerCtrlBase's style
-    long GetPickerStyle(long style) const
+    long GetPickerStyle(long style) const override
     {
         return style & (wxFLP_OPEN |
                         wxFLP_SAVE |
@@ -310,7 +311,7 @@ protected:
     }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxFilePickerCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxFilePickerCtrl);
 };
 
 #endif      // wxUSE_FILEPICKERCTRL
@@ -336,28 +337,28 @@ private:
 class WXDLLIMPEXP_CORE wxDirPickerCtrl : public wxFileDirPickerCtrlBase
 {
 public:
-    wxDirPickerCtrl() {}
+    wxDirPickerCtrl() = default;
 
     wxDirPickerCtrl(wxWindow *parent, wxWindowID id,
                     const wxString& path = wxEmptyString,
-                    const wxString& message = wxDirSelectorPromptStr,
+                    const wxString& message = wxASCII_STR(wxDirSelectorPromptStr),
                     const wxPoint& pos = wxDefaultPosition,
                     const wxSize& size = wxDefaultSize,
                     long style = wxDIRP_DEFAULT_STYLE,
                     const wxValidator& validator = wxDefaultValidator,
-                    const wxString& name = wxDirPickerCtrlNameStr)
+                    const wxString& name = wxASCII_STR(wxDirPickerCtrlNameStr))
     {
         Create(parent, id, path, message, pos, size, style, validator, name);
     }
 
     bool Create(wxWindow *parent, wxWindowID id,
                 const wxString& path = wxEmptyString,
-                const wxString& message = wxDirSelectorPromptStr,
+                const wxString& message = wxASCII_STR(wxDirSelectorPromptStr),
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 long style = wxDIRP_DEFAULT_STYLE,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxDirPickerCtrlNameStr);
+                const wxString& name = wxASCII_STR(wxDirPickerCtrlNameStr));
 
     void SetDirName(const wxFileName &dirname)
         { SetPath(dirname.GetPath()); }
@@ -367,19 +368,18 @@ public:
 
 public:     // overrides
 
-    wxString GetTextCtrlValue() const;
+    wxString GetTextCtrlValue() const override;
 
-    bool IsCwdToUpdate() const
+    bool IsCwdToUpdate() const override
         { return HasFlag(wxDIRP_CHANGE_DIR); }
 
-    wxEventType GetEventType() const
+    wxEventType GetEventType() const override
         { return wxEVT_DIRPICKER_CHANGED; }
 
-    virtual void DoConnect( wxControl *sender, wxFileDirPickerCtrlBase *eventSink )
+    virtual void DoConnect( wxControl *sender, wxFileDirPickerCtrlBase *eventSink ) override
     {
-        sender->Connect( wxEVT_DIRPICKER_CHANGED,
-            wxFileDirPickerEventHandler( wxFileDirPickerCtrlBase::OnFileDirChange ),
-            NULL, eventSink );
+        sender->Bind( wxEVT_DIRPICKER_CHANGED,
+            &wxFileDirPickerCtrlBase::OnFileDirChange, eventSink );
     }
 
 
@@ -388,7 +388,7 @@ protected:
     wxFileDirPickerWidgetBase *CreatePicker(wxWindow *parent,
                                             const wxString& path,
                                             const wxString& message,
-                                            const wxString& WXUNUSED(wildcard))
+                                            const wxString& WXUNUSED(wildcard)) override
     {
         return new wxDirPickerWidget(parent, wxID_ANY,
                                      wxGetTranslation(wxDirPickerWidgetLabel),
@@ -398,7 +398,7 @@ protected:
     }
 
     // extracts the style for our picker from wxFileDirPickerCtrlBase's style
-    long GetPickerStyle(long style) const
+    long GetPickerStyle(long style) const override
     {
         return style & (wxDIRP_DIR_MUST_EXIST |
                         wxDIRP_CHANGE_DIR |
@@ -407,7 +407,7 @@ protected:
     }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxDirPickerCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxDirPickerCtrl);
 };
 
 #endif      // wxUSE_DIRPICKERCTRL

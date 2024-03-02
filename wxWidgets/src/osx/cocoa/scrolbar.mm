@@ -2,7 +2,6 @@
 // Name:        src/osx/cocoa/scrolbar.mm
 // Purpose:     wxScrollBar
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
@@ -48,12 +47,12 @@ public :
         m_maximum = 1;
     }
 
-    void SetMaximum(wxInt32 v)
+    void SetMaximum(wxInt32 v) override
     {
         m_maximum = (v == 0) ? 1 : v;
     }
 
-    void    SetScrollThumb( wxInt32 value, wxInt32 thumbSize )
+    void    SetScrollThumb( wxInt32 value, wxInt32 thumbSize ) override
     {
         double v = ((double) value)/m_maximum;
         double t = ((double) thumbSize)/(m_maximum+thumbSize);
@@ -61,18 +60,18 @@ public :
         [(wxNSScroller*) m_osxView setKnobProportion:t];
     }
 
-    virtual wxInt32 GetValue() const
+    virtual wxInt32 GetValue() const override
     {
         return wxRound([(wxNSScroller*) m_osxView floatValue] * m_maximum);
     }
 
-    virtual wxInt32 GetMaximum() const
+    virtual wxInt32 GetMaximum() const override
     {
         return m_maximum;
     }
 
-    virtual void controlAction(WXWidget slf, void* _cmd, void *sender);
-    virtual void mouseEvent(WX_NSEvent event, WXWidget slf, void* _cmd);
+    virtual void controlAction(WXWidget slf, void* _cmd, void *sender) override;
+    virtual void mouseEvent(WX_NSEvent event, WXWidget slf, void* _cmd) override;
 protected:
     wxInt32 m_maximum;
 };

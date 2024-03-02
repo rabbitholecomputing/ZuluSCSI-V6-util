@@ -2,7 +2,6 @@
 // Name:        wx/msw/dcclient.h
 // Purpose:     wxClientDC class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -34,13 +33,13 @@ public:
     // Create a DC corresponding to the whole window
     wxWindowDCImpl( wxDC *owner, wxWindow *win );
 
-    virtual void DoGetSize(int *width, int *height) const;
+    virtual void DoGetSize(int *width, int *height) const override;
 
 protected:
     // initialize the newly created DC
     void InitDC();
 
-    DECLARE_CLASS(wxWindowDCImpl)
+    wxDECLARE_CLASS(wxWindowDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxWindowDCImpl);
 };
 
@@ -55,12 +54,15 @@ public:
 
     virtual ~wxClientDCImpl();
 
-    virtual void DoGetSize(int *width, int *height) const;
+    virtual void DoGetSize(int *width, int *height) const override;
+
+    static bool
+    CanBeUsedForDrawing(const wxWindow* WXUNUSED(window)) { return true; }
 
 protected:
     void InitDC();
 
-    DECLARE_CLASS(wxClientDCImpl)
+    wxDECLARE_CLASS(wxClientDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxClientDCImpl);
 };
 
@@ -82,10 +84,10 @@ public:
     static void EndPaint(wxWindow *win);
 
 protected:
-    // Find the DC for this window in the cache, return NULL if not found.
+    // Find the DC for this window in the cache, return nullptr if not found.
     static wxPaintDCInfo *FindInCache(wxWindow* win);
 
-    DECLARE_CLASS(wxPaintDCImpl)
+    wxDECLARE_CLASS(wxPaintDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxPaintDCImpl);
 };
 
@@ -100,7 +102,7 @@ class WXDLLIMPEXP_CORE wxPaintDCEx : public wxPaintDC
 public:
     wxPaintDCEx(wxWindow *canvas, WXHDC dc);
 
-    DECLARE_CLASS(wxPaintDCEx)
+    wxDECLARE_CLASS(wxPaintDCEx);
     wxDECLARE_NO_COPY_CLASS(wxPaintDCEx);
 };
 

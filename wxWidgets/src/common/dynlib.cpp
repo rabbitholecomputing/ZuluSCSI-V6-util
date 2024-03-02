@@ -2,7 +2,6 @@
 // Name:        src/common/dynlib.cpp
 // Purpose:     Dynamic library management
 // Author:      Guilhem Lavaux
-// Modified by:
 // Created:     20/07/98
 // Copyright:   (c) 1998 Guilhem Lavaux
 //                  2000-2005 Vadim Zeitlin
@@ -22,9 +21,6 @@
 
 #include  "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_DYNLIB_CLASS
 
@@ -41,10 +37,6 @@
 #include "wx/filename.h"        // for SplitPath()
 #include "wx/platinfo.h"
 
-#include "wx/arrimpl.cpp"
-
-WX_DEFINE_USER_EXPORTED_OBJARRAY(wxDynamicLibraryDetailsArray)
-
 // ============================================================================
 // implementation
 // ============================================================================
@@ -54,7 +46,7 @@ WX_DEFINE_USER_EXPORTED_OBJARRAY(wxDynamicLibraryDetailsArray)
 // ---------------------------------------------------------------------------
 
 // for MSW/Unix it is defined in platform-specific file
-#if !(defined(__WINDOWS__) || defined(__UNIX__)) || defined(__EMX__)
+#if !(defined(__WINDOWS__) || defined(__UNIX__))
 
 wxDllType wxDynamicLibrary::GetProgramHandle()
 {
@@ -67,7 +59,7 @@ wxDllType wxDynamicLibrary::GetProgramHandle()
 
 bool wxDynamicLibrary::Load(const wxString& libnameOrig, int flags)
 {
-    wxASSERT_MSG(m_handle == 0, wxT("Library already loaded."));
+    wxASSERT_MSG(m_handle == nullptr, wxT("Library already loaded."));
 
     // add the proper extension for the DLL ourselves unless told not to
     wxString libname = libnameOrig;
@@ -75,68 +67,32 @@ bool wxDynamicLibrary::Load(const wxString& libnameOrig, int flags)
     {
         // and also check that the libname doesn't already have it
         wxString ext;
-        wxFileName::SplitPath(libname, NULL, NULL, &ext);
+        wxFileName::SplitPath(libname, nullptr, nullptr, &ext);
         if ( ext.empty() )
         {
             libname += GetDllExt(wxDL_MODULE);
         }
     }
 
-    // different ways to load a shared library
-    //
-    // FIXME: should go to the platform-specific files!
-#if defined(__WXPM__) || defined(__EMX__)
-    char err[256] = "";
-    DosLoadModule(err, sizeof(err), libname.c_str(), &m_handle);
-#else // this should be the only remaining branch eventually
     m_handle = RawLoad(libname, flags);
-#endif
 
-    if ( m_handle == 0 && !(flags & wxDL_QUIET) )
+    if ( m_handle == nullptr && !(flags & wxDL_QUIET) )
     {
-#ifdef wxHAVE_DYNLIB_ERROR
-        Error();
-#else
-        wxLogSysError(_("Failed to load shared library '%s'"), libname.c_str());
-#endif
+        ReportError(_("Failed to load shared library '%s'"), libname);
     }
 
     return IsLoaded();
 }
 
-// for MSW and Unix this is implemented in the platform-specific file
-//
-// TODO: move the rest to os2/dlpm.cpp and mac/dlmac.cpp!
-#if (!defined(__WINDOWS__) && !defined(__UNIX__)) || defined(__EMX__)
-
-/* static */
-void wxDynamicLibrary::Unload(wxDllType handle)
-{
-#if defined(__OS2__) || defined(__EMX__)
-    DosFreeModule( handle );
-#else
-    #error  "runtime shared lib support not implemented"
-#endif
-}
-
-#endif // !(__WINDOWS__ || __UNIX__)
-
 void *wxDynamicLibrary::DoGetSymbol(const wxString &name, bool *success) const
 {
-    wxCHECK_MSG( IsLoaded(), NULL,
+    wxCHECK_MSG( IsLoaded(), nullptr,
                  wxT("Can't load symbol from unloaded library") );
 
-    void    *symbol = 0;
-
-    wxUnusedVar(symbol);
-#if defined(__WXPM__) || defined(__EMX__)
-    DosQueryProcAddr( m_handle, 1L, name.c_str(), (PFN*)symbol );
-#else
-    symbol = RawGetSymbol(m_handle, name);
-#endif
+    void *symbol = RawGetSymbol(m_handle, name);
 
     if ( success )
-        *success = symbol != NULL;
+        *success = symbol != nullptr;
 
     return symbol;
 }
@@ -146,12 +102,7 @@ void *wxDynamicLibrary::GetSymbol(const wxString& name, bool *success) const
     void *symbol = DoGetSymbol(name, success);
     if ( !symbol )
     {
-#ifdef wxHAVE_DYNLIB_ERROR
-        Error();
-#else
-        wxLogSysError(_("Couldn't find symbol '%s' in a dynamic library"),
-                      name.c_str());
-#endif
+        ReportError(_("Couldn't find symbol '%s' in a dynamic library"), name);
     }
 
     return symbol;
@@ -165,7 +116,7 @@ void *wxDynamicLibrary::GetSymbol(const wxString& name, bool *success) const
 wxString wxDynamicLibrary::GetDllExt(wxDynamicLibraryCategory cat)
 {
     wxUnusedVar(cat);
-#if defined(__WINDOWS__) || defined(__WXPM__) || defined(__EMX__)
+#if defined(__WINDOWS__)
     return ".dll";
 #elif defined(__HPUX__)
     return ".sl";
@@ -192,7 +143,7 @@ wxDynamicLibrary::CanonicalizeName(const wxString& name,
     wxString nameCanonic;
 
     // under Unix the library names usually start with "lib" prefix, add it
-#if defined(__UNIX__) && !defined(__EMX__)
+#if defined(__UNIX__)
     switch ( cat )
     {
         case wxDL_LIBRARY:
@@ -219,9 +170,7 @@ wxString wxDynamicLibrary::CanonicalizePluginName(const wxString& name,
     {
         suffix = wxPlatformInfo::Get().GetPortIdShortName();
     }
-#if wxUSE_UNICODE
     suffix << wxT('u');
-#endif
 #ifdef __WXDEBUG__
     suffix << wxT('d');
 #endif
@@ -230,7 +179,7 @@ wxString wxDynamicLibrary::CanonicalizePluginName(const wxString& name,
         suffix = wxString(wxT("_")) + suffix;
 
 #define WXSTRINGIZE(x)  #x
-#if defined(__UNIX__) && !defined(__EMX__)
+#if defined(__UNIX__)
     #if (wxMINOR_VERSION % 2) == 0
         #define wxDLLVER(x,y,z) "-" WXSTRINGIZE(x) "." WXSTRINGIZE(y)
     #else
@@ -255,10 +204,6 @@ wxString wxDynamicLibrary::CanonicalizePluginName(const wxString& name,
         suffix << wxT("_gcc");
     #elif defined(__VISUALC__)
         suffix << wxT("_vc");
-    #elif defined(__WATCOMC__)
-        suffix << wxT("_wat");
-    #elif defined(__BORLANDC__)
-        suffix << wxT("_bcc");
     #endif
 #endif
 
@@ -270,6 +215,8 @@ wxString wxDynamicLibrary::GetPluginsDirectory()
 {
 #ifdef __UNIX__
     wxString format = wxGetInstallPrefix();
+    if ( format.empty() )
+        return wxEmptyString;
     wxString dir;
     format << wxFILE_SEP_PATH
            << wxT("lib") << wxFILE_SEP_PATH

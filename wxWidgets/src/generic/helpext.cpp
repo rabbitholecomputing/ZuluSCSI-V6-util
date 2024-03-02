@@ -2,7 +2,6 @@
 // Name:        src/generic/helpext.cpp
 // Purpose:     an external help controller for wxWidgets
 // Author:      Karsten Ballueder
-// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
@@ -10,11 +9,8 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
-#if wxUSE_HELP && !defined(__WXWINCE__)
+#if wxUSE_HELP
 
 #ifndef WX_PRECOMP
     #include "wx/list.h"
@@ -29,17 +25,14 @@
 #include "wx/filename.h"
 #include "wx/textfile.h"
 #include "wx/generic/helpext.h"
+#include "wx/uilocale.h"
 
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/stat.h>
 
-#if !defined(__WINDOWS__) && !defined(__OS2__)
+#if !defined(__WINDOWS__)
     #include   <unistd.h>
-#endif
-
-#ifdef __WINDOWS__
-#include "wx/msw/mslu.h"
 #endif
 
 #ifdef __WXMSW__
@@ -66,12 +59,12 @@
 // Is browser a netscape browser?
 #define WXEXTHELP_ENVVAR_BROWSERISNETSCAPE  wxT("WX_HELPBROWSER_NS")
 
-IMPLEMENT_CLASS(wxExtHelpController, wxHelpControllerBase)
+wxIMPLEMENT_CLASS(wxExtHelpController, wxHelpControllerBase);
 
 wxExtHelpController::wxExtHelpController(wxWindow* parentWindow)
                    : wxHelpControllerBase(parentWindow)
 {
-    m_MapList = NULL;
+    m_MapList = nullptr;
     m_NumOfEntries = 0;
     m_BrowserIsNetscape = false;
 
@@ -88,14 +81,6 @@ wxExtHelpController::~wxExtHelpController()
 {
     DeleteList();
 }
-
-#if WXWIN_COMPATIBILITY_2_8
-void wxExtHelpController::SetBrowser(const wxString& browsername, bool isNetscape)
-{
-    m_BrowserName = browsername;
-    m_BrowserIsNetscape = isNetscape;
-}
-#endif
 
 void wxExtHelpController::SetViewer(const wxString& viewer, long flags)
 {
@@ -138,7 +123,8 @@ public:
     wxString doc;
 
     wxExtHelpMapEntry(int iid, wxString const &iurl, wxString const &idoc)
-        { entryid = iid; url = iurl; doc = idoc; }
+        : entryid(iid), url(iurl), doc(idoc)
+        { }
 };
 
 void wxExtHelpController::DeleteList()
@@ -226,10 +212,10 @@ bool wxExtHelpController::LoadFile(const wxString& file)
     // "/usr/local/myapp/help" and the current wxLocale is set to be "de", then
     // look in "/usr/local/myapp/help/de/" first and fall back to
     // "/usr/local/myapp/help" if that doesn't exist.
-    const wxLocale * const loc = wxGetLocale();
-    if ( loc )
+    wxLocaleIdent locId = wxUILocale::GetCurrent().GetLocaleId();
+    if ( !locId.IsEmpty() )
     {
-        wxString locName = loc->GetName();
+        wxString locName = locId.GetTag(wxLOCALE_TAGTYPE_POSIX);
 
         // the locale is in general of the form xx_YY.zzzz, try the full firm
         // first and then also more general ones
@@ -352,9 +338,9 @@ bool wxExtHelpController::DisplaySection(int sectionNo)
 
     wxBusyCursor b; // display a busy cursor
     wxList::compatibility_iterator node = m_MapList->GetFirst();
-    wxExtHelpMapEntry *entry;
     while (node)
     {
+        wxExtHelpMapEntry* entry;
         entry = (wxExtHelpMapEntry *)node->GetData();
         if (entry->entryid == sectionNo)
             return DisplayHelp(entry->url);
@@ -404,7 +390,7 @@ bool wxExtHelpController::KeywordSearch(const wxString& k,
         if (! showAll)
         {
             compA = k;
-            compA.LowerCase();
+            compA.MakeLower();
         }
 
         while (node)
@@ -415,7 +401,7 @@ bool wxExtHelpController::KeywordSearch(const wxString& k,
             bool testTarget = ! compB.empty();
             if (testTarget && ! showAll)
             {
-                compB.LowerCase();
+                compB.MakeLower();
                 testTarget = compB.Contains(compA);
             }
 
@@ -426,7 +412,7 @@ bool wxExtHelpController::KeywordSearch(const wxString& k,
                 // choices[idx] = (**i).doc.Contains((**i).doc.Before(WXEXTHELP_COMMENTCHAR));
                 //if (choices[idx].empty()) // didn't contain the ';'
                 //   choices[idx] = (**i).doc;
-                choices[idx] = wxEmptyString;
+                choices[idx].clear();
                 for (int j=0; ; j++)
                 {
                     wxChar targetChar = entry->doc.c_str()[j];

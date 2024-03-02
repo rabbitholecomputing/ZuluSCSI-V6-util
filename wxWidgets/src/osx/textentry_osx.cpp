@@ -33,14 +33,6 @@
     #include <stat.h>
 #endif
 
-#if wxUSE_STD_IOSTREAM
-    #if wxUSE_IOSTREAMH
-        #include <fstream.h>
-    #else
-        #include <fstream>
-    #endif
-#endif
-
 #include "wx/filefn.h"
 #include "wx/sysopt.h"
 #include "wx/thread.h"
@@ -50,7 +42,7 @@
 
 wxTextEntry::wxTextEntry()
 {
-    m_completer = NULL;
+    m_completer = nullptr;
     m_editable = true;
     m_maxLength = 0;
 }
@@ -79,6 +71,23 @@ void wxTextEntry::SetMaxLength(unsigned long len)
     if ( GetTextPeer()->CanClipMaxLength() )
         GetTextPeer()->SetMaxLength(len);
     m_maxLength = len ;
+}
+
+void wxTextEntry::ForceUpper()
+{
+    wxTextWidgetImpl* const textPeer = GetTextPeer();
+
+    wxCHECK_RET( textPeer, "Must create the control first" );
+
+    if ( textPeer->CanForceUpper() )
+    {
+        ConvertToUpperCase();
+        textPeer->ForceUpper();
+    }
+    else
+    {
+        wxTextEntryBase::ForceUpper();
+    }
 }
 
 // Clipboard operations
@@ -284,7 +293,7 @@ wxTextWidgetImpl * wxTextEntry::GetTextPeer() const
 {
     wxWindow * const win = const_cast<wxTextEntry *>(this)->GetEditableWindow();
 
-    return win ? dynamic_cast<wxTextWidgetImpl *>(win->GetPeer()) : NULL;
+    return win ? dynamic_cast<wxTextWidgetImpl *>(win->GetPeer()) : nullptr;
 }
 
 bool wxTextEntry::SetHint(const wxString& hint)

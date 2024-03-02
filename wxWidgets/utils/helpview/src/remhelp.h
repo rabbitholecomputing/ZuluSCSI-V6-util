@@ -2,7 +2,6 @@
 // Name:        remhelp.h
 // Purpose:     Remote help controller class
 // Author:      Eric Dowty
-// Modified by:
 // Created:     2002-11-18
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -40,7 +39,7 @@ public:
 
 class wxRemoteHtmlHelpController : public wxHelpControllerBase
 {
-    DECLARE_CLASS(wxRemoteHtmlHelpController)
+    wxDECLARE_CLASS(wxRemoteHtmlHelpController);
 public:
     wxRemoteHtmlHelpController(int style = wxHF_DEFAULT_STYLE);
     virtual ~wxRemoteHtmlHelpController();

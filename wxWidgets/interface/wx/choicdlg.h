@@ -6,19 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /**
-    Default width of the choice dialog.
-*/
-#define wxCHOICE_WIDTH 150
-
-/**
-    Default height of the choice dialog.
-*/
-#define wxCHOICE_HEIGHT 200
-
-/**
     Default style of the choice dialog.
-
-    @remarks wxRESIZE_BORDER is not used under WinCE.
 */
 #define wxCHOICEDLG_STYLE (wxDEFAULT_DIALOG_STYLE | wxOK | wxCANCEL | wxCENTRE | wxRESIZE_BORDER)
 
@@ -35,7 +23,7 @@
     @style{wxCANCEL}
         Show a Cancel button.
     @style{wxCENTRE}
-        Centre the message. Not Windows.
+        Centre the message.
     @endStyleTable
 
     @library{wxbase}
@@ -46,7 +34,7 @@
 class wxMultiChoiceDialog : public wxDialog
 {
 public:
-    //@{
+    ///@{
     /**
         Constructor taking an array of wxString choices.
 
@@ -66,7 +54,7 @@ public:
             default value is equivalent to wxDEFAULT_DIALOG_STYLE |
             wxRESIZE_BORDER | wxOK | wxCANCEL | wxCENTRE.
         @param pos
-            Dialog position. Not Windows.
+            Dialog position.
 
         @remarks Use ShowModal() to show the dialog.
 
@@ -96,7 +84,7 @@ public:
             default value is equivalent to wxDEFAULT_DIALOG_STYLE |
             wxRESIZE_BORDER | wxOK | wxCANCEL | wxCENTRE.
         @param pos
-            Dialog position. Not Windows.
+            Dialog position.
 
         @remarks Use ShowModal() to show the dialog.
 
@@ -110,7 +98,7 @@ public:
                         const wxArrayString& choices,
                         long style = wxCHOICEDLG_STYLE,
                         const wxPoint& pos = wxDefaultPosition);
-    //@}
+    ///@}
 
     /**
         Returns array with indexes of selected items.
@@ -143,7 +131,7 @@ public:
     @style{wxCANCEL}
         Show a Cancel button.
     @style{wxCENTRE}
-        Centre the message. Not Windows.
+        Centre the message.
     @endStyleTable
 
     @library{wxbase}
@@ -154,7 +142,7 @@ public:
 class wxSingleChoiceDialog : public wxDialog
 {
 public:
-    //@{
+    ///@{
     /**
         Constructor, taking an array of wxString choices and optional client
         data.
@@ -178,7 +166,7 @@ public:
             default value is equivalent to wxDEFAULT_DIALOG_STYLE |
             wxRESIZE_BORDER | wxOK | wxCANCEL | wxCENTRE.
         @param pos
-            Dialog position. Not Windows.
+            Dialog position.
 
         @remarks Use ShowModal() to show the dialog.
 
@@ -189,7 +177,7 @@ public:
     wxSingleChoiceDialog(wxWindow* parent, const wxString& message,
                          const wxString& caption,
                          int n, const wxString* choices,
-                         void** clientData = NULL,
+                         void** clientData = nullptr,
                          long style = wxCHOICEDLG_STYLE,
                          const wxPoint& pos = wxDefaultPosition);
     /**
@@ -213,7 +201,7 @@ public:
             default value is equivalent to wxDEFAULT_DIALOG_STYLE |
             wxRESIZE_BORDER | wxOK | wxCANCEL | wxCENTRE.
         @param pos
-            Dialog position. Not Windows.
+            Dialog position.
 
         @remarks Use ShowModal() to show the dialog.
 
@@ -225,10 +213,10 @@ public:
                          const wxString& message,
                          const wxString& caption,
                          const wxArrayString& choices,
-                         void** clientData = NULL,
+                         void** clientData = nullptr,
                          long style = wxCHOICEDLG_STYLE,
                          const wxPoint& pos = wxDefaultPosition);
-    //@}
+    ///@}
 
     /**
         Returns the index of selected item.
@@ -265,7 +253,7 @@ public:
 // ============================================================================
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Same as wxGetSingleChoice() but returns the index representing the
@@ -280,7 +268,7 @@ public:
 int wxGetSingleChoiceIndex(const wxString& message,
                            const wxString& caption,
                            const wxArrayString& aChoices,
-                           wxWindow* parent = NULL,
+                           wxWindow* parent = nullptr,
                            int x = wxDefaultCoord,
                            int y = wxDefaultCoord,
                            bool centre = true,
@@ -292,7 +280,7 @@ int wxGetSingleChoiceIndex(const wxString& message,
                            const wxString& caption,
                            int n,
                            const wxString& choices[],
-                           wxWindow* parent = NULL,
+                           wxWindow* parent = nullptr,
                            int x = wxDefaultCoord,
                            int y = wxDefaultCoord,
                            bool centre = true,
@@ -305,17 +293,17 @@ int wxGetSingleChoiceIndex(const wxString& message,
                            const wxString& caption,
                            const wxArrayString& choices,
                            int initialSelection,
-                           wxWindow *parent = NULL);
+                           wxWindow *parent = nullptr);
 
 int wxGetSingleChoiceIndex(const wxString& message,
                            const wxString& caption,
                            int n, const wxString *choices,
                            int initialSelection,
-                           wxWindow *parent = NULL);
-//@}
+                           wxWindow *parent = nullptr);
+///@}
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Pops up a dialog box containing a message, OK/Cancel buttons and a
@@ -331,6 +319,11 @@ int wxGetSingleChoiceIndex(const wxString& message,
     If @c centre is @true, the message text (which may include new line
     characters) is centred; if @false, the message is left-justified.
 
+    Note that the @a x, @a y, @a centre, @a width and @a height parameters are
+    all ignored. To change the dialog's position or size, create a @c
+    wxSingleChoiceDialog object instead of calling @c wxGetSingleChoice() and
+    change its size before showing it.
+
     @header{wx/choicdlg.h}
 
     @beginWxPerlOnly
@@ -340,7 +333,7 @@ int wxGetSingleChoiceIndex(const wxString& message,
 wxString wxGetSingleChoice(const wxString& message,
                            const wxString& caption,
                            const wxArrayString& aChoices,
-                           wxWindow* parent = NULL,
+                           wxWindow* parent = nullptr,
                            int x = wxDefaultCoord,
                            int y = wxDefaultCoord,
                            bool centre = true,
@@ -351,7 +344,7 @@ wxString wxGetSingleChoice(const wxString& message,
                            const wxString& caption,
                            int n,
                            const wxString& choices[],
-                           wxWindow* parent = NULL,
+                           wxWindow* parent = nullptr,
                            int x = wxDefaultCoord,
                            int y = wxDefaultCoord,
                            bool centre = true,
@@ -364,24 +357,29 @@ wxString wxGetSingleChoice(const wxString& message,
                            const wxString& caption,
                            const wxArrayString& choices,
                            int initialSelection,
-                           wxWindow *parent = NULL);
+                           wxWindow *parent = nullptr);
 
 wxString wxGetSingleChoice(const wxString& message,
                            const wxString& caption,
                            int n, const wxString *choices,
                            int initialSelection,
-                           wxWindow *parent = NULL);
+                           wxWindow *parent = nullptr);
 
-//@}
+///@}
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Same as wxGetSingleChoice but takes an array of client data pointers
     corresponding to the strings, and returns one of these pointers or @NULL
     if Cancel was pressed. The @c client_data array must have the same number
     of elements as @c choices or @c aChoices!
+
+    Note that the @a x, @a y, @a centre, @a width and @a height parameters are
+    all ignored. To change the dialog's position or size, create a @c
+    wxSingleChoiceDialog object instead of calling @c wxGetSingleChoice() and
+    change its size before showing it.
 
     @header{wx/choicdlg.h}
 
@@ -393,7 +391,7 @@ wxString wxGetSingleChoiceData(const wxString& message,
                                const wxString& caption,
                                const wxArrayString& aChoices,
                                const wxString& client_data[],
-                               wxWindow* parent = NULL,
+                               wxWindow* parent = nullptr,
                                int x = wxDefaultCoord,
                                int y = wxDefaultCoord,
                                bool centre = true,
@@ -406,7 +404,7 @@ wxString wxGetSingleChoiceData(const wxString& message,
                                int n,
                                const wxString& choices[],
                                const wxString& client_data[],
-                               wxWindow* parent = NULL,
+                               wxWindow* parent = nullptr,
                                int x = wxDefaultCoord,
                                int y = wxDefaultCoord,
                                bool centre = true,
@@ -419,19 +417,19 @@ void* wxGetSingleChoiceData(const wxString& message,
                             const wxArrayString& choices,
                             void **client_data,
                             int initialSelection,
-                            wxWindow *parent = NULL);
+                            wxWindow *parent = nullptr);
 
 void* wxGetSingleChoiceData(const wxString& message,
                             const wxString& caption,
                             int n, const wxString *choices,
                             void **client_data,
                             int initialSelection,
-                            wxWindow *parent = NULL);
+                            wxWindow *parent = nullptr);
 
-//@}
+///@}
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     Pops up a dialog box containing a message, OK/Cancel buttons and a
@@ -445,8 +443,10 @@ void* wxGetSingleChoiceData(const wxString& message,
     which is an array of @a n strings for the listbox or by using a single
     @c aChoices parameter of type wxArrayString.
 
-    If @c centre is @true, the message text (which may include new line
-    characters) is centred; if @false, the message is left-justified.
+    Note that the @a x, @a y, @a centre, @a width and @a height parameters are
+    all ignored. To change the dialog's position or size, create a @c
+    wxSingleChoiceDialog object instead of calling @c wxGetSingleChoice() and
+    change its size before showing it.
 
     @header{wx/choicdlg.h}
 
@@ -460,7 +460,7 @@ int wxGetSelectedChoices(wxArrayInt& selections,
                             const wxString& message,
                             const wxString& caption,
                             const wxArrayString& aChoices,
-                            wxWindow* parent = NULL,
+                            wxWindow* parent = nullptr,
                             int x = wxDefaultCoord,
                             int y = wxDefaultCoord,
                             bool centre = true,
@@ -472,12 +472,12 @@ int wxGetSelectedChoices(wxArrayInt& selections,
                             const wxString& caption,
                             int n,
                             const wxString& choices[],
-                            wxWindow* parent = NULL,
+                            wxWindow* parent = nullptr,
                             int x = wxDefaultCoord,
                             int y = wxDefaultCoord,
                             bool centre = true,
                             int width = wxCHOICE_WIDTH,
                             int height = wxCHOICE_HEIGHT);
 
-//@}
+///@}
 

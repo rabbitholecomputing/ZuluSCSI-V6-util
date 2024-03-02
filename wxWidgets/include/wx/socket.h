@@ -2,7 +2,6 @@
 // Name:        wx/socket.h
 // Purpose:     Socket handling classes
 // Authors:     Guilhem Lavaux, Guillermo Rodriguez Garcia
-// Modified by:
 // Created:     April 1997
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
@@ -129,7 +128,7 @@ public:
 
     // state
     bool Ok() const { return IsOk(); }
-    bool IsOk() const { return m_impl != NULL; }
+    bool IsOk() const { return m_impl != nullptr; }
     bool Error() const { return LastError() != wxSOCKET_NOERROR; }
     bool IsClosed() const { return m_closed; }
     bool IsConnected() const { return m_connected; }
@@ -225,6 +224,16 @@ public:
     bool IsNoWait() const { return ((m_flags & wxSOCKET_NOWAIT) != 0); }
     wxSocketType GetType() const { return m_type; }
 
+    // Helper returning wxSOCKET_NONE if non-blocking sockets can be used, i.e.
+    // the socket is being created in the main thread and the event loop is
+    // running, or wxSOCKET_BLOCK otherwise.
+    //
+    // This is an internal function used only by wxWidgets itself, user code
+    // should decide if it wants blocking sockets or not and use the
+    // appropriate style instead of using it (but wxWidgets has to do it like
+    // this for compatibility with the original network classes behaviour).
+    static int GetBlockingFlagIfNeeded();
+
 private:
     friend class wxSocketClient;
     friend class wxSocketServer;
@@ -300,8 +309,23 @@ private:
     friend class wxSocketReadGuard;
     friend class wxSocketWriteGuard;
 
+    wxDECLARE_CLASS(wxSocketBase);
     wxDECLARE_NO_COPY_CLASS(wxSocketBase);
-    DECLARE_CLASS(wxSocketBase)
+};
+
+
+// ----------------------------------------------------------------------------
+// wxSocketInitializer: trivial RAII helper for sockets initialization/shutdown
+// ----------------------------------------------------------------------------
+
+class wxSocketInitializer
+{
+public:
+    wxSocketInitializer() { wxSocketBase::Initialize(); }
+    ~wxSocketInitializer() { wxSocketBase::Shutdown(); }
+
+    wxSocketInitializer(const wxSocketInitializer&) = delete;
+    wxSocketInitializer& operator=(const wxSocketInitializer&) = delete;
 };
 
 
@@ -320,8 +344,8 @@ public:
 
     bool WaitForAccept(long seconds = -1, long milliseconds = 0);
 
+    wxDECLARE_CLASS(wxSocketServer);
     wxDECLARE_NO_COPY_CLASS(wxSocketServer);
-    DECLARE_CLASS(wxSocketServer)
 };
 
 
@@ -359,8 +383,8 @@ private:
     int m_initialRecvBufferSize;
     int m_initialSendBufferSize;
 
+    wxDECLARE_CLASS(wxSocketClient);
     wxDECLARE_NO_COPY_CLASS(wxSocketClient);
-    DECLARE_CLASS(wxSocketClient)
 };
 
 
@@ -388,8 +412,8 @@ public:
      */
 
 private:
+    wxDECLARE_CLASS(wxDatagramSocket);
     wxDECLARE_NO_COPY_CLASS(wxDatagramSocket);
-    DECLARE_CLASS(wxDatagramSocket)
 };
 
 
@@ -410,14 +434,14 @@ public:
         { return (wxSocketBase *) GetEventObject(); }
     void *GetClientData() const { return m_clientData; }
 
-    virtual wxEvent *Clone() const { return new wxSocketEvent(*this); }
-    virtual wxEventCategory GetEventCategory() const { return wxEVT_CATEGORY_SOCKET; }
+    virtual wxEvent *Clone() const override { return new wxSocketEvent(*this); }
+    virtual wxEventCategory GetEventCategory() const override { return wxEVT_CATEGORY_SOCKET; }
 
 public:
     wxSocketNotify  m_event;
     void           *m_clientData;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxSocketEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxSocketEvent);
 };
 
 

@@ -2,7 +2,6 @@
 // Name:        wx/toolbook.h
 // Purpose:     wxToolbook: wxToolBar and wxNotebook combination
 // Author:      Julian Smart
-// Modified by:
 // Created:     2006-01-29
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
@@ -15,8 +14,7 @@
 
 #if wxUSE_TOOLBOOK
 
-#include "wx/bookctrl.h"
-#include "wx/containr.h"
+#include "wx/compositebookctrl.h"
 
 class WXDLLIMPEXP_FWD_CORE wxToolBarBase;
 class WXDLLIMPEXP_FWD_CORE wxCommandEvent;
@@ -31,16 +29,11 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TOOLBOOK_PAGE_CHANGING, wxBook
 // Use wxTB_HORZ_LAYOUT style for the controlling toolbar
 #define wxTBK_HORZ_LAYOUT          0x8000
 
-// deprecated synonym, don't use
-#if WXWIN_COMPATIBILITY_2_8
-    #define wxBK_BUTTONBAR wxTBK_BUTTONBAR
-#endif
-
 // ----------------------------------------------------------------------------
 // wxToolbook
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxToolbook : public wxNavigationEnabled<wxBookCtrlBase>
+class WXDLLIMPEXP_CORE wxToolbook : public wxCompositeBookCtrlBase
 {
 public:
     wxToolbook()
@@ -70,21 +63,20 @@ public:
 
 
     // implement base class virtuals
-    virtual bool SetPageText(size_t n, const wxString& strText);
-    virtual wxString GetPageText(size_t n) const;
-    virtual int GetPageImage(size_t n) const;
-    virtual bool SetPageImage(size_t n, int imageId);
+    virtual bool SetPageText(size_t n, const wxString& strText) override;
+    virtual wxString GetPageText(size_t n) const override;
+    virtual int GetPageImage(size_t n) const override;
+    virtual bool SetPageImage(size_t n, int imageId) override;
     virtual bool InsertPage(size_t n,
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = NO_IMAGE);
-    virtual int SetSelection(size_t n) { return DoSetSelection(n, SetSelection_SendEvent); }
-    virtual int ChangeSelection(size_t n) { return DoSetSelection(n); }
-    virtual void SetImageList(wxImageList *imageList);
+                            int imageId = NO_IMAGE) override;
+    virtual int SetSelection(size_t n) override { return DoSetSelection(n, SetSelection_SendEvent); }
+    virtual int ChangeSelection(size_t n) override { return DoSetSelection(n); }
 
-    virtual bool DeleteAllPages();
-    virtual int HitTest(const wxPoint& pt, long *flags = NULL) const;
+    virtual bool DeleteAllPages() override;
+    virtual int HitTest(const wxPoint& pt, long *flags = nullptr) const override;
 
 
     // methods which are not part of base wxBookctrl API
@@ -92,35 +84,44 @@ public:
     // get the underlying toolbar
     wxToolBarBase* GetToolBar() const { return (wxToolBarBase*)m_bookctrl; }
 
+    // enable/disable a page
+    bool EnablePage(wxWindow *page, bool enable);
+    bool EnablePage(size_t page, bool enable);
+
     // must be called in OnIdle or by application to realize the toolbar and
     // select the initial page.
     void Realize();
 
 protected:
-    virtual wxWindow *DoRemovePage(size_t page);
+    virtual wxWindow *DoRemovePage(size_t page) override;
 
     // event handlers
     void OnToolSelected(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
     void OnIdle(wxIdleEvent& event);
 
-    void UpdateSelectedPage(size_t newsel);
+    void UpdateSelectedPage(size_t newsel) override;
 
-    wxBookCtrlEvent* CreatePageChangingEvent() const;
-    void MakeChangedEvent(wxBookCtrlEvent &event);
+    wxBookCtrlEvent* CreatePageChangingEvent() const override;
+    void MakeChangedEvent(wxBookCtrlEvent &event) override;
 
     // whether the toolbar needs to be realized
     bool m_needsRealizing;
-
-    // maximum bitmap size
-    wxSize m_maxBitmapSize;
 
 private:
     // common part of all constructors
     void Init();
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxToolbook)
+    // returns the tool identifier for the specified page
+    int PageToToolId(size_t page) const;
+
+    // returns the page index for the specified tool ID or
+    // wxNOT_FOUND if there is no page with that tool ID
+    int ToolIdToPage(int toolId) const;
+
+
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxToolbook);
 };
 
 // ----------------------------------------------------------------------------

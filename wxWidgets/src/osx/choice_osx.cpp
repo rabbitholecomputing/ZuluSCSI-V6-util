@@ -2,7 +2,6 @@
 // Name:        src/osx/choice_osx.cpp
 // Purpose:     wxChoice
 // Author:      Stefan Csomor
-// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -30,7 +29,6 @@ wxChoice::~wxChoice()
         for ( i = 0; i < max; ++i )
             delete GetClientObject( i );
     }
-    delete m_popUpMenu;
 }
 
 bool wxChoice::Create(wxWindow *parent,
@@ -42,7 +40,7 @@ bool wxChoice::Create(wxWindow *parent,
     const wxValidator& validator,
     const wxString& name )
 {
-    if ( !Create( parent, id, pos, size, 0, NULL, style, validator, name ) )
+    if ( !Create( parent, id, pos, size, 0, nullptr, style, validator, name ) )
         return false;
 
     Append( choices );
@@ -70,10 +68,7 @@ bool wxChoice::Create(wxWindow *parent,
     if ( !wxChoiceBase::Create( parent, id, pos, size, style, validator, name ) )
         return false;
 
-    m_popUpMenu = new wxMenu();
-    m_popUpMenu->SetNoEventsMode(true);
-
-    SetPeer(wxWidgetImpl::CreateChoice( this, parent, id, m_popUpMenu, pos, size, style, GetExtraStyle() ));
+    SetPeer(wxWidgetImpl::CreateChoice( this, parent, id, nullptr, pos, size, style, GetExtraStyle() ));
 
     MacPostControlCreate( pos, size );
 
@@ -131,10 +126,10 @@ int wxChoice::DoInsertItems(const wxArrayStringsAdapter & items,
         }
 
         wxString text = items[i];
-        if (text == wxEmptyString)
+        if (text.empty())
             text = " ";  // menu items can't have empty labels
-        m_popUpMenu->Insert( idx, i+1, text );
-        m_datas.Insert( NULL, idx );
+        dynamic_cast<wxChoiceWidgetImpl*>(GetPeer())->InsertItem( idx, i+1, text );
+        m_datas.Insert( nullptr, idx );
         AssignNewItemClientData(idx, clientData, i, type);
     }
 
@@ -150,8 +145,12 @@ void wxChoice::DoDeleteOneItem(unsigned int n)
     if ( HasClientObjectData() )
         delete GetClientObject( n );
 
-    m_popUpMenu->Delete( m_popUpMenu->FindItemByPosition( n ) );
+    // Deselect item being removed
+    int selIdx = GetSelection();
+    if ( selIdx != -1 && selIdx == int(n) )
+        SetSelection(-1);
 
+    dynamic_cast<wxChoiceWidgetImpl*>(GetPeer())->RemoveItem(n);
     m_strings.RemoveAt( n ) ;
     m_datas.RemoveAt( n ) ;
 
@@ -160,10 +159,7 @@ void wxChoice::DoDeleteOneItem(unsigned int n)
 
 void wxChoice::DoClear()
 {
-    for ( unsigned int i = 0 ; i < GetCount() ; i++ )
-    {
-        m_popUpMenu->Delete( m_popUpMenu->FindItemByPosition( 0 ) );
-    }
+    dynamic_cast<wxChoiceWidgetImpl*>(GetPeer())->Clear();
 
     m_strings.Empty() ;
     m_datas.Empty() ;
@@ -210,7 +206,7 @@ void wxChoice::SetString(unsigned int n, const wxString& s)
 
     m_strings[n] = s ;
 
-    m_popUpMenu->FindItemByPosition( n )->SetItemLabel( s ) ;
+    dynamic_cast<wxChoiceWidgetImpl*>(GetPeer())->SetItem(n,s);
 }
 
 wxString wxChoice::GetString(unsigned int n) const
@@ -247,7 +243,7 @@ wxSize wxChoice::DoGetBestSize() const
     // computed by the base class method to account for the arrow.
     const int lbHeight = wxWindow::DoGetBestSize().y;
 
-    return wxSize(wxChoiceBase::DoGetBestSize().x + 2*lbHeight + GetCharWidth(),
+    return wxSize(wxChoiceBase::DoGetBestSize().x + 4*GetCharWidth(),
                   lbHeight);
 }
 

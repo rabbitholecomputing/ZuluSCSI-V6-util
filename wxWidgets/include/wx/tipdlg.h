@@ -2,7 +2,6 @@
 // Name:        wx/tipdlg.h
 // Purpose:     declaration of wxTipDialog
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     28.06.99
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -44,13 +43,14 @@ public:
     // from where to start the next time)
     size_t GetCurrentTip() const { return m_currentTip; }
 
-    // Allows any user-derived class to optionally override this function to
-    // modify the tip as soon as it is read. If return wxEmptyString, then
-    // the tip is skipped, and the next one is read.
-    virtual wxString PreprocessTip(const wxString& tip) { return tip; }
-
     // virtual dtor for the base class
-    virtual ~wxTipProvider() { }
+    virtual ~wxTipProvider() = default;
+
+
+#if WXWIN_COMPATIBILITY_3_0
+    wxDEPRECATED_MSG("this method does nothing, simply don't call it")
+    wxString PreprocessTip(const wxString& tip) { return tip; }
+#endif
 
 protected:
     size_t m_currentTip;

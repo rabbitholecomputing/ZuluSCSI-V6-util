@@ -10,6 +10,9 @@
 #ifndef _WX_TEXTCOMPLETER_H_
 #define _WX_TEXTCOMPLETER_H_
 
+#include "wx/defs.h"
+#include "wx/arrstr.h"
+
 // ----------------------------------------------------------------------------
 // wxTextCompleter: used by wxTextEnter::AutoComplete()
 // ----------------------------------------------------------------------------
@@ -17,7 +20,7 @@
 class WXDLLIMPEXP_CORE wxTextCompleter
 {
 public:
-    wxTextCompleter() { }
+    wxTextCompleter() = default;
 
     // The virtual functions to be implemented by the derived classes: the
     // first one is called to start preparing for completions for the given
@@ -39,13 +42,13 @@ private:
 class WXDLLIMPEXP_CORE wxTextCompleterSimple : public wxTextCompleter
 {
 public:
-    wxTextCompleterSimple() { }
+    wxTextCompleterSimple() = default;
 
     // Must be implemented to return all the completions for the given prefix.
     virtual void GetCompletions(const wxString& prefix, wxArrayString& res) = 0;
 
-    virtual bool Start(const wxString& prefix);
-    virtual wxString GetNext();
+    virtual bool Start(const wxString& prefix) override;
+    virtual wxString GetNext() override;
 
 private:
     wxArrayString m_completions;
@@ -72,7 +75,7 @@ public:
     }
 
     virtual void GetCompletions(const wxString& WXUNUSED(prefix),
-                                wxArrayString& res)
+                                wxArrayString& res) override
     {
         res = m_strings;
     }

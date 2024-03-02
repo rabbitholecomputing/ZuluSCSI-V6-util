@@ -2,7 +2,6 @@
 // Name:        wx/msw/ole/access.h
 // Purpose:     declaration of the wxAccessible class
 // Author:      Julian Smart
-// Modified by:
 // Created:     2003-02-12
 // Copyright:   (c) 2003 Julian Smart
 // Licence:     wxWindows licence
@@ -17,6 +16,7 @@
 // forward declarations
 // ----------------------------------------------------------------------------
 
+struct IAccessible;
 class wxIAccessible;
 class WXDLLIMPEXP_FWD_CORE wxWindow;
 
@@ -31,7 +31,7 @@ class WXDLLIMPEXP_FWD_CORE wxWindow;
 class WXDLLIMPEXP_CORE wxAccessible : public wxAccessibleBase
 {
 public:
-    wxAccessible(wxWindow *win = NULL);
+    wxAccessible(wxWindow *win = nullptr);
     virtual ~wxAccessible();
 
 // Overridables
@@ -42,7 +42,7 @@ public:
     wxIAccessible* GetIAccessible() { return m_pIAccessible; }
 
     // Returns the IAccessible standard interface pointer
-    void* GetIAccessibleStd() ;
+    IAccessible* GetIAccessibleStd();
 
 // Operations
 
@@ -55,7 +55,7 @@ protected:
 
 private:
     wxIAccessible * m_pIAccessible;  // the pointer to COM interface
-    void*           m_pIAccessibleStd;  // the pointer to the standard COM interface,
+    IAccessible*    m_pIAccessibleStd;  // the pointer to the standard COM interface,
                                         // for default processing
 
     wxDECLARE_NO_COPY_CLASS(wxAccessible);

@@ -34,10 +34,10 @@ public:
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize,
                      int n = 0,
-                     const wxString choices[] = NULL,
+                     const wxString choices[] = nullptr,
                      long style = 0,
                      const wxValidator& validator = wxDefaultValidator,
-                     const wxString& name = wxBitmapComboBoxNameStr)
+                     const wxString& name = wxASCII_STR(wxBitmapComboBoxNameStr))
         : wxComboBox(),
           wxBitmapComboBoxBase()
     {
@@ -55,7 +55,7 @@ public:
                      const wxArrayString& choices,
                      long style,
                      const wxValidator& validator = wxDefaultValidator,
-                     const wxString& name = wxBitmapComboBoxNameStr);
+                     const wxString& name = wxASCII_STR(wxBitmapComboBoxNameStr));
 
     bool Create(wxWindow *parent,
                 wxWindowID id,
@@ -66,7 +66,7 @@ public:
                 const wxString choices[],
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxBitmapComboBoxNameStr);
+                const wxString& name = wxASCII_STR(wxBitmapComboBoxNameStr));
 
     bool Create(wxWindow *parent,
                 wxWindowID id,
@@ -76,63 +76,62 @@ public:
                 const wxArrayString& choices,
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
-                const wxString& name = wxBitmapComboBoxNameStr);
+                const wxString& name = wxASCII_STR(wxBitmapComboBoxNameStr));
 
     virtual ~wxBitmapComboBox();
 
     // Sets the image for the given item.
-    virtual void SetItemBitmap(unsigned int n, const wxBitmap& bitmap);
+    virtual void SetItemBitmap(unsigned int n, const wxBitmapBundle& bitmap) override;
 
     // Returns the image of the item with the given index.
-    virtual wxBitmap GetItemBitmap(unsigned int n) const;
+    virtual wxBitmap GetItemBitmap(unsigned int n) const override;
 
     // Returns size of the image used in list
-    virtual wxSize GetBitmapSize() const
+    virtual wxSize GetBitmapSize() const override
     {
         return m_bitmapSize;
     }
 
     // Adds item with image to the end of the combo box.
-    int Append(const wxString& item, const wxBitmap& bitmap = wxNullBitmap);
-    int Append(const wxString& item, const wxBitmap& bitmap, void *clientData);
-    int Append(const wxString& item, const wxBitmap& bitmap, wxClientData *clientData);
+    int Append(const wxString& item, const wxBitmapBundle& bitmap = wxBitmapBundle());
+    int Append(const wxString& item, const wxBitmapBundle& bitmap, void *clientData);
+    int Append(const wxString& item, const wxBitmapBundle& bitmap, wxClientData *clientData);
 
     // Inserts item with image into the list before pos. Not valid for wxCB_SORT
     // styles, use Append instead.
-    int Insert(const wxString& item, const wxBitmap& bitmap, unsigned int pos);
-    int Insert(const wxString& item, const wxBitmap& bitmap,
+    int Insert(const wxString& item, const wxBitmapBundle& bitmap, unsigned int pos);
+    int Insert(const wxString& item, const wxBitmapBundle& bitmap,
                unsigned int pos, void *clientData);
-    int Insert(const wxString& item, const wxBitmap& bitmap,
+    int Insert(const wxString& item, const wxBitmapBundle& bitmap,
                unsigned int pos, wxClientData *clientData);
 
     // Override some wxTextEntry interface.
-    virtual void WriteText(const wxString& value);
+    virtual void WriteText(const wxString& value) override;
 
-    virtual wxString GetValue() const;
-    virtual void Remove(long from, long to);
+    virtual wxString GetValue() const override;
+    virtual void Remove(long from, long to) override;
 
-    virtual void SetInsertionPoint(long pos);
-    virtual long GetInsertionPoint() const;
-    virtual long GetLastPosition() const;
+    virtual void SetInsertionPoint(long pos) override;
+    virtual long GetInsertionPoint() const override;
+    virtual long GetLastPosition() const override;
 
-    virtual void SetSelection(long from, long to);
-    virtual void GetSelection(long *from, long *to) const;
+    virtual void SetSelection(long from, long to) override;
+    virtual void GetSelection(long *from, long *to) const override;
 
-    virtual void SetSelection(int n) { wxComboBox::SetSelection(n); }
-    virtual int GetSelection() const { return wxComboBox::GetSelection(); }
+    virtual void SetSelection(int n) override { wxComboBox::SetSelection(n); }
+    virtual int GetSelection() const override { return wxComboBox::GetSelection(); }
 
-    virtual bool IsEditable() const;
-    virtual void SetEditable(bool editable);
+    virtual bool IsEditable() const override;
+    virtual void SetEditable(bool editable) override;
 
-    virtual GtkWidget* GetConnectWidget();
+    virtual GtkWidget* GetConnectWidget() override;
 
 protected:
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const override;
 
-    virtual void GTKCreateComboBoxWidget();
-    virtual void GTKInsertComboBoxTextItem( unsigned int n, const wxString& text );
+    virtual void GTKCreateComboBoxWidget() override;
 
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const override;
 
     wxSize                  m_bitmapSize;
     int                     m_bitmapCellIndex;
@@ -140,7 +139,7 @@ protected:
 private:
     void Init();
 
-    DECLARE_DYNAMIC_CLASS(wxBitmapComboBox)
+    wxDECLARE_DYNAMIC_CLASS(wxBitmapComboBox);
 };
 
 #endif // _WX_GTK_BMPCBOX_H_

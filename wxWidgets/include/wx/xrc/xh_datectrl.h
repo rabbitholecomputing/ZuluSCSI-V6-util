@@ -16,12 +16,12 @@
 
 class WXDLLIMPEXP_XRC wxDateCtrlXmlHandler : public wxXmlResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxDateCtrlXmlHandler)
+    wxDECLARE_DYNAMIC_CLASS(wxDateCtrlXmlHandler);
 
 public:
     wxDateCtrlXmlHandler();
-    virtual wxObject *DoCreateResource();
-    virtual bool CanHandle(wxXmlNode *node);
+    virtual wxObject *DoCreateResource() override;
+    virtual bool CanHandle(wxXmlNode *node) override;
 };
 
 #endif // wxUSE_XRC && wxUSE_DATEPICKCTRL

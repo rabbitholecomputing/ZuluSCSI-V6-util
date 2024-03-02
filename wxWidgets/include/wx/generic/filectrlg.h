@@ -2,7 +2,6 @@
 // Name:        wx/generic/filectrlg.h
 // Purpose:     wxGenericFileCtrl Header
 // Author:      Diaa M. Sami
-// Modified by:
 // Created:     Jul-07-2007
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
@@ -160,6 +159,7 @@ public:
     void OnListDeleteAllItems( wxListEvent &event );
     void OnListEndLabelEdit( wxListEvent &event );
     void OnListColClick( wxListEvent &event );
+    void OnSize( wxSizeEvent &event );
 
     virtual void SortItems(wxFileData::fileListFieldType field, bool forward);
     bool GetSortDirection() const { return m_sort_forward; }
@@ -177,8 +177,8 @@ protected:
     wxFileData::fileListFieldType m_sort_field;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxFileListCtrl)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxFileListCtrl);
+    wxDECLARE_EVENT_TABLE();
 };
 
 class WXDLLIMPEXP_CORE wxGenericFileCtrl : public wxNavigationEnabled<wxControl>,
@@ -194,55 +194,55 @@ public:
                         wxWindowID id,
                         const wxString& defaultDirectory = wxEmptyString,
                         const wxString& defaultFilename = wxEmptyString,
-                        const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                        const wxString& wildCard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                         long style = wxFC_DEFAULT_STYLE,
                         const wxPoint& pos = wxDefaultPosition,
                         const wxSize& size = wxDefaultSize,
-                        const wxString& name = wxFileCtrlNameStr )
+                        const wxString& name = wxASCII_STR(wxFileCtrlNameStr) )
     {
         m_ignoreChanges = false;
         Create(parent, id, defaultDirectory, defaultFilename, wildCard,
                style, pos, size, name );
     }
 
-    virtual ~wxGenericFileCtrl() {}
+    virtual ~wxGenericFileCtrl() = default;
 
     bool Create( wxWindow *parent,
                  wxWindowID id,
                  const wxString& defaultDirectory = wxEmptyString,
                  const wxString& defaultFileName = wxEmptyString,
-                 const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                 const wxString& wildCard = wxASCII_STR(wxFileSelectorDefaultWildcardStr),
                  long style = wxFC_DEFAULT_STYLE,
                  const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 const wxString& name = wxFileCtrlNameStr );
+                 const wxString& name = wxASCII_STR(wxFileCtrlNameStr) );
 
-    virtual void SetWildcard( const wxString& wildCard );
-    virtual void SetFilterIndex( int filterindex );
-    virtual bool SetDirectory( const wxString& dir );
+    virtual void SetWildcard( const wxString& wildCard ) override;
+    virtual void SetFilterIndex( int filterindex ) override;
+    virtual bool SetDirectory( const wxString& dir ) override;
 
     // Selects a certain file.
     // In case the filename specified isn't found/couldn't be shown with
     // currently selected filter, false is returned and nothing happens
-    virtual bool SetFilename( const wxString& name );
+    virtual bool SetFilename( const wxString& name ) override;
 
     // Changes to a certain directory and selects a certain file.
     // In case the filename specified isn't found/couldn't be shown with
     // currently selected filter, false is returned and if directory exists
     // it's chdir'ed to
-    virtual bool SetPath( const wxString& path );
+    virtual bool SetPath( const wxString& path ) override;
 
-    virtual wxString GetFilename() const;
-    virtual wxString GetDirectory() const;
-    virtual wxString GetWildcard() const { return this->m_wildCard; }
-    virtual wxString GetPath() const;
-    virtual void GetPaths( wxArrayString& paths ) const;
-    virtual void GetFilenames( wxArrayString& files ) const;
-    virtual int GetFilterIndex() const { return m_filterIndex; }
+    virtual wxString GetFilename() const override;
+    virtual wxString GetDirectory() const override;
+    virtual wxString GetWildcard() const override { return this->m_wildCard; }
+    virtual wxString GetPath() const override;
+    virtual void GetPaths( wxArrayString& paths ) const override;
+    virtual void GetFilenames( wxArrayString& files ) const override;
+    virtual int GetFilterIndex() const override { return m_filterIndex; }
 
-    virtual bool HasMultipleFileSelection() const
+    virtual bool HasMultipleFileSelection() const override
         { return HasFlag(wxFC_MULTIPLE); }
-    virtual void ShowHidden(bool show) { m_list->ShowHidden( show ); }
+    virtual void ShowHidden(bool show) override { m_list->ShowHidden( show ); }
 
     void GoToParentDir();
     void GoToHomeDir();
@@ -294,8 +294,8 @@ private:
     bool    m_ignoreChanges;
     bool    m_noSelChgEvent; // suppress selection changed events.
 
-    DECLARE_DYNAMIC_CLASS( wxGenericFileCtrl )
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxGenericFileCtrl);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // wxUSE_FILECTRL

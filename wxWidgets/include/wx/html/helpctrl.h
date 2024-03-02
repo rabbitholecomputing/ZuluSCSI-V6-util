@@ -41,12 +41,12 @@ class WXDLLIMPEXP_FWD_HTML wxHtmlHelpDialog;
 
 class WXDLLIMPEXP_HTML wxHtmlHelpController : public wxHelpControllerBase // wxEvtHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxHtmlHelpController)
+    wxDECLARE_DYNAMIC_CLASS(wxHtmlHelpController);
 
 public:
-    wxHtmlHelpController(int style = wxHF_DEFAULT_STYLE, wxWindow* parentWindow = NULL);
+    wxHtmlHelpController(int style = wxHF_DEFAULT_STYLE, wxWindow* parentWindow = nullptr);
     wxHtmlHelpController(wxWindow* parentWindow, int style = wxHF_DEFAULT_STYLE);
-    
+
     virtual ~wxHtmlHelpController();
 
     void SetShouldPreventAppExit(bool enable);
@@ -58,10 +58,10 @@ public:
 
     bool Display(const wxString& x);
     bool Display(int id);
-    bool DisplayContents();
+    bool DisplayContents() override;
     bool DisplayIndex();
     bool KeywordSearch(const wxString& keyword,
-                       wxHelpSearchMode mode = wxHELP_SEARCH_ALL);
+                       wxHelpSearchMode mode = wxHELP_SEARCH_ALL) override;
 
     wxHtmlHelpWindow* GetHelpWindow() { return m_helpWindow; }
     void SetHelpWindow(wxHtmlHelpWindow* helpWindow);
@@ -81,30 +81,30 @@ public:
 
     //// Backward compatibility with wxHelpController API
 
-    virtual bool Initialize(const wxString& file, int WXUNUSED(server) ) { return Initialize(file); }
-    virtual bool Initialize(const wxString& file);
-    virtual void SetViewer(const wxString& WXUNUSED(viewer), long WXUNUSED(flags) = 0) {}
-    virtual bool LoadFile(const wxString& file = wxT(""));
-    virtual bool DisplaySection(int sectionNo);
-    virtual bool DisplaySection(const wxString& section) { return Display(section); }
-    virtual bool DisplayBlock(long blockNo) { return DisplaySection(blockNo); }
-    virtual bool DisplayTextPopup(const wxString& text, const wxPoint& pos);
+    virtual bool Initialize(const wxString& file, int WXUNUSED(server) ) override { return Initialize(file); }
+    virtual bool Initialize(const wxString& file) override;
+    virtual void SetViewer(const wxString& WXUNUSED(viewer), long WXUNUSED(flags) = 0) override {}
+    virtual bool LoadFile(const wxString& file = wxT("")) override;
+    virtual bool DisplaySection(int sectionNo) override;
+    virtual bool DisplaySection(const wxString& section) override { return Display(section); }
+    virtual bool DisplayBlock(long blockNo) override { return DisplaySection(static_cast<int>(blockNo)); }
+    virtual bool DisplayTextPopup(const wxString& text, const wxPoint& pos) override;
 
     virtual void SetFrameParameters(const wxString& titleFormat,
                                const wxSize& size,
                                const wxPoint& pos = wxDefaultPosition,
-                               bool newFrameEachTime = false);
+                               bool newFrameEachTime = false) override;
     /// Obtains the latest settings used by the help frame and the help
     /// frame.
-    virtual wxFrame *GetFrameParameters(wxSize *size = NULL,
-                               wxPoint *pos = NULL,
-                               bool *newFrameEachTime = NULL);
+    virtual wxFrame *GetFrameParameters(wxSize *size = nullptr,
+                               wxPoint *pos = nullptr,
+                               bool *newFrameEachTime = nullptr) override;
 
     // Get direct access to help data:
     wxHtmlHelpData *GetHelpData() { return &m_helpData; }
 
-    virtual bool Quit() ;
-    virtual void OnQuit() {}
+    virtual bool Quit() override ;
+    virtual void OnQuit() override {}
 
     void OnCloseFrame(wxCloseEvent& evt);
 
@@ -117,7 +117,7 @@ public:
 
 protected:
     void Init(int style);
-    
+
     virtual wxWindow* CreateHelpWindow();
     virtual wxHtmlHelpFrame* CreateHelpFrame(wxHtmlHelpData *data);
     virtual wxHtmlHelpDialog* CreateHelpDialog(wxHtmlHelpData *data);

@@ -9,9 +9,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#if defined(__BORLANDC__)
-    #pragma hdrstop
-#endif
 
 #if wxUSE_DRAG_AND_DROP
 
@@ -109,7 +106,7 @@ bool wxFileDropTarget::OnDrop(long x, long y, const void *data, size_t size )
 
   bool ret = OnDropFiles( x, y, 1, files );
 
-  free( files );
+  delete[] files;
 
   return ret;
 }
@@ -132,7 +129,7 @@ wxDropSource::wxDropSource( wxWindow *win )
 {
 #if 0
   m_window = win;
-  m_data = NULL;
+  m_data = nullptr;
   m_retValue = wxDragCancel;
 
   m_defaultCursor = wxCursor( wxCURSOR_NO_ENTRY );

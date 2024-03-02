@@ -18,45 +18,60 @@ class WXDLLIMPEXP_CORE wxProgressDialog : public wxGenericProgressDialog
 public:
     wxProgressDialog(const wxString& title, const wxString& message,
                      int maximum = 100,
-                     wxWindow *parent = NULL,
+                     wxWindow *parent = nullptr,
                      int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE);
 
     virtual ~wxProgressDialog();
 
-    virtual bool Update(int value, const wxString& newmsg = wxEmptyString, bool *skip = NULL);
-    virtual bool Pulse(const wxString& newmsg = wxEmptyString, bool *skip = NULL);
+    virtual bool Update(int value, const wxString& newmsg = wxEmptyString, bool *skip = nullptr) override;
+    virtual bool Pulse(const wxString& newmsg = wxEmptyString, bool *skip = nullptr) override;
 
-    void Resume();
+    virtual void Resume() override;
 
-    int GetValue() const;
-    wxString GetMessage() const;
+    virtual int GetValue() const override;
+    virtual wxString GetMessage() const override;
 
-    void SetRange(int maximum);
+    virtual void SetRange(int maximum) override;
 
     // Return whether "Cancel" or "Skip" button was pressed, always return
     // false if the corresponding button is not shown.
-    bool WasSkipped() const;
-    bool WasCancelled() const;
+    virtual bool WasSkipped() const override;
+    virtual bool WasCancelled() const override;
 
-    virtual void SetTitle(const wxString& title);
-    virtual wxString GetTitle() const;
+    virtual void SetTitle(const wxString& title) override;
+    virtual wxString GetTitle() const override;
 
-    virtual bool Show( bool show = true );
+    virtual void SetIcons(const wxIconBundle& icons) override;
+    virtual void DoMoveWindow(int x, int y, int width, int height) override;
+    virtual void DoGetPosition(int *x, int *y) const override;
+    virtual void DoGetSize(int *width, int *height) const override;
+    virtual void Fit() override;
+
+    virtual bool Show( bool show = true ) override;
 
     // Must provide overload to avoid hiding it (and warnings about it)
-    virtual void Update() { wxGenericProgressDialog::Update(); }
+    virtual void Update() override { wxGenericProgressDialog::Update(); }
 
-    virtual WXWidget GetHandle() const;
+    virtual WXWidget GetHandle() const override;
 
 private:
-    // Performs common routines to Update() and Pulse(). Requires the
-    // shared object to have been entered.
+    // Common part of Update() and Pulse().
+    //
+    // Returns false if the user requested cancelling the dialog.
     bool DoNativeBeforeUpdate(bool *skip);
 
-    // Updates the various timing informations for both determinate
+    // Dispatch the pending events to let the windows to update, just as the
+    // generic version does. This is done as part of DoNativeBeforeUpdate().
+    void DispatchEvents();
+
+    // Updates the various timing information for both determinate
     // and indeterminate modes. Requires the shared object to have
     // been entered.
     void UpdateExpandedInformation(int value);
+
+    // Get the task dialog geometry when using the native dialog.
+    wxRect GetTaskDialogRect() const;
+
 
     wxProgressDialogTaskRunner *m_taskDialogRunner;
 

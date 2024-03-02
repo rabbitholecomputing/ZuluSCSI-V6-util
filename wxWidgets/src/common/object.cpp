@@ -12,69 +12,56 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/object.h"
     #include "wx/hash.h"
-    #include "wx/memory.h"
     #include "wx/crt.h"
 #endif
 
 #include <string.h>
 
-#if wxUSE_DEBUG_CONTEXT
-    #if defined(__VISAGECPP__)
-        #define DEBUG_PRINTF(NAME) { static int raz=0; \
-            printf( #NAME " %i\n",raz); fflush(stdout); raz++; }
-    #else
-        #define DEBUG_PRINTF(NAME)
-    #endif
-#endif // wxUSE_DEBUG_CONTEXT
-
 // we must disable optimizations for VC.NET because otherwise its too eager
 // linker discards wxClassInfo objects in release build thus breaking many,
 // many things
-#if defined __VISUALC__ && __VISUALC__ >= 1300
+#if defined __VISUALC__
     #pragma optimize("", off)
 #endif
 
 #if wxUSE_EXTENDED_RTTI
-const wxClassInfo* wxObject::ms_classParents[] = { NULL } ;
+const wxClassInfo* wxObject::ms_classParents[] = { nullptr } ;
 wxObject* wxVariantOfPtrToObjectConverterwxObject ( const wxAny &data )
-{ return wxANY_AS(data, wxObject*); }
+{ return data.As<wxObject*>(); }
  wxAny wxObjectToVariantConverterwxObject ( wxObject *data )
  { return wxAny( dynamic_cast<wxObject*> (data)  ) ; }
 
  wxClassInfo wxObject::ms_classInfo(ms_classParents , wxEmptyString , wxT("wxObject"),
             (int) sizeof(wxObject),                              \
             (wxObjectConstructorFn) 0   ,
-            NULL,NULL,0 , 0 ,
+            nullptr,nullptr,0 , 0 ,
             0 , wxVariantOfPtrToObjectConverterwxObject , 0 , wxObjectToVariantConverterwxObject);
 
  template<> void wxStringWriteValue(wxString & , wxObject* const & ){ wxFAIL_MSG("unreachable"); }
  template<> void wxStringWriteValue(wxString & , wxObject const & ){ wxFAIL_MSG("unreachable"); }
 
- wxClassTypeInfo s_typeInfo(wxT_OBJECT_PTR , &wxObject::ms_classInfo , NULL , NULL , typeid(wxObject*).name() ) ;
- wxClassTypeInfo s_typeInfowxObject(wxT_OBJECT , &wxObject::ms_classInfo , NULL , NULL , typeid(wxObject).name() ) ;
+ wxClassTypeInfo s_typeInfo(wxT_OBJECT_PTR , &wxObject::ms_classInfo , nullptr , nullptr , typeid(wxObject*).name() ) ;
+ wxClassTypeInfo s_typeInfowxObject(wxT_OBJECT , &wxObject::ms_classInfo , nullptr , nullptr , typeid(wxObject).name() ) ;
 #else
-wxClassInfo wxObject::ms_classInfo( wxT("wxObject"), 0, 0,
+wxClassInfo wxObject::ms_classInfo( wxT("wxObject"), nullptr, nullptr,
                                         (int) sizeof(wxObject),
-                                        (wxObjectConstructorFn) 0 );
+                                        (wxObjectConstructorFn) nullptr );
 #endif
 
 // restore optimizations
-#if defined __VISUALC__ && __VISUALC__ >= 1300
+#if defined __VISUALC__
     #pragma optimize("", on)
 #endif
 
-wxClassInfo* wxClassInfo::sm_first = NULL;
-wxHashTable* wxClassInfo::sm_classTable = NULL;
+wxClassInfo* wxClassInfo::sm_first = nullptr;
+wxHashTable* wxClassInfo::sm_classTable = nullptr;
 
 // when using XTI, this method is already implemented inline inside
-// DECLARE_DYNAMIC_CLASS but otherwise we intentionally make this function
+// wxDECLARE_DYNAMIC_CLASS but otherwise we intentionally make this function
 // non-inline because this allows us to have a non-inline virtual function in
 // all wx classes and this solves linking problems for HP-UX native toolchain
 // and possibly others (we could make dtor non-inline as well but it's more
@@ -100,61 +87,6 @@ bool wxObject::IsKindOf(const wxClassInfo *info) const
     const wxClassInfo *thisInfo = GetClassInfo();
     return (thisInfo) ? thisInfo->IsKindOf(info) : false ;
 }
-
-#if wxUSE_MEMORY_TRACING && defined( new )
-    #undef new
-#endif
-
-
-#ifdef _WX_WANT_NEW_SIZET_WXCHAR_INT
-void *wxObject::operator new ( size_t size, const wxChar *fileName, int lineNum )
-{
-    return wxDebugAlloc(size, (wxChar*) fileName, lineNum, true);
-}
-#endif
-
-#ifdef _WX_WANT_DELETE_VOID
-void wxObject::operator delete ( void *buf )
-{
-    wxDebugFree(buf);
-}
-#endif
-
-#ifdef _WX_WANT_DELETE_VOID_CONSTCHAR_SIZET
-void wxObject::operator delete ( void *buf, const char *_fname, size_t _line )
-{
-    wxDebugFree(buf);
-}
-#endif
-
-#ifdef _WX_WANT_DELETE_VOID_WXCHAR_INT
-void wxObject::operator delete ( void *buf, const wxChar *WXUNUSED(fileName), int WXUNUSED(lineNum) )
-{
-     wxDebugFree(buf);
-}
-#endif
-
-#ifdef _WX_WANT_ARRAY_NEW_SIZET_WXCHAR_INT
-void *wxObject::operator new[] ( size_t size, const wxChar* fileName, int lineNum )
-{
-    return wxDebugAlloc(size, (wxChar*) fileName, lineNum, true, true);
-}
-#endif
-
-#ifdef _WX_WANT_ARRAY_DELETE_VOID
-void wxObject::operator delete[] ( void *buf )
-{
-    wxDebugFree(buf, true);
-}
-#endif
-
-#ifdef _WX_WANT_ARRAY_DELETE_VOID_WXCHAR_INT
-void wxObject::operator delete[] (void * buf, const wxChar*  WXUNUSED(fileName), int WXUNUSED(lineNum) )
-{
-    wxDebugFree(buf, true);
-}
-#endif
-
 
 // ----------------------------------------------------------------------------
 // wxClassInfo
@@ -200,7 +132,7 @@ wxClassInfo *wxClassInfo::FindClass(const wxString& className)
                 return info;
         }
 
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -214,7 +146,7 @@ wxClassInfo *wxClassInfo::FindClass(const wxString& className)
 // first time the problem will no longer happen; all the modules it depends on
 // will have been loaded. The assumption is checked using the 'entry' variable
 // as a reentrance guard, it checks that once the hash table is global it is
-// not accessed multiple times simulateously.
+// not accessed multiple times simultaneously.
 
 void wxClassInfo::Register()
 {
@@ -232,20 +164,20 @@ void wxClassInfo::Register()
     }
     else
     {
-        // guard againt reentrance once the global has been created
+        // guard against reentrance once the global has been created
         wxASSERT_MSG(++entry == 1, wxT("wxClassInfo::Register() reentrance"));
         classTable = sm_classTable;
     }
 
-    // Using IMPLEMENT_DYNAMIC_CLASS() macro twice (which may happen if you
+    // Using wxIMPLEMENT_DYNAMIC_CLASS() macro twice (which may happen if you
     // link any object module twice mistakenly, or link twice against wx shared
     // library) will break this function because it will enter an infinite loop
     // and eventually die with "out of memory" - as this is quite hard to
     // detect if you're unaware of this, try to do some checks here.
-    wxASSERT_MSG( classTable->Get(m_className) == NULL,
+    wxASSERT_MSG( classTable->Get(m_className) == nullptr,
         wxString::Format
         (
-            wxT("Class \"%s\" already in RTTI table - have you used IMPLEMENT_DYNAMIC_CLASS() multiple times or linked some object file twice)?"),
+            wxT("Class \"%s\" already in RTTI table - have you used wxIMPLEMENT_DYNAMIC_CLASS() multiple times or linked some object file twice)?"),
             m_className
         )
     );
@@ -262,7 +194,7 @@ void wxClassInfo::Register()
         }
         else
         {
-            // the gobal hash has already been created by a reentrant call,
+            // the global hash has already been created by a reentrant call,
             // so delete the local hash and try again
             delete classTable;
             Register();
@@ -288,14 +220,10 @@ void wxClassInfo::Unregister()
 
 wxObject *wxCreateDynamicObject(const wxString& name)
 {
-#if wxUSE_DEBUG_CONTEXT
-    DEBUG_PRINTF(wxObject *wxCreateDynamicObject)
-#endif
-
     if ( wxClassInfo::sm_classTable )
     {
         wxClassInfo *info = (wxClassInfo *)wxClassInfo::sm_classTable->Get(name);
-        return info ? info->CreateObject() : NULL;
+        return info ? info->CreateObject() : nullptr;
     }
     else // no sm_classTable yet
     {
@@ -307,7 +235,7 @@ wxObject *wxCreateDynamicObject(const wxString& name)
                 return info->CreateObject();
         }
 
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -340,7 +268,7 @@ wxClassInfo::const_iterator wxClassInfo::begin_classinfo()
 
 wxClassInfo::const_iterator wxClassInfo::end_classinfo()
 {
-    return const_iterator(NULL, NULL);
+    return const_iterator(nullptr, nullptr);
 }
 
 // ----------------------------------------------------------------------------
@@ -362,10 +290,6 @@ void wxRefCounter::DecRef()
 
 void wxObject::Ref(const wxObject& clone)
 {
-#if wxUSE_DEBUG_CONTEXT
-    DEBUG_PRINTF(wxObject::Ref)
-#endif
-
     // nothing to be done
     if (m_refData == clone.m_refData)
         return;
@@ -386,7 +310,7 @@ void wxObject::UnRef()
     if ( m_refData )
     {
         m_refData->DecRef();
-        m_refData = NULL;
+        m_refData = nullptr;
     }
 }
 
@@ -416,7 +340,7 @@ wxObjectRefData *wxObject::CreateRefData() const
     // if you use AllocExclusive() you must override this method
     wxFAIL_MSG( wxT("CreateRefData() must be overridden if called!") );
 
-    return NULL;
+    return nullptr;
 }
 
 wxObjectRefData *
@@ -425,5 +349,5 @@ wxObject::CloneRefData(const wxObjectRefData * WXUNUSED(data)) const
     // if you use AllocExclusive() you must override this method
     wxFAIL_MSG( wxT("CloneRefData() must be overridden if called!") );
 
-    return NULL;
+    return nullptr;
 }

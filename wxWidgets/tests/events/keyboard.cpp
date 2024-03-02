@@ -12,13 +12,8 @@
 
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
-// FIXME: As all the other tests involving wxUIActionSimulator, this one is
-//        broken under OS X, the test window siply never gets any events.
-#if wxUSE_UIACTIONSIMULATOR && !defined(__WXOSX__)
+#if wxUSE_UIACTIONSIMULATOR
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"
@@ -28,6 +23,8 @@
 
 #include "wx/uiaction.h"
 #include "wx/vector.h"
+
+#include "waitfor.h"
 
 namespace
 {
@@ -162,7 +159,6 @@ void TestEvent(int line, const wxKeyEvent& ev, const KeyDesc& desc)
                                   desc.m_keycode,
                                   ev.GetKeyCode() );
 
-#if wxUSE_UNICODE
     if ( desc.m_keycode < WXK_START )
     {
         // For Latin-1 our key code is the same as Unicode character value.
@@ -177,7 +173,6 @@ void TestEvent(int line, const wxKeyEvent& ev, const KeyDesc& desc)
                                       0,
                                       (int)ev.GetUnicodeKey() );
     }
-#endif // wxUSE_UNICODE
 
     CPPUNIT_ASSERT_EQUAL_MESSAGE( "wrong modifiers in " + msg,
                                   desc.m_mods,
@@ -199,17 +194,17 @@ class KeyboardEventTestCase : public CppUnit::TestCase
 public:
     KeyboardEventTestCase() {}
 
-    virtual void setUp();
-    virtual void tearDown();
+    virtual void setUp() override;
+    virtual void tearDown() override;
 
 private:
     CPPUNIT_TEST_SUITE( KeyboardEventTestCase );
-        CPPUNIT_TEST( NormalLetter );
-        CPPUNIT_TEST( NormalSpecial );
-        CPPUNIT_TEST( CtrlLetter );
-        CPPUNIT_TEST( CtrlSpecial );
-        CPPUNIT_TEST( ShiftLetter );
-        CPPUNIT_TEST( ShiftSpecial );
+        WXUISIM_TEST( NormalLetter );
+        WXUISIM_TEST( NormalSpecial );
+        WXUISIM_TEST( CtrlLetter );
+        WXUISIM_TEST( CtrlSpecial );
+        WXUISIM_TEST( ShiftLetter );
+        WXUISIM_TEST( ShiftSpecial );
     CPPUNIT_TEST_SUITE_END();
 
     void NormalLetter();
@@ -229,8 +224,10 @@ wxREGISTER_UNIT_TEST(KeyboardEvent);
 void KeyboardEventTestCase::setUp()
 {
     m_win = new KeyboardTestWindow(wxTheApp->GetTopWindow());
+    wxYield();
     m_win->SetFocus();
-    wxYield(); // needed to show the new window
+
+    YieldForAWhile(10); // needed to show the new window
 
     // The window might get some key up events when it's being shown if the key
     // was pressed when the program was started and released after the window
@@ -246,6 +243,9 @@ void KeyboardEventTestCase::tearDown()
 
 void KeyboardEventTestCase::NormalLetter()
 {
+#ifdef __WXQT__
+    WARN("FIXME! doesn't work like the other ports.");
+#else
     wxUIActionSimulator sim;
     sim.Char('a');
     wxYield();
@@ -258,6 +258,7 @@ void KeyboardEventTestCase::NormalLetter()
 
     CPPUNIT_ASSERT_EQUAL( 1, m_win->GetKeyUpCount() );
     ASSERT_KEY_EVENT_IS( m_win->GetKeyUpEvent(), 'A' );
+#endif
 }
 
 void KeyboardEventTestCase::NormalSpecial()
@@ -278,6 +279,9 @@ void KeyboardEventTestCase::NormalSpecial()
 
 void KeyboardEventTestCase::CtrlLetter()
 {
+#ifdef __WXQT__
+    WARN("FIXME! doesn't work like the other ports.");
+#else
     wxUIActionSimulator sim;
     sim.Char('z', wxMOD_CONTROL);
     wxYield();
@@ -297,6 +301,7 @@ void KeyboardEventTestCase::CtrlLetter()
                          KeyDesc('Z', wxMOD_CONTROL) );
     ASSERT_KEY_EVENT_IS( m_win->GetKeyUpEvent(1),
                          ModKeyUp(WXK_CONTROL) );
+#endif
 }
 
 void KeyboardEventTestCase::CtrlSpecial()

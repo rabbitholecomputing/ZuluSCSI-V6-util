@@ -11,9 +11,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_PROTOCOL_HTTP
 
@@ -22,7 +19,6 @@
 
 #ifndef WX_PRECOMP
     #include "wx/string.h"
-    #include "wx/app.h"
 #endif
 
 #include "wx/tokenzr.h"
@@ -32,24 +28,23 @@
 #include "wx/protocol/http.h"
 #include "wx/sckstrm.h"
 #include "wx/thread.h"
+#include "wx/wxcrt.h"
 
 
 // ----------------------------------------------------------------------------
 // wxHTTP
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxHTTP, wxProtocol)
+wxIMPLEMENT_DYNAMIC_CLASS(wxHTTP, wxProtocol);
 IMPLEMENT_PROTOCOL(wxHTTP, wxT("http"), wxT("80"), true)
 
 wxHTTP::wxHTTP()
   : wxProtocol()
 {
-    m_addr = NULL;
+    m_addr = nullptr;
     m_read = false;
     m_proxy_mode = false;
     m_http_response = 0;
-
-    SetNotify(wxSOCKET_LOST_FLAG);
 }
 
 wxHTTP::~wxHTTP()
@@ -217,14 +212,9 @@ wxHTTP::SetPostText(const wxString& contentType,
                     const wxString& data,
                     const wxMBConv& conv)
 {
-#if wxUSE_UNICODE
     wxScopedCharBuffer scb = data.mb_str(conv);
     const size_t len = scb.length();
     const char* const buf = scb.data();
-#else // !wxUSE_UNICODE
-    const size_t len = data.length();
-    const char* const buf = data.mb_str(conv);
-#endif // wxUSE_UNICODE/!wxUSE_UNICODE
 
     if ( !len )
         return false;
@@ -238,12 +228,11 @@ wxHTTP::SetPostText(const wxString& contentType,
 
 void wxHTTP::SendHeaders()
 {
-    typedef wxStringToStringHashMap::iterator iterator;
     wxString buf;
 
-    for (iterator it = m_headers.begin(), en = m_headers.end(); it != en; ++it )
+    for ( const auto& kv : m_headers )
     {
-        buf.Printf(wxT("%s: %s\r\n"), it->first.c_str(), it->second.c_str());
+        buf.Printf("%s: %s\r\n", kv.first, kv.second);
 
         const wxWX2MBbuf cbuf = buf.mb_str();
         Write(cbuf, strlen(cbuf));
@@ -363,22 +352,12 @@ bool wxHTTP::BuildRequest(const wxString& path, const wxString& method)
 
     // If there is no User-Agent defined, define it.
     if ( GetHeader(wxT("User-Agent")).empty() )
-        SetHeader(wxT("User-Agent"), wxT("wxWidgets 2.x"));
+        SetHeader(wxT("User-Agent"), wxVERSION_STRING);
 
     // Send authentication information
     if (!m_username.empty() || !m_password.empty()) {
         SetHeader(wxT("Authorization"), GenerateAuthString(m_username, m_password));
     }
-
-    SaveState();
-
-    // we may use non blocking sockets only if we can dispatch events from them
-    int flags = wxIsMainThread() && wxApp::IsMainLoopRunning() ? wxSOCKET_NONE
-                                                               : wxSOCKET_BLOCK;
-    // and we must use wxSOCKET_WAITALL to ensure that all data is sent
-    flags |= wxSOCKET_WAITALL;
-    SetFlags(flags);
-    Notify(false);
 
     wxString buf;
     buf.Printf(wxT("%s %s HTTP/1.0\r\n"), method, path);
@@ -395,10 +374,8 @@ bool wxHTTP::BuildRequest(const wxString& path, const wxString& method)
 
     wxString tmp_str;
     m_lastError = ReadLine(this, tmp_str);
-    if (m_lastError != wxPROTO_NOERR) {
-        RestoreState();
+    if (m_lastError != wxPROTO_NOERR)
         return false;
-    }
 
     if (!tmp_str.Contains(wxT("HTTP/"))) {
         // TODO: support HTTP v0.9 which can have no header.
@@ -441,11 +418,11 @@ bool wxHTTP::BuildRequest(const wxString& path, const wxString& method)
 
     m_lastError = wxPROTO_NOERR;
     ret_value = ParseHeaders();
-    RestoreState();
+
     return ret_value;
 }
 
-bool wxHTTP::Abort(void)
+bool wxHTTP::Abort()
 {
     return wxSocketClient::Close();
 }
@@ -468,11 +445,11 @@ public:
         m_read_bytes = 0;
     }
 
-    size_t GetSize() const { return m_httpsize; }
-    virtual ~wxHTTPStream(void) { m_http->Abort(); }
+    size_t GetSize() const override { return m_httpsize; }
+    virtual ~wxHTTPStream() { m_http->Abort(); }
 
 protected:
-    size_t OnSysRead(void *buffer, size_t bufsize);
+    size_t OnSysRead(void *buffer, size_t bufsize) override;
 
     wxDECLARE_NO_COPY_CLASS(wxHTTPStream);
 };
@@ -493,7 +470,7 @@ size_t wxHTTPStream::OnSysRead(void *buffer, size_t bufsize)
         // if m_httpsize is (size_t) -1 this means read until connection closed
         // which is equivalent to getting a READ_ERROR, for clients however this
         // must be translated into EOF, as it is the expected way of signalling
-        // end end of the content
+        // end of the content
         m_lasterror = wxSTREAM_EOF;
     }
 
@@ -508,7 +485,7 @@ wxInputStream *wxHTTP::GetInputStream(const wxString& path)
 
     m_lastError = wxPROTO_CONNERR;  // all following returns share this type of error
     if (!m_addr)
-        return NULL;
+        return nullptr;
 
     // We set m_connected back to false so wxSocketBase will know what to do.
 #ifdef __WXMAC__
@@ -516,10 +493,10 @@ wxInputStream *wxHTTP::GetInputStream(const wxString& path)
     wxSocketClient::WaitOnConnect(10);
 
     if (!wxSocketClient::IsConnected())
-        return NULL;
+        return nullptr;
 #else
     if (!wxProtocol::Connect(*m_addr))
-        return NULL;
+        return nullptr;
 #endif
 
     // Use the user-specified method if any or determine the method to use
@@ -529,7 +506,7 @@ wxInputStream *wxHTTP::GetInputStream(const wxString& path)
         method = m_postBuffer.IsEmpty() ? wxS("GET"): wxS("POST");
 
     if (!BuildRequest(path, method))
-        return NULL;
+        return nullptr;
 
     inp_stream = new wxHTTPStream(this);
 
@@ -539,9 +516,6 @@ wxInputStream *wxHTTP::GetInputStream(const wxString& path)
         inp_stream->m_httpsize = (size_t)-1;
 
     inp_stream->m_read_bytes = 0;
-
-    Notify(false);
-    SetFlags(wxSOCKET_BLOCK | wxSOCKET_WAITALL);
 
     // no error; reset m_lastError
     m_lastError = wxPROTO_NOERR;

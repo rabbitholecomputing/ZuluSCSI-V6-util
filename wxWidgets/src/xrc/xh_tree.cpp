@@ -10,16 +10,13 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_XRC && wxUSE_TREECTRL
 
 #include "wx/xrc/xh_tree.h"
 #include "wx/treectrl.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxTreeCtrlXmlHandler, wxXmlResourceHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTreeCtrlXmlHandler, wxXmlResourceHandler);
 
 wxTreeCtrlXmlHandler::wxTreeCtrlXmlHandler()
 : wxXmlResourceHandler()
@@ -37,9 +34,6 @@ wxTreeCtrlXmlHandler::wxTreeCtrlXmlHandler()
     XRC_ADD_STYLE(wxTR_SINGLE);
     XRC_ADD_STYLE(wxTR_MULTIPLE);
     XRC_ADD_STYLE(wxTR_DEFAULT_STYLE);
-#if WXWIN_COMPATIBILITY_2_8
-    XRC_ADD_STYLE(wxTR_EXTENDED);
-#endif
     AddWindowStyles();
 }
 

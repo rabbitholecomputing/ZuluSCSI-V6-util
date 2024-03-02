@@ -2,7 +2,6 @@
 // Name:        wx/generic/colour.h
 // Purpose:     wxColour class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -65,7 +64,7 @@ private:
     unsigned char m_alpha;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxColour)
+    wxDECLARE_DYNAMIC_CLASS(wxColour);
 };
 
 #endif // _WX_GENERIC_COLOUR_H_

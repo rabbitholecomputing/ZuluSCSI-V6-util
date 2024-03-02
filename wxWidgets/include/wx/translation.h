@@ -19,9 +19,19 @@
 
 #include "wx/buffer.h"
 #include "wx/language.h"
-#include "wx/hashmap.h"
 #include "wx/strconv.h"
-#include "wx/scopedptr.h"
+
+// This is a hack, but this header used to include wx/hashmap.h which, in turn,
+// included wx/wxcrt.h and it turns out quite some existing code relied on it
+// by using the CRT wrapper functions declared there without explicitly
+// including that header, so keep including it from here to let it continue to
+// compile.
+#include "wx/wxcrt.h"
+
+#include <memory>
+#include <unordered_map>
+
+using wxTranslationsHashMap = std::unordered_map<wxString, wxString>;
 
 // ============================================================================
 // global decls
@@ -35,13 +45,36 @@
 // --keyword="_" --keyword="wxPLURAL:1,2" options
 // to extract the strings from the sources)
 #ifndef WXINTL_NO_GETTEXT_MACRO
-    #define _(s)                     wxGetTranslation((s))
-    #define wxPLURAL(sing, plur, n)  wxGetTranslation((sing), (plur), n)
+#ifndef wxNO_IMPLICIT_WXSTRING_ENCODING
+    #define _(s)                               wxGetTranslation((s))
+#else
+    #define _(s)                               wxGetTranslation(wxASCII_STR(s))
 #endif
+    #define wxPLURAL(sing, plur, n)            wxGetTranslation((sing), (plur), n)
+#endif
+
+// wx-specific macro for translating strings in the given context: if you use
+// them, you need to also add
+// --keyword="wxGETTEXT_IN_CONTEXT:1c,2" --keyword="wxGETTEXT_IN_CONTEXT_PLURAL:1c,2,3"
+// options to xgettext invocation.
+#ifndef wxNO_IMPLICIT_WXSTRING_ENCODING
+#define wxGETTEXT_IN_CONTEXT(c, s) \
+    wxGetTranslation((s), wxString(), c)
+#else
+#define wxGETTEXT_IN_CONTEXT(c, s) \
+    wxGetTranslation(wxASCII_STR(s), wxString(), c)
+#endif
+#define wxGETTEXT_IN_CONTEXT_PLURAL(c, sing, plur, n) \
+    wxGetTranslation((sing), (plur), n, wxString(), c)
 
 // another one which just marks the strings for extraction, but doesn't
 // perform the translation (use -kwxTRANSLATE with xgettext!)
 #define wxTRANSLATE(str) str
+
+// another one which just marks the strings, with a context, for extraction,
+// but doesn't perform the translation (use -kwxTRANSLATE_IN_CONTEXT:1c,2 with
+// xgettext!)
+#define wxTRANSLATE_IN_CONTEXT(c, str) str
 
 // ----------------------------------------------------------------------------
 // forward decls
@@ -52,7 +85,7 @@ class WXDLLIMPEXP_FWD_BASE wxTranslationsLoader;
 class WXDLLIMPEXP_FWD_BASE wxLocale;
 
 class wxPluralFormsCalculator;
-wxDECLARE_SCOPED_PTR(wxPluralFormsCalculator, wxPluralFormsCalculatorPtr)
+using wxPluralFormsCalculatorPtr = std::unique_ptr<wxPluralFormsCalculator>;
 
 // ----------------------------------------------------------------------------
 // wxMsgCatalog corresponds to one loaded message catalog.
@@ -63,12 +96,10 @@ class WXDLLIMPEXP_BASE wxMsgCatalog
 public:
     // Ctor is protected, because CreateFromXXX functions must be used,
     // but destruction should be unrestricted
-#if !wxUSE_UNICODE
     ~wxMsgCatalog();
-#endif
 
     // load the catalog from disk or from data; caller is responsible for
-    // deleting them if not NULL
+    // deleting them if not null
     static wxMsgCatalog *CreateFromFile(const wxString& filename,
                                         const wxString& domain);
 
@@ -78,30 +109,19 @@ public:
     // get name of the catalog
     wxString GetDomain() const { return m_domain; }
 
-    // get the translated string: returns NULL if not found
-    const wxString *GetString(const wxString& sz, unsigned n = UINT_MAX) const;
+    // get the translated string: returns nullptr if not found
+    const wxString *GetString(const wxString& sz, unsigned n = UINT_MAX, const wxString& ct = wxEmptyString) const;
 
 protected:
-    wxMsgCatalog(const wxString& domain)
-        : m_pNext(NULL), m_domain(domain)
-#if !wxUSE_UNICODE
-        , m_conv(NULL)
-#endif
-    {}
+    wxMsgCatalog(const wxString& domain);
 
 private:
-    // variable pointing to the next element in a linked list (or NULL)
+    // variable pointing to the next element in a linked list (or nullptr)
     wxMsgCatalog *m_pNext;
     friend class wxTranslations;
 
-    wxStringToStringHashMap m_messages; // all messages in the catalog
+    wxTranslationsHashMap   m_messages; // all messages in the catalog
     wxString                m_domain;   // name of the domain
-
-#if !wxUSE_UNICODE
-    // the conversion corresponding to this catalog charset if we installed it
-    // as the global one
-    wxCSConv *m_conv;
-#endif
 
     wxPluralFormsCalculatorPtr m_pluralFormsCalculator;
 };
@@ -117,9 +137,9 @@ public:
     wxTranslations();
     ~wxTranslations();
 
-    // returns current translations object, may return NULL
+    // returns current translations object, may return nullptr
     static wxTranslations *Get();
-    // sets current translations object (takes ownership; may be NULL)
+    // sets current translations object (takes ownership; may be null)
     static void Set(wxTranslations *t);
 
     // changes loader to non-default one; takes ownership of 'loader'
@@ -131,33 +151,38 @@ public:
     // get languages available for this app
     wxArrayString GetAvailableTranslations(const wxString& domain) const;
 
-    // find best translation language for given domain
+    // find best available translation language for given domain
+    wxString GetBestAvailableTranslation(const wxString& domain);
+
     wxString GetBestTranslation(const wxString& domain, wxLanguage msgIdLanguage);
     wxString GetBestTranslation(const wxString& domain,
-                                const wxString& msgIdLanguage = "en");
+                                const wxString& msgIdLanguage = wxASCII_STR("en"));
+
+    // add catalog for the given domain returning true if it could be found by
+    // wxTranslationsLoader
+    bool AddAvailableCatalog(const wxString& domain, wxLanguage msgIdLanguage = wxLANGUAGE_ENGLISH_US);
 
     // add standard wxWidgets catalog ("wxstd")
     bool AddStdCatalog();
 
     // add catalog with given domain name and language, looking it up via
-    // wxTranslationsLoader
-    bool AddCatalog(const wxString& domain);
-    bool AddCatalog(const wxString& domain, wxLanguage msgIdLanguage);
-#if !wxUSE_UNICODE
+    // wxTranslationsLoader -- unlike AddAvailableCatalog(), this function also
+    // returns true if this catalog is not needed at all because msgIdLanguage
+    // is an acceptable language to use directly
     bool AddCatalog(const wxString& domain,
-                    wxLanguage msgIdLanguage,
-                    const wxString& msgIdCharset);
-#endif
+                    wxLanguage msgIdLanguage = wxLANGUAGE_ENGLISH_US);
 
     // check if the given catalog is loaded
     bool IsLoaded(const wxString& domain) const;
 
     // access to translations
     const wxString *GetTranslatedString(const wxString& origString,
-                                        const wxString& domain = wxEmptyString) const;
+                                        const wxString& domain = wxEmptyString,
+                                        const wxString& context = wxEmptyString) const;
     const wxString *GetTranslatedString(const wxString& origString,
                                         unsigned n,
-                                        const wxString& domain = wxEmptyString) const;
+                                        const wxString& domain = wxEmptyString,
+                                        const wxString& context = wxEmptyString) const;
 
     wxString GetHeaderValue(const wxString& header,
                             const wxString& domain = wxEmptyString) const;
@@ -168,21 +193,38 @@ public:
     static const wxString& GetUntranslatedString(const wxString& str);
 
 private:
-    // perform loading of the catalog via m_loader
-    bool LoadCatalog(const wxString& domain, const wxString& lang, const wxString& msgIdLang);
+    enum class Translations
+    {
+      NotNeeded = -1,
+      NotFound = 0,
+      Found = 1
+    };
 
-    // find catalog by name in a linked list, return NULL if !found
+    Translations DoAddCatalog(const wxString& domain, wxLanguage msgIdLanguage);
+
+    // perform loading of the catalog via m_loader
+    bool LoadCatalog(const wxString& domain, const wxString& lang);
+
+    // find catalog by name in a linked list, return nullptr if !found
     wxMsgCatalog *FindCatalog(const wxString& domain) const;
 
     // same as Set(), without taking ownership; only for wxLocale
     static void SetNonOwned(wxTranslations *t);
     friend class wxLocale;
 
+    wxString DoGetBestAvailableTranslation(const wxString& domain, const wxString& additionalAvailableLanguage);
+
 private:
     wxString m_lang;
     wxTranslationsLoader *m_loader;
 
     wxMsgCatalog *m_pMsgCat; // pointer to linked list of catalogs
+
+    // In addition to keeping all the catalogs in the linked list, we also
+    // store them in a hash map indexed by the domain name to allow finding
+    // them by name efficiently.
+    using wxMsgCatalogMap = std::unordered_map<wxString, wxMsgCatalog*>;
+    wxMsgCatalogMap m_catalogMap;
 };
 
 
@@ -190,8 +232,8 @@ private:
 class WXDLLIMPEXP_BASE wxTranslationsLoader
 {
 public:
-    wxTranslationsLoader() {}
-    virtual ~wxTranslationsLoader() {}
+    wxTranslationsLoader() = default;
+    virtual ~wxTranslationsLoader() = default;
 
     virtual wxMsgCatalog *LoadCatalog(const wxString& domain,
                                       const wxString& lang) = 0;
@@ -208,9 +250,9 @@ public:
     static void AddCatalogLookupPathPrefix(const wxString& prefix);
 
     virtual wxMsgCatalog *LoadCatalog(const wxString& domain,
-                                      const wxString& lang);
+                                      const wxString& lang) override;
 
-    virtual wxArrayString GetAvailableTranslations(const wxString& domain) const;
+    virtual wxArrayString GetAvailableTranslations(const wxString& domain) const override;
 };
 
 
@@ -221,16 +263,16 @@ class WXDLLIMPEXP_BASE wxResourceTranslationsLoader
 {
 public:
     virtual wxMsgCatalog *LoadCatalog(const wxString& domain,
-                                      const wxString& lang);
+                                      const wxString& lang) override;
 
-    virtual wxArrayString GetAvailableTranslations(const wxString& domain) const;
+    virtual wxArrayString GetAvailableTranslations(const wxString& domain) const override;
 
 protected:
     // returns resource type to use for translations
-    virtual wxString GetResourceType() const { return "MOFILE"; }
+    virtual wxString GetResourceType() const { return wxASCII_STR("MOFILE"); }
 
     // returns module to load resources from
-    virtual WXHINSTANCE GetModule() const { return 0; }
+    virtual WXHINSTANCE GetModule() const { return nullptr; }
 };
 #endif // __WINDOWS__
 
@@ -241,11 +283,12 @@ protected:
 
 // get the translation of the string in the current locale
 inline const wxString& wxGetTranslation(const wxString& str,
-                                        const wxString& domain = wxString())
+                                        const wxString& domain = wxString(),
+                                        const wxString& context = wxString())
 {
     wxTranslations *trans = wxTranslations::Get();
-    const wxString *transStr = trans ? trans->GetTranslatedString(str, domain)
-                                     : NULL;
+    const wxString *transStr = trans ? trans->GetTranslatedString(str, domain, context)
+                                     : nullptr;
     if ( transStr )
         return *transStr;
     else
@@ -257,11 +300,12 @@ inline const wxString& wxGetTranslation(const wxString& str,
 inline const wxString& wxGetTranslation(const wxString& str1,
                                         const wxString& str2,
                                         unsigned n,
-                                        const wxString& domain = wxString())
+                                        const wxString& domain = wxString(),
+                                        const wxString& context = wxString())
 {
     wxTranslations *trans = wxTranslations::Get();
-    const wxString *transStr = trans ? trans->GetTranslatedString(str1, n, domain)
-                                     : NULL;
+    const wxString *transStr = trans ? trans->GetTranslatedString(str1, n, domain, context)
+                                     : nullptr;
     if ( transStr )
         return *transStr;
     else
@@ -272,18 +316,52 @@ inline const wxString& wxGetTranslation(const wxString& str1,
                : wxTranslations::GetUntranslatedString(str2);
 }
 
+#ifdef wxNO_IMPLICIT_WXSTRING_ENCODING
+
+/*
+ * It must always be possible to call wxGetTranslation() with const
+ * char* arguments.
+ */
+inline const wxString& wxGetTranslation(const char *str,
+                                        const char *domain = "",
+                                        const char *context = "") {
+    const wxMBConv &conv = wxConvWhateverWorks;
+    return wxGetTranslation(wxString(str, conv), wxString(domain, conv),
+                            wxString(context, conv));
+}
+
+inline const wxString& wxGetTranslation(const char *str1,
+                                        const char *str2,
+                                        unsigned n,
+                                        const char *domain = "",
+                                        const char *context = "") {
+    const wxMBConv &conv = wxConvWhateverWorks;
+    return wxGetTranslation(wxString(str1, conv), wxString(str2, conv), n,
+                            wxString(domain, conv),
+                            wxString(context, conv));
+}
+
+#endif // wxNO_IMPLICIT_WXSTRING_ENCODING
+
 #else // !wxUSE_INTL
 
 // the macros should still be defined - otherwise compilation would fail
 
 #if !defined(WXINTL_NO_GETTEXT_MACRO)
     #if !defined(_)
+#ifndef wxNO_IMPLICIT_WXSTRING_ENCODING
         #define _(s)                 (s)
+#else
+        #define _(s)                 wxASCII_STR(s)
+#endif
     #endif
     #define wxPLURAL(sing, plur, n)  ((n) == 1 ? (sing) : (plur))
+    #define wxGETTEXT_IN_CONTEXT(c, s)                     (s)
+    #define wxGETTEXT_IN_CONTEXT_PLURAL(c, sing, plur, n)  wxPLURAL(sing, plur, n)
 #endif
 
 #define wxTRANSLATE(str) str
+#define wxTRANSLATE_IN_CONTEXT(c, str) str
 
 // NB: we use a template here in order to avoid using
 //     wxLocale::GetUntranslatedString() above, which would be required if
@@ -298,6 +376,10 @@ template<typename TString, typename TDomain>
 inline TString wxGetTranslation(TString str, TDomain WXUNUSED(domain))
     { return str; }
 
+template<typename TString, typename TDomain, typename TContext>
+inline TString wxGetTranslation(TString str, TDomain WXUNUSED(domain), TContext WXUNUSED(context))
+    { return str; }
+
 template<typename TString, typename TDomain>
 inline TString wxGetTranslation(TString str1, TString str2, size_t n)
     { return n == 1 ? str1 : str2; }
@@ -305,6 +387,12 @@ inline TString wxGetTranslation(TString str1, TString str2, size_t n)
 template<typename TString, typename TDomain>
 inline TString wxGetTranslation(TString str1, TString str2, size_t n,
                                 TDomain WXUNUSED(domain))
+    { return n == 1 ? str1 : str2; }
+
+template<typename TString, typename TDomain, typename TContext>
+inline TString wxGetTranslation(TString str1, TString str2, size_t n,
+                                TDomain WXUNUSED(domain),
+                                TContext WXUNUSED(context))
     { return n == 1 ? str1 : str2; }
 
 #endif // wxUSE_INTL/!wxUSE_INTL

@@ -2,7 +2,6 @@
 // Name:        src/generic/toolbkg.cpp
 // Purpose:     generic implementation of wxToolbook
 // Author:      Julian Smart
-// Modified by:
 // Created:     2006-01-29
 // Copyright:   (c) 2006 Julian Smart
 // Licence:     wxWindows licence
@@ -11,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_TOOLBOOK
 
@@ -32,26 +28,19 @@
 #endif
 
 // ----------------------------------------------------------------------------
-// various wxWidgets macros
-// ----------------------------------------------------------------------------
-
-// check that the page index is valid
-#define IS_VALID_PAGE(nPage) ((nPage) < GetPageCount())
-
-// ----------------------------------------------------------------------------
 // event table
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxToolbook, wxBookCtrlBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxToolbook, wxBookCtrlBase);
 
 wxDEFINE_EVENT( wxEVT_TOOLBOOK_PAGE_CHANGING, wxBookCtrlEvent );
 wxDEFINE_EVENT( wxEVT_TOOLBOOK_PAGE_CHANGED,  wxBookCtrlEvent );
 
-BEGIN_EVENT_TABLE(wxToolbook, wxBookCtrlBase)
+wxBEGIN_EVENT_TABLE(wxToolbook, wxBookCtrlBase)
     EVT_SIZE(wxToolbook::OnSize)
-    EVT_TOOL_RANGE(1, 50, wxToolbook::OnToolSelected)
+    EVT_TOOL(wxID_ANY, wxToolbook::OnToolSelected)
     EVT_IDLE(wxToolbook::OnIdle)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // wxToolbook implementation
@@ -141,8 +130,8 @@ void wxToolbook::OnSize(wxSizeEvent& event)
 
 bool wxToolbook::SetPageText(size_t n, const wxString& strText)
 {
-    // Assume tool ids start from 1
-    wxToolBarToolBase* tool = GetToolBar()->FindById(n + 1);
+    int toolId = PageToToolId(n);
+    wxToolBarToolBase* tool = GetToolBar()->FindById(toolId);
     if (tool)
     {
         tool->SetLabel(strText);
@@ -154,7 +143,8 @@ bool wxToolbook::SetPageText(size_t n, const wxString& strText)
 
 wxString wxToolbook::GetPageText(size_t n) const
 {
-    wxToolBarToolBase* tool = GetToolBar()->FindById(n + 1);
+    int toolId = PageToToolId(n);
+    wxToolBarToolBase* tool = GetToolBar()->FindById(toolId);
     if (tool)
         return tool->GetLabel();
     else
@@ -170,29 +160,14 @@ int wxToolbook::GetPageImage(size_t WXUNUSED(n)) const
 
 bool wxToolbook::SetPageImage(size_t n, int imageId)
 {
-    wxASSERT( GetImageList() != NULL );
-    if (!GetImageList())
+    wxBitmapBundle bmp = GetBitmapBundle(imageId);
+    if ( !bmp.IsOk() )
         return false;
 
-    wxToolBarToolBase* tool = GetToolBar()->FindById(n + 1);
-    if (tool)
-    {
-        // Find the image list index for this tool
-        wxBitmap bitmap = GetImageList()->GetBitmap(imageId);
-        tool->SetNormalBitmap(bitmap);
-        return true;
-    }
-    else
-        return false;
-}
+    int toolId = PageToToolId(n);
+    GetToolBar()->SetToolNormalBitmap(toolId, bmp);
 
-// ----------------------------------------------------------------------------
-// image list stuff
-// ----------------------------------------------------------------------------
-
-void wxToolbook::SetImageList(wxImageList *imageList)
-{
-    wxBookCtrlBase::SetImageList(imageList);
+    return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -211,8 +186,8 @@ void wxToolbook::MakeChangedEvent(wxBookCtrlEvent &event)
 
 void wxToolbook::UpdateSelectedPage(size_t newsel)
 {
-    m_selection = newsel;
-    GetToolBar()->ToggleTool(newsel + 1, true);
+    int toolId = PageToToolId(newsel);
+    GetToolBar()->ToggleTool(toolId, true);
 }
 
 // Not part of the wxBookctrl API, but must be called in OnIdle or
@@ -222,8 +197,6 @@ void wxToolbook::Realize()
     if (m_needsRealizing)
     {
         m_needsRealizing = false;
-
-        GetToolBar()->SetToolBitmapSize(m_maxBitmapSize);
 
         GetToolBar()->Realize();
     }
@@ -296,35 +269,31 @@ bool wxToolbook::InsertPage(size_t n,
 
     m_needsRealizing = true;
 
-    wxASSERT(GetImageList() != NULL);
+    wxBitmapBundle bitmap = GetBitmapBundle(imageId);
 
-    if (!GetImageList())
-        return false;
+    int toolId = page->GetId();
+    GetToolBar()->InsertTool(n, toolId, text, bitmap, wxBitmapBundle(), wxITEM_RADIO);
 
-    // TODO: make sure all platforms can convert between icon and bitmap,
-    // and/or test whether the image is a bitmap or an icon.
-#ifdef __WXMAC__
-    wxBitmap bitmap = GetImageList()->GetBitmap(imageId);
-#else
-    // On Windows, we can lose information by using GetBitmap, so extract icon instead
-    wxIcon icon = GetImageList()->GetIcon(imageId);
-    wxBitmap bitmap;
-    bitmap.CopyFromIcon(icon);
-#endif
-
-    m_maxBitmapSize.x = wxMax(bitmap.GetWidth(), m_maxBitmapSize.x);
-    m_maxBitmapSize.y = wxMax(bitmap.GetHeight(), m_maxBitmapSize.y);
-
-    GetToolBar()->SetToolBitmapSize(m_maxBitmapSize);
-    GetToolBar()->AddRadioTool(n + 1, text, bitmap, wxNullBitmap, text);
-
-    if (bSelect)
+    // fix current selection
+    if (m_selection == wxNOT_FOUND)
     {
-        GetToolBar()->ToggleTool(n, true);
+        DoShowPage(page, true);
         m_selection = n;
     }
+    else if ((size_t) m_selection >= n)
+    {
+        DoShowPage(page, false);
+        m_selection++;
+    }
     else
-        page->Hide();
+    {
+        DoShowPage(page, false);
+    }
+
+    if ( bSelect )
+    {
+        SetSelection(n);
+    }
 
     InvalidateBestSize();
     return true;
@@ -332,11 +301,12 @@ bool wxToolbook::InsertPage(size_t n,
 
 wxWindow *wxToolbook::DoRemovePage(size_t page)
 {
+    int toolId = PageToToolId(page);
     wxWindow *win = wxBookCtrlBase::DoRemovePage(page);
 
     if ( win )
     {
-        GetToolBar()->DeleteTool(page + 1);
+        GetToolBar()->DeleteTool(toolId);
 
         DoSetSelectionAfterRemoval(page);
     }
@@ -351,15 +321,63 @@ bool wxToolbook::DeleteAllPages()
     return wxBookCtrlBase::DeleteAllPages();
 }
 
+bool wxToolbook::EnablePage(size_t page, bool enable)
+{
+    int toolId = PageToToolId(page);
+    GetToolBar()->EnableTool(toolId, enable);
+    if (!enable && GetSelection() == (int)page)
+    {
+        AdvanceSelection();
+    }
+    return true;
+}
+
+bool wxToolbook::EnablePage(wxWindow *page, bool enable)
+{
+    const int pageIndex = FindPage(page);
+    if (pageIndex == wxNOT_FOUND)
+    {
+        return false;
+    }
+    return EnablePage(pageIndex, enable);
+}
+
+int wxToolbook::PageToToolId(size_t page) const
+{
+    wxCHECK_MSG(page < GetPageCount(), wxID_NONE, "Invalid page number");
+    return GetPage(page)->GetId();
+}
+
+int wxToolbook::ToolIdToPage(int toolId) const
+{
+    for (size_t i = 0; i < m_pages.size(); i++)
+    {
+        if (m_pages[i]->GetId() == toolId)
+        {
+            return (int) i;
+        }
+    }
+    return wxNOT_FOUND;
+}
+
 // ----------------------------------------------------------------------------
 // wxToolbook events
 // ----------------------------------------------------------------------------
 
 void wxToolbook::OnToolSelected(wxCommandEvent& event)
 {
-    const int selNew = event.GetId() - 1;
+    // find page for the tool
+    int page = ToolIdToPage(event.GetId());
+    if (page == wxNOT_FOUND)
+    {
+        // we may have gotten an event from something other than our tool, e.g.
+        // a menu item from a context menu shown from the application code, so
+        // take care to avoid consuming it in this case
+        event.Skip();
+        return;
+    }
 
-    if ( selNew == m_selection )
+    if (page == m_selection )
     {
         // this event can only come from our own Select(m_selection) below
         // which we call when the page change is vetoed, so we should simply
@@ -367,10 +385,10 @@ void wxToolbook::OnToolSelected(wxCommandEvent& event)
         return;
     }
 
-    SetSelection(selNew);
+    SetSelection(page);
 
     // change wasn't allowed, return to previous state
-    if (m_selection != selNew)
+    if (m_selection != page)
     {
         GetToolBar()->ToggleTool(m_selection, false);
     }

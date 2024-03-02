@@ -9,10 +9,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-
 #if wxUSE_FILECTRL && !defined(__WXUNIVERSAL__)
 
 #include "wx/filectrl.h"
@@ -162,7 +158,7 @@ void wxGtkFileChooser::SetWildcard( const wxString& wildCard )
             {
                 GtkFileFilter* filter = gtk_file_filter_new();
 
-                gtk_file_filter_set_name( filter, wxGTK_CONV_SYS( wildDescriptions[n] ) );
+                gtk_file_filter_set_name( filter, wildDescriptions[n].utf8_str() );
 
                 wxStringTokenizer exttok( wildFilters[n], wxT( ";" ) );
 
@@ -170,7 +166,7 @@ void wxGtkFileChooser::SetWildcard( const wxString& wildCard )
                 while ( exttok.HasMoreTokens() )
                 {
                     wxString token = exttok.GetNextToken();
-                    gtk_file_filter_add_pattern( filter, wxGTK_CONV_SYS( token ) );
+                    gtk_file_filter_add_pattern( filter, token.utf8_str() );
 
                     if (n1 == 1)
                         m_wildcards.Add( token ); // Only add first pattern to list, used later when saving
@@ -194,7 +190,7 @@ void wxGtkFileChooser::SetFilterIndex( int filterIndex )
 
     filter = g_slist_nth_data( filters, filterIndex );
 
-    if ( filter != NULL )
+    if ( filter != nullptr )
     {
         gtk_file_chooser_set_filter( chooser, GTK_FILE_FILTER( filter ) );
     }
@@ -225,7 +221,7 @@ int wxGtkFileChooser::GetFilterIndex() const
 
 bool wxGtkFileChooser::HasFilterChoice() const
 {
-    return gtk_file_chooser_get_filter( m_widget ) != NULL;
+    return gtk_file_chooser_get_filter( m_widget ) != nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -241,7 +237,7 @@ extern "C"
     static void
     gtkfilechooserwidget_file_activated_callback( GtkWidget *WXUNUSED( widget ), wxGtkFileCtrl *fileCtrl )
     {
-        GenerateFileActivatedEvent( fileCtrl, fileCtrl );
+        wxGenerateFileActivatedEvent( fileCtrl, fileCtrl );
     }
 }
 
@@ -262,7 +258,7 @@ extern "C"
         }
 
         if ( !fileCtrl->m_checkNextSelEvent )
-            GenerateSelectionChangedEvent( fileCtrl, fileCtrl );
+            wxGenerateSelectionChangedEvent( fileCtrl, fileCtrl );
     }
 }
 
@@ -277,7 +273,7 @@ extern "C"
         }
         else
         {
-            GenerateFolderChangedEvent( fileCtrl, fileCtrl );
+            wxGenerateFolderChangedEvent( fileCtrl, fileCtrl );
         }
 
         fileCtrl->m_checkNextSelEvent = true;
@@ -294,14 +290,14 @@ extern "C"
              fileCtrl->HasFilterChoice() &&
              !fileCtrl->GTKShouldIgnoreNextFilterEvent() )
         {
-            GenerateFilterChangedEvent( fileCtrl, fileCtrl );
+            wxGenerateFilterChangedEvent( fileCtrl, fileCtrl );
         }
     }
 }
 
 // wxGtkFileCtrl implementation
 
-IMPLEMENT_DYNAMIC_CLASS( wxGtkFileCtrl, wxControl )
+wxIMPLEMENT_DYNAMIC_CLASS(wxGtkFileCtrl, wxControl);
 
 wxGtkFileCtrl::~wxGtkFileCtrl()
 {
@@ -339,11 +335,9 @@ bool wxGtkFileCtrl::Create( wxWindow *parent,
     if ( style & wxFC_SAVE )
         gtkAction = GTK_FILE_CHOOSER_ACTION_SAVE;
 
-    m_widget =  gtk_alignment_new ( 0, 0, 1, 1 );
-    g_object_ref(m_widget);
     m_fcWidget = GTK_FILE_CHOOSER( gtk_file_chooser_widget_new(gtkAction) );
-    gtk_widget_show ( GTK_WIDGET( m_fcWidget ) );
-    gtk_container_add ( GTK_CONTAINER ( m_widget ), GTK_WIDGET( m_fcWidget ) );
+    m_widget = GTK_WIDGET(m_fcWidget);
+    g_object_ref(m_widget);
 
     m_focusWidget = GTK_WIDGET( m_fcWidget );
 
@@ -428,7 +422,7 @@ bool wxGtkFileCtrl::SetFilename( const wxString& name )
 {
     if ( HasFlag( wxFC_SAVE ) )
     {
-        gtk_file_chooser_set_current_name( m_fcWidget, wxGTK_CONV( name ) );
+        gtk_file_chooser_set_current_name( m_fcWidget, name.utf8_str() );
         return true;
     }
     else

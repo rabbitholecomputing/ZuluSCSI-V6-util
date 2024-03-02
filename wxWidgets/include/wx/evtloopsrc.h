@@ -12,7 +12,6 @@
 
 // Include the header to get wxUSE_EVENTLOOP_SOURCE definition from it.
 #include "wx/evtloop.h"
-
 // ----------------------------------------------------------------------------
 // wxEventLoopSource: a source of events which may be added to wxEventLoop
 // ----------------------------------------------------------------------------
@@ -40,7 +39,7 @@ public:
     virtual void OnExceptionWaiting() = 0;
 
     // virtual dtor for the base class
-    virtual ~wxEventLoopSourceHandler() { }
+    virtual ~wxEventLoopSourceHandler() = default;
 };
 
 // flags describing which kind of IO events we're interested in
@@ -89,12 +88,14 @@ inline wxEventLoopSource::~wxEventLoopSource() { }
     #include "wx/unix/evtloopsrc.h"
 #endif // __UNIX__
 
-#if defined(__WXGTK20__)
+#if defined(__WXGTK__)
     #include "wx/gtk/evtloopsrc.h"
 #endif
 
 #if defined(__DARWIN__)
     #include "wx/osx/evtloopsrc.h"
+#elif defined(__WXQT__)
+     #include "wx/unix/evtloopsrc.h"
 #endif
 
 #endif // wxUSE_EVENTLOOP_SOURCE

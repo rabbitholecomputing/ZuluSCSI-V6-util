@@ -11,9 +11,9 @@
 // ============================================================================
 
 /** @addtogroup group_funcmacro_misc */
-//@{
+///@{
 
-/** 
+/**
     Elements of this enum specify the possible behaviours of wxBase64Decode
     when an invalid character is encountered.
 */
@@ -56,10 +56,6 @@ size_t wxBase64Encode(char* dst, size_t dstLen,
     a wxString.
 
     There is no error return.
-
-    To allocate the buffer of the correct size, use wxBase64EncodedSize() or
-    call this function with @a dst set to @NULL -- it will then return the
-    necessary buffer size.
 
     @param src
         The input buffer, must not be @NULL.
@@ -132,7 +128,7 @@ size_t wxBase64EncodedSize(size_t len);
         white space characters are silently skipped instead. And if it is
         wxBase64DecodeMode_Relaxed, then all invalid characters are skipped.
     @param posErr
-        If this pointer is non-@NULL and an error occurs during decoding, it is
+        If this pointer is non-null and an error occurs during decoding, it is
         filled with the index of the invalid character.
 
     @header{wx/base64.h}
@@ -141,7 +137,7 @@ size_t wxBase64Decode(void* dst, size_t dstLen,
                       const char* src,
                       size_t srcLen = wxNO_LEN,
                       wxBase64DecodeMode mode = wxBase64DecodeMode_Strict,
-                      size_t *posErr = NULL);
+                      size_t *posErr = nullptr);
 
 /**
     Decode a Base64-encoded wxString.
@@ -158,7 +154,7 @@ size_t wxBase64Decode(void* dst, size_t dstLen,
 size_t wxBase64Decode(void* dst, size_t dstLen,
                       const wxString& str,
                       wxBase64DecodeMode mode = wxBase64DecodeMode_Strict,
-                      size_t *posErr = NULL);
+                      size_t *posErr = nullptr);
 
 /**
     Decode a Base64-encoded string and return decoded contents in a buffer.
@@ -174,7 +170,7 @@ size_t wxBase64Decode(void* dst, size_t dstLen,
 wxMemoryBuffer wxBase64Decode(const char* src,
                               size_t srcLen = wxNO_LEN,
                               wxBase64DecodeMode mode = wxBase64DecodeMode_Strict,
-                              size_t *posErr = NULL);
+                              size_t *posErr = nullptr);
 
 /**
     Decode a Base64-encoded wxString and return decoded contents in a buffer.
@@ -189,7 +185,7 @@ wxMemoryBuffer wxBase64Decode(const char* src,
 */
 wxMemoryBuffer wxBase64Decode(const wxString& src,
                               wxBase64DecodeMode mode = wxBase64DecodeMode_Strict,
-                              size_t *posErr = NULL);
+                              size_t *posErr = nullptr);
 
-//@}
+///@}
 

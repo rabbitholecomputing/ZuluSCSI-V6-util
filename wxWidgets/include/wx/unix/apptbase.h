@@ -2,7 +2,6 @@
 // Name:        wx/unix/apptbase.h
 // Purpose:     declaration of wxAppTraits for Unix systems
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     23.06.2003
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -48,11 +47,11 @@ public:
     virtual wxFDIOManager *GetFDIOManager();
 #endif // wxUSE_SOCKETS
 
-#if wxUSE_CONSOLE_EVENTLOOP
-    // Return a non-NULL pointer to the object responsible for managing the
+#if wxUSE_CONSOLE_EVENTLOOP && wxUSE_EVENTLOOP_SOURCE
+    // Return a non-null pointer to the object responsible for managing the
     // event loop sources in this kind of application.
     virtual wxEventLoopSourcesManagerBase* GetEventLoopSourcesManager();
-#endif // wxUSE_CONSOLE_EVENTLOOP
+#endif // wxUSE_CONSOLE_EVENTLOOP && wxUSE_CONSOLE_EVENTLOOP
 
 protected:
     // Wait for the process termination by running the given event loop until

@@ -38,14 +38,18 @@ public:
     // ----------------------------
 
     virtual void ShowMessage(const wxString& msg,
-                             int flags = wxICON_INFORMATION);
+                             int flags = wxICON_INFORMATION) override;
 
-    virtual void Dismiss();
+    virtual void Dismiss() override;
 
     virtual void AddButton(wxWindowID btnid,
-                           const wxString& label = wxString());
+                           const wxString& label = wxString()) override;
 
-    virtual void RemoveButton(wxWindowID btnid);
+    virtual void RemoveButton(wxWindowID btnid) override;
+
+    virtual size_t GetButtonCount() const override;
+    virtual wxWindowID GetButtonId(size_t idx) const override;
+    virtual bool HasButtonId(wxWindowID btnid) const override;
 
     // implementation only
     // -------------------
@@ -53,10 +57,10 @@ public:
     void GTKResponse(int btnid);
 
 protected:
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style);
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) override;
 
 private:
-    void Init() { m_impl = NULL; }
+    void Init() { m_impl = nullptr; }
 
     // add a button with the given id/label and return its widget
     GtkWidget *GTKAddButton(wxWindowID btnid,

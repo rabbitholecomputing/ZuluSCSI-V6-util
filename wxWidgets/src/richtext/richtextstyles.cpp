@@ -2,7 +2,6 @@
 // Name:        src/richtext/richtextstyles.cpp
 // Purpose:     Style management for wxRichTextCtrl
 // Author:      Julian Smart
-// Modified by:
 // Created:     2005-09-30
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -11,9 +10,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-  #pragma hdrstop
-#endif
 
 #if wxUSE_RICHTEXT
 
@@ -30,11 +26,11 @@
 
 #include "wx/richtext/richtextctrl.h"
 
-IMPLEMENT_CLASS(wxRichTextStyleDefinition, wxObject)
-IMPLEMENT_CLASS(wxRichTextCharacterStyleDefinition, wxRichTextStyleDefinition)
-IMPLEMENT_CLASS(wxRichTextParagraphStyleDefinition, wxRichTextStyleDefinition)
-IMPLEMENT_CLASS(wxRichTextListStyleDefinition, wxRichTextParagraphStyleDefinition)
-IMPLEMENT_CLASS(wxRichTextBoxStyleDefinition, wxRichTextStyleDefinition)
+wxIMPLEMENT_CLASS(wxRichTextStyleDefinition, wxObject);
+wxIMPLEMENT_CLASS(wxRichTextCharacterStyleDefinition, wxRichTextStyleDefinition);
+wxIMPLEMENT_CLASS(wxRichTextParagraphStyleDefinition, wxRichTextStyleDefinition);
+wxIMPLEMENT_CLASS(wxRichTextListStyleDefinition, wxRichTextParagraphStyleDefinition);
+wxIMPLEMENT_CLASS(wxRichTextBoxStyleDefinition, wxRichTextStyleDefinition);
 
 /*!
  * A definition
@@ -71,7 +67,7 @@ wxRichTextAttr wxRichTextStyleDefinition::GetStyleMergedWithBase(const wxRichTex
     const wxRichTextStyleDefinition* def = this;
     while (def)
     {
-        styles.Insert((wxObject*) def);
+        styles.Insert(const_cast<wxRichTextStyleDefinition*>(def));
         styleNames.Add(def->GetName());
 
         wxString baseStyleName = def->GetBaseStyle();
@@ -89,15 +85,15 @@ wxRichTextAttr wxRichTextStyleDefinition::GetStyleMergedWithBase(const wxRichTex
                 def = sheet->FindStyle(baseStyleName);
         }
         else
-            def = NULL;
+            def = nullptr;
     }
 
     wxRichTextAttr attr;
     wxList::compatibility_iterator node = styles.GetFirst();
     while (node)
     {
-        wxRichTextStyleDefinition* def = (wxRichTextStyleDefinition*) node->GetData();
-        attr.Apply(def->GetStyle(), NULL);
+        wxRichTextStyleDefinition* nodeDef = (wxRichTextStyleDefinition*) node->GetData();
+        attr.Apply(nodeDef->GetStyle(), nullptr);
         node = node->GetNext();
     }
 
@@ -173,7 +169,7 @@ const wxRichTextAttr* wxRichTextListStyleDefinition::GetLevelAttributes(int i) c
     if (i >= 0 && i < 10)
         return & m_levelStyles[i];
     else
-        return NULL;
+        return nullptr;
 }
 
 wxRichTextAttr* wxRichTextListStyleDefinition::GetLevelAttributes(int i)
@@ -182,7 +178,7 @@ wxRichTextAttr* wxRichTextListStyleDefinition::GetLevelAttributes(int i)
     if (i >= 0 && i < 10)
         return & m_levelStyles[i];
     else
-        return NULL;
+        return nullptr;
 }
 
 /// Convenience function for setting the major attributes for a list level specification
@@ -290,7 +286,7 @@ bool wxRichTextListStyleDefinition::IsNumbered(int i) const
  * The style manager
  */
 
-IMPLEMENT_CLASS(wxRichTextStyleSheet, wxObject)
+wxIMPLEMENT_CLASS(wxRichTextStyleSheet, wxObject);
 
 wxRichTextStyleSheet::~wxRichTextStyleSheet()
 {
@@ -302,15 +298,15 @@ wxRichTextStyleSheet::~wxRichTextStyleSheet()
     if (m_previousSheet)
         m_previousSheet->m_nextSheet = m_nextSheet;
 
-    m_previousSheet = NULL;
-    m_nextSheet = NULL;
+    m_previousSheet = nullptr;
+    m_nextSheet = nullptr;
 }
 
 /// Initialisation
 void wxRichTextStyleSheet::Init()
 {
-    m_previousSheet = NULL;
-    m_nextSheet = NULL;
+    m_previousSheet = nullptr;
+    m_nextSheet = nullptr;
 }
 
 /// Add a definition to one of the style lists
@@ -327,10 +323,10 @@ bool wxRichTextStyleSheet::RemoveStyle(wxList& list, wxRichTextStyleDefinition* 
     wxList::compatibility_iterator node = list.Find(def);
     if (node)
     {
-        wxRichTextStyleDefinition* def = (wxRichTextStyleDefinition*) node->GetData();
+        wxRichTextStyleDefinition* nodeDef = (wxRichTextStyleDefinition*) node->GetData();
         list.Erase(node);
         if (deleteStyle)
-            delete def;
+            delete nodeDef;
         return true;
     }
     else
@@ -364,7 +360,7 @@ wxRichTextStyleDefinition* wxRichTextStyleSheet::FindStyle(const wxList& list, c
     if (m_nextSheet && recurse)
         return m_nextSheet->FindStyle(list, name, recurse);
 
-    return NULL;
+    return nullptr;
 }
 
 /// Delete all styles
@@ -414,8 +410,8 @@ void wxRichTextStyleSheet::Unlink()
     if (m_nextSheet)
         m_nextSheet->m_previousSheet = m_previousSheet;
 
-    m_previousSheet = NULL;
-    m_nextSheet = NULL;
+    m_previousSheet = nullptr;
+    m_nextSheet = nullptr;
 }
 
 /// Add a definition to the character style list
@@ -487,7 +483,7 @@ wxRichTextStyleDefinition* wxRichTextStyleSheet::FindStyle(const wxString& name,
     if (boxDef)
         return boxDef;
 
-    return NULL;
+    return nullptr;
 }
 
 /// Copy
@@ -554,13 +550,13 @@ static wxString wxGetRichTextStyle(const wxString& style)
  * wxRichTextStyleListBox: a listbox to display styles.
  */
 
-IMPLEMENT_CLASS(wxRichTextStyleListBox, wxHtmlListBox)
+wxIMPLEMENT_CLASS(wxRichTextStyleListBox, wxHtmlListBox);
 
-BEGIN_EVENT_TABLE(wxRichTextStyleListBox, wxHtmlListBox)
+wxBEGIN_EVENT_TABLE(wxRichTextStyleListBox, wxHtmlListBox)
     EVT_LEFT_DOWN(wxRichTextStyleListBox::OnLeftDown)
     EVT_LEFT_DCLICK(wxRichTextStyleListBox::OnLeftDoubleClick)
     EVT_IDLE(wxRichTextStyleListBox::OnIdle)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxRichTextStyleListBox::wxRichTextStyleListBox(wxWindow* parent, wxWindowID id, const wxPoint& pos,
     const wxSize& size, long style)
@@ -596,10 +592,10 @@ wxString wxRichTextStyleListBox::OnGetItem(size_t n) const
 wxRichTextStyleDefinition* wxRichTextStyleListBox::GetStyle(size_t i) const
 {
     if (!GetStyleSheet())
-        return NULL;
+        return nullptr;
 
     if (i >= m_styleNames.GetCount() /* || i < 0 */ )
-        return NULL;
+        return nullptr;
 
     wxString styleType = wxGetRichTextStyleType(m_styleNames[i]);
     wxString style = wxGetRichTextStyle(m_styleNames[i]);
@@ -756,7 +752,7 @@ wxString wxRichTextStyleListBox::CreateHTML(wxRichTextStyleDefinition* def) cons
 
     if (attr.GetLeftIndent() > 0)
     {
-        wxClientDC dc((wxWindow*) this);
+        wxClientDC dc(const_cast<wxRichTextStyleListBox*>(this));
 
         str << wxT("<td width=") << wxMin(50, (ConvertTenthsMMToPixels(dc, attr.GetLeftIndent())/2)) << wxT("></td>");
     }
@@ -842,7 +838,7 @@ wxString wxRichTextStyleListBox::CreateHTML(wxRichTextStyleDefinition* def) cons
     if (!attr.GetFontFaceName().IsEmpty())
         str << wxT(" face=\"") << attr.GetFontFaceName() << wxT("\"");
 
-    if (attr.GetTextColour().IsOk())
+    if (attr.GetTextColour().IsOk() && attr.GetTextColour() != attr.GetBackgroundColour() && !(!attr.HasBackgroundColour() && attr.GetTextColour() == *wxWHITE))
         str << wxT(" color=\"#") << ColourToHexString(attr.GetTextColour()) << wxT("\"");
 
     if (attr.GetBackgroundColour().Ok())
@@ -868,7 +864,11 @@ wxString wxRichTextStyleListBox::CreateHTML(wxRichTextStyleDefinition* def) cons
     if (hasUnderline)
         str << wxT("<u>");
 
-    str += def->GetName();
+    wxString name(def->GetName());
+    if (attr.HasTextEffects() && (attr.GetTextEffects() & (wxTEXT_ATTR_EFFECT_CAPITALS|wxTEXT_ATTR_EFFECT_SMALL_CAPITALS)))
+        name = name.Upper();
+
+    str += name;
 
     if (hasUnderline)
         str << wxT("</u>");
@@ -1013,12 +1013,12 @@ void wxRichTextStyleListBox::ApplyStyle(int item)
  * switch shown style types
  */
 
-IMPLEMENT_CLASS(wxRichTextStyleListCtrl, wxControl)
+wxIMPLEMENT_CLASS(wxRichTextStyleListCtrl, wxControl);
 
-BEGIN_EVENT_TABLE(wxRichTextStyleListCtrl, wxControl)
+wxBEGIN_EVENT_TABLE(wxRichTextStyleListCtrl, wxControl)
     EVT_CHOICE(wxID_ANY, wxRichTextStyleListCtrl::OnChooseType)
     EVT_SIZE(wxRichTextStyleListCtrl::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxRichTextStyleListCtrl::wxRichTextStyleListCtrl(wxWindow* parent, wxWindowID id, const wxPoint& pos,
     const wxSize& size, long style)
@@ -1167,7 +1167,7 @@ wxRichTextStyleSheet* wxRichTextStyleListCtrl::GetStyleSheet() const
     if (m_styleListBox)
         return m_styleListBox->GetStyleSheet();
     else
-        return NULL;
+        return nullptr;
 }
 
 /// Associates the control with a wxRichTextCtrl
@@ -1182,7 +1182,7 @@ wxRichTextCtrl* wxRichTextStyleListCtrl::GetRichTextCtrl() const
     if (m_styleListBox)
         return m_styleListBox->GetRichTextCtrl();
     else
-        return NULL;
+        return nullptr;
 }
 
 /// Set/get the style type to display
@@ -1226,10 +1226,10 @@ void wxRichTextStyleListCtrl::UpdateStyles()
  */
 
 
-BEGIN_EVENT_TABLE(wxRichTextStyleComboPopup, wxRichTextStyleListBox)
+wxBEGIN_EVENT_TABLE(wxRichTextStyleComboPopup, wxRichTextStyleListBox)
     EVT_MOTION(wxRichTextStyleComboPopup::OnMouseMove)
     EVT_LEFT_DOWN(wxRichTextStyleComboPopup::OnMouseClick)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 bool wxRichTextStyleComboPopup::Create( wxWindow* parent )
 {
@@ -1296,11 +1296,11 @@ void wxRichTextStyleComboPopup::OnMouseClick(wxMouseEvent& WXUNUSED(event))
  * A combo for applying styles.
  */
 
-IMPLEMENT_CLASS(wxRichTextStyleComboCtrl, wxComboCtrl)
+wxIMPLEMENT_CLASS(wxRichTextStyleComboCtrl, wxComboCtrl);
 
-BEGIN_EVENT_TABLE(wxRichTextStyleComboCtrl, wxComboCtrl)
+wxBEGIN_EVENT_TABLE(wxRichTextStyleComboCtrl, wxComboCtrl)
     EVT_IDLE(wxRichTextStyleComboCtrl::OnIdle)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 bool wxRichTextStyleComboCtrl::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos,
         const wxSize& size, long style)

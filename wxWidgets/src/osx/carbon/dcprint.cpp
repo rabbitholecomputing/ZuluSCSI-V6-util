@@ -2,7 +2,6 @@
 // Name:        src/osx/carbon/dcprint.cpp
 // Purpose:     wxPrinterDC class
 // Author:      Julian Smart
-// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -13,9 +12,6 @@
 
 #if wxUSE_PRINTING_ARCHITECTURE
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/dcprint.h"
 
@@ -29,7 +25,7 @@
 #include "wx/osx/dcprint.h"
 #include "wx/graphics.h"
 
-IMPLEMENT_ABSTRACT_CLASS(wxPrinterDCImpl, wxGCDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxPrinterDCImpl, wxGCDCImpl);
 
 class wxNativePrinterDC
 {
@@ -45,7 +41,7 @@ public :
 
     // returns 0 in case of no Error, otherwise platform specific error codes
     virtual wxUint32 GetStatus() const = 0 ;
-    bool IsOk() { return GetStatus() == 0 ; }
+    bool IsOk() const { return GetStatus() == 0 ; }
 
     static wxNativePrinterDC* Create(wxPrintData* data) ;
 } ;
@@ -55,13 +51,13 @@ class wxMacCarbonPrinterDC : public wxNativePrinterDC
 public :
     wxMacCarbonPrinterDC( wxPrintData* data ) ;
     virtual ~wxMacCarbonPrinterDC() ;
-    virtual bool StartDoc(  wxPrinterDC* dc , const wxString& message ) ;
-    virtual void EndDoc( wxPrinterDC* dc ) ;
-    virtual void StartPage( wxPrinterDC* dc ) ;
-    virtual void EndPage( wxPrinterDC* dc ) ;
-    virtual wxUint32 GetStatus() const { return m_err ; }
-    virtual void GetSize( int *w , int *h) const ;
-    virtual wxSize GetPPI() const ;
+    virtual bool StartDoc(  wxPrinterDC* dc , const wxString& message ) override ;
+    virtual void EndDoc( wxPrinterDC* dc ) override ;
+    virtual void StartPage( wxPrinterDC* dc ) override ;
+    virtual void EndPage( wxPrinterDC* dc ) override ;
+    virtual wxUint32 GetStatus() const override { return m_err ; }
+    virtual void GetSize( int *w , int *h) const override ;
+    virtual wxSize GetPPI() const override ;
 private :
     wxCoord m_maxX ;
     wxCoord m_maxY ;
@@ -141,17 +137,24 @@ bool wxMacCarbonPrinterDC::StartDoc(  wxPrinterDC* dc , const wxString& message 
     PMResolution res;
     PMPrinter printer;
 
+    bool useDefaultResolution = true;
     m_err = PMSessionGetCurrentPrinter(native->GetPrintSession(), &printer);
     if (m_err == noErr)
     {
         m_err = PMPrinterGetOutputResolution( printer, native->GetPrintSettings(), &res) ;
-        if ( m_err == -9589 /* kPMKeyNotFound */ )
-        {
-            m_err = noErr ;
-            res.hRes = res.vRes = 300;
-        }
+        if (m_err == noErr)
+            useDefaultResolution = true;
     }
-    
+
+    // Ignore errors which may occur while retrieving the resolution and just
+    // use the default one.
+    if ( useDefaultResolution )
+    {
+        res.hRes =
+        res.vRes = 300;
+        m_err = noErr ;
+    }
+
     m_maxX = wxCoord((double)m_maxX * res.hRes / 72.0);
     m_maxY = wxCoord((double)m_maxY * res.vRes / 72.0);
 
@@ -180,9 +183,9 @@ void wxMacCarbonPrinterDC::StartPage( wxPrinterDC* dc )
 
     m_err = PMSessionBeginPageNoDialog(native->GetPrintSession(),
                  native->GetPageFormat(),
-                 NULL);
+                 nullptr);
 
-    CGContextRef pageContext;
+    CGContextRef pageContext = nullptr ;
 
     if ( m_err == noErr )
     {
@@ -253,9 +256,9 @@ wxSize wxMacCarbonPrinterDC::GetPPI() const
 
 wxPrinterDCImpl::wxPrinterDCImpl( wxPrinterDC *owner, const wxPrintData& printdata )
    : wxGCDCImpl( owner )
+    , m_printData(printdata)
 {
     m_ok = false ;
-    m_printData = printdata ;
     m_printData.ConvertToNative() ;
     m_nativePrinterDC = wxNativePrinterDC::Create( &m_printData ) ;
     if ( m_nativePrinterDC )
@@ -265,7 +268,7 @@ wxPrinterDCImpl::wxPrinterDCImpl( wxPrinterDC *owner, const wxPrintData& printda
         {
             wxString message ;
             message.Printf( wxT("Print Error %u"), m_nativePrinterDC->GetStatus() ) ;
-            wxMessageDialog dialog( NULL , message , wxEmptyString, wxICON_HAND | wxOK) ;
+            wxMessageDialog dialog( nullptr , message , wxEmptyString, wxICON_HAND | wxOK) ;
             dialog.ShowModal();
         }
         else
@@ -306,14 +309,14 @@ bool wxPrinterDCImpl::StartDoc( const wxString& message )
     {
         wxString message ;
         message.Printf( wxT("Print Error %u"), m_nativePrinterDC->GetStatus() ) ;
-        wxMessageDialog dialog( NULL , message , wxEmptyString, wxICON_HAND | wxOK) ;
+        wxMessageDialog dialog( nullptr , message , wxEmptyString, wxICON_HAND | wxOK) ;
         dialog.ShowModal();
     }
 
     return m_ok ;
 }
 
-void wxPrinterDCImpl::EndDoc(void)
+void wxPrinterDCImpl::EndDoc()
 {
     if ( !m_ok )
         return ;
@@ -325,7 +328,7 @@ void wxPrinterDCImpl::EndDoc(void)
     {
         wxString message ;
         message.Printf( wxT("Print Error %u"), m_nativePrinterDC->GetStatus() ) ;
-        wxMessageDialog dialog( NULL , message , wxEmptyString, wxICON_HAND | wxOK) ;
+        wxMessageDialog dialog( nullptr , message , wxEmptyString, wxICON_HAND | wxOK) ;
         dialog.ShowModal();
     }
 }
@@ -359,7 +362,7 @@ void wxPrinterDCImpl::StartPage()
 
     m_logicalFunction = wxCOPY;
     //  m_textAlignment = wxALIGN_TOP_LEFT;
-    m_backgroundMode = wxTRANSPARENT;
+    m_backgroundMode = wxBRUSHSTYLE_TRANSPARENT;
 
     m_textForegroundColour = *wxBLACK;
     m_textBackgroundColour = *wxWHITE;

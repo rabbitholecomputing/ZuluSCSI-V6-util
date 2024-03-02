@@ -2,7 +2,6 @@
 // Name:        src/msw/button.cpp
 // Purpose:     wxButton
 // Author:      Julian Smart
-// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -19,9 +18,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_BUTTON
 
@@ -45,6 +41,7 @@
 #include "wx/stockitem.h"
 #include "wx/msw/private/button.h"
 #include "wx/msw/private/dc.h"
+#include "wx/private/rescale.h"
 #include "wx/private/window.h"
 
 #if wxUSE_MARKUP
@@ -61,9 +58,9 @@
 // macros
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxButton, wxButtonBase)
+wxBEGIN_EVENT_TABLE(wxButton, wxButtonBase)
     EVT_CHAR_HOOK(wxButton::OnCharHook)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
@@ -82,17 +79,21 @@ bool wxButton::Create(wxWindow *parent,
                       const wxValidator& validator,
                       const wxString& name)
 {
-    wxString label(lbl);
-    if (label.empty() && wxIsStockID(id))
+    wxString label;
+    if ( !(style & wxBU_NOTEXT) )
     {
-        // On Windows, some buttons aren't supposed to have mnemonics
-        label = wxGetStockLabel
-                (
-                    id,
-                    id == wxID_OK || id == wxID_CANCEL || id == wxID_CLOSE
-                        ? wxSTOCK_NOFLAGS
-                        : wxSTOCK_WITH_MNEMONIC
-                );
+        label = lbl;
+        if (label.empty() && wxIsStockID(id))
+        {
+            // On Windows, some buttons aren't supposed to have mnemonics
+            label = wxGetStockLabel
+                    (
+                        id,
+                        id == wxID_OK || id == wxID_CANCEL || id == wxID_CLOSE
+                            ? wxSTOCK_NOFLAGS
+                            : wxSTOCK_WITH_MNEMONIC
+                    );
+        }
     }
 
     if ( !CreateControl(parent, id, pos, size, style, validator, name) )
@@ -148,42 +149,36 @@ WXDWORD wxButton::MSWGetStyle(long style, WXDWORD *exstyle) const
         msStyle |= BS_TOP;
     if ( style & wxBU_BOTTOM )
         msStyle |= BS_BOTTOM;
-#ifndef __WXWINCE__
     // flat 2d buttons
     if ( style & wxNO_BORDER )
         msStyle |= BS_FLAT;
-#endif // __WXWINCE__
 
     return msStyle;
 }
 
 /* static */
-wxSize wxButtonBase::GetDefaultSize()
+wxSize wxButtonBase::GetDefaultSize(wxWindow* win)
 {
-    static wxSize s_sizeBtn;
+    static wxPrivate::DpiDependentValue<wxSize> s_sizeBtn;
 
-    if ( s_sizeBtn.x == 0 )
+    if ( s_sizeBtn.HasChanged(win) )
     {
-        wxScreenDC dc;
-        dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-
-        // The size of a standard button in the dialog units is 50x14,
-        // translate this to pixels.
+        // The "Recommended sizing and spacing" section of MSDN layout article
+        // documents the default button size as being 50*14 dialog units or
+        // 75*23 relative pixels (what we call DIPs). But dialog units don't
+        // work well in high DPI (and not just because of rounding errors, i.e.
+        // the values differ from the actual default button size used by
+        // Windows itself in high DPI by too much), so just use DIPs directly.
         //
-        // Windows' computes dialog units using average character width over
-        // upper- and lower-case ASCII alphabet and not using the average
-        // character width metadata stored in the font; see
-        // http://support.microsoft.com/default.aspx/kb/145994 for detailed
-        // discussion.
-        //
-        // NB: wxMulDivInt32() is used, because it correctly rounds the result
-
-        const wxSize base = wxPrivate::GetAverageASCIILetterSize(dc);
-        s_sizeBtn.x = wxMulDivInt32(50, base.x, 4);
-        s_sizeBtn.y = wxMulDivInt32(14, base.y, 8);
+        // Moreover, it looks like the extra 2px borders around the visible
+        // part of the button are not scaled correctly in higher than normal
+        // DPI, so add them without scaling.
+        s_sizeBtn.SetAtNewDPI(
+            wxWindow::FromDIP(wxSize(73, 21), win) + wxSize(2, 2)
+        );
     }
 
-    return s_sizeBtn;
+    return s_sizeBtn.Get();
 }
 
 // ----------------------------------------------------------------------------
@@ -215,8 +210,8 @@ wxSize wxButtonBase::GetDefaultSize()
    and the current control doesn't process Enter itself somehow. This is
    handled by ::DefWindowProc() (or maybe ::DefDialogProc()) using DM_SETDEFID
    Another aspect of "defaultness" is that the default button has different
-   appearance: this is due to BS_DEFPUSHBUTTON style which is completely
-   separate from DM_SETDEFID stuff (!). Also note that BS_DEFPUSHBUTTON should
+   appearance: this is due to BS_DEFPUSHBUTTON style which is only partially
+   handled by using DM_SETDEFID. Also note that BS_DEFPUSHBUTTON should
    be unset if our parent window is not active so it should be unset whenever
    we lose activation and set back when we regain it.
 
@@ -225,7 +220,7 @@ wxSize wxButtonBase::GetDefaultSize()
    one.
 
    We handle this by maintaining a permanent and a temporary default items in
-   wxControlContainer (both may be NULL). When a button becomes the current
+   wxControlContainer (both may be null). When a button becomes the current
    control (i.e. gets focus) it sets itself as the temporary default which
    ensures that it has the right appearance and that Enter will be redirected
    to it. When the button loses focus, it unsets the temporary default and so
@@ -247,7 +242,7 @@ wxWindow *wxButton::SetDefault()
 }
 
 // return the top level parent window if it's not being deleted yet, otherwise
-// return NULL
+// return nullptr
 static wxTopLevelWindow *GetTLWParentIfNotBeingDeleted(wxWindow *win)
 {
     for ( ;; )
@@ -258,7 +253,7 @@ static wxTopLevelWindow *GetTLWParentIfNotBeingDeleted(wxWindow *win)
         if ( !parent || win->IsTopLevel() )
         {
             if ( win->IsBeingDeleted() )
-                return NULL;
+                return nullptr;
 
             break;
         }
@@ -268,10 +263,8 @@ static wxTopLevelWindow *GetTLWParentIfNotBeingDeleted(wxWindow *win)
 
     wxASSERT_MSG( win, wxT("button without top level parent?") );
 
-    wxTopLevelWindow * const tlw = wxDynamicCast(win, wxTopLevelWindow);
-    wxASSERT_MSG( tlw, wxT("logic error in GetTLWParentIfNotBeingDeleted()") );
-
-    return tlw;
+    // Note that this may still return null for a button inside wxPopupWindow.
+    return wxDynamicCast(win, wxTopLevelWindow);
 }
 
 // set this button as being currently default
@@ -282,13 +275,19 @@ void wxButton::SetTmpDefault()
         return;
 
     wxWindow *winOldDefault = tlw->GetDefaultItem();
+
     tlw->SetTmpDefaultItem(this);
 
     // Notice that the order of these statements is important, the old button
     // is not reset if we do it the other way round, probably because of
     // something done by the default DM_SETDEFID handler.
     SetDefaultStyle(this, true);
-    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), false);
+    if ( winOldDefault != this )
+    {
+        // But we mustn't reset the default style on this button itself if it
+        // had already been the default.
+        SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), false);
+    }
 }
 
 // unset this button as currently default, it may still stay permanent default
@@ -298,40 +297,42 @@ void wxButton::UnsetTmpDefault()
     if ( !tlw )
         return;
 
-    tlw->SetTmpDefaultItem(NULL);
+    tlw->SetTmpDefaultItem(nullptr);
 
     wxWindow *winOldDefault = tlw->GetDefaultItem();
 
     // Just as in SetTmpDefault() above, the order is important here.
     SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), true);
-    SetDefaultStyle(this, false);
+    if ( winOldDefault != this )
+    {
+        SetDefaultStyle(this, false);
+    }
 }
 
 /* static */
 void
 wxButton::SetDefaultStyle(wxButton *btn, bool on)
 {
-    // we may be called with NULL pointer -- simpler to do the check here than
+    // we may be called with null pointer -- simpler to do the check here than
     // in the caller which does wxDynamicCast()
     if ( !btn )
         return;
 
+    // we shouldn't set BS_DEFPUSHBUTTON for any button if we don't have
+    // focus at all any more
+    if ( on && !wxTheApp->IsActive() )
+        return;
+
     // first, let DefDlgProc() know about the new default button
-    if ( on )
-    {
-        // we shouldn't set BS_DEFPUSHBUTTON for any button if we don't have
-        // focus at all any more
-        if ( !wxTheApp->IsActive() )
-            return;
+    wxWindow * const tlw = wxGetTopLevelParent(btn);
+    wxCHECK_RET( tlw, wxT("button without top level window?") );
 
-        wxWindow * const tlw = wxGetTopLevelParent(btn);
-        wxCHECK_RET( tlw, wxT("button without top level window?") );
-
-        ::SendMessage(GetHwndOf(tlw), DM_SETDEFID, btn->GetId(), 0L);
-
-        // sending DM_SETDEFID also changes the button style to
-        // BS_DEFPUSHBUTTON so there is nothing more to do
-    }
+    // passing -1 to indicate absence of the default button is not documented
+    // as being supported, but we need to pass something to DM_SETDEFID when
+    // resetting the default button it in order to prevent DefDlgProc() from
+    // restoring BS_DEFPUSHBUTTON on it later, see #19245, and -1 shouldn't
+    // conflict with anything, as it can never be a valid ID
+    ::SendMessage(GetHwndOf(tlw), DM_SETDEFID, on ? btn->GetId() : -1, 0L);
 
     // then also change the style as needed
     long style = ::GetWindowLong(GetHwndOf(btn), GWL_STYLE);
@@ -402,12 +403,8 @@ bool wxButton::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
     bool processed = false;
     switch ( param )
     {
-        // NOTE: Apparently older versions (NT 4?) of the common controls send
-        //       BN_DOUBLECLICKED but not a second BN_CLICKED for owner-drawn
-        //       buttons, so in order to send two EVT_BUTTON events we should
-        //       catch both types.  Currently (Feb 2003) up-to-date versions of
-        //       win98, win2k and winXP all send two BN_CLICKED messages for
-        //       all button types, so we don't catch BN_DOUBLECLICKED anymore
+        // NOTE: Currently all versions of Windows send two BN_CLICKED messages
+        //       for all button types, so we don't catch BN_DOUBLECLICKED
         //       in order to not get 3 EVT_BUTTON events.  If this is a problem
         //       then we need to figure out which version of the comctl32 changed
         //       this behaviour and test for it.
@@ -452,13 +449,9 @@ bool wxButton::DoGetAuthNeeded() const
 
 void wxButton::DoSetAuthNeeded(bool show)
 {
-    // show/hide UAC symbol on Windows Vista and later
-    if ( wxGetWinVersion() >= wxWinVersion_6 )
-    {
-        m_authNeeded = show;
-        ::SendMessage(GetHwnd(), BCM_SETSHIELD, 0, show);
-        InvalidateBestSize();
-    }
+    m_authNeeded = show;
+    ::SendMessage(GetHwnd(), BCM_SETSHIELD, 0, show);
+    InvalidateBestSize();
 }
 
 #endif // wxUSE_BUTTON

@@ -99,10 +99,10 @@ public:
     For example:
     @code
         wxRichTextRange range;
-        if (m_richTextCtrl-HasSelection())
-            range = m_richTextCtrl-GetSelectionRange();
+        if (m_richTextCtrl->HasSelection())
+            range = m_richTextCtrl->GetSelectionRange();
         else
-            range = wxRichTextRange(0, m_richTextCtrl-GetLastPosition()+1);
+            range = wxRichTextRange(0, m_richTextCtrl->GetLastPosition()+1);
 
         int pages = wxRICHTEXT_FORMAT_FONT|wxRICHTEXT_FORMAT_INDENTS_SPACING| \
                     wxRICHTEXT_FORMAT_TABS|wxRICHTEXT_FORMAT_BULLETS;
@@ -162,6 +162,11 @@ public:
     */
     virtual bool ApplyStyle(wxRichTextCtrl* ctrl, const wxRichTextRange& range,
                             int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO|wxRICHTEXT_SETSTYLE_OPTIMIZE);
+
+    /**
+        Apply attributes to the object being edited, if any.
+    */
+    virtual bool ApplyStyle(wxRichTextCtrl* ctrl, int flags = wxRICHTEXT_SETSTYLE_WITH_UNDO);
 
     /**
         Creation: see wxRichTextFormattingDialog() "the constructor" for
@@ -241,6 +246,17 @@ public:
     int GetOptions() const { return m_options; }
 
     /**
+        If editing the attributes for a particular object, such as an image,
+        set the object so the code can initialize attributes such as size correctly.
+    */
+    void SetObject(wxRichTextObject* obj) { m_object = obj; }
+
+    /**
+        Returns the object of which the attributes are to edited (if any).
+     */
+    wxRichTextObject* GetObject() const;
+
+    /**
         Returns @true if the given option is present.
     */
     bool HasOption(int option) const { return (m_options & option) != 0; }
@@ -275,5 +291,35 @@ public:
         Updates the display.
     */
     virtual bool UpdateDisplay();
+
+    /**
+        Returns @true if the dialog will restore the last-selected page.
+    */
+    static bool GetRestoreLastPage();
+
+    /**
+        Pass @true if the dialog should restore the last-selected page.
+    */
+    static void SetRestoreLastPage(bool b);
+
+    /**
+        Returns the page identifier of the last page selected (not the control id).
+    */
+    static int GetLastPage();
+
+    /**
+        Sets the page identifier of the last page selected (not the control id).
+    */
+    static void SetLastPage(int lastPage);
+
+    /**
+        Sets the custom colour data for use by the colour dialog.
+    */
+    static void SetColourData(const wxColourData& colourData);
+
+    /**
+        Returns the custom colour data for use by the colour dialog.
+    */
+    static wxColourData GetColourData();
 };
 

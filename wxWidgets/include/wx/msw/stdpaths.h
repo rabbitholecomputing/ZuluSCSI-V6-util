@@ -2,14 +2,15 @@
 // Name:        wx/msw/stdpaths.h
 // Purpose:     wxStandardPaths for Win32
 // Author:      Vadim Zeitlin
-// Modified by:
 // Created:     2004-10-19
-// Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSW_STDPATHS_H_
 #define _WX_MSW_STDPATHS_H_
+
+struct _GUID;
 
 // ----------------------------------------------------------------------------
 // wxStandardPaths
@@ -19,14 +20,18 @@ class WXDLLIMPEXP_BASE wxStandardPaths : public wxStandardPathsBase
 {
 public:
     // implement base class pure virtuals
-    virtual wxString GetExecutablePath() const;
-    virtual wxString GetConfigDir() const;
-    virtual wxString GetUserConfigDir() const;
-    virtual wxString GetDataDir() const;
-    virtual wxString GetUserDataDir() const;
-    virtual wxString GetUserLocalDataDir() const;
-    virtual wxString GetPluginsDir() const;
-    virtual wxString GetDocumentsDir() const;
+    virtual wxString GetExecutablePath() const override;
+    virtual wxString GetConfigDir() const override;
+    virtual wxString GetUserConfigDir() const override;
+    virtual wxString GetDataDir() const override;
+    virtual wxString GetUserDataDir() const override;
+    virtual wxString GetUserLocalDataDir() const override;
+    virtual wxString GetPluginsDir() const override;
+    virtual wxString GetSharedLibrariesDir() const override;
+    virtual wxString GetUserDir(Dir userDir) const override;
+    virtual wxString MakeConfigFileName(const wxString& basename,
+                                        ConfigFileConv conv = ConfigFileConv_Ext
+                                        ) const override;
 
 
     // MSW-specific methods
@@ -72,6 +77,8 @@ protected:
     // get the path corresponding to the given standard CSIDL_XXX constant
     static wxString DoGetDirectory(int csidl);
 
+    static wxString DoGetKnownFolder(const _GUID& rfid);
+
     // return the directory of the application itself
     wxString GetAppDir() const;
 
@@ -88,8 +95,8 @@ protected:
 class WXDLLIMPEXP_BASE wxStandardPathsWin16 : public wxStandardPaths
 {
 public:
-    virtual wxString GetConfigDir() const;
-    virtual wxString GetUserConfigDir() const;
+    virtual wxString GetConfigDir() const override;
+    virtual wxString GetUserConfigDir() const override;
 };
 
 #endif // _WX_MSW_STDPATHS_H_

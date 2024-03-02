@@ -2,7 +2,6 @@
 // Name:        wx/x11/app.h
 // Purpose:     wxApp class
 // Author:      Julian Smart
-// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -42,8 +41,6 @@ public:
     // override base class (pure) virtuals
     // -----------------------------------
 
-    virtual void Exit();
-
     virtual void WakeUpIdle();
 
     virtual bool OnInitGui();
@@ -71,12 +68,10 @@ public:
     const wxSize& GetInitialSize() const { return m_initialSize; }
     bool GetShowIconic() const { return m_showIconic; }
 
-#if wxUSE_UNICODE
     // Global context for Pango layout. Either use X11
     // or use Xft rendering according to GDK_USE_XFT
     // environment variable
     PangoContext* GetPangoContext();
-#endif
 
     wxXVisualInfo* GetVisualInfo(WXDisplay* WXUNUSED(display))
     {
@@ -84,6 +79,7 @@ public:
         // with multiple display
         return m_visualInfo;
     }
+    virtual void* GetXVisualInfo() { return nullptr; }
 
 public:
     static long           sm_lastMessageTime;
@@ -99,7 +95,7 @@ protected:
     WXColormap            m_mainColormap;
     long                  m_maxRequestSize;
 
-    DECLARE_DYNAMIC_CLASS(wxApp)
+    wxDECLARE_DYNAMIC_CLASS(wxApp);
 };
 
 #endif // _WX_X11_APP_H_

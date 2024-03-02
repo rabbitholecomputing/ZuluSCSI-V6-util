@@ -27,7 +27,7 @@
 
     wxPropertyGridPage receives events emitted by its wxPropertyGridManager, but
     only those events that are specific to that page. If wxPropertyGridPage::
-    IsHandlingAllEvents returns false, then unhandled events are sent to the
+    IsHandlingAllEvents returns @false, then unhandled events are sent to the
     manager's parent, as usual.
 
     See @ref propgrid_event_handling "wxPropertyGrid Event Handling"
@@ -36,8 +36,9 @@
     @library{wxpropgrid}
     @category{propgrid}
 */
-class WXDLLIMPEXP_PROPGRID wxPropertyGridPage : public wxEvtHandler,
-                                                public wxPropertyGridInterface
+class wxPropertyGridPage : public wxEvtHandler,
+                           public wxPropertyGridInterface,
+                           public wxPropertyGridPageState
 {
     friend class wxPropertyGridManager;
 
@@ -81,6 +82,16 @@ public:
     int GetSplitterPosition( int col = 0 ) const;
 
     /**
+        Returns pointer to contained property grid state.
+    */
+    wxPropertyGridPageState* GetStatePtr();
+
+    /**
+        Returns pointer to contained property grid state.
+    */
+    const wxPropertyGridPageState* GetStatePtr() const;
+
+    /**
         Returns id of the tool bar item that represents this page on
         wxPropertyGridManager's wxToolBar.
     */
@@ -95,7 +106,7 @@ public:
     virtual void Init();
 
     /**
-        Return false here to indicate unhandled events should be
+        Return @false here to indicate unhandled events should be
         propagated to manager's parent, as normal.
     */
     virtual bool IsHandlingAllEvents() const;
@@ -132,8 +143,8 @@ public:
 
     wxPropertyGridManager inherits from wxPropertyGridInterface, and as such
     it has most property manipulation functions. However, only some of them affect
-    properties on all pages (eg. GetPropertyByName() and ExpandAll()), while some
-    (eg. Append()) only apply to the currently selected page.
+    properties on all pages (e.g. GetPropertyByName() and ExpandAll()), while some
+    (e.g. Append()) only apply to the currently selected page.
 
     To operate explicitly on properties on specific page, use
     wxPropertyGridManager::GetPage() to obtain pointer to page's
@@ -203,6 +214,29 @@ class wxPropertyGridManager : public wxPanel, public wxPropertyGridInterface
 {
 public:
     /**
+        Two step constructor.
+        Call Create when this constructor is called to build up the
+        wxPropertyGridManager.
+      */
+    wxPropertyGridManager();
+
+    /**
+       The default constructor. The styles to be used are styles valid for
+       the wxWindow.
+       @see @ref propgrid_window_styles
+    */
+    wxPropertyGridManager( wxWindow *parent, wxWindowID id = wxID_ANY,
+                           const wxPoint& pos = wxDefaultPosition,
+                           const wxSize& size = wxDefaultSize,
+                           long style = wxPGMAN_DEFAULT_STYLE,
+                           const wxString& name = wxPropertyGridManagerNameStr );
+
+    /**
+        Destructor.
+    */
+    virtual ~wxPropertyGridManager();
+
+    /**
         Creates new property page. Note that the first page is not created
         automatically.
 
@@ -210,12 +244,12 @@ public:
             A label for the page. This may be shown as a toolbar tooltip etc.
 
         @param bmp
-            Bitmap image for toolbar. If wxNullBitmap is used, then a built-in
-            default image is used.
+            Bitmap bundle for toolbar image. If the bundle is empty, then
+            a built-in default bitmap bundle is used.
 
         @param pageObj
             wxPropertyGridPage instance. Manager will take ownership of this
-            object. NULL indicates that a default page instance should be created.
+            object. @NULL indicates that a default page instance should be created.
 
         @return Returns pointer to created property grid page.
 
@@ -223,9 +257,9 @@ public:
                 added when the toolbar is not turned off using window style flag
                 switching. Otherwise toolbar buttons might not be added properly.
     */
-    wxPropertyGridPage* AddPage( const wxString& label = wxEmptyString,
-                                 const wxBitmap& bmp = wxPG_NULL_BITMAP,
-                                 wxPropertyGridPage* pageObj = NULL );
+    wxPropertyGridPage* AddPage( const wxString& label = wxString(),
+                                 const wxBitmapBundle& bmp = wxBitmapBundle(),
+                                 wxPropertyGridPage* pageObj = nullptr );
 
     /**
         Deletes all properties and all pages.
@@ -242,7 +276,7 @@ public:
 
         @return Returns @true if value was actually updated.
     */
-    bool CommitChangesFromEditor( wxUint32 flags = 0 );
+    bool CommitChangesFromEditor(wxPGSelectPropertyFlags flags = wxPGSelectPropertyFlags::Null);
 
     /**
         Two step creation. Whenever the control is created without any parameters,
@@ -261,7 +295,7 @@ public:
         Enables or disables (shows/hides) categories according to parameter enable.
 
         @remarks
-            Calling his may not properly update toolbar buttons.
+            Calling this may not properly update toolbar buttons.
     */
     bool EnableCategories( bool enable );
 
@@ -293,7 +327,7 @@ public:
     wxPropertyGrid* GetGrid();
 
     /**
-        Similar to GetIterator, but instead returns wxPGVIterator instance,
+        Similar to GetIterator(), but instead returns wxPGVIterator instance,
         which can be useful for forward-iterating through arbitrary property
         containers.
     */
@@ -319,6 +353,12 @@ public:
         returned.
     */
     int GetPageByName( const wxString& name ) const;
+
+    /**
+        Returns index for a relevant property grid state.
+        If no match is found, wxNOT_FOUND is returned.
+    */
+    int GetPageByState( const wxPropertyGridPageState* pstate ) const;
 
     /**
         Returns number of managed pages.
@@ -362,18 +402,18 @@ public:
             A label for the page. This may be shown as a toolbar tooltip etc.
 
         @param bmp
-            Bitmap image for toolbar. If wxNullBitmap is used, then a built-in
-            default image is used.
+            Bitmap bundle for toolbar image. If the bundle is empty, then
+            a built-in default bitmap bundle is used.
 
         @param pageObj
             wxPropertyGridPage instance. Manager will take ownership of this
-            object. If NULL, default page object is constructed.
+            object. If @NULL, default page object is constructed.
 
         @return Returns pointer to created page.
     */
     virtual wxPropertyGridPage* InsertPage( int index, const wxString& label,
-                                            const wxBitmap& bmp = wxNullBitmap,
-                                            wxPropertyGridPage* pageObj = NULL );
+                                            const wxBitmapBundle& bmp = wxBitmapBundle(),
+                                            wxPropertyGridPage* pageObj = nullptr );
 
     /**
         Returns @true if any property on any page has been modified by the user.
@@ -381,17 +421,12 @@ public:
     bool IsAnyModified() const;
 
     /**
-        Returns @true if updating is frozen (ie. Freeze() called but not yet Thaw() ).
-    */
-    bool IsFrozen() const;
-
-    /**
         Returns @true if any property on given page has been modified by the user.
     */
     bool IsPageModified( size_t index ) const;
 
     /**
-        Returns true if property is selected. Since selection is page
+        Returns @true if property is selected. Since selection is page
         based, this function checks every page in the manager.
     */
     virtual bool IsPropertySelected( wxPGPropArg id ) const;
@@ -407,7 +442,7 @@ public:
         Select and displays a given page.
 
         @param index
-            Index of page being seleced. Can be -1 to select nothing.
+            Index of page being selected. Can be -1 to select nothing.
     */
     void SelectPage( int index );
 
@@ -458,7 +493,7 @@ public:
         labels to be shown in full.
 
         @param subProps
-            If @false, will still allow sub-properties (ie. properties which
+            If @false, will still allow sub-properties (i.e. properties which
             parent is not root or category) to be cropped.
 
         @param allPages
@@ -498,7 +533,7 @@ public:
         Show or hide the property grid header control. It is hidden
         by the default.
 
-        @remarks Grid may look better if you use wxPG_NO_INTERNAL_BORDER
+        @remarks Grid may look better if you use ::wxPG_NO_INTERNAL_BORDER
                  window style when showing a header.
     */
     void ShowHeader(bool show = true);
@@ -512,7 +547,7 @@ protected:
     /**
         Creates property grid for the manager. Reimplement in derived class to
         use subclassed wxPropertyGrid. However, if you do this then you
-        must also use the two-step construction (ie. default constructor and
+        must also use the two-step construction (i.e. default constructor and
         Create() instead of constructor with arguments) when creating the
         manager.
     */

@@ -28,7 +28,7 @@
     don't support URLs, licence text nor custom icons in the about dialog and if
     either of those is used, wxAboutBox() will automatically use the generic version
     so you should avoid specifying these fields to achieve more native look and feel.
-    
+
     Example of usage:
     @code
     void MyFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
@@ -37,7 +37,7 @@
         aboutInfo.SetName("MyApp");
         aboutInfo.SetVersion(MY_APP_VERSION_STRING);
         aboutInfo.SetDescription(_("My wxWidgets-based application!"));
-        aboutInfo.SetCopyright("(C) 1992-2010");
+        aboutInfo.SetCopyright("(C) 1992-2024");
         aboutInfo.SetWebSite("http://myapp.org");
         aboutInfo.AddDeveloper("My Self");
 
@@ -45,7 +45,14 @@
     }
     @endcode
 
-    @library{wxadv}
+    Example of appearance of a simple about dialog:
+    @appearance{about-simple}
+
+    And that of a dialog using a web site link, which results in using the
+    generic version under MSW and Mac:
+    @appearance{about-with-url}
+
+    @library{wxcore}
     @category{cmndlg,data}
 
     @see wxAboutDialogInfo::SetArtists
@@ -139,6 +146,10 @@ public:
         any occurrences of @c "(C)" in @a copyright will be replaced by the
         copyright symbol (circled C) automatically, which means that you can avoid
         using this symbol in the program source code which can be problematic,
+
+        Also note that under MSW platform the word "Copyright" itself will be
+        removed from the string if it is followed by the copyright symbol, to
+        follow the platform convention.
     */
     void SetCopyright(const wxString& copyright);
 
@@ -162,6 +173,16 @@ public:
     void SetDocWriters(const wxArrayString& docwriters);
 
     /**
+       Returns @true if an icon has been set for the about dialog.
+    */
+    bool HasIcon() const;
+
+    /**
+       Returns the icon set by SetIcon().
+    */
+    wxIcon GetIcon() const;
+
+    /**
         Set the icon to be shown in the dialog. By default the icon of the main frame
         will be shown if the native about dialog supports custom icons. If it doesn't
         but a valid icon is specified using this method, the generic about dialog is
@@ -169,6 +190,18 @@ public:
         look and feel.
     */
     void SetIcon(const wxIcon& icon);
+
+    /**
+       Returns @true if the licence string has been set.
+    */
+    bool HasLicence() const;
+
+    /**
+       Returns the licence string.
+
+       @see SetLicence()
+    */
+    const wxString& GetLicence() const;
 
     /**
         Set the long, multiline string containing the text of the program licence.
@@ -208,10 +241,39 @@ public:
         "Version " to @a version).
 
         The generic about dialog and native GTK+ dialog use @a version only,
-        as a suffix to the program name. The native MSW and OS X about dialogs
+        as a suffix to the program name. The native MSW and macOS about dialogs
         use the long version.
     */
     void SetVersion(const wxString& version, const wxString& longVersion = wxString());
+
+    /**
+       Return the short version string.
+
+       @see SetVersion()
+    */
+    const wxString& GetVersion() const;
+
+    /**
+       Return the long version string if set.
+
+       @see SetVersion()
+    */
+    const wxString& GetLongVersion() const;
+
+    /**
+       Returns @true if the website info has been set.
+    */
+    bool HasWebSite() const;
+
+    /**
+       Returns the website URL set for the dialog.
+     */
+    const wxString& GetWebSiteURL() const;
+
+    /**
+       Returns the description of the website URL set for the dialog.
+     */
+    const wxString& GetWebSiteDescription() const;
 
     /**
         Set the web site for the program and its description (which defaults to @a url
@@ -223,6 +285,49 @@ public:
     */
     void SetWebSite(const wxString& url,
                     const wxString& desc = wxEmptyString);
+
+
+    /**
+       Returns @true if developers have been set in the dialog info.
+    */
+    bool HasDevelopers() const;
+
+    /**
+       Returns an array of the developer strings set in the dialog info.
+    */
+    const wxArrayString& GetDevelopers() const;
+
+    /**
+       Returns @true if writers have been set in the dialog info.
+    */
+    bool HasDocWriters() const;
+
+    /**
+       Returns an array of the writer strings set in the dialog info.
+    */
+    const wxArrayString& GetDocWriters() const;
+
+    /**
+       Returns @true if artists have been set in the dialog info.
+    */
+    bool HasArtists() const;
+
+    /**
+       Returns an array of the artist strings set in the dialog info.
+    */
+    const wxArrayString& GetArtists() const;
+
+    /**
+       Returns @true if translators have been set in the dialog info.
+    */
+    bool HasTranslators() const;
+
+    /**
+       Returns an array of the translator strings set in the dialog info.
+    */
+    const wxArrayString& GetTranslators() const;
+
+
 };
 
 
@@ -231,7 +336,7 @@ public:
 // ============================================================================
 
 /** @addtogroup group_funcmacro_dialog */
-//@{
+///@{
 
 /**
     This function shows the standard about dialog containing the information
@@ -249,7 +354,7 @@ public:
         info.SetName(_("My Program"));
         info.SetVersion(_("1.2.3 Beta"));
         info.SetDescription(_("This program does something great."));
-        info.SetCopyright(wxT("(C) 2007 Me <my@email.addre.ss>"));
+        info.SetCopyright("(C) 2007 Me <my@email.addre.ss>");
 
         wxAboutBox(info);
     }
@@ -261,7 +366,7 @@ public:
 
     @header{wx/aboutdlg.h}
 */
-void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = NULL);
+void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = nullptr);
 
 /**
     This function does the same thing as wxAboutBox() except that it always uses
@@ -278,6 +383,6 @@ void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = NULL);
 
     @header{wx/aboutdlg.h}
 */
-void wxGenericAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = NULL);
+void wxGenericAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = nullptr);
 
-//@}
+///@}

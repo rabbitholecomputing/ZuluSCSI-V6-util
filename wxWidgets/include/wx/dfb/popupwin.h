@@ -17,7 +17,7 @@
 class WXDLLIMPEXP_CORE wxPopupWindow : public wxPopupWindowBase
 {
 public:
-    wxPopupWindow() {}
+    wxPopupWindow() = default;
 
     wxPopupWindow(wxWindow *parent, int flags = wxBORDER_NONE)
         { Create(parent, flags); }
@@ -37,7 +37,7 @@ public:
                );
     }
 
-    DECLARE_DYNAMIC_CLASS(wxPopupWindow)
+    wxDECLARE_DYNAMIC_CLASS(wxPopupWindow);
 };
 
 #endif // _WX_DFB_POPUPWIN_H_
