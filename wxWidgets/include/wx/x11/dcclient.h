@@ -2,6 +2,7 @@
 // Name:        wx/x11/dcclient.h
 // Purpose:     wxClientDC, wxPaintDC and wxWindowDC classes
 // Author:      Julian Smart
+// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -107,7 +108,7 @@ public:
 
     virtual void ComputeScaleAndOrigin();
 #if wxUSE_CAIRO
-    virtual void* GetCairoContext() const override;
+    virtual void* GetCairoContext() const wxOVERRIDE;
 #endif
 
 protected:
@@ -115,9 +116,9 @@ protected:
     // --------------
     virtual void DoGetTextExtent(const wxString& string,
         wxCoord *x, wxCoord *y,
-        wxCoord *descent = nullptr,
-        wxCoord *externalLeading = nullptr,
-        const wxFont *theFont = nullptr) const;
+        wxCoord *descent = NULL,
+        wxCoord *externalLeading = NULL,
+        const wxFont *theFont = NULL) const;
 
     void Init();
 
@@ -133,8 +134,10 @@ protected:
     wxRegion      m_currentClippingRegion;
     wxRegion      m_paintClippingRegion;
 
+#if wxUSE_UNICODE
     PangoContext *m_context;
     PangoFontDescription *m_fontdesc;
+#endif
 
     void SetUpDC();
     void Destroy();
@@ -152,9 +155,6 @@ class WXDLLIMPEXP_CORE wxClientDCImpl : public wxWindowDCImpl
 public:
     wxClientDCImpl( wxDC *owner ) : wxWindowDCImpl( owner ) { }
     wxClientDCImpl( wxDC *owner, wxWindow *win );
-
-    static bool
-    CanBeUsedForDrawing(const wxWindow* WXUNUSED(window)) { return true; }
 
 protected:
     virtual void DoGetSize(int *width, int *height) const;

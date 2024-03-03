@@ -10,6 +10,7 @@
 
 class QListWidget;
 class QModelIndex;
+class QScrollArea;
 
 class WXDLLIMPEXP_CORE wxListBox : public wxListBoxBase
 {
@@ -18,7 +19,7 @@ public:
     wxListBox(wxWindow *parent, wxWindowID id,
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
-            int n = 0, const wxString choices[] = nullptr,
+            int n = 0, const wxString choices[] = NULL,
             long style = 0,
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxASCII_STR(wxListBoxNameStr));
@@ -36,7 +37,7 @@ public:
     bool Create(wxWindow *parent, wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                int n = 0, const wxString choices[] = nullptr,
+                int n = 0, const wxString choices[] = NULL,
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxASCII_STR(wxListBoxNameStr));
@@ -48,43 +49,37 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxASCII_STR(wxListBoxNameStr));
 
-    virtual bool IsSelected(int n) const override;
-    virtual int GetSelections(wxArrayInt& aSelections) const override;
+    virtual bool IsSelected(int n) const wxOVERRIDE;
+    virtual int GetSelections(wxArrayInt& aSelections) const wxOVERRIDE;
 
-    virtual unsigned int GetCount() const override;
-    virtual wxString GetString(unsigned int n) const override;
-    virtual void SetString(unsigned int n, const wxString& s) override;
+    virtual unsigned int GetCount() const wxOVERRIDE;
+    virtual wxString GetString(unsigned int n) const wxOVERRIDE;
+    virtual void SetString(unsigned int n, const wxString& s) wxOVERRIDE;
 
-    virtual int GetSelection() const override;
+    virtual int GetSelection() const wxOVERRIDE;
 
-    virtual void EnsureVisible(int item) override;
-
-    virtual int GetTopItem() const override;
-
-    virtual int GetCountPerPage() const override;
-
-    virtual QWidget *GetHandle() const override;
+    virtual QWidget *GetHandle() const wxOVERRIDE;
 
     void QtSendEvent(wxEventType evtType, int rowIndex, bool selected);
 
 protected:
-    virtual void DoSetFirstItem(int n) override;
+    virtual void DoSetFirstItem(int n) wxOVERRIDE;
 
-    virtual void DoSetSelection(int n, bool select) override;
+    virtual void DoSetSelection(int n, bool select) wxOVERRIDE;
 
     virtual int DoInsertItems(const wxArrayStringsAdapter & items,
                               unsigned int pos,
                               void **clientData,
-                              wxClientDataType type) override;
-    virtual int DoInsertOneItem(const wxString& item, unsigned int pos) override;
+                              wxClientDataType type) wxOVERRIDE;
+    virtual int DoInsertOneItem(const wxString& item, unsigned int pos) wxOVERRIDE;
 
-    virtual void DoSetItemClientData(unsigned int n, void *clientData) override;
-    virtual void *DoGetItemClientData(unsigned int n) const override;
+    virtual void DoSetItemClientData(unsigned int n, void *clientData) wxOVERRIDE;
+    virtual void *DoGetItemClientData(unsigned int n) const wxOVERRIDE;
 
-    virtual void DoClear() override;
-    virtual void DoDeleteOneItem(unsigned int pos) override;
+    virtual void DoClear() wxOVERRIDE;
+    virtual void DoDeleteOneItem(unsigned int pos) wxOVERRIDE;
 
-    virtual int DoListHitTest(const wxPoint& point) const override;
+    virtual QScrollArea *QtGetScrollBarsContainer() const wxOVERRIDE;
 
 #if wxUSE_CHECKLISTBOX
     bool       m_hasCheckBoxes;

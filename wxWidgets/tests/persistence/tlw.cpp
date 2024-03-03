@@ -17,13 +17,13 @@
 
 #ifndef WX_PRECOMP
     #include "wx/frame.h"
+
+    #ifdef __WXGTK__
+        #include "wx/stopwatch.h"
+    #endif // __WXGTK__
 #endif // WX_PRECOMP
 
 #include "wx/persist/toplevel.h"
-
-#ifdef __WXGTK__
-    #include "waitfor.h"
-#endif // __WXGTK__
 
 // ----------------------------------------------------------------------------
 // constants
@@ -117,11 +117,17 @@ TEST_CASE_METHOD(PersistenceTests, "wxPersistTLW", "[persist][tlw]")
         }
         else
         {
-            if ( !WaitFor("frame to be iconized", [frame]() {
-                        return frame->IsIconized();
-                    }) )
+            wxStopWatch sw;
+            while ( !frame->IsIconized() )
             {
-                checkIconized = false;
+                wxYield();
+                if ( sw.Time() > 500 )
+                {
+                    // 500ms should be enough for the window to end up iconized.
+                    WARN("Frame wasn't iconized as expected");
+                    checkIconized = false;
+                    break;
+                }
             }
         }
 #endif // __WXGTK__
@@ -142,9 +148,16 @@ TEST_CASE_METHOD(PersistenceTests, "wxPersistTLW", "[persist][tlw]")
         if ( checkIconized )
         {
 #ifdef __WXGTK__
-            WaitFor("frame to be iconized", [frame]() {
-                return frame->IsIconized();
-            });
+            wxStopWatch sw;
+            while ( !frame->IsIconized() )
+            {
+                wxYield();
+                if ( sw.Time() > 500 )
+                {
+                    INFO("Abandoning wait after " << sw.Time() << "ms");
+                    break;
+                }
+            }
 #endif // __WXGTK__
 
             CHECK(frame->IsIconized());

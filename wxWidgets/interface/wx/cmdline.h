@@ -212,7 +212,7 @@ struct wxCmdLineEntryDesc
     }
     @endcode
 
-    The for loop could be written:
+    With C++11, the for loop could be written:
     @code
     for (const auto &arg : parser.GetArguments()) {
         // working on arg as with *itarg above
@@ -449,19 +449,24 @@ public:
     wxCmdLineParser();
 
     /**
-        Constructor which specifies the command line to parse.
+        Constructor which specifies the command line to parse. This is the
+        traditional (Unix) command line format. The parameters @a argc and
+        @a argv have the same meaning as the typical @c main() function.
 
-        This is the traditional (Unix) command line format and the parameters
-        @a argc and @a argv have the same meaning as the typical @c main()
-        function.
+        This constructor is available in both ANSI and Unicode modes because under
+        some platforms the command line arguments are passed as ASCII strings
+        even to Unicode programs.
     */
     wxCmdLineParser(int argc, char** argv);
 
     /**
         Constructor which specifies the command line to parse.
+        This is the traditional (Unix) command line format.
 
         The parameters @a argc and @a argv have the same meaning as the typical
-        @c main() function, but the latter uses wide character strings.
+        @c main() function.
+
+        This constructor is only available in Unicode build.
     */
     wxCmdLineParser(int argc, wchar_t** argv);
 
@@ -712,7 +717,7 @@ public:
             { wxCMD_LINE_OPTION, "s", "size",    "output block size", wxCMD_LINE_VAL_NUMBER },
             { wxCMD_LINE_OPTION, "d", "date",    "output file date", wxCMD_LINE_VAL_DATE },
 
-            { wxCMD_LINE_PARAM,  nullptr, nullptr, "input file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_MULTIPLE },
+            { wxCMD_LINE_PARAM,  NULL, NULL, "input file", wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_MULTIPLE },
 
             { wxCMD_LINE_NONE }
         };

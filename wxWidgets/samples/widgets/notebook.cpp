@@ -33,6 +33,8 @@
     #include "wx/radiobox.h"
     #include "wx/statbox.h"
     #include "wx/textctrl.h"
+
+    #include "wx/dynarray.h"
 #endif
 
 #include "wx/sizer.h"
@@ -83,11 +85,11 @@ public:
     BookWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist, const char *const icon[]);
     virtual ~BookWidgetsPage();
 
-    virtual wxWindow *GetWidget() const override { return m_book; }
-    virtual void RecreateWidget() override { RecreateBook(); }
+    virtual wxWindow *GetWidget() const wxOVERRIDE { return m_book; }
+    virtual void RecreateWidget() wxOVERRIDE { RecreateBook(); }
 
     // lazy creation of the content
-    virtual void CreateContent() override;
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -186,12 +188,12 @@ BookWidgetsPage::BookWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist, c
                 :WidgetsPage(book, imaglist, icon)
 {
     // init everything
-    m_chkImages = nullptr;
-    m_imageList = nullptr;
+    m_chkImages = NULL;
+    m_imageList = NULL;
 
-    m_book = nullptr;
-    m_radioOrient = nullptr;
-    m_sizerBook = nullptr;
+    m_book = NULL;
+    m_radioOrient = NULL;
+    m_sizerBook = (wxSizer *)NULL;
 }
 
 void BookWidgetsPage::CreateContent()
@@ -199,8 +201,7 @@ void BookWidgetsPage::CreateContent()
     wxSizer *sizerTop = new wxBoxSizer(wxHORIZONTAL);
 
     // left pane
-    wxStaticBoxSizer *sizerLeft = new wxStaticBoxSizer(wxVERTICAL, this, "&Set style");
-    wxStaticBox* const sizerLeftBox = sizerLeft->GetStaticBox();
+    wxStaticBox *box = new wxStaticBox(this, wxID_ANY, "&Set style");
 
     // must be in sync with Orient enum
     wxArrayString orientations;
@@ -212,62 +213,59 @@ void BookWidgetsPage::CreateContent()
     wxASSERT_MSG( orientations.GetCount() == Orient_Max,
                   "forgot to update something" );
 
-    m_chkImages = new wxCheckBox(sizerLeftBox, wxID_ANY, "Show &images");
-    m_radioOrient = new wxRadioBox(sizerLeftBox, wxID_ANY, "&Tab orientation",
+    m_chkImages = new wxCheckBox(this, wxID_ANY, "Show &images");
+    m_radioOrient = new wxRadioBox(this, wxID_ANY, "&Tab orientation",
                                    wxDefaultPosition, wxDefaultSize,
                                    orientations, 1, wxRA_SPECIFY_COLS);
+
+    wxSizer *sizerLeft = new wxStaticBoxSizer(box, wxVERTICAL);
 
     sizerLeft->Add(m_chkImages, 0, wxALL, 5);
     sizerLeft->Add(5, 5, 0, wxGROW | wxALL, 5); // spacer
     sizerLeft->Add(m_radioOrient, 0, wxALL, 5);
 
-    wxButton *btn = new wxButton(sizerLeftBox, BookPage_Reset, "&Reset");
+    wxButton *btn = new wxButton(this, BookPage_Reset, "&Reset");
     sizerLeft->Add(btn, 0, wxALIGN_CENTRE_HORIZONTAL | wxALL, 15);
 
     // middle pane
-    wxStaticBoxSizer *sizerMiddle = new wxStaticBoxSizer(wxVERTICAL, this, "&Contents");
-    wxStaticBox* const sizerMidleBox = sizerMiddle->GetStaticBox();
+    wxStaticBox *box2 = new wxStaticBox(this, wxID_ANY, "&Contents");
+    wxSizer *sizerMiddle = new wxStaticBoxSizer(box2, wxVERTICAL);
 
     wxTextCtrl *text;
     wxSizer *sizerRow = CreateSizerWithTextAndLabel("Number of pages: ",
                                                     BookPage_NumPagesText,
-                                                    &text,
-                                                    sizerMidleBox);
+                                                    &text);
     text->SetEditable(false);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
     sizerRow = CreateSizerWithTextAndLabel("Current selection: ",
                                            BookPage_CurSelectText,
-                                           &text,
-                                           sizerMidleBox);
+                                           &text);
     text->SetEditable(false);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
     sizerRow = CreateSizerWithTextAndButton(BookPage_SelectPage,
                                             "&Select page",
                                             BookPage_SelectText,
-                                            &m_textSelect,
-                                            sizerMidleBox);
+                                            &m_textSelect);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
-    btn = new wxButton(sizerMidleBox, BookPage_AddPage, "&Add page");
+    btn = new wxButton(this, BookPage_AddPage, "&Add page");
     sizerMiddle->Add(btn, 0, wxALL | wxGROW, 5);
 
     sizerRow = CreateSizerWithTextAndButton(BookPage_InsertPage,
                                             "&Insert page at",
                                             BookPage_InsertText,
-                                            &m_textInsert,
-                                            sizerMidleBox);
+                                            &m_textInsert);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
     sizerRow = CreateSizerWithTextAndButton(BookPage_RemovePage,
                                             "&Remove page",
                                             BookPage_RemoveText,
-                                            &m_textRemove,
-                                            sizerMidleBox);
+                                            &m_textRemove);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
-    btn = new wxButton(sizerMidleBox, BookPage_DeleteAll, "&Delete All");
+    btn = new wxButton(this, BookPage_DeleteAll, "&Delete All");
     sizerMiddle->Add(btn, 0, wxALL | wxGROW, 5);
 
     // right pane
@@ -325,7 +323,7 @@ void BookWidgetsPage::CreateImageList()
         wxDELETE(m_imageList);
     }
 
-    // because of the bug in wxMSW we can't use SetImageList(nullptr) - although
+    // because of the bug in wxMSW we can't use SetImageList(NULL) - although
     // it would be logical if this removed the image list from book, under
     // MSW it crashes instead - FIXME
 }
@@ -364,8 +362,6 @@ void BookWidgetsPage::RecreateBook()
     wxBookCtrlBase *oldBook = m_book;
 
     m_book = CreateBook(flags);
-
-    NotifyWidgetRecreation(m_book);
 
     CreateImageList();
 
@@ -545,7 +541,7 @@ protected:
     void OnPageChanged(wxNotebookEvent& event);
 
     // (re)create book
-    virtual wxBookCtrlBase *CreateBook(long flags) override
+    virtual wxBookCtrlBase *CreateBook(long flags) wxOVERRIDE
     {
         return new wxNotebook(this, BookPage_Book,
                               wxDefaultPosition, wxDefaultSize,
@@ -568,6 +564,8 @@ wxEND_EVENT_TABLE()
 
 #if defined(__WXUNIVERSAL__)
     #define FAMILY_CTRLS UNIVERSAL_CTRLS
+#elif defined(__WXMOTIF__)
+    #define FAMILY_CTRLS GENERIC_CTRLS
 #else
     #define FAMILY_CTRLS NATIVE_CTRLS
 #endif
@@ -624,7 +622,7 @@ protected:
     void OnPageChanged(wxListbookEvent& event);
 
     // (re)create book
-    virtual wxBookCtrlBase *CreateBook(long flags) override
+    virtual wxBookCtrlBase *CreateBook(long flags) wxOVERRIDE
     {
         return new wxListbook(this, BookPage_Book,
                               wxDefaultPosition, wxDefaultSize,
@@ -697,7 +695,7 @@ protected:
     void OnPageChanged(wxChoicebookEvent& event);
 
     // (re)create book
-    virtual wxBookCtrlBase *CreateBook(long flags) override
+    virtual wxBookCtrlBase *CreateBook(long flags) wxOVERRIDE
     {
         return new wxChoicebook(this, BookPage_Book,
                                 wxDefaultPosition, wxDefaultSize,

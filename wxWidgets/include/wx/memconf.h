@@ -4,6 +4,7 @@
 //              stores the settings in memory (thus they are lost when the
 //              program terminates)
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     22.01.00
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence

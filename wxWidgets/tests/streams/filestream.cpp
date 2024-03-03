@@ -62,9 +62,9 @@ protected:
 
 private:
     // Implement base class functions.
-    virtual wxFileInputStream  *DoCreateInStream() override;
-    virtual wxFileOutputStream *DoCreateOutStream() override;
-    virtual void DoDeleteOutStream() override;
+    virtual wxFileInputStream  *DoCreateInStream() wxOVERRIDE;
+    virtual wxFileOutputStream *DoCreateOutStream() wxOVERRIDE;
+    virtual void DoDeleteOutStream() wxOVERRIDE;
 
 private:
     wxString GetInFileName() const;

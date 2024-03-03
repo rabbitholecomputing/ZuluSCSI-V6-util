@@ -65,12 +65,6 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
         // start drawing on the intermediary device:
         m_ok = m_qtPainter->begin( m_qtPixmap );
 
-        if (m_qtPainter->device()->depth() > 1)
-        {
-            m_qtPainter->setRenderHints(QPainter::Antialiasing,
-                                        true);
-        }
-
         SetPen(m_pen);
         SetBrush(m_brush);
         SetFont(m_font);

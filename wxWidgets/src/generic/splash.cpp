@@ -2,6 +2,7 @@
 // Name:        src/generic/splash.cpp
 // Purpose:     wxSplashScreen class
 // Author:      Julian Smart
+// Modified by:
 // Created:     28/6/2000
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -13,7 +14,7 @@
 
 #if wxUSE_SPLASH
 
-#ifdef __WXGTK__
+#ifdef __WXGTK20__
     #include "wx/gtk/private/wrapgtk.h"
 #endif
 
@@ -39,7 +40,7 @@ wxEND_EVENT_TABLE()
 
 void wxSplashScreen::Init()
 {
-    m_window = nullptr;
+    m_window = NULL;
 
     wxEvtHandler::AddFilter(this);
 }
@@ -61,7 +62,7 @@ wxSplashScreen::wxSplashScreen(const wxBitmap& bitmap, long splashStyle, int mil
     // is going to disappear soon, indicate it by giving it this special style
     SetExtraStyle(GetExtraStyle() | wxWS_EX_TRANSIENT);
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK20__)
     gtk_window_set_type_hint(GTK_WINDOW(m_widget),
                              GDK_WINDOW_TYPE_HINT_SPLASHSCREEN);
 #endif
@@ -88,7 +89,7 @@ wxSplashScreen::wxSplashScreen(const wxBitmap& bitmap, long splashStyle, int mil
     m_window->SetFocus();
 #if defined( __WXMSW__ ) || defined(__WXMAC__)
     Update(); // Without this, you see a blank screen for an instant
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     // we don't need to do anything at least on wxGTK with GTK+ 2.12.9
 #else
     wxYieldIfNeeded(); // Should eliminate this

@@ -40,7 +40,7 @@
 
 wxToolTip::wxToolTip(const wxString &tip)
 {
-    m_window = nullptr;
+    m_window = NULL;
     SetTip(tip);
 }
 
@@ -60,7 +60,7 @@ const wxString &wxToolTip::GetTip() const
 
 void wxToolTip::SetWindow(wxWindow *win)
 {
-    wxCHECK_RET(win != nullptr, "window should not be null");
+    wxCHECK_RET(win != NULL, "window should not be NULL");
     m_window = win;
     m_window->QtApplyToolTip(m_text);
 }

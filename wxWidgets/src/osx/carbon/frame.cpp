@@ -2,6 +2,7 @@
 // Name:        src/osx/carbon/frame.cpp
 // Purpose:     wxFrame
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -175,14 +176,14 @@ void wxFrame::OnActivate(wxActivateEvent& event)
     else
     {
 #if wxUSE_MENUBAR
-        if (m_frameMenuBar != nullptr)
+        if (m_frameMenuBar != NULL)
         {
             m_frameMenuBar->MacInstallMenuBar();
         }
         else
         {
             wxFrame *tlf = wxDynamicCast( wxTheApp->GetTopWindow(), wxFrame );
-            if (tlf != nullptr)
+            if (tlf != NULL)
             {
                 // Trying top-level frame membar
                 if (tlf->GetMenuBar())
@@ -217,7 +218,7 @@ void wxFrame::AttachMenuBar( wxMenuBar *menuBar )
     if ( (tlf == this) || (m_frameMenuBar == wxMenuBar::MacGetInstalledMenuBar()) )
         makeCurrent = true;
     // or there is an app-level menubar like MDI
-    else if ( tlf && (tlf->GetMenuBar() == nullptr) && (((wxFrame*)wxTheApp->GetTopWindow()) == this) )
+    else if ( tlf && (tlf->GetMenuBar() == NULL) && (((wxFrame*)wxTheApp->GetTopWindow()) == this) )
         makeCurrent = true;
 
     wxFrameBase::AttachMenuBar( menuBar );
@@ -410,7 +411,7 @@ bool wxFrame::Show(bool show)
     if ( !show )
     {
 #if wxUSE_MENUBAR
-        if (m_frameMenuBar != nullptr)
+        if (m_frameMenuBar != NULL)
         {
           m_frameMenuBar->MacUninstallMenuBar();
         }

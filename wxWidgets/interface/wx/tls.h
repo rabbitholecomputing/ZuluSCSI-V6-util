@@ -6,8 +6,6 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /**
-    @deprecated Use C++11 `thread_local` keyword instead.
-
     Macro to be used for thread-specific variables declarations.
 
     This macro can be used to define thread-specific variables of the specified
@@ -39,8 +37,6 @@
 #define wxTLS_TYPE(type) compiler-dependent-implementation
 
 /**
-    @deprecated Use variables defined using C++11 `thread_local` keyword normally.
-
     Macro to access thread-specific variables.
 
     This macro is used to hide the difference in implementation of
@@ -59,8 +55,6 @@
 #define wxTLS_VALUE(var)
 
 /**
-    @deprecated Use variables defined using C++11 `thread_local` keyword normally.
-
     Macro to return address of a thread-specific variables.
 
     This macro is similar to wxTLS_VALUE() except that it always returns a

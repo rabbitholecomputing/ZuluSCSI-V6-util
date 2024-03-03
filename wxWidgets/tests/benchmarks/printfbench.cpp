@@ -2,6 +2,7 @@
 // Name:        printfbench.cpp
 // Purpose:     benchmarks for wx*Printf*() functions
 // Author:      Francesco Montorsi
+// Modified by:
 // Created:     27/3/2006
 // Copyright:   (c) 2006-2009 Francesco Montorsi
 // Licence:     wxWindows licence
@@ -91,7 +92,11 @@ const wxString g_verylongString =
 
 // we need to avoid the use of wxPrintf() here since it could have been mapped
 // to wxWidgets' implementation of wxVsnPrintf() !
-#define sys_printf swprintf
+#if wxUSE_UNICODE
+    #define sys_printf swprintf
+#else
+    #define sys_printf snprintf
+#endif
 
 
 // ----------------------------------------------------------------------------

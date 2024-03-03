@@ -26,15 +26,15 @@ public:
     virtual void SetScrollbars(int pixelsPerUnitX, int pixelsPerUnitY,
                                int noUnitsX, int noUnitsY,
                                int xPos = 0, int yPos = 0,
-                               bool noRefresh = false) override;
-    virtual void AdjustScrollbars() override;
+                               bool noRefresh = false) wxOVERRIDE;
+    virtual void AdjustScrollbars() wxOVERRIDE;
 
-    virtual bool IsScrollbarShown(int orient) const override;
+    virtual bool IsScrollbarShown(int orient) const wxOVERRIDE;
 
 protected:
-    virtual void DoScroll(int x, int y) override;
+    virtual void DoScroll(int x, int y) wxOVERRIDE;
     virtual void DoShowScrollbars(wxScrollbarVisibility horz,
-                                  wxScrollbarVisibility vert) override;
+                                  wxScrollbarVisibility vert) wxOVERRIDE;
 
 private:
     // this does (each) half of AdjustScrollbars() work

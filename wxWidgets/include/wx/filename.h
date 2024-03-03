@@ -2,6 +2,7 @@
 // Name:        wx/filename.h
 // Purpose:     wxFileName - encapsulates a file path
 // Author:      Robert Roebling, Vadim Zeitlin
+// Modified by:
 // Created:     28.12.00
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
@@ -276,7 +277,7 @@ public:
     // time functions
 #if wxUSE_DATETIME
         // set the file last access/mod and creation times
-        // (any of the pointers may be null)
+        // (any of the pointers may be NULL)
     bool SetTimes(const wxDateTime *dtAccess,
                   const wxDateTime *dtMod,
                   const wxDateTime *dtCreate) const;
@@ -285,7 +286,7 @@ public:
     bool Touch() const;
 
         // return the last access, last modification and create times
-        // (any of the pointers may be null)
+        // (any of the pointers may be NULL)
     bool GetTimes(wxDateTime *dtAccess,
                   wxDateTime *dtMod,
                   wxDateTime *dtCreate) const;
@@ -294,7 +295,7 @@ public:
     wxDateTime GetModificationTime() const
     {
         wxDateTime dtMod;
-        (void)GetTimes(nullptr, &dtMod, nullptr);
+        (void)GetTimes(NULL, &dtMod, NULL);
         return dtMod;
     }
 #endif // wxUSE_DATETIME
@@ -421,7 +422,7 @@ public:
         // the arguments
     bool GetShortcutTarget(const wxString& shortcutPath,
                            wxString& targetFilename,
-                           wxString* arguments = nullptr) const;
+                           wxString* arguments = NULL) const;
 #endif
 
         // if the path contains the value of the environment variable named envname
@@ -553,13 +554,13 @@ public:
     static wxPathFormat GetFormat( wxPathFormat format = wxPATH_NATIVE );
 
         // split a fullpath into the volume, path, (base) name and extension
-        // (all of the pointers can be null)
+        // (all of the pointers can be NULL)
     static void SplitPath(const wxString& fullpath,
                           wxString *volume,
                           wxString *path,
                           wxString *name,
                           wxString *ext,
-                          bool *hasExt = nullptr,
+                          bool *hasExt = NULL,
                           wxPathFormat format = wxPATH_NATIVE);
 
     static void SplitPath(const wxString& fullpath,
@@ -569,7 +570,7 @@ public:
                           wxString *ext,
                           wxPathFormat format)
     {
-        SplitPath(fullpath, volume, path, name, ext, nullptr, format);
+        SplitPath(fullpath, volume, path, name, ext, NULL, format);
     }
 
         // compatibility version: volume is part of path

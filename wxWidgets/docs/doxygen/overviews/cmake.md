@@ -69,7 +69,7 @@ wxBUILD_TESTS             | STRING | OFF     | CONSOLE_ONLY, ALL or OFF
 wxBUILD_SAMPLES           | STRING | OFF     | SOME, ALL or OFF
 wxBUILD_DEMOS             | BOOL   | OFF     | Build demo applications
 wxUSE_GUI                 | BOOL   | ON      | Build the UI libraries
-wxBUILD_COMPATIBILITY     | STRING | 3.2     | Enable API compatibility with 3.0, 3.2 or neither ("NONE")
+wxBUILD_COMPATIBILITY     | STRING | 3.0     | 2.8, 3.0 or 3.1 API compatibility
 wxBUILD_PRECOMP           | BOOL   | ON      | Use precompiled headers
 wxBUILD_MONOLITHIC        | BOOL   | OFF     | Build a single library
 
@@ -84,7 +84,7 @@ in CMake the following generators are recommended:
 * macOS: Xcode
 * Linux: Ninja or Makefiles
 
-CMake 3.10 or newer is recommended. The minimum tested version is 3.5.
+CMake 3.10 or newer is recommended. The minimum version required is 2.8.12.
 
 Using CMake with your applications     {#cmake_apps}
 ==================================

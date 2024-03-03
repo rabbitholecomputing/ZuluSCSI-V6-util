@@ -2,6 +2,7 @@
 // Name:        src/common/combocmn.cpp
 // Purpose:     wxComboCtrlBase
 // Author:      Jaakko Salli
+// Modified by:
 // Created:     Apr-30-2006
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
@@ -55,6 +56,7 @@ wxFLAGS_MEMBER(wxBORDER)
 // standard window styles
 wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
 wxFLAGS_MEMBER(wxCLIP_CHILDREN)
+wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
 wxFLAGS_MEMBER(wxWANTS_CHARS)
 wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
 wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
@@ -141,7 +143,11 @@ wxCONSTRUCTOR_5( wxComboBox, wxWindow*, Parent, wxWindowID, Id, \
 #include "wx/dialog.h"
 #define wxComboCtrlGenericTLW   wxDialog
 
-#include "wx/gtk/private.h"
+#if defined(__WXGTK20__)
+# include "wx/gtk/private.h"
+#else
+# include "wx/gtk1/private.h"
+#endif
 
 #elif defined(__WXMAC__)
 
@@ -155,11 +161,6 @@ wxCONSTRUCTOR_5( wxComboBox, wxWindow*, Parent, wxWindowID, Id, \
 #define DEFAULT_DROPBUTTON_WIDTH      22
 #undef COMBO_MARGIN
 #define COMBO_MARGIN                  FOCUS_RING
-
-#elif defined(__WXQT__)
-
-#include "wx/nonownedwnd.h"
-#define wxComboCtrlGenericTLW   wxNonOwnedWindow
 
 #else
 
@@ -344,17 +345,17 @@ public:
     }
 
 #if wxUSE_POPUPWIN
-    virtual bool Show( bool show ) override;
-    virtual bool ProcessLeftDown(wxMouseEvent& event) override;
+    virtual bool Show( bool show ) wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
 protected:
-    virtual void OnDismiss() override;
+    virtual void OnDismiss() wxOVERRIDE;
 #endif
 
 #ifdef __WXMSW__
     virtual bool MSWHandleMessage(WXLRESULT *result,
                                   WXUINT message,
                                   WXWPARAM wParam,
-                                  WXLPARAM lParam) override
+                                  WXLPARAM lParam) wxOVERRIDE
     {
         // This is a workaround for a MSW-specific problem: popup windows are
         // created with the TLW and not the combobox itself as their parent and
@@ -373,20 +374,21 @@ protected:
 
             // We can't delete it immediately because this object is used after
             // this function returns, so do it slightly later.
-            wxWindow* const self = this;
-            m_combo->CallAfter([self]()
-            {
-                // Before really deleting it, reset the HWND which had been
-                // already destroyed, to prevent us from trying to destroy it
-                // again (which would just fail with an error).
-                self->DissociateHandle();
-
-                delete self;
-            });
+            m_combo->CallAfter(&wxComboPopupWindow::DeleteSelf);
         }
 
         return wxComboPopupWindowBase::MSWHandleMessage(result, message,
                                                         wParam, lParam);
+    }
+
+    void DeleteSelf()
+    {
+        // Before really deleting it, reset the HWND which had been
+        // already destroyed, to prevent us from trying to destroy it
+        // again (which would just fail with an error).
+        DissociateHandle();
+
+        delete this;
     }
 #endif // __WXMSW__
 
@@ -760,7 +762,7 @@ public:
     wxComboCtrlTextCtrl() : wxTextCtrl() { }
     virtual ~wxComboCtrlTextCtrl() { }
 
-    virtual wxWindow *GetMainWindowOfCompositeControl() override
+    virtual wxWindow *GetMainWindowOfCompositeControl() wxOVERRIDE
     {
         wxComboCtrl* combo = (wxComboCtrl*) GetParent();
 
@@ -792,16 +794,16 @@ wxIMPLEMENT_ABSTRACT_CLASS(wxComboCtrlBase, wxControl);
 
 void wxComboCtrlBase::Init()
 {
-    m_winPopup = nullptr;
-    m_popup = nullptr;
+    m_winPopup = NULL;
+    m_popup = NULL;
     m_popupWinState = Hidden;
-    m_btn = nullptr;
-    m_text = nullptr;
-    m_mainWindow = nullptr;
-    m_popupInterface = nullptr;
+    m_btn = NULL;
+    m_text = NULL;
+    m_mainWindow = NULL;
+    m_popupInterface = NULL;
 
 #if !wxUSE_POPUPWIN
-    m_toplevEvtHandler = nullptr;
+    m_toplevEvtHandler = NULL;
 #endif
 
     m_mainCtrlWnd = this;
@@ -886,10 +888,10 @@ wxComboCtrlBase::SetMainControl(wxWindow* win)
     {
         m_text->Destroy();
 
-        // Note that we currently always set it to nullptr, even if the custom
+        // Note that we currently always set it to NULL, even if the custom
         // window is a (subclass of) wxTextCtrl because our m_text must be a
         // wxComboCtrlTextCtrl for things to work correctly.
-        m_text = nullptr;
+        m_text = NULL;
     }
 
     // We don't do anything with the previous main window, if any, it's the
@@ -982,7 +984,7 @@ wxComboCtrlBase::~wxComboCtrlBase()
 
 #if !wxUSE_POPUPWIN
     delete ((wxComboFrameEventHandler*)m_toplevEvtHandler);
-    m_toplevEvtHandler = nullptr;
+    m_toplevEvtHandler = NULL;
 #endif
 
     DestroyPopup();
@@ -1367,8 +1369,8 @@ void wxComboCtrlBase::DoSetToolTip(wxToolTip *tooltip)
     }
     else
     {
-        if ( m_mainWindow ) m_mainWindow->SetToolTip( nullptr );
-        if ( m_btn ) m_btn->SetToolTip( nullptr );
+        if ( m_mainWindow ) m_mainWindow->SetToolTip( NULL );
+        if ( m_btn ) m_btn->SetToolTip( NULL );
     }
 }
 #endif // wxUSE_TOOLTIPS
@@ -2013,16 +2015,16 @@ void wxComboCtrlBase::DestroyPopup()
     {
         // NB: DestroyPopup() performs 'delete this'.
         m_popupInterface->DestroyPopup();
-        m_popupInterface = nullptr;
+        m_popupInterface = NULL;
     }
 
     if ( m_winPopup )
     {
         m_winPopup->Destroy();
-        m_winPopup = nullptr;
+        m_winPopup = NULL;
     }
 
-    m_popup = nullptr;
+    m_popup = NULL;
 }
 
 void wxComboCtrlBase::DoSetPopupControl(wxComboPopup* iface)
@@ -2042,7 +2044,7 @@ void wxComboCtrlBase::DoSetPopupControl(wxComboPopup* iface)
     }
     else
     {
-        m_popup = nullptr;
+        m_popup = NULL;
     }
 
     // This must be done after creation
@@ -2057,7 +2059,7 @@ void wxComboCtrlBase::DoSetPopupControl(wxComboPopup* iface)
 void wxComboCtrlBase::EnsurePopupControl()
 {
     if ( !m_popupInterface )
-        SetPopupControl(nullptr);
+        SetPopupControl(NULL);
 }
 
 void wxComboCtrlBase::OnButtonClick()
@@ -2408,10 +2410,10 @@ void wxComboCtrlBase::HidePopup(bool generateEvent)
 
 void wxComboCtrlBase::OnPopupDestroy()
 {
-    m_winPopup = nullptr;
+    m_winPopup = NULL;
 
     delete m_popupInterface;
-    m_popupInterface = nullptr;
+    m_popupInterface = NULL;
 }
 
 // ----------------------------------------------------------------------------
@@ -2526,6 +2528,29 @@ wxPoint wxComboCtrlBase::DoGetMargins() const
 {
     return wxPoint(m_marginLeft, -1);
 }
+
+#if WXWIN_COMPATIBILITY_2_8
+void wxComboCtrlBase::SetTextIndent( int indent )
+{
+    if ( indent < 0 )
+    {
+        m_marginLeft = GetNativeTextIndent();
+        m_iFlags &= ~(wxCC_IFLAG_LEFT_MARGIN_SET);
+    }
+    else
+    {
+        m_marginLeft = indent;
+        m_iFlags |= wxCC_IFLAG_LEFT_MARGIN_SET;
+    }
+
+    RecalcAndRefresh();
+}
+
+wxCoord wxComboCtrlBase::GetTextIndent() const
+{
+    return m_marginLeft;
+}
+#endif
 
 wxCoord wxComboCtrlBase::GetNativeTextIndent() const
 {

@@ -59,19 +59,19 @@ wxTimerImpl *wxGUIAppTraits::CreateTimerImpl(wxTimer *timer)
 class wxDisplayImplSingleDFB : public wxDisplayImplSingle
 {
 public:
-    virtual wxRect GetGeometry() const override
+    virtual wxRect GetGeometry() const wxOVERRIDE
     {
         const wxVideoMode mode(wxTheApp->GetDisplayMode());
 
         return wxRect(0, 0, mode.w, mode.h);
     }
 
-    virtual int GetDepth() const override
+    virtual int GetDepth() const wxOVERRIDE
     {
         return wxTheApp->GetDisplayMode().bpp;
     }
 
-    virtual wxSize GetPPI() const override
+    virtual wxSize GetPPI() const wxOVERRIDE
     {
         // FIXME: there's no way to get physical resolution using the DirectDB
         //        API, we hardcode a commonly used value of 72dpi

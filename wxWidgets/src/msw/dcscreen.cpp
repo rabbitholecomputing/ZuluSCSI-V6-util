@@ -2,6 +2,7 @@
 // Name:        src/msw/dcscreen.cpp
 // Purpose:     wxScreenDC class
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -26,7 +27,7 @@ wxIMPLEMENT_ABSTRACT_CLASS(wxScreenDCImpl, wxMSWDCImpl);
 wxScreenDCImpl::wxScreenDCImpl( wxScreenDC *owner ) :
     wxMSWDCImpl( owner )
 {
-    m_hDC = (WXHDC) ::GetDC(nullptr);
+    m_hDC = (WXHDC) ::GetDC((HWND) NULL);
 
     // the background mode is only used for text background and is set in
     // DrawText() to OPAQUE as required, otherwise always TRANSPARENT

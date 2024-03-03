@@ -41,7 +41,7 @@ namespace {
 class wxOSXImageHolder
 {
 public:
-    wxOSXImageHolder() : m_nsImage(nullptr)
+    wxOSXImageHolder() : m_nsImage(NULL)
     {
     }
 
@@ -86,7 +86,7 @@ WXImage WXDLLIMPEXP_CORE wxOSXGetImageFromBundleImpl(const wxBitmapBundleImpl* i
     if (image != gs_nativeImages.end())
         return image->second.GetImage();
     else
-        return nullptr;
+        return NULL;
 }
 
 void WXDLLIMPEXP_CORE wxOSXSetImageForBundleImpl(const wxBitmapBundleImpl* impl, WXImage image)
@@ -112,9 +112,9 @@ public:
     wxOSXImageBundleImpl(WXImage image);
     ~wxOSXImageBundleImpl();
 
-    virtual wxSize GetDefaultSize() const override;
-    virtual wxSize GetPreferredBitmapSizeAtScale(double scale) const override;
-    virtual wxBitmap GetBitmap(const wxSize& size) override;
+    virtual wxSize GetDefaultSize() const wxOVERRIDE;
+    virtual wxSize GetPreferredBitmapSizeAtScale(double scale) const wxOVERRIDE;
+    virtual wxBitmap GetBitmap(const wxSize& size) wxOVERRIDE;
 };
 
 } // anonymouse namespace
@@ -210,15 +210,15 @@ wxBitmapBundle wxBitmapBundle::FromFiles(const wxString& path, const wxString& f
             wxCFRef<CFURLRef> imageURL(wxOSXCreateURLFromFileSystemPath(fn.GetFullPath()));
             // Create the data provider object
             wxCFRef<CGDataProviderRef> provider(CGDataProviderCreateWithURL(imageURL));
-            CGImageRef image = nullptr;
+            CGImageRef image = NULL;
 
             if ( ext == "jpeg" )
-                image = CGImageCreateWithJPEGDataProvider (provider, nullptr, true,
+                image = CGImageCreateWithJPEGDataProvider (provider, NULL, true,
                                                        kCGRenderingIntentDefault);
             else if ( ext == "png" )
-                image = CGImageCreateWithPNGDataProvider (provider, nullptr, true,
+                image = CGImageCreateWithPNGDataProvider (provider, NULL, true,
                                                            kCGRenderingIntentDefault);
-            if ( image != nullptr )
+            if ( image != NULL )
             {
                 wxBitmap bmp(image, dpiFactor);
                 CGImageRelease(image);
@@ -238,13 +238,13 @@ wxBitmapBundle wxBitmapBundle::FromResources(const wxString& name)
 WXImage wxOSXGetImageFromBundle(const wxBitmapBundle& bundle)
 {
     if (!bundle.IsOk())
-        return nullptr;
+        return NULL;
 
     wxBitmapBundleImpl* impl = bundle.GetImpl();
 
     WXImage image = wxOSXGetImageFromBundleImpl(impl);
 
-    if (image == nullptr)
+    if (image == 0)
     {
         wxSize sz = impl->GetDefaultSize();
 

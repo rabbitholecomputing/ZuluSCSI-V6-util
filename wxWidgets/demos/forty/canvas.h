@@ -2,6 +2,7 @@
 // Name:        canvas.h
 // Purpose:     Forty Thieves patience game
 // Author:      Chris Breeze
+// Modified by:
 // Created:     21/07/97
 // Copyright:   (c) 1993-1998 Chris Breeze
 // Licence:     wxWindows licence
@@ -22,7 +23,7 @@ public:
     FortyCanvas(wxWindow* parent, const wxPoint& pos, const wxSize& size);
     virtual ~FortyCanvas();
 
-    virtual void OnDraw(wxDC& dc) override;
+    virtual void OnDraw(wxDC& dc) wxOVERRIDE;
     bool OnCloseCanvas();
     void OnMouseEvent(wxMouseEvent& event);
     void SetCursorStyle(int x, int y);

@@ -2,6 +2,7 @@
 // Name:        src/generic/calctrlg.cpp
 // Purpose:     implementation of the wxGenericCalendarCtrl
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     29.12.99
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -126,10 +127,10 @@ wxGenericCalendarCtrl::wxGenericCalendarCtrl(wxWindow *parent,
 
 void wxGenericCalendarCtrl::Init()
 {
-    m_choiceMonth = nullptr;
-    m_spinYear = nullptr;
-    m_staticYear = nullptr;
-    m_staticMonth = nullptr;
+    m_choiceMonth = NULL;
+    m_spinYear = NULL;
+    m_staticYear = NULL;
+    m_staticMonth = NULL;
 
     m_userChangedYear = false;
 
@@ -140,12 +141,12 @@ void wxGenericCalendarCtrl::Init()
     wxDateTime::WeekDay wd;
     for ( wd = wxDateTime::Sun; wd < wxDateTime::Inv_WeekDay; wxNextWDay(wd) )
     {
-        m_weekdays[wd] = wxDateTime::GetWeekDayName(wd, wxDateTime::NameForm().Abbr().Standalone());
+        m_weekdays[wd] = wxDateTime::GetWeekDayName(wd, wxDateTime::Name_Abbr);
     }
 
     for ( size_t n = 0; n < WXSIZEOF(m_attrs); n++ )
     {
-        m_attrs[n] = nullptr;
+        m_attrs[n] = NULL;
     }
 
     InitColours();
@@ -194,7 +195,7 @@ bool wxGenericCalendarCtrl::Create(wxWindow *parent,
         m_staticYear = new wxStaticText(GetParent(), wxID_ANY, m_date.Format(wxT("%Y")),
                                         wxDefaultPosition, wxDefaultSize,
                                         wxALIGN_CENTRE);
-        CreateMonthChoice();
+        CreateMonthComboBox();
         m_staticMonth = new wxStaticText(GetParent(), wxID_ANY, m_date.Format(wxT("%B")),
                                          wxDefaultPosition, wxDefaultSize,
                                          wxALIGN_CENTRE);
@@ -252,17 +253,17 @@ void wxGenericCalendarCtrl::SetWindowStyleFlag(long style)
 // Create the wxChoice and wxSpinCtrl
 // ----------------------------------------------------------------------------
 
-void wxGenericCalendarCtrl::CreateMonthChoice()
+void wxGenericCalendarCtrl::CreateMonthComboBox()
 {
     m_choiceMonth = new wxChoice(GetParent(), wxID_ANY,
                                   wxDefaultPosition,
                                   wxDefaultSize,
-                                  0, nullptr);
+                                  0, NULL);
 
     wxDateTime::Month m;
     for ( m = wxDateTime::Jan; m < wxDateTime::Inv_Month; wxNextMonth(m) )
     {
-        m_choiceMonth->Append(wxDateTime::GetMonthName(m, wxDateTime::NameForm().Full().Standalone()));
+        m_choiceMonth->Append(wxDateTime::GetMonthName(m));
     }
 
     m_choiceMonth->SetSelection(GetDate().GetMonth());
@@ -303,10 +304,10 @@ bool wxGenericCalendarCtrl::Destroy()
     if ( m_staticMonth )
         m_staticMonth->Destroy();
 
-    m_staticYear = nullptr;
-    m_spinYear = nullptr;
-    m_choiceMonth = nullptr;
-    m_staticMonth = nullptr;
+    m_staticYear = NULL;
+    m_spinYear = NULL;
+    m_choiceMonth = NULL;
+    m_staticMonth = NULL;
 
     return wxControl::Destroy();
 }
@@ -955,13 +956,13 @@ void wxGenericCalendarCtrl::OnPaint(wxPaintEvent& WXUNUSED(event))
                 unsigned int day = date.GetDay();
                 wxString dayStr = wxString::Format(wxT("%u"), day);
                 wxCoord width;
-                dc.GetTextExtent(dayStr, &width, nullptr);
+                dc.GetTextExtent(dayStr, &width, NULL);
 
                 bool changedColours = false,
                      changedFont = false;
 
                 bool isSel = false;
-                wxCalendarDateAttr *attr = nullptr;
+                wxCalendarDateAttr *attr = NULL;
 
                 if ( date.GetMonth() != m_date.GetMonth() || !IsDateInRange(date) )
                 {

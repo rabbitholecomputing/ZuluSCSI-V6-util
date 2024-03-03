@@ -122,7 +122,7 @@ public:
     class WXDLLIMPEXP_MEDIA wxPDFMediaBackend : public wxMediaBackendCommonBase
     {
     public:
-        wxPDFMediaBackend() : m_pAX(nullptr) {}
+        wxPDFMediaBackend() : m_pAX(NULL) {}
         virtual ~wxPDFMediaBackend()
         {
             if(m_pAX)
@@ -140,7 +140,7 @@ public:
                                         const wxString& name)
         {
             IDispatch* pDispatch;
-            if( ::CoCreateInstance(CLSID_Pdf, nullptr,
+            if( ::CoCreateInstance(CLSID_Pdf, NULL,
                                     CLSCTX_INPROC_SERVER,
                                     DIID__DPdf, (void**)&pDispatch) != 0 )
                 return false;

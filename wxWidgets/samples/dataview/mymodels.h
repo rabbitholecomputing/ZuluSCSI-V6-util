@@ -8,17 +8,18 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
-#include <memory>
-#include <unordered_map>
-#include <vector>
+#include "wx/hashmap.h"
+#include "wx/vector.h"
+
+WX_DECLARE_HASH_MAP(unsigned, wxString, wxIntegerHash, wxIntegerEqual,
+                    IntToStringMap);
 
 // ----------------------------------------------------------------------------
 // MyMusicTreeModelNode: a node inside MyMusicTreeModel
 // ----------------------------------------------------------------------------
 
 class MyMusicTreeModelNode;
-using MyMusicTreeModelNodePtr = std::unique_ptr<MyMusicTreeModelNode>;
-using MyMusicTreeModelNodePtrArray = std::vector<MyMusicTreeModelNodePtr>;
+WX_DEFINE_ARRAY_PTR( MyMusicTreeModelNode*, MyMusicTreeModelNodePtrArray );
 
 class MyMusicTreeModelNode
 {
@@ -48,7 +49,16 @@ public:
         m_container = true;
     }
 
-    ~MyMusicTreeModelNode() = default;
+    ~MyMusicTreeModelNode()
+    {
+        // free all our children nodes
+        size_t count = m_children.GetCount();
+        for (size_t i = 0; i < count; i++)
+        {
+            MyMusicTreeModelNode *child = m_children[i];
+            delete child;
+        }
+    }
 
     bool IsContainer() const
         { return m_container; }
@@ -58,13 +68,13 @@ public:
     MyMusicTreeModelNodePtrArray& GetChildren()
         { return m_children; }
     MyMusicTreeModelNode* GetNthChild( unsigned int n )
-        { return m_children.at( n ).get(); }
+        { return m_children.Item( n ); }
     void Insert( MyMusicTreeModelNode* child, unsigned int n)
-        { m_children.insert( m_children.begin() + n, MyMusicTreeModelNodePtr(child) ); }
+        { m_children.Insert( child, n); }
     void Append( MyMusicTreeModelNode* child )
-        { m_children.push_back( MyMusicTreeModelNodePtr(child) ); }
+        { m_children.Add( child ); }
     unsigned int GetChildCount() const
-        { return m_children.size(); }
+        { return m_children.GetCount(); }
 
 public:     // public to avoid getters/setters
     wxString                m_title;
@@ -77,7 +87,7 @@ public:     // public to avoid getters/setters
     // needs to know in advance if a node is or _will be_ a container.
     // Thus implementing:
     //   bool IsContainer() const
-    //    { return !m_children.empty(); }
+    //    { return m_children.GetCount()>0; }
     // doesn't work with wxGTK when MyMusicTreeModel::AddToClassical is called
     // AND the classical node was removed (a new node temporary without children
     // would be added to the control)
@@ -136,22 +146,22 @@ public:
     // override sorting to always sort branches ascendingly
 
     int Compare( const wxDataViewItem &item1, const wxDataViewItem &item2,
-                 unsigned int column, bool ascending ) const override;
+                 unsigned int column, bool ascending ) const wxOVERRIDE;
 
     // implementation of base class virtuals to define model
 
     virtual void GetValue( wxVariant &variant,
-                           const wxDataViewItem &item, unsigned int col ) const override;
+                           const wxDataViewItem &item, unsigned int col ) const wxOVERRIDE;
     virtual bool SetValue( const wxVariant &variant,
-                           const wxDataViewItem &item, unsigned int col ) override;
+                           const wxDataViewItem &item, unsigned int col ) wxOVERRIDE;
 
     virtual bool IsEnabled( const wxDataViewItem &item,
-                            unsigned int col ) const override;
+                            unsigned int col ) const wxOVERRIDE;
 
-    virtual wxDataViewItem GetParent( const wxDataViewItem &item ) const override;
-    virtual bool IsContainer( const wxDataViewItem &item ) const override;
+    virtual wxDataViewItem GetParent( const wxDataViewItem &item ) const wxOVERRIDE;
+    virtual bool IsContainer( const wxDataViewItem &item ) const wxOVERRIDE;
     virtual unsigned int GetChildren( const wxDataViewItem &parent,
-                                      wxDataViewItemArray &array ) const override;
+                                      wxDataViewItemArray &array ) const wxOVERRIDE;
 
 private:
     MyMusicTreeModelNode*   m_root;
@@ -160,6 +170,9 @@ private:
     MyMusicTreeModelNode*   m_pop;
     MyMusicTreeModelNode*   m_classical;
     MyMusicTreeModelNode*   m_ninth;
+
+    // ??
+    bool                    m_classicalMusicIsKnownToControl;
 };
 
 
@@ -203,17 +216,17 @@ public:
     // implementation of base class virtuals to define model
 
     virtual void GetValueByRow( wxVariant &variant,
-                                unsigned int row, unsigned int col ) const override;
+                                unsigned int row, unsigned int col ) const wxOVERRIDE;
     virtual bool GetAttrByRow( unsigned int row, unsigned int col,
-                               wxDataViewItemAttr &attr ) const override;
+                               wxDataViewItemAttr &attr ) const wxOVERRIDE;
     virtual bool SetValueByRow( const wxVariant &variant,
-                                unsigned int row, unsigned int col ) override;
+                                unsigned int row, unsigned int col ) wxOVERRIDE;
 
 private:
-    std::vector<bool>   m_toggleColValues;
+    wxVector<bool>   m_toggleColValues;
     wxArrayString    m_textColValues;
     wxArrayString    m_iconColValues;
-    std::unordered_map<unsigned, wxString> m_customColValues;
+    IntToStringMap   m_customColValues;
     wxBitmapBundle   m_icon[2];
 };
 
@@ -224,7 +237,7 @@ private:
 class MyListStoreDerivedModel : public wxDataViewListStore
 {
 public:
-    virtual bool IsEnabledByRow(unsigned int row, unsigned int col) const override;
+    virtual bool IsEnabledByRow(unsigned int row, unsigned int col) const wxOVERRIDE;
 };
 
 // ----------------------------------------------------------------------------
@@ -234,7 +247,7 @@ public:
 class MyListStoreHasValueModel : public MyListStoreDerivedModel
 {
 public:
-    virtual bool HasValue(const wxDataViewItem &item, unsigned int col) const override;
+    virtual bool HasValue(const wxDataViewItem &item, unsigned int col) const wxOVERRIDE;
 };
 
 // ----------------------------------------------------------------------------
@@ -245,8 +258,6 @@ class MyIndexListModel : public wxDataViewIndexListModel
 {
 public:
     MyIndexListModel() { }
-    MyIndexListModel(const MyIndexListModel&) = delete;
-    MyIndexListModel& operator=(const MyIndexListModel&) = delete;
 
     void Fill(const wxArrayString& strings)
     {
@@ -256,18 +267,20 @@ public:
     }
 
     // Implement base class pure virtual methods.
-    unsigned GetCount() const override { return m_strings.size(); }
-    void GetValueByRow(wxVariant& val, unsigned row, unsigned) const override
+    unsigned GetCount() const wxOVERRIDE { return m_strings.size(); }
+    void GetValueByRow(wxVariant& val, unsigned row, unsigned) const wxOVERRIDE
     {
         val = m_strings[row];
     }
-    bool SetValueByRow(const wxVariant&, unsigned, unsigned) override
+    bool SetValueByRow(const wxVariant&, unsigned, unsigned) wxOVERRIDE
     {
         return false;
     }
 
 private:
     wxArrayString m_strings;
+
+    wxDECLARE_NO_COPY_CLASS(MyIndexListModel);
 };
 
 enum ModelFlags

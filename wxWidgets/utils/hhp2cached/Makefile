@@ -7,46 +7,46 @@
 
 
 
-prefix = /usr/local
+prefix = /mingw64
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
-INSTALL = /usr/local/bin/ginstall -c
-EXEEXT = 
-WINDRES = 
+INSTALL = /usr/bin/install -c
+EXEEXT = .exe
+WINDRES = windres
 STRIP = strip
 NM = nm
-INSTALL_PROGRAM = cp -fp
+INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DIR = mkdir -p
-BK_DEPS = /Users/heron/Development/wxWidgets/bk-deps
+BK_DEPS = /home/gregc/Development/wxWidgets/bk-deps
 srcdir = .
 top_srcdir = ../..
 bindir = ${exec_prefix}/bin
-LIBS = -lz -framework Security -lpthread -liconv -lcurl
-LDFLAGS_GUI = 
-CXX = g++ -std=gnu++11 -mmacosx-version-min=10.10
+LIBS = -lz -lrpcrt4 -loleaut32 -lole32 -luuid -lcurl -luxtheme -lwinspool -lwinmm -lshell32 -lshlwapi -lcomctl32 -lcomdlg32 -ladvapi32 -lversion -lws2_32 -lgdi32 -loleacc -lwinhttp
+LDFLAGS_GUI = -mwindows
+CXX = g++
 CXXFLAGS = 
 CPPFLAGS = 
 LDFLAGS = 
 USE_DPI_AWARE_MANIFEST = 2
 WX_LIB_FLAVOUR = 
-TOOLKIT = OSX_COCOA
-TOOLKIT_LOWERCASE = osx_cocoa
+TOOLKIT = MSW
+TOOLKIT_LOWERCASE = msw
 TOOLKIT_VERSION = 
-TOOLCHAIN_FULLNAME = osx_cocoa-unicode-3.3
-EXTRALIBS =   -framework IOKit -framework Carbon -framework Cocoa -framework QuartzCore -framework AudioToolbox -framework System -framework OpenGL  -lz -framework Security -lpthread -liconv -lcurl -L/usr/local/Cellar/pcre2/10.42/lib -lpcre2-32 
+TOOLCHAIN_FULLNAME = msw-unicode-static-3.2
+EXTRALIBS =    -lz -lrpcrt4 -loleaut32 -lole32 -luuid -lcurl -luxtheme -lwinspool -lwinmm -lshell32 -lshlwapi -lcomctl32 -lcomdlg32 -ladvapi32 -lversion -lws2_32 -lgdi32 -loleacc -lwinhttp -lpcre2-16 
 EXTRALIBS_XML =  -lexpat
 EXTRALIBS_HTML = 
-EXTRALIBS_GUI = -lpng -lz -ljpeg -L/usr/local/Cellar/libtiff/4.6.0/lib -ltiff -framework WebKit
-WX_CPPFLAGS = -I${wx_top_builddir}/lib/wx/include/osx_cocoa-unicode-3.3 -I${top_srcdir}/include -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE= 
-WX_CXXFLAGS = -Wall -Wundef -Wunused-parameter -Wno-ctor-dtor-privacy -Woverloaded-virtual -Wno-deprecated-declarations -O2 -I/usr/local/Cellar/libtiff/4.6.0/include -I/usr/local/Cellar/zstd/1.5.5/include -I/usr/local/Cellar/xz/5.4.5/include -I/usr/local/Cellar/jpeg-turbo/3.0.1/include -I/usr/local/Cellar/pcre2/10.42/include -fno-common  -fvisibility=hidden -fvisibility-inlines-hidden
-WX_LDFLAGS = -framework IOKit -framework Carbon -framework Cocoa -framework QuartzCore -framework AudioToolbox -framework System -framework OpenGL 
+EXTRALIBS_GUI = -lpng -lz -ljpeg
+WX_CPPFLAGS = -I${wx_top_builddir}/lib/wx/include/msw-unicode-static-3.2 -I${top_srcdir}/include -D_FILE_OFFSET_BITS=64 
+WX_CXXFLAGS = -Wall -Wundef -Wunused-parameter -Wno-ctor-dtor-privacy -Woverloaded-virtual -O2  
+WX_LDFLAGS = 
 HOST_SUFFIX = 
-wx_top_builddir = /Users/heron/Development/wxWidgets
+wx_top_builddir = C:/tools/msys64/home/gregc/Development/wxWidgets
 
 ### Variables: ###
 
 DESTDIR = 
-WX_RELEASE = 3.3
+WX_RELEASE = 3.2
 LIBDIRNAME = $(wx_top_builddir)/lib
 HHP2CACHED_CXXFLAGS = $(WX_CPPFLAGS) -D__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) \
 	$(__DEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) \
@@ -64,12 +64,13 @@ CXXC = $(BK_DEPS) $(CXX)
 PORTNAME = $(TOOLKIT_LOWERCASE)$(TOOLKIT_VERSION)
 #WXBASEPORT = _carbon
 #WXDEBUGFLAG = d
+WXUNICODEFLAG = u
 #WXUNIVNAME = univ
-EXTRALIBS_FOR_BASE = $(EXTRALIBS)
-#EXTRALIBS_FOR_BASE = $(EXTRALIBS) \
-#	$(EXTRALIBS_XML) $(EXTRALIBS_GUI)
-EXTRALIBS_FOR_GUI = $(EXTRALIBS_GUI)
-#EXTRALIBS_FOR_GUI = 
+#EXTRALIBS_FOR_BASE = $(EXTRALIBS)
+EXTRALIBS_FOR_BASE = $(EXTRALIBS) \
+	$(EXTRALIBS_XML) $(EXTRALIBS_GUI)
+#EXTRALIBS_FOR_GUI = $(EXTRALIBS_GUI)
+EXTRALIBS_FOR_GUI = 
 #__WXUNIV_DEFINE_p = -D__WXUNIVERSAL__
 #__WXUNIV_DEFINE_p_1 = --define __WXUNIVERSAL__
 #__DEBUG_DEFINE_p = -DwxDEBUG_LEVEL=0
@@ -80,36 +81,32 @@ EXTRALIBS_FOR_GUI = $(EXTRALIBS_GUI)
 #__RTTI_DEFINE_p_1 = --define wxNO_RTTI
 #__THREAD_DEFINE_p = -DwxNO_THREADS
 #__THREAD_DEFINE_p_1 = --define wxNO_THREADS
-__DLLFLAG_p = -DWXUSINGDLL
-__DLLFLAG_p_1 = --define WXUSINGDLL
-#__WIN32_DPI_MANIFEST_p = \
-#	--define \
-#	wxUSE_DPI_AWARE_MANIFEST=$(USE_DPI_AWARE_MANIFEST)
+#__DLLFLAG_p = -DWXUSINGDLL
+#__DLLFLAG_p_1 = --define WXUSINGDLL
+__WIN32_DPI_MANIFEST_p = \
+	--define \
+	wxUSE_DPI_AWARE_MANIFEST=$(USE_DPI_AWARE_MANIFEST)
 COND_PLATFORM_OS2_1___hhp2cached___os2_emxbindcmd = $(NM) hhp2cached$(EXEEXT) \
 	| if grep -q pmwin.763 ; then emxbind -ep hhp2cached$(EXEEXT) ; fi
 #__hhp2cached___os2_emxbindcmd = $(COND_PLATFORM_OS2_1___hhp2cached___os2_emxbindcmd)
-#__RCDEFDIR_p = --include-dir \
-#	$(LIBDIRNAME)/wx/include/$(TOOLCHAIN_FULLNAME)
-#__hhp2cached___win32rc = hhp2cached_hhp2cached_rc.o
+__RCDEFDIR_p = --include-dir \
+	$(LIBDIRNAME)/wx/include/$(TOOLCHAIN_FULLNAME)
+__hhp2cached___win32rc = hhp2cached_hhp2cached_rc.o
 COND_MONOLITHIC_0___WXLIB_HTML_p = \
-	-lwx_$(PORTNAME)$(WXUNIVNAME)u$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_html-$(WX_RELEASE)$(HOST_SUFFIX)
-__WXLIB_HTML_p = $(COND_MONOLITHIC_0___WXLIB_HTML_p)
+	-lwx_$(PORTNAME)$(WXUNIVNAME)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_html-$(WX_RELEASE)$(HOST_SUFFIX)
+#__WXLIB_HTML_p = $(COND_MONOLITHIC_0___WXLIB_HTML_p)
 COND_MONOLITHIC_0___WXLIB_CORE_p = \
-	-lwx_$(PORTNAME)$(WXUNIVNAME)u$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_core-$(WX_RELEASE)$(HOST_SUFFIX)
-__WXLIB_CORE_p = $(COND_MONOLITHIC_0___WXLIB_CORE_p)
+	-lwx_$(PORTNAME)$(WXUNIVNAME)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_core-$(WX_RELEASE)$(HOST_SUFFIX)
+#__WXLIB_CORE_p = $(COND_MONOLITHIC_0___WXLIB_CORE_p)
 COND_MONOLITHIC_0___WXLIB_BASE_p = \
-	-lwx_base$(WXBASEPORT)u$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
-__WXLIB_BASE_p = $(COND_MONOLITHIC_0___WXLIB_BASE_p)
+	-lwx_base$(WXBASEPORT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+#__WXLIB_BASE_p = $(COND_MONOLITHIC_0___WXLIB_BASE_p)
 COND_MONOLITHIC_1___WXLIB_MONO_p = \
-	-lwx_$(PORTNAME)$(WXUNIVNAME)u$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
-#__WXLIB_MONO_p = $(COND_MONOLITHIC_1___WXLIB_MONO_p)
-#__LIB_SCINTILLA_IF_MONO_p \
-#	= $(__LIB_SCINTILLA_p)
-__LIB_SCINTILLA_p = \
+	-lwx_$(PORTNAME)$(WXUNIVNAME)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+__WXLIB_MONO_p = $(COND_MONOLITHIC_1___WXLIB_MONO_p)
+__LIB_SCINTILLA_IF_MONO_p \
+	= \
 	-lwxscintilla$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
-#__LIB_LEXILLA_IF_MONO_p = $(__LIB_LEXILLA_p)
-__LIB_LEXILLA_p = \
-	-lwxlexilla$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
 #__LIB_TIFF_p \
 #	= \
 #	-lwxtiff$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
@@ -121,8 +118,9 @@ __LIB_LEXILLA_p = \
 #	-lwxpng$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
 #__LIB_ZLIB_p = \
 #	-lwxzlib$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
-#__LIB_REGEX_p = \
-#	-lwxregexu$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+COND_wxUSE_REGEX_builtin___LIB_REGEX_p = \
+	-lwxregex$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+#__LIB_REGEX_p = $(COND_wxUSE_REGEX_builtin___LIB_REGEX_p)
 #__LIB_EXPAT_p = \
 #	-lwxexpat$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
 
@@ -146,7 +144,7 @@ distclean: clean
 	rm -f config.cache config.log config.status bk-deps bk-make-pch Makefile
 
 hhp2cached$(EXEEXT): $(HHP2CACHED_OBJECTS) $(__hhp2cached___win32rc)
-	$(CXX) -o $@ $(HHP2CACHED_OBJECTS)    -L$(LIBDIRNAME)  $(LDFLAGS_GUI)    $(LDFLAGS)  $(WX_LDFLAGS) $(__WXLIB_HTML_p) $(EXTRALIBS_HTML) $(__WXLIB_CORE_p)  $(__WXLIB_BASE_p)  $(__WXLIB_MONO_p) $(__LIB_SCINTILLA_IF_MONO_p) $(__LIB_LEXILLA_IF_MONO_p) $(__LIB_TIFF_p) $(__LIB_JPEG_p) $(__LIB_PNG_p)  $(EXTRALIBS_FOR_GUI) $(__LIB_ZLIB_p) $(__LIB_REGEX_p) $(__LIB_EXPAT_p) $(EXTRALIBS_FOR_BASE) $(LIBS)
+	$(CXX) -o $@ $(HHP2CACHED_OBJECTS)    -L$(LIBDIRNAME)  $(LDFLAGS_GUI) $(LDFLAGS)  $(WX_LDFLAGS) $(__WXLIB_HTML_p) $(EXTRALIBS_HTML) $(__WXLIB_CORE_p)  $(__WXLIB_BASE_p)  $(__WXLIB_MONO_p) $(__LIB_SCINTILLA_IF_MONO_p) $(__LIB_TIFF_p) $(__LIB_JPEG_p) $(__LIB_PNG_p)  $(EXTRALIBS_FOR_GUI) $(__LIB_ZLIB_p) $(__LIB_REGEX_p) $(__LIB_EXPAT_p) $(EXTRALIBS_FOR_BASE) $(LIBS)
 	$(__hhp2cached___os2_emxbindcmd)
 
 install_hhp2cached: hhp2cached$(EXEEXT)
@@ -160,7 +158,7 @@ hhp2cached_hhp2cached.o: $(srcdir)/hhp2cached.cpp
 	$(CXXC) -c -o $@ $(HHP2CACHED_CXXFLAGS) $(srcdir)/hhp2cached.cpp
 
 hhp2cached_hhp2cached_rc.o: $(srcdir)/hhp2cached.rc
-	$(WINDRES) -i$< -o$@    --define __WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p_1) $(__DEBUG_DEFINE_p_1)  $(__EXCEPTIONS_DEFINE_p_1) $(__RTTI_DEFINE_p_1) $(__THREAD_DEFINE_p_1) --include-dir $(srcdir) $(__DLLFLAG_p_1) $(__WIN32_DPI_MANIFEST_p) --include-dir $(srcdir)/../../samples $(__RCDEFDIR_p) --include-dir $(top_srcdir)/include
+	$(WINDRES) -i$< -o$@    --define __WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p_1) $(__DEBUG_DEFINE_p_1)  $(__EXCEPTIONS_DEFINE_p_1) $(__RTTI_DEFINE_p_1) $(__THREAD_DEFINE_p_1)  --include-dir $(srcdir) $(__DLLFLAG_p_1) $(__WIN32_DPI_MANIFEST_p) --include-dir $(srcdir)/../../samples $(__RCDEFDIR_p) --include-dir $(top_srcdir)/include
 
 
 # Include dependency info, if present:

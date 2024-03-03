@@ -28,8 +28,8 @@ class HeaderCtrlTestCase : public CppUnit::TestCase
 public:
     HeaderCtrlTestCase() { }
 
-    virtual void setUp() override;
-    virtual void tearDown() override;
+    virtual void setUp() wxOVERRIDE;
+    virtual void tearDown() wxOVERRIDE;
 
 private:
     CPPUNIT_TEST_SUITE( HeaderCtrlTestCase );
@@ -65,7 +65,7 @@ void HeaderCtrlTestCase::setUp()
 void HeaderCtrlTestCase::tearDown()
 {
     delete m_header;
-    m_header = nullptr;
+    m_header = NULL;
 }
 
 // ----------------------------------------------------------------------------

@@ -51,7 +51,7 @@ public:
 
         You can also change the parent window later with SetParentWindow().
     */
-    wxHelpControllerBase(wxWindow* parentWindow = nullptr);
+    wxHelpControllerBase(wxWindow* parentWindow = NULL);
 
     /**
         Destroys the help instance, closing down the viewer if it is running.
@@ -130,9 +130,9 @@ public:
         @param newFrameEachTime
             @true if a new frame is drawn with each invocation.
     */
-    virtual wxFrame* GetFrameParameters(wxSize* size = nullptr,
-                                        wxPoint* pos = nullptr,
-                                        bool* newFrameEachTime = nullptr);
+    virtual wxFrame* GetFrameParameters(wxSize* size = NULL,
+                                        wxPoint* pos = NULL,
+                                        bool* newFrameEachTime = NULL);
 
     /**
         Returns the window to be used as the parent for the help window.
@@ -310,7 +310,7 @@ public:
 
         You can also change the parent window later with SetParentWindow().
     */
-    wxHelpController(wxWindow* parentWindow = nullptr);
+    wxHelpController(wxWindow* parentWindow = NULL);
 };
 
 

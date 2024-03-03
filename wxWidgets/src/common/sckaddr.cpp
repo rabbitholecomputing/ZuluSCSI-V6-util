@@ -88,7 +88,21 @@ wxIMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress);
     #define wxHAS_MT_SAFE_GETBY_FUNCS
 
     #if wxUSE_IPV6
-        #include <ws2tcpip.h>
+        #ifdef __VISUALC__
+            // this header does dynamic dispatching of getaddrinfo/freeaddrinfo()
+            // by implementing them in its own code if the system versions are
+            // not available (as is the case for anything < XP)
+            #pragma warning(push)
+            #pragma warning(disable:4706)
+            #include <wspiapi.h>
+            #pragma warning(pop)
+        #else
+            // TODO: Use wxDynamicLibrary to bind to these functions
+            //       dynamically on older Windows systems, currently a program
+            //       built with wxUSE_IPV6==1 won't even start there, even if
+            //       it doesn't actually use the socket stuff.
+            #include <ws2tcpip.h>
+        #endif
     #endif
 #endif // __WINDOWS__
 
@@ -183,7 +197,7 @@ hostent *deepCopyHostent(hostent *h,
     if (len > size)
     {
         *err = ENOMEM;
-        return nullptr;
+        return NULL;
     }
     memcpy(buffer, h->h_name, len);
     buffer[len] = '\0';
@@ -203,22 +217,22 @@ hostent *deepCopyHostent(hostent *h,
     /* leave space for pointer list */
     char **p = h->h_addr_list, **q;
     char **h_addr_list = (char **)(buffer + pos);
-    while(*(p++) != nullptr)
+    while(*(p++) != 0)
         pos += sizeof(char *);
 
     /* copy addresses and fill new pointer list */
-    for (p = h->h_addr_list, q = h_addr_list; *p != nullptr; p++, q++)
+    for (p = h->h_addr_list, q = h_addr_list; *p != 0; p++, q++)
     {
         if (size < pos + len)
         {
             *err = ENOMEM;
-            return nullptr;
+            return NULL;
         }
         memcpy(buffer + pos, *p, len); /* copy content */
         *q = buffer + pos; /* set copied pointer to copied content */
         pos += len;
     }
-    *++q = nullptr; /* null terminate the pointer list */
+    *++q = 0; /* null terminate the pointer list */
     h->h_addr_list = h_addr_list; /* copy pointer to pointers */
 
     /* ensure word alignment of pointers */
@@ -229,24 +243,24 @@ hostent *deepCopyHostent(hostent *h,
     /* leave space for pointer list */
     p = h->h_aliases;
     char **h_aliases = (char **)(buffer + pos);
-    while(*(p++) != nullptr)
+    while(*(p++) != 0)
         pos += sizeof(char *);
 
     /* copy aliases and fill new pointer list */
-    for (p = h->h_aliases, q = h_aliases; *p != nullptr; p++, q++)
+    for (p = h->h_aliases, q = h_aliases; *p != 0; p++, q++)
     {
         len = strlen(*p);
         if (size <= pos + len)
         {
             *err = ENOMEM;
-            return nullptr;
+            return NULL;
         }
         memcpy(buffer + pos, *p, len); /* copy content */
         buffer[pos + len] = '\0';
         *q = buffer + pos; /* set copied pointer to copied content */
         pos += len + 1;
     }
-    *++q = nullptr; /* null terminate the pointer list */
+    *++q = 0; /* null terminate the pointer list */
     h->h_aliases = h_aliases; /* copy pointer to pointers */
 
     return h;
@@ -328,7 +342,7 @@ servent *deepCopyServent(servent *s,
     int len = strlen(s->s_name);
     if (len >= size)
     {
-        return nullptr;
+        return NULL;
     }
     memcpy(buffer, s->s_name, len);
     buffer[len] = '\0';
@@ -341,7 +355,7 @@ servent *deepCopyServent(servent *s,
     len = strlen(s->s_proto);
     if (pos + len >= size)
     {
-        return nullptr;
+        return NULL;
     }
     memcpy(buffer + pos, s->s_proto, len);
     buffer[pos + len] = '\0';
@@ -358,22 +372,22 @@ servent *deepCopyServent(servent *s,
     /* leave space for pointer list */
     char **p = s->s_aliases, **q;
     char **s_aliases = (char **)(buffer + pos);
-    while(*(p++) != nullptr)
+    while(*(p++) != 0)
         pos += sizeof(char *);
 
     /* copy addresses and fill new pointer list */
-    for (p = s->s_aliases, q = s_aliases; *p != nullptr; p++, q++){
+    for (p = s->s_aliases, q = s_aliases; *p != 0; p++, q++){
         len = strlen(*p);
         if (size <= pos + len)
         {
-            return nullptr;
+            return NULL;
         }
         memcpy(buffer + pos, *p, len); /* copy content */
         buffer[pos + len] = '\0';
         *q = buffer + pos; /* set copied pointer to copied content */
         pos += len + 1;
     }
-    *++q = nullptr; /* null terminate the pointer list */
+    *++q = 0; /* null terminate the pointer list */
     s->s_aliases = s_aliases; /* copy pointer to pointers */
     return s;
 }
@@ -393,7 +407,7 @@ servent *wxGetservbyname_r(const char *port,
 #elif defined(HAVE_FUNC_GETSERVBYNAME_R_4)
     wxUnusedVar(size);
     if ( getservbyname_r(port, protocol, serv, &buffer) != 0 )
-        return nullptr;
+        return NULL;
 #elif defined(HAVE_GETSERVBYNAME)
     wxLOCK_GETBY_MUTEX(serv);
 
@@ -596,8 +610,8 @@ bool wxSockAddressImpl::SetHostName6(const wxString& hostname)
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET6;
 
-    addrinfo *info = nullptr;
-    int rc = getaddrinfo(hostname.utf8_str(), nullptr, &hints, &info);
+    addrinfo *info = NULL;
+    int rc = getaddrinfo(hostname.utf8_str(), NULL, &hints, &info);
     if ( rc )
     {
         // use gai_strerror()?
@@ -672,7 +686,7 @@ bool wxSockAddressImpl::SetToAnyAddress6()
 // ----------------------------------------------------------------------------
 
 #ifndef UNIX_PATH_MAX
-    #define UNIX_PATH_MAX (WXSIZEOF(((sockaddr_un *)nullptr)->sun_path))
+    #define UNIX_PATH_MAX (WXSIZEOF(((sockaddr_un *)NULL)->sun_path))
 #endif
 
 void wxSockAddressImpl::CreateUnix()
@@ -849,14 +863,7 @@ bool wxIPV4address::Hostname(unsigned long addr)
         return false;
     }
 
-    const wxUint8
-        addr1 = (addr >> 24) & 0xFF,
-        addr2 = (addr >> 16) & 0xFF,
-        addr3 = (addr >>  8) & 0xFF,
-        addr4 = (addr >>  0) & 0xFF;
-
-    m_origHostname = wxString::Format("%hhu.%hhu.%hhu.%hhu", addr1, addr2, addr3, addr4);
-
+    m_origHostname = Hostname();
     return true;
 }
 

@@ -8,22 +8,17 @@
 #ifndef TWOBLUECUBES_CATCH_INTERFACES_EXCEPTION_H_INCLUDED
 #define TWOBLUECUBES_CATCH_INTERFACES_EXCEPTION_H_INCLUDED
 
-#include "catch_interfaces_registry_hub.h"
-
-#if defined(CATCH_CONFIG_DISABLE)
-    #define INTERNAL_CATCH_TRANSLATE_EXCEPTION_NO_REG( translatorName, signature) \
-        static std::string translatorName( signature )
-#endif
-
-#include <exception>
 #include <string>
 #include <vector>
 
+#include "catch_interfaces_registry_hub.h"
+
 namespace Catch {
-    using exceptionTranslateFunction = std::string(*)();
+
+    typedef std::string(*exceptionTranslateFunction)();
 
     struct IExceptionTranslator;
-    using ExceptionTranslators = std::vector<std::unique_ptr<IExceptionTranslator const>>;
+    typedef std::vector<const IExceptionTranslator*> ExceptionTranslators;
 
     struct IExceptionTranslator {
         virtual ~IExceptionTranslator();
@@ -45,20 +40,16 @@ namespace Catch {
             : m_translateFunction( translateFunction )
             {}
 
-            std::string translate( ExceptionTranslators::const_iterator it, ExceptionTranslators::const_iterator itEnd ) const override {
-#if defined(CATCH_CONFIG_DISABLE_EXCEPTIONS)
-                return "";
-#else
+            virtual std::string translate( ExceptionTranslators::const_iterator it, ExceptionTranslators::const_iterator itEnd ) const CATCH_OVERRIDE {
                 try {
                     if( it == itEnd )
-                        std::rethrow_exception(std::current_exception());
+                        throw;
                     else
                         return (*it)->translate( it+1, itEnd );
                 }
                 catch( T& ex ) {
                     return m_translateFunction( ex );
                 }
-#endif
             }
 
         protected:
@@ -77,10 +68,7 @@ namespace Catch {
 ///////////////////////////////////////////////////////////////////////////////
 #define INTERNAL_CATCH_TRANSLATE_EXCEPTION2( translatorName, signature ) \
     static std::string translatorName( signature ); \
-    CATCH_INTERNAL_START_WARNINGS_SUPPRESSION \
-    CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS \
-    namespace{ Catch::ExceptionTranslatorRegistrar INTERNAL_CATCH_UNIQUE_NAME( catch_internal_ExceptionRegistrar )( &translatorName ); } \
-    CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION \
+    namespace{ Catch::ExceptionTranslatorRegistrar INTERNAL_CATCH_UNIQUE_NAME( catch_internal_ExceptionRegistrar )( &translatorName ); }\
     static std::string translatorName( signature )
 
 #define INTERNAL_CATCH_TRANSLATE_EXCEPTION( signature ) INTERNAL_CATCH_TRANSLATE_EXCEPTION2( INTERNAL_CATCH_UNIQUE_NAME( catch_internal_ExceptionTranslator ), signature )

@@ -2,6 +2,7 @@
 // Name:        samples/sockbase/client.cpp
 // Purpose:     Sockets sample for wxBase
 // Author:      Lukasz Michalski
+// Modified by:
 // Created:     27.06.2005
 // Copyright:   (c) 2005 Lukasz Michalski <lmichalski@user.sourceforge.net>
 // Licence:     wxWindows licence
@@ -63,7 +64,7 @@ const char *GetSocketErrorMsg(int pSockError)
 //event sent by workers to server class
 //after client is served
 const wxEventType wxEVT_WORKER = wxNewEventType();
-#define EVT_WORKER(func) wxDECLARE_EVENT_TABLE_ENTRY( wxEVT_WORKER, -1, -1, wxEVENT_HANDLER_CAST(WorkerEventFunction, func), (wxObject *) nullptr ),
+#define EVT_WORKER(func) wxDECLARE_EVENT_TABLE_ENTRY( wxEVT_WORKER, -1, -1, (wxObjectEventFunction) (wxEventFunction) (WorkerEventFunction) & func, (wxObject *) NULL ),
 
 class WorkerEvent : public wxEvent
 {
@@ -77,7 +78,7 @@ public:
         m_workerFailed = false;
     }
 
-    virtual wxEvent* Clone() const override
+    virtual wxEvent* Clone() const wxOVERRIDE
     {
         return new WorkerEvent(*this);
     }
@@ -111,11 +112,11 @@ private:
       EVENTS
     };
 
-    virtual bool OnInit() override;
-    virtual int OnExit() override;
+    virtual bool OnInit() wxOVERRIDE;
+    virtual int OnExit() wxOVERRIDE;
 
-    void OnInitCmdLine(wxCmdLineParser& pParser) override;
-    bool OnCmdLineParsed(wxCmdLineParser& pParser) override;
+    void OnInitCmdLine(wxCmdLineParser& pParser) wxOVERRIDE;
+    bool OnCmdLineParsed(wxCmdLineParser& pParser) wxOVERRIDE;
 
     void OnSocketEvent(wxSocketEvent& pEvent);
     void OnWorkerEvent(WorkerEvent& pEvent);
@@ -167,7 +168,7 @@ class ThreadWorker : public wxThread, private WorkerBase
 {
 public:
     ThreadWorker(wxSocketBase* pSocket);
-    virtual ExitCode Entry() override;
+    virtual ExitCode Entry() wxOVERRIDE;
 
 private:
     wxSocketBase* m_socket;
@@ -578,9 +579,9 @@ wxThread::ExitCode ThreadWorker::Entry()
 
 EventWorker::EventWorker(wxSocketBase* pSock)
   : m_socket(pSock),
-    m_inbuf(nullptr),
+    m_inbuf(NULL),
     m_infill(0),
-    m_outbuf(nullptr),
+    m_outbuf(NULL),
     m_outfill(0)
 {
     m_socket->SetNotify(wxSOCKET_LOST_FLAG|wxSOCKET_INPUT_FLAG|wxSOCKET_OUTPUT_FLAG);
@@ -600,7 +601,7 @@ EventWorker::~EventWorker()
 void
 EventWorker::DoRead()
 {
-    if (m_inbuf == nullptr)
+    if (m_inbuf == NULL)
     {
         //read message header
         do
@@ -649,7 +650,7 @@ EventWorker::DoRead()
         while(!m_socket->Error() && (2 - m_infill != 0));
     }
 
-    if (m_inbuf == nullptr)
+    if (m_inbuf == NULL)
         return;
     //read message data
     do

@@ -120,7 +120,7 @@ public:
             validator lifetime (which is usually determined by the lifetime of
             the window).
     */
-    wxTextValidator(long style = wxFILTER_NONE, wxString* valPtr = nullptr);
+    wxTextValidator(long style = wxFILTER_NONE, wxString* valPtr = NULL);
 
     /**
         Clones the text validator using the copy constructor.

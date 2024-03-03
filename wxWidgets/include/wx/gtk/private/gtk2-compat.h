@@ -400,7 +400,7 @@ static inline gint wx_gdk_visual_get_depth(GdkVisual* visual)
 
 static inline gboolean wx_gtk_window_has_group(GtkWindow* window)
 {
-    return window->group != nullptr;
+    return window->group != NULL;
 }
 #define gtk_window_has_group wx_gtk_window_has_group
 
@@ -424,7 +424,7 @@ static inline GdkScreen* wx_gdk_window_get_screen(GdkWindow* window)
 static inline gint wx_gdk_window_get_height(GdkWindow* window)
 {
     int h;
-    gdk_drawable_get_size(window, nullptr, &h);
+    gdk_drawable_get_size(window, NULL, &h);
     return h;
 }
 #define gdk_window_get_height wx_gdk_window_get_height
@@ -432,7 +432,7 @@ static inline gint wx_gdk_window_get_height(GdkWindow* window)
 static inline gint wx_gdk_window_get_width(GdkWindow* window)
 {
     int w;
-    gdk_drawable_get_size(window, &w, nullptr);
+    gdk_drawable_get_size(window, &w, NULL);
     return w;
 }
 #define gdk_window_get_width wx_gdk_window_get_width
@@ -450,7 +450,7 @@ static inline void wx_gdk_cairo_set_source_window(cairo_t* cr, GdkWindow* window
 
 #ifndef g_signal_handlers_disconnect_by_data
 #define g_signal_handlers_disconnect_by_data(instance, data) \
-      g_signal_handlers_disconnect_matched ((instance), G_SIGNAL_MATCH_DATA, 0, 0, nullptr, nullptr, (data))
+      g_signal_handlers_disconnect_matched ((instance), G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, (data))
 #endif
 
 // ----------------------------------------------------------------------------
@@ -458,7 +458,7 @@ static inline void wx_gdk_cairo_set_source_window(cairo_t* cr, GdkWindow* window
 
 static inline void wx_gdk_window_get_geometry(GdkWindow* window, gint* x, gint* y, gint* width, gint* height)
 {
-    gdk_window_get_geometry(window, x, y, width, height, nullptr);
+    gdk_window_get_geometry(window, x, y, width, height, NULL);
 }
 #define gdk_window_get_geometry wx_gdk_window_get_geometry
 
@@ -548,14 +548,11 @@ static inline void wx_gtk_widget_get_preferred_width(GtkWidget* widget, gint* mi
 static inline void wx_gtk_widget_get_preferred_size(GtkWidget* widget, GtkRequisition* minimum, GtkRequisition* natural)
 {
     GtkRequisition* req = minimum;
-    if (req == nullptr)
+    if (req == NULL)
         req = natural;
     gtk_widget_size_request(widget, req);
 }
 #define gtk_widget_get_preferred_size wx_gtk_widget_get_preferred_size
-
-#define wx_gdk_device_get_window_at_position(unused, win_x, win_y) \
-    gdk_window_at_pointer(win_x, win_y)
 
 #include <gdk/gdkkeysyms.h>
 
@@ -685,13 +682,10 @@ static inline void wx_gtk_widget_get_preferred_size(GtkWidget* widget, GtkRequis
 // anyhow.
 inline bool wx_is_at_least_gtk2(int minor)
 {
-    return gtk_check_version(2, minor, 0) == nullptr;
+    return gtk_check_version(2, minor, 0) == NULL;
 }
 
 #else // __WXGTK3__
-
-#define wx_gdk_device_get_window_at_position(device, win_x, win_y) \
-    gdk_device_get_window_at_position(device, win_x, win_y)
 
 // With GTK+ 3 we don't need to check for GTK+ 2 version and
 // gtk_check_version() would fail due to major version mismatch.

@@ -2,6 +2,7 @@
 // Name:        src/richtext/richtextstyles.cpp
 // Purpose:     Style management for wxRichTextCtrl
 // Author:      Julian Smart
+// Modified by:
 // Created:     2005-09-30
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -85,7 +86,7 @@ wxRichTextAttr wxRichTextStyleDefinition::GetStyleMergedWithBase(const wxRichTex
                 def = sheet->FindStyle(baseStyleName);
         }
         else
-            def = nullptr;
+            def = NULL;
     }
 
     wxRichTextAttr attr;
@@ -93,7 +94,7 @@ wxRichTextAttr wxRichTextStyleDefinition::GetStyleMergedWithBase(const wxRichTex
     while (node)
     {
         wxRichTextStyleDefinition* nodeDef = (wxRichTextStyleDefinition*) node->GetData();
-        attr.Apply(nodeDef->GetStyle(), nullptr);
+        attr.Apply(nodeDef->GetStyle(), NULL);
         node = node->GetNext();
     }
 
@@ -169,7 +170,7 @@ const wxRichTextAttr* wxRichTextListStyleDefinition::GetLevelAttributes(int i) c
     if (i >= 0 && i < 10)
         return & m_levelStyles[i];
     else
-        return nullptr;
+        return NULL;
 }
 
 wxRichTextAttr* wxRichTextListStyleDefinition::GetLevelAttributes(int i)
@@ -178,7 +179,7 @@ wxRichTextAttr* wxRichTextListStyleDefinition::GetLevelAttributes(int i)
     if (i >= 0 && i < 10)
         return & m_levelStyles[i];
     else
-        return nullptr;
+        return NULL;
 }
 
 /// Convenience function for setting the major attributes for a list level specification
@@ -298,15 +299,15 @@ wxRichTextStyleSheet::~wxRichTextStyleSheet()
     if (m_previousSheet)
         m_previousSheet->m_nextSheet = m_nextSheet;
 
-    m_previousSheet = nullptr;
-    m_nextSheet = nullptr;
+    m_previousSheet = NULL;
+    m_nextSheet = NULL;
 }
 
 /// Initialisation
 void wxRichTextStyleSheet::Init()
 {
-    m_previousSheet = nullptr;
-    m_nextSheet = nullptr;
+    m_previousSheet = NULL;
+    m_nextSheet = NULL;
 }
 
 /// Add a definition to one of the style lists
@@ -360,7 +361,7 @@ wxRichTextStyleDefinition* wxRichTextStyleSheet::FindStyle(const wxList& list, c
     if (m_nextSheet && recurse)
         return m_nextSheet->FindStyle(list, name, recurse);
 
-    return nullptr;
+    return NULL;
 }
 
 /// Delete all styles
@@ -410,8 +411,8 @@ void wxRichTextStyleSheet::Unlink()
     if (m_nextSheet)
         m_nextSheet->m_previousSheet = m_previousSheet;
 
-    m_previousSheet = nullptr;
-    m_nextSheet = nullptr;
+    m_previousSheet = NULL;
+    m_nextSheet = NULL;
 }
 
 /// Add a definition to the character style list
@@ -483,7 +484,7 @@ wxRichTextStyleDefinition* wxRichTextStyleSheet::FindStyle(const wxString& name,
     if (boxDef)
         return boxDef;
 
-    return nullptr;
+    return NULL;
 }
 
 /// Copy
@@ -592,10 +593,10 @@ wxString wxRichTextStyleListBox::OnGetItem(size_t n) const
 wxRichTextStyleDefinition* wxRichTextStyleListBox::GetStyle(size_t i) const
 {
     if (!GetStyleSheet())
-        return nullptr;
+        return NULL;
 
     if (i >= m_styleNames.GetCount() /* || i < 0 */ )
-        return nullptr;
+        return NULL;
 
     wxString styleType = wxGetRichTextStyleType(m_styleNames[i]);
     wxString style = wxGetRichTextStyle(m_styleNames[i]);
@@ -1167,7 +1168,7 @@ wxRichTextStyleSheet* wxRichTextStyleListCtrl::GetStyleSheet() const
     if (m_styleListBox)
         return m_styleListBox->GetStyleSheet();
     else
-        return nullptr;
+        return NULL;
 }
 
 /// Associates the control with a wxRichTextCtrl
@@ -1182,7 +1183,7 @@ wxRichTextCtrl* wxRichTextStyleListCtrl::GetRichTextCtrl() const
     if (m_styleListBox)
         return m_styleListBox->GetRichTextCtrl();
     else
-        return nullptr;
+        return NULL;
 }
 
 /// Set/get the style type to display

@@ -2,6 +2,7 @@
 // Name:        src/msw/utilsgui.cpp
 // Purpose:     Various utility functions only available in wxMSW GUI
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     21.06.2003 (extracted from msw/utils.cpp)
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -202,7 +203,7 @@ void PixelToHIMETRIC(LONG *x, LONG *y)
 
 void wxDrawLine(HDC hdc, int x1, int y1, int x2, int y2)
 {
-    MoveToEx(hdc, x1, y1, nullptr); LineTo(hdc, x2, y2);
+    MoveToEx(hdc, x1, y1, NULL); LineTo(hdc, x2, y2);
 }
 
 // Function dedicated to drawing horizontal/vertical lines with solid color
@@ -230,7 +231,7 @@ void wxDrawHVLine(HDC hdc, int x1, int y1, int x2, int y2, COLORREF color, int w
     COLORREF bgColorOrig = ::GetBkColor(hdc);
     ::SetBkColor(hdc, color);
 
-    ::ExtTextOutW(hdc, 0, 0, ETO_OPAQUE, &r, L"", 0, nullptr);
+    ::ExtTextOutW(hdc, 0, 0, ETO_OPAQUE, &r, L"", 0, NULL);
 
     ::SetBkColor(hdc, bgColorOrig);
 }

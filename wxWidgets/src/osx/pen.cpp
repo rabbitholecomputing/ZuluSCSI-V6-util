@@ -2,6 +2,7 @@
 // Name:        src/osx/pen.cpp
 // Purpose:     wxPen
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -64,7 +65,7 @@ wxPenRefData::wxPenRefData()
     m_join = wxJOIN_ROUND ;
     m_cap = wxCAP_ROUND ;
     m_nbDash = 0 ;
-    m_dash = nullptr ;
+    m_dash = 0 ;
 }
 
 wxPenRefData::wxPenRefData(const wxPenRefData& data)
@@ -98,6 +99,10 @@ wxPenRefData::~wxPenRefData()
 #define M_PENDATA ((wxPenRefData *)m_refData)
 
 wxPen::wxPen()
+{
+}
+
+wxPen::~wxPen()
 {
 }
 
@@ -198,7 +203,7 @@ int wxPen::GetDashCount() const
 
 wxBitmap *wxPen::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid pen") );
 
     return &M_PENDATA->m_stipple;
 }

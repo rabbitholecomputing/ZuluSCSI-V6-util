@@ -24,7 +24,7 @@ public:
         Initializes the library.
         Calls wxInitialize().
     */
-    wxInitializer(int argc = 0, wxChar **argv = nullptr);
+    wxInitializer(int argc = 0, wxChar **argv = NULL);
 
     /**
         Has the initialization been successful? (explicit test)
@@ -73,8 +73,8 @@ bool wxEntryStart(int& argc, wxChar** argv);
     @header{wx/init.h}
 */
 bool wxEntryStart(HINSTANCE hInstance,
-                  HINSTANCE hPrevInstance = nullptr,
-                  char* pCmdLine = nullptr,
+                  HINSTANCE hPrevInstance = NULL,
+                  char* pCmdLine = NULL,
                   int nCmdShow = SW_SHOWNORMAL);
 
 /**
@@ -94,7 +94,7 @@ void wxEntryCleanup();
 
     @header{wx/init.h}
 */
-bool wxInitialize(int argc = 0, wxChar **argv = nullptr);
+bool wxInitialize(int argc = 0, wxChar **argv = NULL);
 
 /**
     Clean up; the library can't be used any more after the last call to

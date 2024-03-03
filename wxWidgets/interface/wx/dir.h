@@ -302,7 +302,7 @@ public:
         @see wxFileName::GetHumanReadableSize(), wxGetDiskSpace()
     */
     static wxULongLong GetTotalSize(const wxString& dir,
-                                    wxArrayString* filesSkipped = nullptr);
+                                    wxArrayString* filesSkipped = NULL);
 
     /**
         Returns @true if the directory contains any files matching the given

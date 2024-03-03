@@ -37,7 +37,7 @@ dnl ===========================================================================
 
 
 dnl ---------------------------------------------------------------------------
-dnl Macros for wxWidgets detection. Typically used in configure.ac as:
+dnl Macros for wxWidgets detection. Typically used in configure.in as:
 dnl
 dnl     AC_ARG_ENABLE(...)
 dnl     AC_ARG_WITH(...)
@@ -63,7 +63,7 @@ dnl     CFLAGS="$CFLAGS $WX_CFLAGS_ONLY"
 dnl
 dnl     LIBS="$LIBS $WX_LIBS"
 dnl
-dnl If you want to support standard --enable-debug/shared options, you
+dnl If you want to support standard --enable-debug/unicode/shared options, you
 dnl may do the following:
 dnl
 dnl     ...
@@ -71,13 +71,14 @@ dnl     AC_CANONICAL_TARGET
 dnl
 dnl     # define configure options
 dnl     WX_CONFIG_OPTIONS
-dnl     WX_STANDARD_OPTIONS([debug,shared,toolkit,wxshared])
+dnl     WX_STANDARD_OPTIONS([debug,unicode,shared,toolkit,wxshared])
 dnl
 dnl     # basic configure checks
 dnl     ...
 dnl
-dnl     # we want to always have DEBUG==WX_DEBUG
+dnl     # we want to always have DEBUG==WX_DEBUG and UNICODE==WX_UNICODE
 dnl     WX_DEBUG=$DEBUG
+dnl     WX_UNICODE=$UNICODE
 dnl
 dnl     WX_CONVERT_STANDARD_OPTIONS_TO_WXCONFIG_FLAGS
 dnl     WX_CONFIG_CHECK([2.8.0], [wxWin=1],,[html,core,net,base],[$WXCONFIG_FLAGS])
@@ -167,7 +168,8 @@ dnl of wxWidgets libraries to link against if they are available.
 dnl WX-OPTIONAL-LIBS is supported on version 2.9.0 and later.
 dnl
 dnl Example use:
-dnl   WX_CONFIG_CHECK([2.6.0], [wxWin=1], [wxWin=0], [html,core,net], [--debug])
+dnl   WX_CONFIG_CHECK([2.6.0], [wxWin=1], [wxWin=0], [html,core,net]
+dnl                    [--unicode --debug])
 dnl ---------------------------------------------------------------------------
 
 dnl
@@ -483,13 +485,16 @@ dnl wxWidgets rule.
 dnl E.g. for output-var=='lib', name=='test', prefix='mine', sets
 dnl      the $lib variable to:
 dnl          'mine_gtk2ud_test-2.8'
-dnl      if WX_PORT=gtk2, WX_DEBUG=1 and WX_RELEASE=28
+dnl      if WX_PORT=gtk2, WX_UNICODE=1, WX_DEBUG=1 and WX_RELEASE=28
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([WX_LIKE_LIBNAME],
     [
-        wx_temp="$2""_""$WX_PORT""u"
+        wx_temp="$2""_""$WX_PORT"
 
-        dnl add the "d" suffix if necessary
+        dnl add the [u][d] string
+        if test "$WX_UNICODE" = "1"; then
+            wx_temp="$wx_temp""u"
+        fi
         if test "$WX_DEBUG" = "1"; then
             wx_temp="$wx_temp""d"
         fi
@@ -567,31 +572,34 @@ dnl ---------------------------------------------------------------------------
 dnl WX_STANDARD_OPTIONS([options-to-add])
 dnl
 dnl Adds to the configure script one or more of the following options:
-dnl   --enable-[debug|shared|wxshared|wxdebug]
-dnl   --with-[gtk|msw|x11|mac|dfb]
+dnl   --enable-[debug|unicode|shared|wxshared|wxdebug]
+dnl   --with-[gtk|msw|motif|x11|mac|dfb]
 dnl   --with-wxversion
-dnl Then checks for their presence and eventually set the DEBUG, SHARED,
+dnl Then checks for their presence and eventually set the DEBUG, UNICODE, SHARED,
 dnl PORT, WX_SHARED, WX_DEBUG, variables to one of the "yes", "no", "auto" values.
 dnl
-dnl Note that e.g. DEBUG != WX_DEBUG; the first is the value of the
-dnl --enable-debug option (in boolean format) while the second indicates
-dnl if wxWidgets was built in debug mode (and still is in boolean format).
+dnl Note that e.g. UNICODE != WX_UNICODE; the first is the value of the
+dnl --enable-unicode option (in boolean format) while the second indicates
+dnl if wxWidgets was built in Unicode mode (and still is in boolean format).
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([WX_STANDARD_OPTIONS],
         [
 
         dnl the following lines will expand to WX_ARG_ENABLE_YESNOAUTO calls if and only if
-        dnl the $1 argument contains respectively the debug or shared options.
+        dnl the $1 argument contains respectively the debug,unicode or shared options.
 
         dnl be careful here not to set debug flag if only "wxdebug" was specified
         ifelse(regexp([$1], [\bdebug]), [-1],,
                [WX_ARG_ENABLE_YESNOAUTO([debug], [DEBUG], [Build in debug mode], [auto])])
 
+        ifelse(index([$1], [unicode]), [-1],,
+               [WX_ARG_ENABLE_YESNOAUTO([unicode], [UNICODE], [Build in Unicode mode], [auto])])
+
         ifelse(regexp([$1], [\bshared]), [-1],,
                [WX_ARG_ENABLE_YESNOAUTO([shared], [SHARED], [Build as shared library], [auto])])
 
         dnl WX_ARG_WITH_YESNOAUTO cannot be used for --with-toolkit since it's an option
-        dnl which must be able to accept the auto|gtk2|msw|... values
+        dnl which must be able to accept the auto|gtk1|gtk2|msw|... values
         ifelse(index([$1], [toolkit]), [-1],,
                [
                 AC_ARG_WITH([toolkit],
@@ -607,12 +615,12 @@ AC_DEFUN([WX_STANDARD_OPTIONS],
                     TOOLKIT="$withval"
 
                     dnl PORT must be one of the allowed values
-                    if test "$TOOLKIT" != "gtk2" -a "$TOOLKIT" != "gtk3" -a \
-                            "$TOOLKIT" != "msw" -a \
+                    if test "$TOOLKIT" != "gtk1" -a "$TOOLKIT" != "gtk2" -a "$TOOLKIT" != "gtk3" -a \
+                            "$TOOLKIT" != "msw" -a "$TOOLKIT" != "motif" -a \
                             "$TOOLKIT" != "osx_carbon" -a "$TOOLKIT" != "osx_cocoa" -a \
                             "$TOOLKIT" != "dfb" -a "$TOOLKIT" != "x11" -a "$TOOLKIT" != "base"; then
                         AC_MSG_ERROR([
-    Unrecognized option value (allowed values: auto, gtk2, gtk3, msw, osx_carbon, osx_cocoa, dfb, x11, base)
+    Unrecognized option value (allowed values: auto, gtk1, gtk2, gtk3, msw, motif, osx_carbon, osx_cocoa, dfb, x11, base)
                         ])
                     fi
 
@@ -621,9 +629,9 @@ AC_DEFUN([WX_STANDARD_OPTIONS],
                ])
 
         dnl ****** IMPORTANT *******
-        dnl   You can build your program in shared mode against a static build
-        dnl   of wxWidgets. Thus we have the following option which allows
-        dnl   these mixtures. E.g.
+        dnl   Unlike for the UNICODE setting, you can build your program in
+        dnl   shared mode against a static build of wxWidgets. Thus we have the
+        dnl   following option which allows these mixtures. E.g.
         dnl
         dnl      ./configure --disable-shared --with-wxshared
         dnl
@@ -638,6 +646,10 @@ AC_DEFUN([WX_STANDARD_OPTIONS],
         dnl   build of wxWidgets. This is not possible (you would mix PIC and non PIC code) !
         dnl   A check for this combination of options is in WX_DETECT_STANDARD_OPTION_VALUES
         dnl   (where we know what 'auto' should be expanded to).
+        dnl
+        dnl   If you try to build something in ANSI mode against a UNICODE build
+        dnl   of wxWidgets or in RELEASE mode against a DEBUG build of wxWidgets,
+        dnl   then at best you'll get ton of linking errors !
         dnl ************************
 
         ifelse(index([$1], [wxshared]), [-1],,
@@ -694,6 +706,7 @@ AC_DEFUN([WX_STANDARD_OPTIONS],
 
         if test "$WX_DEBUG_CONFIGURE" = "1"; then
             echo "[[dbg]] DEBUG: $DEBUG, WX_DEBUG: $WX_DEBUG"
+            echo "[[dbg]] UNICODE: $UNICODE, WX_UNICODE: $WX_UNICODE"
             echo "[[dbg]] SHARED: $SHARED, WX_SHARED: $WX_SHARED"
             echo "[[dbg]] TOOLKIT: $TOOLKIT, WX_TOOLKIT: $WX_TOOLKIT"
             echo "[[dbg]] VERSION: $VERSION, WX_RELEASE: $WX_RELEASE"
@@ -704,7 +717,7 @@ AC_DEFUN([WX_STANDARD_OPTIONS],
 dnl ---------------------------------------------------------------------------
 dnl WX_CONVERT_STANDARD_OPTIONS_TO_WXCONFIG_FLAGS
 dnl
-dnl Sets the WXCONFIG_FLAGS string using the SHARED,DEBUG variable values
+dnl Sets the WXCONFIG_FLAGS string using the SHARED,DEBUG,UNICODE variable values
 dnl which were specified.
 dnl Thus this macro needs to be called only once all options have been set.
 dnl ---------------------------------------------------------------------------
@@ -720,6 +733,13 @@ AC_DEFUN([WX_CONVERT_STANDARD_OPTIONS_TO_WXCONFIG_FLAGS],
             WXCONFIG_FLAGS="$WXCONFIG_FLAGS""--debug=yes "
         elif test "$WX_DEBUG" = "0" ; then
             WXCONFIG_FLAGS="$WXCONFIG_FLAGS""--debug=no "
+        fi
+
+        dnl The user should have set WX_UNICODE=UNICODE
+        if test "$WX_UNICODE" = "1" ; then
+            WXCONFIG_FLAGS="$WXCONFIG_FLAGS""--unicode=yes "
+        elif test "$WX_UNICODE" = "0" ; then
+            WXCONFIG_FLAGS="$WXCONFIG_FLAGS""--unicode=no "
         fi
 
         if test -n "$TOOLKIT" ; then
@@ -779,10 +799,11 @@ dnl ---------------------------------------------------------------------------
 dnl WX_DETECT_STANDARD_OPTION_VALUES
 dnl
 dnl Detects the values of the following variables:
-dnl - WX_RELEASE
-dnl - WX_DEBUG
-dnl - WX_SHARED    (and also WX_STATIC)
-dnl - WX_PORT
+dnl 1) WX_RELEASE
+dnl 2) WX_UNICODE
+dnl 3) WX_DEBUG
+dnl 4) WX_SHARED    (and also WX_STATIC)
+dnl 5) WX_PORT
 dnl from the previously selected wxWidgets build; this macro in fact must be
 dnl called *after* calling the WX_CONFIG_CHECK macro.
 dnl
@@ -824,7 +845,9 @@ AC_DEFUN([WX_DETECT_STANDARD_OPTION_VALUES],
             STATIC=1
         fi
 
-        dnl Now set the WX_DEBUG, WX_STATIC variables
+        dnl Now set the WX_UNICODE, WX_DEBUG, WX_STATIC variables
+        _WX_SELECTEDCONFIG_CHECKFOR([UNICODE], [unicode],
+                                    [if wxWidgets was built with UNICODE enabled])
         _WX_SELECTEDCONFIG_CHECKFOR([DEBUG], [debug],
                                     [if wxWidgets was built in DEBUG mode])
         _WX_SELECTEDCONFIG_CHECKFOR([STATIC], [static],
@@ -837,6 +860,7 @@ AC_DEFUN([WX_DETECT_STANDARD_OPTION_VALUES],
             WX_SHARED=1
         fi
 
+        AC_SUBST(WX_UNICODE)
         AC_SUBST(WX_DEBUG)
         AC_SUBST(WX_SHARED)
 
@@ -847,9 +871,11 @@ AC_DEFUN([WX_DETECT_STANDARD_OPTION_VALUES],
             dnl so we will detect the wxWidgets relative build setting and use it
             AC_MSG_CHECKING([which wxWidgets toolkit was selected])
 
+            WX_GTKPORT1=$(expr "$WX_SELECTEDCONFIG" : ".*gtk1.*")
             WX_GTKPORT2=$(expr "$WX_SELECTEDCONFIG" : ".*gtk2.*")
             WX_GTKPORT3=$(expr "$WX_SELECTEDCONFIG" : ".*gtk3.*")
             WX_MSWPORT=$(expr "$WX_SELECTEDCONFIG" : ".*msw.*")
+            WX_MOTIFPORT=$(expr "$WX_SELECTEDCONFIG" : ".*motif.*")
             WX_OSXCOCOAPORT=$(expr "$WX_SELECTEDCONFIG" : ".*osx_cocoa.*")
             WX_OSXCARBONPORT=$(expr "$WX_SELECTEDCONFIG" : ".*osx_carbon.*")
             WX_X11PORT=$(expr "$WX_SELECTEDCONFIG" : ".*x11.*")
@@ -857,9 +883,11 @@ AC_DEFUN([WX_DETECT_STANDARD_OPTION_VALUES],
             WX_BASEPORT=$(expr "$WX_SELECTEDCONFIG" : ".*base.*")
 
             WX_PORT="unknown"
+            if test "$WX_GTKPORT1" != "0"; then WX_PORT="gtk1"; fi
             if test "$WX_GTKPORT2" != "0"; then WX_PORT="gtk2"; fi
             if test "$WX_GTKPORT3" != "0"; then WX_PORT="gtk3"; fi
             if test "$WX_MSWPORT" != "0"; then WX_PORT="msw"; fi
+            if test "$WX_MOTIFPORT" != "0"; then WX_PORT="motif"; fi
             if test "$WX_OSXCOCOAPORT" != "0"; then WX_PORT="osx_cocoa"; fi
             if test "$WX_OSXCARBONPORT" != "0"; then WX_PORT="osx_carbon"; fi
             if test "$WX_X11PORT" != "0"; then WX_PORT="x11"; fi
@@ -891,6 +919,7 @@ AC_DEFUN([WX_DETECT_STANDARD_OPTION_VALUES],
         if test "$WX_DEBUG_CONFIGURE" = "1"; then
             echo "[[dbg]] Values of all WX_* options after final detection:"
             echo "[[dbg]] WX_DEBUG: $WX_DEBUG"
+            echo "[[dbg]] WX_UNICODE: $WX_UNICODE"
             echo "[[dbg]] WX_SHARED: $WX_SHARED"
             echo "[[dbg]] WX_RELEASE: $WX_RELEASE"
             echo "[[dbg]] WX_PORT: $WX_PORT"
@@ -915,6 +944,9 @@ AC_DEFUN([WX_DETECT_STANDARD_OPTION_VALUES],
 
         dnl now we can finally update the options to their final values if they
         dnl were not already set
+        if test -z "$UNICODE" ; then
+            UNICODE=$WX_UNICODE
+        fi
         if test -z "$SHARED" ; then
             SHARED=$WX_SHARED
         fi
@@ -973,6 +1005,7 @@ AC_DEFUN([WX_STANDARD_OPTIONS_SUMMARY_MSG],
         echo "  The wxWidgets build which will be used by $PACKAGE_NAME $PACKAGE_VERSION"
         echo "  has the following settings:"
         WX_BOOLOPT_SUMMARY([WX_DEBUG],   ["  - DEBUG build"],  ["  - RELEASE build"])
+        WX_BOOLOPT_SUMMARY([WX_UNICODE], ["  - UNICODE mode"], ["  - ANSI mode"])
         WX_BOOLOPT_SUMMARY([WX_SHARED],  ["  - SHARED mode"],  ["  - STATIC mode"])
         echo "  - VERSION: $WX_VERSION"
         echo "  - PORT: $WX_PORT"
@@ -1000,6 +1033,7 @@ AC_DEFUN([WX_STANDARD_OPTIONS_SUMMARY_MSG_BEGIN],
         echo "  Configuration for $PACKAGE_NAME $PACKAGE_VERSION successfully completed."
         echo "  Summary of main configuration settings for $PACKAGE_NAME:"
         WX_BOOLOPT_SUMMARY([DEBUG], ["  - DEBUG build"], ["  - RELEASE build"])
+        WX_BOOLOPT_SUMMARY([UNICODE], ["  - UNICODE mode"], ["  - ANSI mode"])
         WX_BOOLOPT_SUMMARY([SHARED], ["  - SHARED mode"], ["  - STATIC mode"])
     ])
 

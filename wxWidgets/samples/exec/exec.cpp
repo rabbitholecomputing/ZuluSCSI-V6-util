@@ -2,6 +2,7 @@
 // Name:        exec.cpp
 // Purpose:     exec sample demonstrates wxExecute and related functions
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     15.01.00
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -51,6 +52,7 @@
 #include "wx/numdlg.h"
 #include "wx/textdlg.h"
 #include "wx/ffile.h"
+#include "wx/scopedptr.h"
 #include "wx/stopwatch.h"
 
 #include "wx/process.h"
@@ -60,9 +62,6 @@
 #ifdef __WINDOWS__
     #include "wx/dde.h"
 #endif // __WINDOWS__
-
-#include <memory>
-#include <vector>
 
 #ifndef wxHAS_IMAGES_IN_RESOURCES
     #include "../sample.xpm"
@@ -82,15 +81,15 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 // Define an array of process pointers used by MyFrame
 class MyPipedProcess;
-using MyPipedProcessesArray = std::vector<MyPipedProcess*>;
+WX_DEFINE_ARRAY_PTR(MyPipedProcess *, MyPipedProcessesArray);
 
 class MyProcess;
-using MyProcessesArray = std::vector<MyProcess*>;
+WX_DEFINE_ARRAY_PTR(MyProcess *, MyProcessesArray);
 
 // Define a new frame type: this is going to be our main frame
 class MyFrame : public wxFrame
@@ -262,7 +261,7 @@ public:
     // instead of overriding this virtual function we might as well process the
     // event from it in the frame class - this might be more convenient in some
     // cases
-    virtual void OnTerminate(int pid, int status) override;
+    virtual void OnTerminate(int pid, int status) wxOVERRIDE;
 
 protected:
     MyFrame *m_parent;
@@ -279,7 +278,7 @@ public:
             Redirect();
         }
 
-    virtual void OnTerminate(int pid, int status) override;
+    virtual void OnTerminate(int pid, int status) wxOVERRIDE;
 
     virtual bool HasInput();
 };
@@ -294,7 +293,7 @@ public:
         {
         }
 
-    virtual bool HasInput() override;
+    virtual bool HasInput() wxOVERRIDE;
 
 private:
     wxString m_input;
@@ -443,7 +442,7 @@ bool MyApp::OnInit()
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-       : wxFrame(nullptr, wxID_ANY, title, pos, size),
+       : wxFrame((wxFrame *)NULL, wxID_ANY, title, pos, size),
          m_timerIdleWakeUp(this, Exec_TimerIdle),
          m_timerBg(this, Exec_TimerBg)
 {
@@ -541,9 +540,9 @@ MyFrame::~MyFrame()
     // any processes left until now must be deleted manually: normally this is
     // done when the associated process terminates but it must be still running
     // if this didn't happen until now
-    for ( auto process : m_allAsync )
+    for ( size_t n = 0; n < m_allAsync.size(); n++ )
     {
-        delete process;
+        delete m_allAsync[n];
     }
 }
 
@@ -739,7 +738,7 @@ wxBEGIN_EVENT_TABLE(ExecQueryDialog, wxDialog)
 wxEND_EVENT_TABLE()
 
 ExecQueryDialog::ExecQueryDialog(const wxString& cmd)
-    : wxDialog(nullptr, wxID_ANY, GetDialogTitle(),
+    : wxDialog(NULL, wxID_ANY, GetDialogTitle(),
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
 {
@@ -877,7 +876,7 @@ void MyFrame::OnSyncExec(wxCommandEvent& WXUNUSED(event))
 
     wxLogStatus( "'%s' is running please wait...", cmd );
 
-    int code = wxExecute(cmd, wxEXEC_SYNC | GetExecFlags(), nullptr, &env);
+    int code = wxExecute(cmd, wxEXEC_SYNC | GetExecFlags(), NULL, &env);
 
     wxLogStatus("Process '%s' terminated with exit code %d.",
         cmd, code);
@@ -1122,7 +1121,7 @@ void MyFrame::OnShowCommandForExt(wxCommandEvent& WXUNUSED(event))
 
     s_ext = ext;
 
-    std::unique_ptr<wxFileType>
+    wxScopedPtr<wxFileType>
         ft(wxTheMimeTypesManager->GetFileTypeFromExtension(ext));
     if ( !ft )
     {
@@ -1266,9 +1265,10 @@ void MyFrame::OnDDERequest(wxCommandEvent& WXUNUSED(event))
 // input polling
 void MyFrame::OnIdle(wxIdleEvent& event)
 {
-    for ( auto process : m_running )
+    size_t count = m_running.GetCount();
+    for ( size_t n = 0; n < count; n++ )
     {
-        if ( process->HasInput() )
+        if ( m_running[n]->HasInput() )
         {
             event.RequestMore();
         }
@@ -1293,14 +1293,14 @@ void MyFrame::OnProcessTerminated(MyPipedProcess *process)
 
 void MyFrame::OnAsyncTermination(MyProcess *process)
 {
-    m_allAsync.erase(std::find(m_allAsync.begin(), m_allAsync.end(), process));
+    m_allAsync.Remove(process);
 
     delete process;
 }
 
 void MyFrame::AddPipedProcess(MyPipedProcess *process)
 {
-    if ( m_running.empty() )
+    if ( m_running.IsEmpty() )
     {
         // we want to start getting the timer events to ensure that a
         // steady stream of idle events comes in -- otherwise we
@@ -1309,15 +1309,15 @@ void MyFrame::AddPipedProcess(MyPipedProcess *process)
     }
     //else: the timer is already running
 
-    m_running.push_back(process);
-    m_allAsync.push_back(process);
+    m_running.Add(process);
+    m_allAsync.Add(process);
 }
 
 void MyFrame::RemovePipedProcess(MyPipedProcess *process)
 {
-    m_running.erase(std::find(m_running.begin(), m_running.end(), process));
+    m_running.Remove(process);
 
-    if ( m_running.empty() )
+    if ( m_running.IsEmpty() )
     {
         // we don't need to get idle events all the time any more
         m_timerIdleWakeUp.Stop();
@@ -1434,7 +1434,7 @@ MyPipeFrame::MyPipeFrame(wxFrame *parent,
                          wxProcess *process)
            : wxFrame(parent, wxID_ANY, cmd),
              m_process(process),
-             // in a real program we'd check that the streams are non-null here
+             // in a real program we'd check that the streams are !NULL here
              m_out(*process->GetOutputStream()),
              m_in(*process->GetInputStream()),
              m_err(*process->GetErrorStream())
@@ -1557,8 +1557,8 @@ void MyPipeFrame::OnClose(wxCloseEvent& event)
         // we're not interested in getting the process termination notification
         // if we are closing it ourselves
         wxProcess *process = m_process;
-        m_process = nullptr;
-        process->SetNextHandler(nullptr);
+        m_process = NULL;
+        process->SetNextHandler(NULL);
 
         process->CloseOutput();
     }

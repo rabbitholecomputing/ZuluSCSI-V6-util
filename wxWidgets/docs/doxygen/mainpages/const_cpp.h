@@ -26,15 +26,14 @@ using @ifdef_ and not @if_.
 @itemdef{\__WXBASE__, Only wxBase, no GUI features (same as @c wxUSE_GUI == 0)}
 @itemdef{\__WXDFB__, wxUniversal using DirectFB}
 @itemdef{\__WXGTK__, GTK+}
-@itemdef{\__WXGTK127__, GTK+ 1.2.7 or higher (not used any longer)}
+@itemdef{\__WXGTK127__, GTK+ 1.2.7 or higher}
 @itemdef{\__WXGTK20__, GTK+ 2.0 (2.6) or higher}
 @itemdef{\__WXGTK210__, GTK+ 2.10 or higher}
 @itemdef{\__WXGTK218__, GTK+ 2.18 or higher}
 @itemdef{\__WXGTK220__, GTK+ 2.20 or higher}
-@itemdef{\__WXGTK3__, GTK+ 3.0 or higher}
 @itemdef{\__WXMAC__, old define, same as <tt>\__WXOSX__</tt>}
-@itemdef{\__WXMOTIF__, Motif (not used any longer).}
-@itemdef{\__WXMOTIF20__, Motif 2.0 or higher (not used any longer).}
+@itemdef{\__WXMOTIF__, Motif}
+@itemdef{\__WXMOTIF20__, Motif 2.0 or higher}
 @itemdef{\__WXMSW__, GUI using <a href="http://en.wikipedia.org/wiki/Windows_User">Windows Controls</a>.
 Notice that for compatibility reasons, this symbol is defined for console
 applications under Windows as well, but it should only be used in the GUI code
@@ -108,10 +107,10 @@ Note that not all of these symbols are always defined, it depends on the
 compiler used.
 
 @beginDefList
-@itemdef{\__ALPHA__, DEC Alpha architecture (not supported any longer)}
+@itemdef{\__ALPHA__, DEC Alpha architecture}
 @itemdef{\__INTEL__, Intel i386 or compatible}
 @itemdef{\__IA64__, Intel 64 bit architecture}
-@itemdef{\__POWERPC__, Motorola Power PC (not supported any longer)}
+@itemdef{\__POWERPC__, Motorola Power PC}
 @endDefList
 
 
@@ -169,10 +168,6 @@ Currently the following symbols exist:
     implemented in a generic way, using a critical section.}
 @itemdef{wxHAS_BITMAPTOGGLEBUTTON, Defined in @c wx/tglbtn.h if
     wxBitmapToggleButton class is available in addition to wxToggleButton.}
-@itemdef{wxHAS_CONFIG_AS_FILECONFIG, Defined if wxConfig is defined as
-    wxFileConfig. This constant is available since wxWidgets 3.3.0.}
-@itemdef{wxHAS_CONFIG_AS_REGCONFIG, Defined if wxConfig is defined as
-    wxRegConfig. This constant is available since wxWidgets 3.3.0.}
 @itemdef{wxHAS_CONFIG_TEMPLATE_RW, Defined if the currently used compiler
     supports template Read() and Write() methods in wxConfig.}
 @itemdef{wxHAS_DEPRECATED_ATTR, Defined if C++14 @c [[deprecated]] attribute is
@@ -184,8 +179,6 @@ Currently the following symbols exist:
     ever, be necessary to use this symbol directly, functions such as
     wxWindow::FromDIP() and wxBitmap::GetLogicalSize() exist to hide the
     differences between the platforms with and without DPI-independent pixels.}
-@itemdef{wxHAS_IMAGE_RESOURCES, Defined if wxICON() and wxBITMAP() macros use
-    images from (Windows) resources. Otherwise, these macros use XPMs.}
 @itemdef{wxHAS_MEMBER_DEFAULT, Defined if the currently used compiler supports
     C++11 @c =default.}
 @itemdef{wxHAS_LARGE_FILES, Defined if wxFile supports files more than 4GB in
@@ -205,8 +198,8 @@ Currently the following symbols exist:
 @itemdef{wxHAS_NATIVE_ANIMATIONCTRL, Defined if native wxAnimationCtrl class is being used (this symbol only exists in wxWidgets 3.1.4 and later).}
 @itemdef{wxHAS_NATIVE_DATAVIEWCTRL, Defined if native wxDataViewCtrl class is being used (this symbol only exists in wxWidgets 3.1.4 and later).}
 @itemdef{wxHAS_NATIVE_WINDOW, Defined if wxNativeWindow class is available.}
-@itemdef{wxHAS_NOEXCEPT, This symbol exists only for compatibility and is always defined now.}
-@itemdef{wxHAS_NULLPTR_T, This symbol exists only for compatibility and is always defined now.}
+@itemdef{wxHAS_NOEXCEPT, Defined if the currently used compiler supports C++11 @c noexcept. @c wxNOEXCEPT is defined as this keyword in this case, and as nothing otherwise.}
+@itemdef{wxHAS_NULLPTR_T, Defined if the currently used compiler supports C++11 @c nullptr.}
 @itemdef{wxHAS_IMAGE_RESOURCES, Defined if images can be embedded into the
     program as resources, i.e. without being defined in the program text
     itself. This is currently the case for MSW and Mac platforms. This constant
@@ -215,10 +208,6 @@ Currently the following symbols exist:
     Windows resource files</a> resource files are available on the current platform.
     Usually wxHAS_IMAGE_RESOURCES should be used instead.}
 @itemdef{wxHAS_POWER_EVENTS, Defined if wxPowerEvent are ever generated on the current platform.}
-@itemdef{wxHAS_PREMULTIPLIED_ALPHA, Defined if wxBitmap stores raw pixel color
-    values premultiplied (scaled) by alpha. This is generally used to switch
-    whether to premultiply before storing pixels via wxAlphaPixelData converted
-    from a straight alpha source.}
 @itemdef{wxHAS_RADIO_MENU_ITEMS,
         Defined if the current port supports radio menu items (see wxMenu::AppendRadioItem).}
 @itemdef{wxHAS_RAW_BITMAP, Defined if direct access to bitmap data using the classes in @c wx/rawbmp.h is supported.}
@@ -258,15 +247,13 @@ make linking work in this case, you must predefine @c wxMSVC_VERSION as @c
 vc140 <em>before</em> include @c wx/setup.h file, i.e. typically in the MSVS
 project options. Alternatively, you can predefine @c wxMSVC_VERSION_AUTO symbol
 (without any value), which means that the appropriate compiler version should
-be used automatically, e.g. "vc140" for MSVC 14.0 (MSVS 2015), "vc141" for MSVC
-14.1 (MSVS 2017), "vc142" for MSVC 14.2 (MSVS 2019) and "vc143" for MSVC 14.3
-(MSVS 2022).
-
-Finally, there is also @c wxMSVC_VERSION_ABI_COMPAT symbol which can be
-predefined to use the "vc14x" prefix ("x" is the literal letter "x" here and
-not just a placeholder). This allows building the libraries with any of MSVC
-14.x versions, that are ABI-compatible with each other, and using them when
-using any later version.
+be used automatically, e.g. "vc100" for VC 10 (MSVS 2010), "vc140" for VC 14
+(MSVS 2015) etc. Additionally, VC 14 is a special case as it has 3 minor
+versions: VC 14.0, 14.1 and 14.2, corresponding to MSVS 2015, 2017 and 2019;
+that are ABI-compatible with each other. Due to this, it can also be useful to
+reuse the single build of wxWidgets with all versions of the compiler and this
+is supported if @c wxMSVC_VERSION_ABI_COMPAT is defined: the compiler prefix
+"vc14x" is used in this case.
 
 If the makefiles have been used to build the libraries from source and the @c CFG
 variable has been set to specify a different output path for that particular
@@ -310,12 +297,13 @@ for the GUI applications (i.e. those which don't define @c wxUSE_GUI as 0).
 wxWidgets always tries to preserve source backwards compatibility, however
 sometimes existing symbols may need to be removed. Except in exceedingly rare
 cases, this happens in several steps: first, the symbol is marked as
-deprecated, so that using it results in a warning when using the supported
-compilers in some wxWidgets release @c x.y. It can still be used, however
-the warnings indicate all the places in your code which will need to be updated
-in the future. If your code doesn't use any deprecated symbols or you have already
-fixed all their occurrences, you may change @c WXWIN_COMPATIBILITY_x_y to 0
-to ensure they can't be used -- however its default value is still 1 at this time.
+deprecated, so that using it results in a warning when using the common
+compilers (e.g. any non-ancient version of MSVC, gcc or clang) in some
+wxWidgets release @c x.y. It can still be used, however the warnings indicate
+all the places in your code which will need to be updated in the future. If
+your code doesn't use any deprecated symbols or you have already fixed all
+their occurrences, you may change @c WXWIN_COMPATIBILITY_x_y to 0 to ensure
+they can't be used -- however its default value is still 1 at this time.
 
 At some point in the future, the next stable wxWidgets release @c x.y+2 changes
 the default @c WXWIN_COMPATIBILITY_x_y value to 0, meaning that now the symbol
@@ -327,20 +315,20 @@ And, finally, the symbol is completely removed from the library in the next
 stable version after this, i.e. @c x.y+4. @c WXWIN_COMPATIBILITY_x_y itself is
 removed as well at this time, as it is not useful any longer.
 
-According to this general rule, currently, i.e. in wxWidgets 3.4, the following
-two symbols are defined: @c WXWIN_COMPATIBILITY_3_0, as 0, and @c
-WXWIN_COMPATIBILITY_3_2, as 1. Please see @ref overview_backwardcompat for even
+According to this general rule, currently, i.e. in wxWidgets 3.2, the following
+two symbols are defined: @c WXWIN_COMPATIBILITY_2_8, as 0, and @c
+WXWIN_COMPATIBILITY_3_0, as 1. Please see @ref overview_backwardcompat for even
 more details.
 
 @beginDefList
-@itemdef{WXWIN_COMPATIBILITY_3_0,
-         defined as 0 by default meaning that symbols existing in wxWidgets 3.0
-         but deprecated in 3.2 release are not available by default. It can be
+@itemdef{WXWIN_COMPATIBILITY_2_8,
+         defined as 0 by default meaning that symbols existing in wxWidgets 2.8
+         but deprecated in 3.0 release are not available by default. It can be
          changed to 1 to make them available, but it is strongly recommended to
          update the code using them instead.}
-@itemdef{WXWIN_COMPATIBILITY_3_2,
-         defined as 1 by default meaning that symbols existing in wxWidgets 3.2
-         but deprecated since then are still available. It can be changed to 0
+@itemdef{WXWIN_COMPATIBILITY_3_0,
+         defined as 1 by default meaning that symbols existing in wxWidgets 3.0
+         but deprecated since then are still available. It can be changed to 1
          to ensure that no deprecated symbols are used accidentally.}
 @itemdef{wxDIALOG_UNIT_COMPATIBILITY,
          wxMSW-specific setting which can be set to 1 to make
@@ -348,11 +336,12 @@ more details.
          with old wxWidgets versions. Changing it is not recommended.}
 @itemdef{wxUSE_UNSAFE_WXSTRING_CONV,
          this option determines if unsafe implicit conversions of wxString to
-         @c char* or @c std::string (depending on whether
-         @c wxUSE_STD_STRING_CONV_IN_WXSTRING is 0 or 1) are defined.
-         It is set to 1 by default for compatibility reasons, but you may set
-         @c wxNO_UNSAFE_WXSTRING_CONV described below to disable these unsafe
-         unsafe conversions without rebuilding the library.}
+         @c char* or @c std::string (depending on whether @c wxUSE_STL is 0 or
+         1) are defined. It is set to 1 by default for compatibility reasons,
+         however it is recommended to set it to 0 for the new projects. See
+         also @c wxNO_UNSAFE_WXSTRING_CONV below for an alternative way of
+         disabling these unsafe conversions not requiring rebuilding the
+         library.}
 @endDefList
 
 @section page_cppconst_miscellaneous Miscellaneous
@@ -374,10 +363,9 @@ more details.
         includes a number of wxWidgets headers thus making it unnecessary to include
         them explicitly. However if this is not defined, you do need to include them
         and so the usual idiom which allows to support both cases is to first include
-        @c wx/wxprec.h and then, inside <tt>\#ifndef WX_PRECOMP</tt>, individual
+        @c wx/wxprec.h} and then, inside <tt>\#ifndef WX_PRECOMP</tt>, individual
         headers you need.}
-@itemdef{_UNICODE and UNICODE, are both always defined in current wxWidgets
-    versions.}
+@itemdef{_UNICODE and UNICODE, both are defined if wxUSE_UNICODE is set to @c 1}
 @itemdef{wxUSE_GUI,
         this particular feature test macro is defined to 1
         when compiling or using the library with the GUI features activated,

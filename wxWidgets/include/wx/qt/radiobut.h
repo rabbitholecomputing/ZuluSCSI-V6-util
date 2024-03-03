@@ -32,13 +32,10 @@ public:
                  const wxValidator& validator = wxDefaultValidator,
                  const wxString& name = wxASCII_STR(wxRadioButtonNameStr) );
 
-    virtual void SetValue(bool value) override;
-    virtual bool GetValue() const override;
+    virtual void SetValue(bool value) wxOVERRIDE;
+    virtual bool GetValue() const wxOVERRIDE;
 
-    virtual void SetLabel(const wxString &label) override;
-    virtual wxString GetLabel() const override;
-
-    virtual QWidget *GetHandle() const override;
+    virtual QWidget *GetHandle() const wxOVERRIDE;
 
 private:
     QRadioButton *m_qtRadioButton;

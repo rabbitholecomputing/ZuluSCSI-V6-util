@@ -76,7 +76,7 @@ wxEND_EVENT_TABLE()
 // globals
 // ----------------------------------------------------------------------------
 
-wxListBox *the_list = nullptr;
+wxListBox *the_list = NULL;
 
 // ============================================================================
 // implementation
@@ -92,7 +92,7 @@ bool MyApp::OnInit()
 {
     wxString a_appname, a_service, a_windowname, a_book;
 
-    m_help = nullptr;
+    m_help = NULL;
 
     // for MSW (DDE classes), a_service is 'service name', apparently an arbitrary string
     // for Unix, should be a valid file name (for a nonexistent file)
@@ -128,7 +128,7 @@ bool MyApp::OnInit()
     m_help->SetTitleFormat( a_windowname );
 
     // Create the main frame window
-    MyFrame* frame = new MyFrame(nullptr, "Help Client");
+    MyFrame* frame = new MyFrame(NULL, "Help Client");
     frame->Show(true);
 
     return true;
@@ -137,7 +137,7 @@ bool MyApp::OnInit()
 int MyApp::OnExit()
 {
     delete m_help;
-    delete wxConfig::Set(nullptr);
+    delete wxConfig::Set(NULL);
     return 0;
 }
 
@@ -145,7 +145,7 @@ int MyApp::OnExit()
 MyFrame::MyFrame(wxFrame *frame, const wxString& title)
 : wxFrame(frame, wxID_ANY, title, wxDefaultPosition, wxSize( 200, 100 ) )
 {
-    m_panel = nullptr;
+    m_panel = NULL;
 
     // Give it an icon
     SetIcon(wxICON(mondrian));

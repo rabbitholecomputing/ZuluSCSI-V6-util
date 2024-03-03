@@ -100,112 +100,112 @@ const LanguageInfo g_LanguagePrefs [] = {
     {"C++",
      "*.c;*.cc;*.cpp;*.cxx;*.cs;*.h;*.hh;*.hpp;*.hxx;*.sma",
      wxSTC_LEX_CPP,
-     {{mySTC_TYPE_DEFAULT, nullptr},
-      {mySTC_TYPE_COMMENT, nullptr},
-      {mySTC_TYPE_COMMENT_LINE, nullptr},
-      {mySTC_TYPE_COMMENT_DOC, nullptr},
-      {mySTC_TYPE_NUMBER, nullptr},
+     {{mySTC_TYPE_DEFAULT, NULL},
+      {mySTC_TYPE_COMMENT, NULL},
+      {mySTC_TYPE_COMMENT_LINE, NULL},
+      {mySTC_TYPE_COMMENT_DOC, NULL},
+      {mySTC_TYPE_NUMBER, NULL},
       {mySTC_TYPE_WORD1, CppWordlist1}, // KEYWORDS
-      {mySTC_TYPE_STRING, nullptr},
-      {mySTC_TYPE_CHARACTER, nullptr},
-      {mySTC_TYPE_UUID, nullptr},
-      {mySTC_TYPE_PREPROCESSOR, nullptr},
-      {mySTC_TYPE_OPERATOR, nullptr},
-      {mySTC_TYPE_IDENTIFIER, nullptr},
-      {mySTC_TYPE_STRING_EOL, nullptr},
-      {mySTC_TYPE_DEFAULT, nullptr}, // VERBATIM
-      {mySTC_TYPE_REGEX, nullptr},
-      {mySTC_TYPE_COMMENT_SPECIAL, nullptr}, // DOXY
+      {mySTC_TYPE_STRING, NULL},
+      {mySTC_TYPE_CHARACTER, NULL},
+      {mySTC_TYPE_UUID, NULL},
+      {mySTC_TYPE_PREPROCESSOR, NULL},
+      {mySTC_TYPE_OPERATOR, NULL},
+      {mySTC_TYPE_IDENTIFIER, NULL},
+      {mySTC_TYPE_STRING_EOL, NULL},
+      {mySTC_TYPE_DEFAULT, NULL}, // VERBATIM
+      {mySTC_TYPE_REGEX, NULL},
+      {mySTC_TYPE_COMMENT_SPECIAL, NULL}, // DOXY
       {mySTC_TYPE_WORD2, CppWordlist2}, // EXTRA WORDS
       {mySTC_TYPE_WORD3, CppWordlist3}, // DOXY KEYWORDS
-      {mySTC_TYPE_ERROR, nullptr}, // KEYWORDS ERROR
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr}},
+      {mySTC_TYPE_ERROR, NULL}, // KEYWORDS ERROR
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL}},
      mySTC_FOLD_COMMENT | mySTC_FOLD_COMPACT | mySTC_FOLD_PREPROC},
     // Python
     {"Python",
      "*.py;*.pyw",
      wxSTC_LEX_PYTHON,
-     {{mySTC_TYPE_DEFAULT, nullptr},
-      {mySTC_TYPE_COMMENT_LINE, nullptr},
-      {mySTC_TYPE_NUMBER, nullptr},
-      {mySTC_TYPE_STRING, nullptr},
-      {mySTC_TYPE_CHARACTER, nullptr},
+     {{mySTC_TYPE_DEFAULT, NULL},
+      {mySTC_TYPE_COMMENT_LINE, NULL},
+      {mySTC_TYPE_NUMBER, NULL},
+      {mySTC_TYPE_STRING, NULL},
+      {mySTC_TYPE_CHARACTER, NULL},
       {mySTC_TYPE_WORD1, PythonWordlist1}, // KEYWORDS
-      {mySTC_TYPE_DEFAULT, nullptr}, // TRIPLE
-      {mySTC_TYPE_DEFAULT, nullptr}, // TRIPLEDOUBLE
-      {mySTC_TYPE_DEFAULT, nullptr}, // CLASSNAME
+      {mySTC_TYPE_DEFAULT, NULL}, // TRIPLE
+      {mySTC_TYPE_DEFAULT, NULL}, // TRIPLEDOUBLE
+      {mySTC_TYPE_DEFAULT, NULL}, // CLASSNAME
       {mySTC_TYPE_DEFAULT, PythonWordlist2}, // DEFNAME
-      {mySTC_TYPE_OPERATOR, nullptr},
-      {mySTC_TYPE_IDENTIFIER, nullptr},
-      {mySTC_TYPE_DEFAULT, nullptr}, // COMMENT_BLOCK
-      {mySTC_TYPE_STRING_EOL, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr}},
+      {mySTC_TYPE_OPERATOR, NULL},
+      {mySTC_TYPE_IDENTIFIER, NULL},
+      {mySTC_TYPE_DEFAULT, NULL}, // COMMENT_BLOCK
+      {mySTC_TYPE_STRING_EOL, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL}},
      mySTC_FOLD_COMMENTPY | mySTC_FOLD_QUOTESPY},
     // * (any)
     {wxTRANSLATE(DEFAULT_LANGUAGE),
      "*.*",
      wxSTC_LEX_PROPERTIES,
-     {{mySTC_TYPE_DEFAULT, nullptr},
-      {mySTC_TYPE_DEFAULT, nullptr},
-      {mySTC_TYPE_DEFAULT, nullptr},
-      {mySTC_TYPE_DEFAULT, nullptr},
-      {mySTC_TYPE_DEFAULT, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr},
-      {-1, nullptr}},
+     {{mySTC_TYPE_DEFAULT, NULL},
+      {mySTC_TYPE_DEFAULT, NULL},
+      {mySTC_TYPE_DEFAULT, NULL},
+      {mySTC_TYPE_DEFAULT, NULL},
+      {mySTC_TYPE_DEFAULT, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL},
+      {-1, NULL}},
      0},
     };
 
@@ -221,82 +221,82 @@ const StyleInfo g_StylePrefs [] = {
 
     // mySTC_TYPE_WORD1
     {"Keyword1",
-     "BLUE", "CYAN",
+     "BLUE", "WHITE",
      "", 10, mySTC_STYLE_BOLD, 0},
 
     // mySTC_TYPE_WORD2
     {"Keyword2",
-     "MIDNIGHT BLUE", "LIGHT BLUE",
+     "MIDNIGHT BLUE", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_WORD3
     {"Keyword3",
-     "CORNFLOWER BLUE", "LIGHT STEEL BLUE",
+     "CORNFLOWER BLUE", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_WORD4
     {"Keyword4",
-     "CYAN", "MAGENTA",
+     "CYAN", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_WORD5
     {"Keyword5",
-     "DARK GREY", "LIGHT GREY",
+     "DARK GREY", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_WORD6
     {"Keyword6",
-     "GREY", "KHAKI",
+     "GREY", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_COMMENT
     {"Comment",
-     "FOREST GREEN", "LIME GREEN",
+     "FOREST GREEN", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_COMMENT_DOC
     {"Comment (Doc)",
-     "FOREST GREEN", "LIME GREEN",
+     "FOREST GREEN", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_COMMENT_LINE
     {"Comment line",
-     "FOREST GREEN", "LIME GREEN",
+     "FOREST GREEN", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_COMMENT_SPECIAL
     {"Special comment",
-     "FOREST GREEN", "LIME GREEN",
+     "FOREST GREEN", "WHITE",
      "", 10, mySTC_STYLE_ITALIC, 0},
 
     // mySTC_TYPE_CHARACTER
     {"Character",
-     "KHAKI", "LIGHT MAGENTA",
+     "KHAKI", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_CHARACTER_EOL
     {"Character (EOL)",
-     "KHAKI", "LIGHT MAGENTA",
+     "KHAKI", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_STRING
     {"String",
-     "BROWN", "YELLOW",
+     "BROWN", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_STRING_EOL
     {"String (EOL)",
-     "BROWN", "YELLOW",
+     "BROWN", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_DELIMITER
     {"Delimiter",
-     "ORANGE", "YELLOW GREEN",
+     "ORANGE", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_PUNCTUATION
     {"Punctuation",
-     "ORANGE", "YELLOW GREEN",
+     "ORANGE", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_OPERATOR
@@ -306,12 +306,12 @@ const StyleInfo g_StylePrefs [] = {
 
     // mySTC_TYPE_BRACE
     {"Label",
-     "VIOLET", "PINK",
+     "VIOLET", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_COMMAND
     {"Command",
-     "BLUE", "CYAN",
+     "BLUE", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_IDENTIFIER
@@ -321,52 +321,52 @@ const StyleInfo g_StylePrefs [] = {
 
     // mySTC_TYPE_LABEL
     {"Label",
-     "VIOLET", "PINK",
+     "VIOLET", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_NUMBER
     {"Number",
-     "SIENNA", "SALMON",
+     "SIENNA", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_PARAMETER
     {"Parameter",
-     "VIOLET", "THISTLE",
+     "VIOLET", "WHITE",
      "", 10, mySTC_STYLE_ITALIC, 0},
 
     // mySTC_TYPE_REGEX
     {"Regular expression",
-     "ORCHID", "ORANGE",
+     "ORCHID", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_UUID
     {"UUID",
-     "ORCHID", "ORANGE",
+     "ORCHID", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_VALUE
     {"Value",
-     "ORCHID", "ORANGE",
+     "ORCHID", "WHITE",
      "", 10, mySTC_STYLE_ITALIC, 0},
 
     // mySTC_TYPE_PREPROCESSOR
     {"Preprocessor",
-     "GREY", "LIGHT GREY",
+     "GREY", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_SCRIPT
     {"Script",
-     "DARK GREY", "LIGHT GREY",
+     "DARK GREY", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_ERROR
     {"Error",
-     "RED", "PURPLE",
+     "RED", "WHITE",
      "", 10, 0, 0},
 
     // mySTC_TYPE_UNDEFINED
     {"Undefined",
-     "ORANGE", "ORCHID",
+     "ORANGE", "WHITE",
      "", 10, 0, 0}
 
     };

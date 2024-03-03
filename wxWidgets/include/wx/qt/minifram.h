@@ -14,7 +14,7 @@
 class WXDLLIMPEXP_CORE wxMiniFrame : public wxFrame
 {
 public:
-  wxMiniFrame() = default;
+  wxMiniFrame() { }
 
   bool Create(wxWindow *parent,
               wxWindowID id,

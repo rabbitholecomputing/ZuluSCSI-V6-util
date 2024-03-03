@@ -43,7 +43,7 @@ wxObject *wxCollapsiblePaneXmlHandler::DoCreateResource()
         {
             bool old_ins = m_isInside;
             m_isInside = false;
-            wxObject *item = CreateResFromNode(n, m_collpane->GetPane(), nullptr);
+            wxObject *item = CreateResFromNode(n, m_collpane->GetPane(), NULL);
             m_isInside = old_ins;
 
             return item;
@@ -51,7 +51,7 @@ wxObject *wxCollapsiblePaneXmlHandler::DoCreateResource()
         else
         {
             ReportError("no control within panewindow");
-            return nullptr;
+            return NULL;
         }
     }
     else
@@ -62,7 +62,7 @@ wxObject *wxCollapsiblePaneXmlHandler::DoCreateResource()
         if (label.empty())
         {
             ReportParamError("label", "label cannot be empty");
-            return nullptr;
+            return NULL;
         }
 
         ctrl->Create(m_parentAsWindow,

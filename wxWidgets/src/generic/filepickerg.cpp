@@ -2,6 +2,7 @@
 // Name:        src/generic/filepickerg.cpp
 // Purpose:     wxGenericFileDirButton class implementation
 // Author:      Francesco Montorsi
+// Modified by:
 // Created:     15/04/2006
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
@@ -24,7 +25,7 @@
 #include "wx/filename.h"
 #include "wx/filepicker.h"
 
-#include <memory>
+#include "wx/scopedptr.h"
 
 
 // ============================================================================
@@ -88,7 +89,7 @@ bool wxGenericFileDirButton::Create(wxWindow *parent,
 
 void wxGenericFileDirButton::OnButtonClick(wxCommandEvent& WXUNUSED(ev))
 {
-    std::unique_ptr<wxDialog> p(CreateDialog());
+    wxScopedPtr<wxDialog> p(CreateDialog());
     if (p->ShowModal() == wxID_OK)
     {
         // save updated path in m_path

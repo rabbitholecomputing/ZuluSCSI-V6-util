@@ -29,7 +29,7 @@ public:
 
     ~wxWebKitJavascriptResult()
     {
-        if ( m_jsresult != nullptr )
+        if ( m_jsresult != NULL )
             webkit_javascript_result_unref(m_jsresult);
     }
 

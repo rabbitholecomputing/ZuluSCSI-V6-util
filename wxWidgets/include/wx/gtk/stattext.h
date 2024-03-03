@@ -33,9 +33,9 @@ public:
                 long style = 0,
                 const wxString &name = wxASCII_STR(wxStaticTextNameStr) );
 
-    void SetLabel( const wxString &label ) override;
+    void SetLabel( const wxString &label ) wxOVERRIDE;
 
-    bool SetFont( const wxFont &font ) override;
+    bool SetFont( const wxFont &font ) wxOVERRIDE;
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
@@ -44,15 +44,15 @@ public:
     // --------------
 
 protected:
-    virtual bool GTKWidgetNeedsMnemonic() const override;
-    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w) override;
+    virtual bool GTKWidgetNeedsMnemonic() const wxOVERRIDE;
+    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w) wxOVERRIDE;
 
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
-    virtual wxString WXGetVisibleLabel() const override;
-    virtual void WXSetVisibleLabel(const wxString& str) override;
+    virtual wxString WXGetVisibleLabel() const wxOVERRIDE;
+    virtual void WXSetVisibleLabel(const wxString& str) wxOVERRIDE;
 #if wxUSE_MARKUP
-    virtual bool DoSetLabelMarkup(const wxString& markup) override;
+    virtual bool DoSetLabelMarkup(const wxString& markup) wxOVERRIDE;
 #endif // wxUSE_MARKUP
 
 private:

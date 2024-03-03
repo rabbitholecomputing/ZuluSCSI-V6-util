@@ -23,7 +23,7 @@ public:
 
 
 wxStaticText::wxStaticText() :
-    m_qtLabel(nullptr)
+    m_qtLabel(NULL)
 {
 }
 
@@ -63,9 +63,12 @@ bool wxStaticText::Create(wxWindow *parent,
     else
         m_qtLabel->setAlignment(Qt::AlignLeft);
 
+    if ( !QtCreateControl(parent, id, pos, size, style, wxDefaultValidator, name) )
+        return false;
+
     SetLabel(label);
 
-    return wxStaticTextBase::Create(parent, id, pos, size, style, wxDefaultValidator, name);
+    return true;
 }
 
 void wxStaticText::SetLabel(const wxString& label)

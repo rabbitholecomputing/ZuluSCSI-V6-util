@@ -92,19 +92,25 @@ public:
 #ifdef HAVE_MSW_THEME
             // When using themes MSW tooltips use larger bluish version of the
             // normal font.
-            if ( wxUxThemeIsActive() )
+            if ( UseTooltipTheme() )
             {
                 titleFont.MakeLarger();
 
-                wxUxThemeHandle theme(parent, L"TOOLTIP");
-                wxColour c = theme.GetColour(TTP_BALLOONTITLE, TMT_TEXTCOLOR);
-                if ( !c.IsOk() )
+                COLORREF c;
+                if ( FAILED(::GetThemeColor
+                                   (
+                                        wxUxThemeHandle(parent, L"TOOLTIP"),
+                                        TTP_BALLOONTITLE,
+                                        0,
+                                        TMT_TEXTCOLOR,
+                                        &c
+                                    )) )
                 {
                     // Use the standard value of this colour as fallback.
-                    c.Set(0x00, 0x33, 0x99);
+                    c = 0x993300;
                 }
 
-                labelTitle->SetForegroundColour(c);
+                labelTitle->SetForegroundColour(wxRGBToColour(c));
             }
             else
 #endif // HAVE_MSW_THEME
@@ -130,7 +136,7 @@ public:
         wxSizer* sizerText = wrapper.CreateSizer(message, -1 /* No wrapping */);
 
 #ifdef HAVE_MSW_THEME
-        if ( icon.IsOk() && wxUxThemeIsActive() )
+        if ( icon.IsOk() && UseTooltipTheme() )
         {
             // Themed tooltips under MSW align the text with the title, not
             // with the icon, so use a helper horizontal sizer in this case.
@@ -165,18 +171,34 @@ public:
         {
             // Determine the best colour(s) to use on our own.
 #ifdef HAVE_MSW_THEME
-            if ( wxUxThemeIsActive() )
+            if ( UseTooltipTheme() )
             {
                 wxUxThemeHandle hTheme(GetParent(), L"TOOLTIP");
 
-                colStart = hTheme.GetColour(TTP_BALLOONTITLE, TMT_GRADIENTCOLOR1);
-                if ( !colStart.IsOk() )
-                    colStart = wxSystemSettings::SelectLightDark(*wxWHITE, *wxBLACK);
+                COLORREF c1, c2;
+                if ( FAILED(::GetThemeColor
+                                   (
+                                        hTheme,
+                                        TTP_BALLOONTITLE,
+                                        0,
+                                        TMT_GRADIENTCOLOR1,
+                                        &c1
+                                    )) ||
+                    FAILED(::GetThemeColor
+                                  (
+                                        hTheme,
+                                        TTP_BALLOONTITLE,
+                                        0,
+                                        TMT_GRADIENTCOLOR2,
+                                        &c2
+                                  )) )
+                {
+                    c1 = 0xffffff;
+                    c2 = 0xf0e5e4;
+                }
 
-                colEnd = hTheme.GetColour(TTP_BALLOONTITLE, TMT_GRADIENTCOLOR2);
-                if ( !colEnd.IsOk() )
-                    colEnd = wxSystemSettings::SelectLightDark({0xe4, 0xe5, 0xf0},
-                                                               {0x40, 0x40, 0x20});
+                colStart = wxRGBToColour(c1);
+                colEnd = wxRGBToColour(c2);
             }
             else
 #endif // HAVE_MSW_THEME
@@ -245,18 +267,30 @@ public:
     }
 
 protected:
-    virtual void OnDismiss() override
+    virtual void OnDismiss() wxOVERRIDE
     {
         Destroy();
     }
 
 private:
+#ifdef HAVE_MSW_THEME
+    // Returns non-NULL theme only if we're using Win7-style tooltips.
+    static bool UseTooltipTheme()
+    {
+        // Even themed applications under XP still use "classic" tooltips.
+        if ( wxGetWinVersion() <= wxWinVersion_XP )
+            return false;
+        else
+            return wxUxThemeIsActive();
+    }
+#endif // HAVE_MSW_THEME
+
     // For now we just hard code the tip height, would be nice to do something
     // smarter in the future.
     static int GetTipHeight()
     {
 #ifdef HAVE_MSW_THEME
-        if ( wxUxThemeIsActive() )
+        if ( UseTooltipTheme() )
             return 20;
 #endif // HAVE_MSW_THEME
 

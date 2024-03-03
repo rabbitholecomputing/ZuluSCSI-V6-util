@@ -122,6 +122,7 @@
 #include <wx/dynlib.h>
 #include <wx/dynload.h>
 #include <wx/editlbox.h>
+#include <wx/effects.h>
 #include <wx/encconv.h>
 #include <wx/encinfo.h>
 #include <wx/eventfilter.h>
@@ -152,7 +153,6 @@
 #include <wx/fontutil.h>
 #include <wx/frame.h>
 #include <wx/fs_arc.h>
-#include <wx/fs_data.h>
 #include <wx/fs_filter.h>
 #include <wx/fs_inet.h>
 #include <wx/fs_mem.h>
@@ -217,10 +217,13 @@
 #include <wx/longlong.h>
 #include <wx/lzmastream.h>
 #include <wx/math.h>
+/* Intentionally excluded to avoid deprecation warnings.
 #include <wx/matrix.h>
+*/
 #include <wx/mdi.h>
 #include <wx/mediactrl.h>
 #include <wx/memconf.h>
+#include <wx/memory.h>
 #include <wx/memtext.h>
 #include <wx/menu.h>
 #include <wx/menuitem.h>
@@ -325,6 +328,7 @@
 #include <wx/strconv.h>
 #include <wx/stream.h>
 #include <wx/string.h>
+#include <wx/stringimpl.h>
 #include <wx/stringops.h>
 #include <wx/strvararg.h>
 #include <wx/sysopt.h>

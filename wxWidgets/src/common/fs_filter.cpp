@@ -16,7 +16,10 @@
 #ifndef WX_PRECOMP
 #endif
 
-#include <memory>
+#include "wx/scopedptr.h"
+
+wxDEFINE_SCOPED_PTR_TYPE(wxFSFile)
+wxDEFINE_SCOPED_PTR_TYPE(wxInputStream)
 
 //----------------------------------------------------------------------------
 // wxFilterFSHandler
@@ -24,7 +27,7 @@
 
 bool wxFilterFSHandler::CanOpen(const wxString& location)
 {
-    return wxFilterClassFactory::Find(GetProtocol(location)) != nullptr;
+    return wxFilterClassFactory::Find(GetProtocol(location)) != NULL;
 }
 
 wxFSFile* wxFilterFSHandler::OpenFile(
@@ -33,23 +36,23 @@ wxFSFile* wxFilterFSHandler::OpenFile(
 {
     wxString right = GetRightLocation(location);
     if (!right.empty())
-        return nullptr;
+        return NULL;
 
     wxString protocol = GetProtocol(location);
     const wxFilterClassFactory *factory = wxFilterClassFactory::Find(protocol);
     if (!factory)
-        return nullptr;
+        return NULL;
 
     wxString left = GetLeftLocation(location);
-    std::unique_ptr<wxFSFile> leftFile(fs.OpenFile(left));
+    wxFSFilePtr leftFile(fs.OpenFile(left));
     if (!leftFile.get())
-        return nullptr;
+        return NULL;
 
-    std::unique_ptr<wxInputStream> leftStream(leftFile->DetachStream());
+    wxInputStreamPtr leftStream(leftFile->DetachStream());
     if (!leftStream.get() || !leftStream->IsOk())
-        return nullptr;
+        return NULL;
 
-    std::unique_ptr<wxInputStream> stream(factory->NewStream(leftStream.release()));
+    wxInputStreamPtr stream(factory->NewStream(leftStream.release()));
 
     // The way compressed streams are supposed to be served is e.g.:
     //  Content-type: application/postscript

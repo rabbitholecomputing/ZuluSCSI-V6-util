@@ -26,7 +26,7 @@
 wxIMPLEMENT_DYNAMIC_CLASS(wxChoicebookXmlHandler, wxXmlResourceHandler);
 
 wxChoicebookXmlHandler::wxChoicebookXmlHandler()
-                      : m_choicebook(nullptr)
+                      : m_choicebook(NULL)
 {
     XRC_ADD_STYLE(wxBK_DEFAULT);
     XRC_ADD_STYLE(wxBK_LEFT);

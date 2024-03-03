@@ -61,36 +61,36 @@ public:
                                      const wxSize& size,
                                      long style,
                                      const wxValidator& validator,
-                                     const wxString& name) override;
+                                     const wxString& name) wxOVERRIDE;
 
-    virtual bool Play() override;
-    virtual bool Pause() override;
-    virtual bool Stop() override;
+    virtual bool Play() wxOVERRIDE;
+    virtual bool Pause() wxOVERRIDE;
+    virtual bool Stop() wxOVERRIDE;
 
-    virtual bool Load(const wxString& fileName) override;
-    virtual bool Load(const wxURI& location) override;
+    virtual bool Load(const wxString& fileName) wxOVERRIDE;
+    virtual bool Load(const wxURI& location) wxOVERRIDE;
     virtual bool Load(const wxURI& location,
-                      const wxURI& proxy) override
+                      const wxURI& proxy) wxOVERRIDE
         { return wxMediaBackendCommonBase::Load(location, proxy); }
 
 
-    virtual bool SetPosition(wxLongLong where) override;
-    virtual wxLongLong GetPosition() override;
-    virtual wxLongLong GetDuration() override;
+    virtual bool SetPosition(wxLongLong where) wxOVERRIDE;
+    virtual wxLongLong GetPosition() wxOVERRIDE;
+    virtual wxLongLong GetDuration() wxOVERRIDE;
 
-    virtual void Move(int x, int y, int w, int h) override;
-    wxSize GetVideoSize() const override;
+    virtual void Move(int x, int y, int w, int h) wxOVERRIDE;
+    wxSize GetVideoSize() const wxOVERRIDE;
 
-    virtual double GetPlaybackRate() override;
-    virtual bool SetPlaybackRate(double dRate) override;
+    virtual double GetPlaybackRate() wxOVERRIDE;
+    virtual bool SetPlaybackRate(double dRate) wxOVERRIDE;
 
-    virtual wxMediaState GetState() override;
+    virtual wxMediaState GetState() wxOVERRIDE;
 
-    virtual bool SetVolume(double dVolume) override;
-    virtual double GetVolume() override;
+    virtual bool SetVolume(double dVolume) wxOVERRIDE;
+    virtual double GetVolume() wxOVERRIDE;
 
-    virtual wxLongLong GetDownloadProgress() override;
-    virtual wxLongLong GetDownloadTotal() override;
+    virtual wxLongLong GetDownloadProgress() wxOVERRIDE;
+    virtual wxLongLong GetDownloadTotal() wxOVERRIDE;
 
     bool DoLoad(const wxString& locstring);
     wxMediaCtrl* GetControl() { return m_ctrl; } // for C Callbacks
@@ -222,17 +222,17 @@ static void realize_callback(GtkWidget* widget, wxGStreamerMediaBackend* be)
 #endif // wxGTK
 
 wxGStreamerMediaBackend::wxGStreamerMediaBackend()
-  : m_player(nullptr), m_video_renderer(nullptr), m_videoSize(0, 0), m_last_state(wxMEDIASTATE_STOPPED), m_loaded(false)
+  : m_player(0), m_video_renderer(0), m_videoSize(0, 0), m_last_state(wxMEDIASTATE_STOPPED), m_loaded(false)
 {
 
 }
 
 wxGStreamerMediaBackend::~wxGStreamerMediaBackend()
 {
-    m_video_renderer = nullptr;
+    m_video_renderer = NULL;
     if (m_player)
         gst_object_unref(m_player);
-    m_player = nullptr;
+    m_player = NULL;
 }
 
 extern "C" {
@@ -254,7 +254,7 @@ static void end_of_stream_callback(GstPlayer * WXUNUSED(player), wxGStreamerMedi
 #define GST_WAYLAND_DISPLAY_HANDLE_CONTEXT_TYPE "GstWaylandDisplayHandleContextType"
 static GstBusSyncReply bus_sync_handler(GstBus * WXUNUSED(bus), GstMessage* msg,  gpointer WXUNUSED(user_data))
 {
-    const gchar *type = nullptr;
+    const gchar *type = NULL;
 
     if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_NEED_CONTEXT &&
         gst_message_parse_context_type(msg, &type) &&
@@ -268,8 +268,8 @@ static GstBusSyncReply bus_sync_handler(GstBus * WXUNUSED(bus), GstMessage* msg,
          * "display" will likely remain as the normal way of doing for gst 1.19+
          * but there is no harm in setting both for compatibility
          */
-        gst_structure_set(s, "handle", G_TYPE_POINTER, display_info.dpy, nullptr);
-        gst_structure_set(s, "display", G_TYPE_POINTER, display_info.dpy, nullptr);
+        gst_structure_set(s, "handle", G_TYPE_POINTER, display_info.dpy, NULL);
+        gst_structure_set(s, "display", G_TYPE_POINTER, display_info.dpy, NULL);
         gst_element_set_context(GST_ELEMENT(msg->src), context);
 
         return GST_BUS_DROP;
@@ -292,7 +292,8 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     //init gstreamer
     //
 
-    //Convert arguments to unicode
+    //Convert arguments to unicode if enabled
+#if wxUSE_UNICODE
     int i;
     char **argvGST = new char*[wxTheApp->argc + 1];
     for ( i = 0; i < wxTheApp->argc; i++ )
@@ -300,22 +301,28 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
         argvGST[i] = wxStrdupA(wxTheApp->argv[i].utf8_str());
     }
 
-    argvGST[wxTheApp->argc] = nullptr;
+    argvGST[wxTheApp->argc] = NULL;
 
     int argcGST = wxTheApp->argc;
+#else
+#define argcGST wxTheApp->argc
+#define argvGST wxTheApp->argv
+#endif
 
     //Really init gstreamer
     gboolean bInited;
-    GError* error = nullptr;
+    GError* error = NULL;
     bInited = gst_init_check(&argcGST, &argvGST, &error);
 
     // Cleanup arguments for unicode case
+#if wxUSE_UNICODE
     for ( i = 0; i < argcGST; i++ )
     {
         free(argvGST[i]);
     }
 
     delete [] argvGST;
+#endif
 
     if(!bInited)    //gst_init_check fail?
     {
@@ -355,9 +362,7 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     // Turn off double-buffering so that
     // so it doesn't draw over the video and cause sporadic
     // disappearances of the video
-    wxGCC_WARNING_SUPPRESS(deprecated-declarations)
     gtk_widget_set_double_buffered(m_ctrl->m_wxwindow, FALSE);
-    wxGCC_WARNING_RESTORE(deprecated-declarations)
 #endif
 
     // don't erase the background of our control window
@@ -365,7 +370,7 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     m_ctrl->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     // Tell gstreamer to play in our window
-    gpointer window_handle = nullptr;
+    gpointer window_handle = NULL;
 #ifdef __WXGTK__
     if (!gtk_widget_get_realized(m_ctrl->m_wxwindow))
     {
@@ -391,7 +396,7 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
 #endif
 
     m_video_renderer = gst_player_video_overlay_video_renderer_new(window_handle);
-    m_player = gst_player_new(m_video_renderer, gst_player_g_main_context_signal_dispatcher_new(nullptr));
+    m_player = gst_player_new(m_video_renderer, gst_player_g_main_context_signal_dispatcher_new(NULL));
 
     wxDisplayInfo info = wxGetDisplayInfo();
     if (info.type == wxDisplayWayland)
@@ -399,7 +404,7 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
         // wayland needs a specific handler to pass display to gstreamer
         GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(gst_player_get_pipeline(m_player)));
         gst_bus_add_signal_watch(bus);
-        gst_bus_set_sync_handler(bus, bus_sync_handler, this, nullptr);
+        gst_bus_set_sync_handler(bus, bus_sync_handler, this, NULL);
         gst_object_unref(bus);
 
         // xvimagesink is known to crash gstreamer with a wayland window

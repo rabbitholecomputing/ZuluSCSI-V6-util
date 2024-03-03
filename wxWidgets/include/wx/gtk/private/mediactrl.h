@@ -28,8 +28,7 @@
 extern "C" {
 inline gpointer wxGtkGetIdFromWidget(GtkWidget* widget)
 {
-    GdkDisplay* display = gtk_widget_get_display(widget);
-    gdk_display_flush(display);
+    gdk_flush();
 
     GdkWindow* window = gtk_widget_get_window(widget);
     wxASSERT(window);
@@ -49,7 +48,7 @@ inline gpointer wxGtkGetIdFromWidget(GtkWidget* widget)
     }
 #endif
 
-    return (gpointer)nullptr;
+    return (gpointer)NULL;
 }
 }
 

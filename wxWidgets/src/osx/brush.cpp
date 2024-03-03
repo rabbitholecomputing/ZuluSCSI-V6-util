@@ -2,6 +2,7 @@
 // Name:        src/osx/brush.cpp
 // Purpose:     wxBrush
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -89,6 +90,10 @@ wxBrush::wxBrush()
 {
 }
 
+wxBrush::~wxBrush()
+{
+}
+
 wxBrush::wxBrush(const wxColour& col, wxBrushStyle style)
 {
     m_refData = new wxBrushRefData( col, style );
@@ -146,7 +151,7 @@ wxBrushStyle wxBrush::GetStyle() const
 
 wxBitmap *wxBrush::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid brush") );
 
     return M_BRUSHDATA->GetStipple();
 }

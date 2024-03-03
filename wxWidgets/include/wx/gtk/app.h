@@ -27,20 +27,20 @@ public:
      * (palette/visual/colorcube). under wxMSW, OnInitGui() does nothing by
      * default. when overriding this method, the code in it is likely to be
      * platform dependent, otherwise use OnInit(). */
-    virtual bool SetNativeTheme(const wxString& theme) override;
-    virtual bool OnInitGui() override;
+    virtual bool SetNativeTheme(const wxString& theme) wxOVERRIDE;
+    virtual bool OnInitGui() wxOVERRIDE;
 
     // override base class (pure) virtuals
-    virtual void WakeUpIdle() override;
+    virtual void WakeUpIdle() wxOVERRIDE;
 
-    virtual bool Initialize(int& argc, wxChar **argv) override;
-    virtual void CleanUp() override;
+    virtual bool Initialize(int& argc, wxChar **argv) wxOVERRIDE;
+    virtual void CleanUp() wxOVERRIDE;
 
     virtual void OnAssertFailure(const wxChar *file,
                                  int line,
                                  const wxChar *func,
                                  const wxChar *cond,
-                                 const wxChar *msg) override;
+                                 const wxChar *msg) wxOVERRIDE;
 
     // GTK-specific methods
     // -------------------
@@ -49,7 +49,7 @@ public:
     // instead of the default one (it's used by wxGLApp)
     //
     // must return XVisualInfo pointer (it is not freed by caller)
-    virtual void *GetXVisualInfo() { return nullptr; }
+    virtual void *GetXVisualInfo() { return NULL; }
 
     // Check if we're using a global menu. Currently this is only true when
     // running under Ubuntu Unity and global menu is not disabled.
@@ -64,11 +64,13 @@ public:
     // GLogLevelFlags enum.
     static void GTKSuppressDiagnostics(int flags = -1);
 
+#if wxABI_VERSION >= 30201
     // Allow wxWidgets to control GTK diagnostics. This is recommended because
     // it prevents spurious GTK messages from appearing, but can't be done by
     // default because it would result in a fatal error if the application
     // calls g_log_set_writer_func() itself.
     static void GTKAllowDiagnosticsControl();
+#endif // wxABI_VERSION >= 3.2.1
 
 
     // implementation only from now on

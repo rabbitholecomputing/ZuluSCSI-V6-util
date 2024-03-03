@@ -2,6 +2,7 @@
 // Name:        popup.cpp
 // Purpose:     Popup wxWidgets sample
 // Author:      Robert Roebling
+// Modified by:
 // Created:     2005-02-04
 // Copyright:   (c) 2005 Robert Roebling
 // Licence:     wxWindows licence
@@ -65,10 +66,10 @@ public:
     virtual ~SimpleTransientPopup();
 
     // wxPopupTransientWindow virtual methods are all overridden to log them
-    virtual void Popup(wxWindow *focus = nullptr) override;
-    virtual void OnDismiss() override;
-    virtual bool ProcessLeftDown(wxMouseEvent& event) override;
-    virtual bool Show( bool show = true ) override;
+    virtual void Popup(wxWindow *focus = NULL) wxOVERRIDE;
+    virtual void OnDismiss() wxOVERRIDE;
+    virtual bool ProcessLeftDown(wxMouseEvent& event) wxOVERRIDE;
+    virtual bool Show( bool show = true ) wxOVERRIDE;
 
 private:
     wxScrolledWindow *m_panel;
@@ -108,10 +109,8 @@ SimpleTransientPopup::SimpleTransientPopup( wxWindow *parent, bool scrolled )
                                               wxBORDER_NONE |
                                               wxPU_CONTAINS_CONTROLS )
 {
-    wxColour colour = wxSystemSettings::SelectLightDark(*wxLIGHT_GREY, wxColour(90, 90, 90));
-
     m_panel = new wxScrolledWindow( this, wxID_ANY );
-    m_panel->SetBackgroundColour(colour);
+    m_panel->SetBackgroundColour( *wxLIGHT_GREY );
 
     // Keep this code to verify if mouse events work, they're required if
     // you're making a control like a combobox where the items are highlighted
@@ -215,7 +214,7 @@ void SimpleTransientPopup::OnMouse(wxMouseEvent &event)
     wxRect rect(m_mouseText->GetRect());
     rect.SetX(-100000);
     rect.SetWidth(1000000);
-    wxColour colour = wxSystemSettings::SelectLightDark(*wxLIGHT_GREY, wxColour(90, 90, 90));
+    wxColour colour(*wxLIGHT_GREY);
 
     if (rect.Contains(event.GetPosition()))
     {
@@ -294,7 +293,7 @@ private:
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 
     MyFrame *m_frame;
 };
@@ -339,9 +338,9 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
 wxEND_EVENT_TABLE()
 
 MyFrame::MyFrame(const wxString& title)
-: wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(500,300))
+: wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(500,300))
 {
-    m_simplePopup = m_scrolledPopup = nullptr;
+    m_simplePopup = m_scrolledPopup = NULL;
 
     SetIcon(wxICON(sample));
 
@@ -460,9 +459,9 @@ wxBEGIN_EVENT_TABLE(MyDialog, wxDialog)
 wxEND_EVENT_TABLE()
 
 MyDialog::MyDialog(const wxString& title)
-         :wxDialog(nullptr, wxID_ANY, title, wxPoint(50,50), wxSize(400,300))
+         :wxDialog(NULL, wxID_ANY, title, wxPoint(50,50), wxSize(400,300))
 {
-    m_simplePopup = m_scrolledPopup = nullptr;
+    m_simplePopup = m_scrolledPopup = NULL;
     wxPanel *panel = new wxPanel(this, -1);
 
     wxButton *button1 = new wxButton( panel, Minimal_StartSimplePopup, "Show simple popup", wxPoint(20,20) );

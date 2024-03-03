@@ -2,6 +2,7 @@
 // Name:        help.cpp
 // Purpose:     wxHtml sample: help test
 // Author:      ?
+// Modified by:
 // Created:     ?
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -43,7 +44,7 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 
@@ -138,7 +139,7 @@ bool MyApp::OnInit()
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-            : wxFrame(nullptr, wxID_ANY, title, pos, size),
+            : wxFrame((wxFrame *)NULL, wxID_ANY, title, pos, size),
                 help(wxHF_DEFAULT_STYLE | wxHF_OPEN_FILES)
 {
     SetIcon(wxICON(sample));
@@ -191,11 +192,11 @@ void MyFrame::OnClose(wxCloseEvent& event)
 {
     // Close the help frame; this will cause the config data to
     // get written.
-    if ( help.GetFrame() ) // returns nullptr if no help frame active
+    if ( help.GetFrame() ) // returns NULL if no help frame active
         help.GetFrame()->Close(true);
     // now we can safely delete the config pointer
     event.Skip();
-    delete wxConfig::Set(nullptr);
+    delete wxConfig::Set(NULL);
 }
 
 

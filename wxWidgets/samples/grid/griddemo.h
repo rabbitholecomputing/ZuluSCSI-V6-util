@@ -2,6 +2,7 @@
 // Name:        griddemo.h
 // Purpose:     Grid control wxWidgets sample
 // Author:      Michael Bedward
+// Modified by:
 // Copyright:   (c) Michael Bedward, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +16,7 @@ class wxGrid;
 class GridApp : public wxApp
 {
 public:
-    bool OnInit() override;
+    bool OnInit() wxOVERRIDE;
 };
 
 
@@ -260,7 +261,7 @@ public:
                       wxDC& dc,
                       const wxRect& rect,
                       int row, int col,
-                      bool isSelected) override;
+                      bool isSelected) wxOVERRIDE;
 };
 
 // ----------------------------------------------------------------------------
@@ -273,15 +274,15 @@ class BigGridTable : public wxGridTableBase
 public:
     BigGridTable(long sizeGrid) { m_sizeGrid = sizeGrid; }
 
-    int GetNumberRows() override { return m_sizeGrid; }
-    int GetNumberCols() override { return m_sizeGrid; }
-    wxString GetValue( int row, int col ) override
+    int GetNumberRows() wxOVERRIDE { return m_sizeGrid; }
+    int GetNumberCols() wxOVERRIDE { return m_sizeGrid; }
+    wxString GetValue( int row, int col ) wxOVERRIDE
     {
         return wxString::Format("(%d, %d)", row, col);
     }
 
-    void SetValue( int , int , const wxString&  ) override { /* ignore */ }
-    bool IsEmptyCell( int , int  ) override { return false; }
+    void SetValue( int , int , const wxString&  ) wxOVERRIDE { /* ignore */ }
+    bool IsEmptyCell( int , int  ) wxOVERRIDE { return false; }
 
 private:
     long m_sizeGrid;
@@ -307,7 +308,7 @@ public:
     MyGridCellAttrProvider();
 
     virtual wxGridCellAttr *GetAttr(int row, int col,
-                                    wxGridCellAttr::wxAttrKind  kind) const override;
+                                    wxGridCellAttr::wxAttrKind  kind) const wxOVERRIDE;
 
 private:
     wxGridCellAttrPtr m_attrForOddRows;
@@ -322,23 +323,23 @@ class BugsGridTable : public wxGridTableBase
 public:
     BugsGridTable() { }
 
-    virtual int GetNumberRows() override;
-    virtual int GetNumberCols() override;
-    virtual bool IsEmptyCell( int row, int col ) override;
-    virtual wxString GetValue( int row, int col ) override;
-    virtual void SetValue( int row, int col, const wxString& value ) override;
+    virtual int GetNumberRows() wxOVERRIDE;
+    virtual int GetNumberCols() wxOVERRIDE;
+    virtual bool IsEmptyCell( int row, int col ) wxOVERRIDE;
+    virtual wxString GetValue( int row, int col ) wxOVERRIDE;
+    virtual void SetValue( int row, int col, const wxString& value ) wxOVERRIDE;
 
-    virtual wxString GetColLabelValue( int col ) override;
+    virtual wxString GetColLabelValue( int col ) wxOVERRIDE;
 
-    virtual wxString GetTypeName( int row, int col ) override;
-    virtual bool CanGetValueAs( int row, int col, const wxString& typeName ) override;
-    virtual bool CanSetValueAs( int row, int col, const wxString& typeName ) override;
+    virtual wxString GetTypeName( int row, int col ) wxOVERRIDE;
+    virtual bool CanGetValueAs( int row, int col, const wxString& typeName ) wxOVERRIDE;
+    virtual bool CanSetValueAs( int row, int col, const wxString& typeName ) wxOVERRIDE;
 
-    virtual long GetValueAsLong( int row, int col ) override;
-    virtual bool GetValueAsBool( int row, int col ) override;
+    virtual long GetValueAsLong( int row, int col ) wxOVERRIDE;
+    virtual bool GetValueAsBool( int row, int col ) wxOVERRIDE;
 
-    virtual void SetValueAsLong( int row, int col, long value ) override;
-    virtual void SetValueAsBool( int row, int col, bool value ) override;
+    virtual void SetValueAsLong( int row, int col, long value ) wxOVERRIDE;
+    virtual void SetValueAsBool( int row, int col, bool value ) wxOVERRIDE;
 };
 
 class BugsGridFrame : public wxFrame

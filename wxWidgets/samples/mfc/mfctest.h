@@ -36,7 +36,7 @@ private:
 class SampleMFCWinApp : public wxMFCWinApp
 {
 protected:
-    BOOL InitMainWnd() override
+    BOOL InitMainWnd() wxOVERRIDE
     {
         // Demonstrate creation of an initial MFC main window.
         m_pMainWnd = new CMainWindow();

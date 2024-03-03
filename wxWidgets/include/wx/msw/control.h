@@ -2,6 +2,7 @@
 // Name:        wx/msw/control.h
 // Purpose:     wxControl class
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -16,7 +17,7 @@
 class WXDLLIMPEXP_CORE wxControl : public wxControlBase
 {
 public:
-    wxControl() = default;
+    wxControl() { }
 
     wxControl(wxWindow *parent, wxWindowID id,
               const wxPoint& pos = wxDefaultPosition,
@@ -35,13 +36,13 @@ public:
 
 
     // Simulates an event
-    virtual void Command(wxCommandEvent& event) override { ProcessCommand(event); }
+    virtual void Command(wxCommandEvent& event) wxOVERRIDE { ProcessCommand(event); }
 
 
     // implementation from now on
     // --------------------------
 
-    virtual wxVisualAttributes GetDefaultAttributes() const override
+    virtual wxVisualAttributes GetDefaultAttributes() const wxOVERRIDE
     {
         return GetClassDefaultAttributes(GetWindowVariant());
     }
@@ -53,7 +54,7 @@ public:
     bool ProcessCommand(wxCommandEvent& event);
 
     // MSW-specific
-    virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result) override;
+    virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result) wxOVERRIDE;
 
     // For ownerdraw items
     virtual bool MSWOnDraw(WXDRAWITEMSTRUCT *WXUNUSED(item)) { return false; }
@@ -66,7 +67,7 @@ public:
     virtual WXHBRUSH MSWControlColor(WXHDC pDC, WXHWND hWnd);
 
     // default style for the control include WS_TABSTOP if it AcceptsFocus()
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const override;
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const wxOVERRIDE;
 
 protected:
     // Hook for common controls for which we don't want to set the default font
@@ -76,10 +77,10 @@ protected:
     virtual bool MSWShouldSetDefaultFont() const { return true; }
 
     // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const override;
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE;
 
     // return default best size (doesn't really make any sense, override this)
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
     // create the control of the given Windows class: this is typically called
     // from Create() method of the derived class passing its label, pos and
@@ -121,35 +122,7 @@ protected:
     virtual WXHBRUSH DoMSWControlColor(WXHDC pDC, wxColour colBg, WXHWND hWnd);
 
     // Look in our GetSubcontrols() for the windows with the given ID.
-    virtual wxWindow *MSWFindItem(long id, WXHWND hWnd) const override;
-
-
-    // Struct used for MSWGetDarkModeSupport() below.
-    struct MSWDarkModeSupport
-    {
-        // The name of the theme to use (also called "app name").
-        const wchar_t* themeName = nullptr;
-
-        // The theme IDs to use. If neither this field nor the theme name is
-        // set, no theme is applied to the window.
-        const wchar_t* themeId = nullptr;
-
-        // For some controls we need to set the foreground explicitly, even if
-        // they have some support for the dark theme.
-        bool setForeground = false;
-    };
-
-    // Called after creating the control to enable dark mode support if needed.
-    //
-    // If this function returns true, wxControl allows using dark mode for the
-    // window and set its theme to the one specified by MSWDarkModeSupport
-    // fields.
-    virtual bool MSWGetDarkModeSupport(MSWDarkModeSupport& support) const;
-
-    // Return the message that can be used to retrieve the tooltip window used
-    // by a native control. If this message is non-zero and sending it returns
-    // a valid HWND, the dark theme is also applied to it, if appropriate.
-    virtual int MSWGetToolTipMessage() const { return 0; }
+    virtual wxWindow *MSWFindItem(long id, WXHWND hWnd) const wxOVERRIDE;
 
 
     // for controls like radiobuttons which are really composite this array

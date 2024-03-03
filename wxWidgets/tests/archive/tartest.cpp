@@ -28,13 +28,13 @@ class tartest : public ArchiveTestSuite
 public:
     tartest();
 
-    void runTest() override { DoRunTest(); }
+    void runTest() wxOVERRIDE { DoRunTest(); }
 
 protected:
     CppUnit::Test *makeTest(string descr, int options,
                             bool genericInterface,
                             const wxString& archiver,
-                            const wxString& unarchiver) override;
+                            const wxString& unarchiver) wxOVERRIDE;
 };
 
 tartest::tartest()
@@ -52,7 +52,7 @@ CppUnit::Test *tartest::makeTest(
     const wxString& unarchiver)
 {
     if ((options & Stub) && (options & PipeIn) == 0)
-        return nullptr;
+        return NULL;
 
     if (genericInterface)
     {

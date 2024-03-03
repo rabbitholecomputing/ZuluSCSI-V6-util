@@ -45,7 +45,7 @@ public:
     PasswordData()
     {
         m_size = 0;
-        m_data = nullptr;
+        m_data = NULL;
     }
 
     // These methods are only supposed to be used once to fill in the data.
@@ -59,7 +59,7 @@ public:
     ~PasswordData()
     {
         if ( m_data )
-            SecKeychainItemFreeContent(nullptr, m_data);
+            SecKeychainItemFreeContent(NULL, m_data);
     }
 
 private:
@@ -72,7 +72,7 @@ private:
 // Implement wxSecretStore API using OS X Keychain Services.
 //
 // Note that this implementation currently always uses the default keychain by
-// passing nullptr to the keychain functions, but it would be simple to allow
+// passing NULL to the keychain functions, but it would be simple to allow
 // using other keychains if required.
 class wxSecretStoreOSXImpl : public wxSecretStoreImpl
 {
@@ -80,7 +80,7 @@ public:
     virtual bool Save(const wxString& service,
                       const wxString& user,
                       const wxSecretValueImpl& secret,
-                      wxString& errmsg) override
+                      wxString& errmsg) wxOVERRIDE
     {
         const wxScopedCharBuffer serviceUTF8 = service.utf8_str();
         const wxScopedCharBuffer userUTF8 = user.utf8_str();
@@ -101,14 +101,14 @@ public:
 
         OSStatus err = SecKeychainAddGenericPassword
                        (
-                            nullptr,                   // default keychain
+                            NULL,                   // default keychain
                             serviceUTF8.length(),
                             serviceUTF8.data(),
                             userUTF8.length(),
                             userUTF8.data(),
                             secret.GetSize(),
                             secret.GetData(),
-                            nullptr                    // no output item
+                            NULL                    // no output item
                        );
 
         if ( err != errSecSuccess )
@@ -123,19 +123,19 @@ public:
     virtual bool Load(const wxString& service,
                       wxString* user,
                       wxSecretValueImpl** secret,
-                      wxString& errmsg) const override
+                      wxString& errmsg) const wxOVERRIDE
     {
         const wxScopedCharBuffer serviceUTF8 = service.utf8_str();
 
         PasswordData password;
-        SecKeychainItemRef itemRef = nullptr;
+        SecKeychainItemRef itemRef = NULL;
         OSStatus err = SecKeychainFindGenericPassword
                        (
-                            nullptr,                   // default keychain
+                            NULL,                   // default keychain
                             serviceUTF8.length(),
                             serviceUTF8.data(),
                             0,                      // no account name
-                            nullptr,
+                            NULL,
                             password.SizePtr(),
                             password.DataPtr(),
                             &itemRef
@@ -157,15 +157,15 @@ public:
         attrInfo.tag = &attrTag;
         attrInfo.format = &attrFormat;
 
-        SecKeychainAttributeList* attrList = nullptr;
+        SecKeychainAttributeList* attrList = NULL;
         err = SecKeychainItemCopyAttributesAndData
               (
                     itemRef,
                     &attrInfo,                      // attrs to get
-                    nullptr,                           // no output item class
+                    NULL,                           // no output item class
                     &attrList,                      // output attr
-                    nullptr,                              // no output data
-                    nullptr                            //  (length/data)
+                    0,                              // no output data
+                    NULL                            //  (length/data)
               );
 
         if ( err != errSecSuccess )
@@ -175,13 +175,13 @@ public:
             return false;
         }
 
-        if ( SecKeychainAttribute* attr = attrList ? attrList->attr : nullptr )
+        if ( SecKeychainAttribute* attr = attrList ? attrList->attr : NULL )
         {
             *user = wxString::FromUTF8(static_cast<char*>(attr->data),
                                        attr->length);
         }
 
-        SecKeychainItemFreeAttributesAndData(attrList, nullptr);
+        SecKeychainItemFreeAttributesAndData(attrList, NULL);
 
         *secret = new wxSecretValueGenericImpl(password.GetSize(),
                                                password.GetData());
@@ -190,20 +190,20 @@ public:
     }
 
     virtual bool Delete(const wxString& service,
-                        wxString& errmsg) override
+                        wxString& errmsg) wxOVERRIDE
     {
         const wxScopedCharBuffer serviceUTF8 = service.utf8_str();
 
-        SecKeychainItemRef itemRef = nullptr;
+        SecKeychainItemRef itemRef = NULL;
         OSStatus err = SecKeychainFindGenericPassword
                        (
-                            nullptr,                   // default keychain
+                            NULL,                   // default keychain
                             serviceUTF8.length(),
                             serviceUTF8.data(),
                             0,                      // no account name
-                            nullptr,
-                            nullptr,                      // no output password
-                            nullptr,                   // (length/data)
+                            NULL,
+                            0,                      // no output password
+                            NULL,                   // (length/data)
                             &itemRef
                        );
         wxCFRef<SecKeychainItemRef> ensureItemRefReleased(itemRef);
@@ -229,7 +229,7 @@ private:
     // Just a tiny helper wrapper.
     static wxString GetSecurityErrorMessage(OSStatus err)
     {
-        return wxCFStringRef(SecCopyErrorMessageString(err, nullptr)).AsString();
+        return wxCFStringRef(SecCopyErrorMessageString(err, NULL)).AsString();
     }
 };
 
@@ -240,10 +240,7 @@ private:
 // ============================================================================
 
 /* static */
-wxSecretValueImpl*
-wxSecretValue::NewImpl(size_t size,
-                       const void *data,
-                       const char* WXUNUSED(contentType))
+wxSecretValueImpl* wxSecretValue::NewImpl(size_t size, const void *data)
 {
     return new wxSecretValueGenericImpl(size, data);
 }

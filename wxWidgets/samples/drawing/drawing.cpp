@@ -2,6 +2,7 @@
 // Name:        samples/drawing/drawing.cpp
 // Purpose:     shows and tests wxDC features
 // Author:      Robert Roebling
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
@@ -62,13 +63,13 @@
 // global variables
 // ----------------------------------------------------------------------------
 
-static wxBitmap *gs_bmpNoMask = nullptr,
-                *gs_bmpWithColMask = nullptr,
-                *gs_bmpMask = nullptr,
-                *gs_bmpWithMask = nullptr,
-                *gs_bmp4 = nullptr,
-                *gs_bmp4_mono = nullptr,
-                *gs_bmp36 = nullptr;
+static wxBitmap *gs_bmpNoMask = NULL,
+                *gs_bmpWithColMask = NULL,
+                *gs_bmpMask = NULL,
+                *gs_bmpWithMask = NULL,
+                *gs_bmp4 = NULL,
+                *gs_bmp4_mono = NULL,
+                *gs_bmp36 = NULL;
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -84,9 +85,9 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 
-    virtual int OnExit() override { DeleteBitmaps(); return 0; }
+    virtual int OnExit() wxOVERRIDE { DeleteBitmaps(); return 0; }
 
 protected:
     void DeleteBitmaps();
@@ -106,7 +107,6 @@ public:
     void OnMouseMove(wxMouseEvent &event);
     void OnMouseDown(wxMouseEvent &event);
     void OnMouseUp(wxMouseEvent &event);
-    void OnMouseCaptureLost(wxMouseCaptureLostEvent &event);
 
     void ToShow(int show) { m_show = show; Refresh(); }
     int GetPage() { return m_show; }
@@ -114,7 +114,7 @@ public:
     // set or remove the clipping region
     void Clip(bool clip) { m_clip = clip; Refresh(); }
 #if wxUSE_GRAPHICS_CONTEXT
-    bool HasRenderer() const { return m_renderer != nullptr; }
+    bool HasRenderer() const { return m_renderer != NULL; }
     void UseGraphicRenderer(wxGraphicsRenderer* renderer);
     bool IsDefaultRenderer() const
     {   if ( !m_renderer ) return false;
@@ -155,14 +155,8 @@ protected:
     void DrawDefault(wxDC& dc);
     void DrawGradients(wxDC& dc);
     void DrawSystemColours(wxDC& dc);
-    void DrawDatabaseColours(wxDC& dc);
-    void DrawColour(wxDC& dc, const wxFont& mono, wxCoord x, const wxRect& r, const wxString& colourName, const wxColour& col);
 
     void DrawRegionsHelper(wxDC& dc, wxCoord x, bool firstTime);
-
-    // Remove the rubber band if it's currently shown and return true or just
-    // return false if we're not showing it.
-    bool StopRubberBanding();
 
 private:
     MyFrame *m_owner;
@@ -202,7 +196,7 @@ public:
 #if wxUSE_GRAPHICS_CONTEXT
     void OnGraphicContextNone(wxCommandEvent& WXUNUSED(event))
     {
-        m_canvas->UseGraphicRenderer(nullptr);
+        m_canvas->UseGraphicRenderer(NULL);
     }
 
     void OnGraphicContextDefault(wxCommandEvent& WXUNUSED(event))
@@ -237,7 +231,7 @@ public:
 
     void OnAntiAliasingUpdateUI(wxUpdateUIEvent& event)
     {
-        event.Enable(m_canvas->GetRenderer() != nullptr);
+        event.Enable(m_canvas->GetRenderer() != NULL);
     }
 #endif // wxUSE_GRAPHICS_CONTEXT
 
@@ -252,7 +246,7 @@ public:
 #if wxUSE_COLOURDLG
     wxColour SelectColour();
 #endif // wxUSE_COLOURDLG
-    void PrepareDC(wxDC& dc) override;
+    void PrepareDC(wxDC& dc) wxOVERRIDE;
 
     int         m_backgroundMode;
     int         m_textureBackground;
@@ -310,7 +304,6 @@ enum
     File_ShowGraphics,
 #endif
     File_ShowSystemColours,
-    File_ShowDatabaseColours,
     File_ShowGradients,
     MenuShow_Last = File_ShowGradients,
 
@@ -507,7 +500,6 @@ wxBEGIN_EVENT_TABLE(MyCanvas, wxScrolledWindow)
     EVT_MOTION (MyCanvas::OnMouseMove)
     EVT_LEFT_DOWN (MyCanvas::OnMouseDown)
     EVT_LEFT_UP (MyCanvas::OnMouseUp)
-    EVT_MOUSE_CAPTURE_LOST (MyCanvas::OnMouseCaptureLost)
 wxEND_EVENT_TABLE()
 
 #include "smile.xpm"
@@ -523,19 +515,12 @@ MyCanvas::MyCanvas(MyFrame *parent)
     m_clip = false;
     m_rubberBand = false;
 #if wxUSE_GRAPHICS_CONTEXT
-    m_renderer = nullptr;
+    m_renderer = NULL;
     m_useAntiAliasing = true;
 #endif
     m_useBuffer = false;
     m_showBBox = false;
     m_sizeDIP = wxSize(0, 0);
-
-    Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event) {
-        event.Skip();
-
-        if ( m_show == File_ShowSystemColours )
-            Refresh();
-    });
 }
 
 void MyCanvas::DrawTestBrushes(wxDC& dc)
@@ -1167,7 +1152,7 @@ void MyCanvas::DrawGraphics(wxGraphicsContext* gc)
                 break;
         }
         wxDouble w, h;
-        gc->GetTextExtent(label, &w, &h, nullptr, nullptr);
+        gc->GetTextExtent(label, &w, &h, NULL, NULL);
         gc->DrawText(label, -w/2, -BASE2 - h - gc->FromDIP(4));
         switch( i )
         {
@@ -1237,7 +1222,7 @@ void MyCanvas::DrawGraphics(wxGraphicsContext* gc)
     gc->DrawText(labelText, 0, 0);
     // Center a bitmap horizontally
     wxDouble textWidth;
-    gc->GetTextExtent(labelText, &textWidth, nullptr);
+    gc->GetTextExtent(labelText, &textWidth, NULL);
     const wxDouble rectSize = gc->FromDIP(100);
     wxDouble x0 = (textWidth - rectSize) / 2;
     gc->DrawRectangle(x0, BASE2, rectSize, rectSize);
@@ -1688,31 +1673,21 @@ void MyCanvas::DrawSystemColours(wxDC& dc)
     wxCoord x(FromDIP(10));
     wxRect r(textSize.GetWidth() + x, x, dc.FromDIP(100), lineHeight);
 
-    dc.DrawText("System colours", x, r.y);
-    r.y += 2*lineHeight;
+    wxString title = "System colours";
 
     const wxSystemAppearance appearance = wxSystemSettings::GetAppearance();
     const wxString appearanceName = appearance.GetName();
     if ( !appearanceName.empty() )
-    {
-        dc.DrawText(wxString::Format("System appearance: %s", appearanceName),
-                    x, r.y);
-        r.y += lineHeight;
-    }
-
-    auto const showDarkOrLight = [&](const char* what, bool dark)
-    {
-        dc.DrawText(wxString::Format("%s: %s", what, dark ? "dark" : "light"),
-                    x, r.y);
-        r.y += 1.5*lineHeight;
-    };
-
-    showDarkOrLight("System", appearance.IsSystemDark());
-    showDarkOrLight("App default", appearance.AreAppsDark());
-    showDarkOrLight("Current app", appearance.IsDark());
-    showDarkOrLight("Background", appearance.IsUsingDarkBackground());
-
-    r.y += lineHeight;
+        title += wxString::Format(" for \"%s\"", appearanceName);
+    if ( appearance.IsDark() )
+        title += " (using dark system theme)";
+    dc.DrawText(title, x, r.y);
+    r.y += 2*lineHeight;
+    dc.DrawText(wxString::Format("Window background is %s",
+                                 appearance.IsUsingDarkBackground() ? "dark"
+                                                                    : "light"),
+                x, r.y);
+    r.y += 3*lineHeight;
 
     dc.SetPen(*wxTRANSPARENT_PEN);
 
@@ -1758,48 +1733,21 @@ void MyCanvas::DrawSystemColours(wxDC& dc)
 
     for (int i = 0; i < wxSYS_COLOUR_MAX; i++)
     {
-        DrawColour(dc, mono, x, r, sysColours[i].name, wxSystemSettings::GetColour(sysColours[i].index));
+        wxString colourName(sysColours[i].name);
+        wxColour c(wxSystemSettings::GetColour(sysColours[i].index));
+
+        {
+            wxDCFontChanger setMono(dc, mono);
+            dc.DrawText(c.GetAsString(wxC2S_HTML_SYNTAX), x, r.y);
+        }
+
+        dc.SetBrush(wxBrush(c));
+        dc.DrawRectangle(r);
+
+        dc.DrawText(colourName, r.GetRight() + x, r.y);
+
         r.y += lineHeight;
     }
-}
-
-void MyCanvas::DrawDatabaseColours(wxDC& dc)
-{
-    // initial setup to compute coordinates is same as DrawSystemColours
-    wxFont mono(wxFontInfo().Family(wxFONTFAMILY_TELETYPE));
-    wxSize textSize;
-    {
-        wxDCFontChanger setMono(dc, mono);
-        textSize = dc.GetTextExtent("#01234567");
-    }
-
-    int lineHeight = textSize.GetHeight();
-    wxCoord x(FromDIP(10));
-    wxRect r(textSize.GetWidth() + x, x, dc.FromDIP(100), lineHeight);
-
-    wxString title = "wxColourDatabase colours";
-    dc.DrawText(title, x, r.y);
-    r.y += 3*lineHeight;
-
-    const wxVector<wxString> names(wxTheColourDatabase->GetAllNames());
-    for (wxVector<wxString>::const_iterator p = names.begin(); p != names.end(); ++p)
-    {
-        DrawColour(dc, mono, x, r, *p, wxTheColourDatabase->Find(*p));
-        r.y += lineHeight;
-    }
-}
-
-void MyCanvas::DrawColour(wxDC& dc, const wxFont& mono, wxCoord x, const wxRect& r, const wxString& colourName, const wxColour& col)
-{
-    {
-        wxDCFontChanger setMono(dc, mono);
-        dc.DrawText(col.GetAsString(wxC2S_HTML_SYNTAX), x, r.y);
-    }
-
-    dc.SetBrush(wxBrush(col));
-    dc.DrawRectangle(r);
-
-    dc.DrawText(colourName, r.GetRight() + x, r.y);
 }
 
 void MyCanvas::DrawRegions(wxDC& dc)
@@ -1838,8 +1786,10 @@ void MyCanvas::DrawRegionsHelper(wxDC& dc, wxCoord x, bool firstTime)
     dc.DestroyClippingRegion();
 
     wxRegion region(x + dc.FromDIP(110), y + dc.FromDIP(20), dc.FromDIP(100), dc.FromDIP(270));
+#if !defined(__WXMOTIF__)
     if ( !firstTime )
         region.Offset(dc.FromDIP(10), dc.FromDIP(10));
+#endif
     dc.SetDeviceClippingRegion(region);
 
     dc.SetBrush( *wxGREY_BRUSH );
@@ -1865,13 +1815,11 @@ void MyCanvas::OnPaint(wxPaintEvent &WXUNUSED(event))
     if ( m_useBuffer )
     {
         wxBufferedPaintDC bpdc(this);
-        PrepareDC(bpdc); // Adjust scrolled contents.
         Draw(bpdc);
     }
     else
     {
         wxPaintDC pdc(this);
-        PrepareDC(pdc); // Adjust scrolled contents.
         Draw(pdc);
     }
 }
@@ -1914,6 +1862,13 @@ void MyCanvas::Draw(wxDC& pdc)
 #else
     wxDC &dc = pdc ;
 #endif
+
+    // Adjust scrolled contents for screen drawing operations only.
+    if ( wxDynamicCast(&pdc, wxBufferedPaintDC) ||
+         wxDynamicCast(&pdc, wxPaintDC) )
+    {
+        PrepareDC(dc);
+    }
 
     m_owner->PrepareDC(dc);
 
@@ -2015,10 +1970,6 @@ void MyCanvas::Draw(wxDC& pdc)
             DrawSystemColours(dc);
             break;
 
-        case File_ShowDatabaseColours:
-            DrawDatabaseColours(dc);
-            break;
-
         default:
             break;
     }
@@ -2102,28 +2053,19 @@ void MyCanvas::OnMouseDown(wxMouseEvent &event)
     CaptureMouse() ;
 }
 
-bool MyCanvas::StopRubberBanding()
-{
-    if ( !m_rubberBand )
-        return false;
-
-    {
-        wxClientDC dc( this );
-        PrepareDC( dc );
-        wxDCOverlay overlaydc( m_overlay, &dc );
-        overlaydc.Clear();
-    }
-    m_overlay.Reset();
-    m_rubberBand = false;
-
-    return true;
-}
-
 void MyCanvas::OnMouseUp(wxMouseEvent &event)
 {
-    if ( StopRubberBanding() )
+    if ( m_rubberBand )
     {
         ReleaseMouse();
+        {
+            wxClientDC dc( this );
+            PrepareDC( dc );
+            wxDCOverlay overlaydc( m_overlay, &dc );
+            overlaydc.Clear();
+        }
+        m_overlay.Reset();
+        m_rubberBand = false;
 
         wxPoint endpoint = CalcUnscrolledPosition(event.GetPosition());
 
@@ -2135,13 +2077,6 @@ void MyCanvas::OnMouseUp(wxMouseEvent &event)
                          endpoint.x, endpoint.y);
         }
     }
-}
-
-void MyCanvas::OnMouseCaptureLost(wxMouseCaptureLostEvent& WXUNUSED(event))
-{
-    StopRubberBanding();
-
-    wxLogStatus(m_owner, "Mouse capture lost");
 }
 
 #if wxUSE_GRAPHICS_CONTEXT
@@ -2207,7 +2142,7 @@ public:
         SetSizerAndFit(sizer);
     }
 
-    virtual bool TransferDataFromWindow() override
+    virtual bool TransferDataFromWindow() wxOVERRIDE
     {
         if ( !wxDialog::TransferDataFromWindow() )
             return false;
@@ -2293,7 +2228,7 @@ wxEND_EVENT_TABLE()
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title)
-       : wxFrame(nullptr, wxID_ANY, title)
+       : wxFrame(NULL, wxID_ANY, title)
 {
     // set the frame icon
     SetIcon(wxICON(sample));
@@ -2318,7 +2253,6 @@ MyFrame::MyFrame(const wxString& title)
     menuScreen->Append(File_ShowGraphics, "&Graphics screen");
 #endif
     menuScreen->Append(File_ShowSystemColours, "System &colours");
-    menuScreen->Append(File_ShowDatabaseColours, "Databa&se colours");
 
     wxMenu *menuFile = new wxMenu;
 #if wxUSE_GRAPHICS_CONTEXT
@@ -2546,7 +2480,7 @@ void MyFrame::OnSave(wxCommandEvent& WXUNUSED(event))
                 return;
             }
             wxGraphicsRenderer* tempRenderer = m_canvas->GetRenderer();
-            m_canvas->UseGraphicRenderer(nullptr);
+            m_canvas->UseGraphicRenderer(NULL);
 #endif
             wxSVGFileDC svgdc(dlg.GetPath(),
                               canvasSize.GetWidth(),
@@ -2572,7 +2506,7 @@ void MyFrame::OnSave(wxCommandEvent& WXUNUSED(event))
                 return;
             }
             wxGraphicsRenderer* curRenderer = m_canvas->GetRenderer();
-            m_canvas->UseGraphicRenderer(nullptr);
+            m_canvas->UseGraphicRenderer(NULL);
 #endif // wxUSE_GRAPHICS_CONTEXT
             wxPrintData printData;
             printData.SetPrintMode(wxPRINT_MODE_FILE);

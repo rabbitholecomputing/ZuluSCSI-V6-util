@@ -2,6 +2,7 @@
 // Name:        src/common/ctrlsub.cpp
 // Purpose:     wxItemContainer implementation
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     22.10.99
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -181,10 +182,10 @@ void wxItemContainer::SetClientObject(unsigned int n, wxClientData *data)
 
 wxClientData *wxItemContainer::GetClientObject(unsigned int n) const
 {
-    wxCHECK_MSG( HasClientObjectData(), nullptr,
+    wxCHECK_MSG( HasClientObjectData(), NULL,
                   wxT("this window doesn't have object client data") );
 
-    wxCHECK_MSG( IsValid(n), nullptr,
+    wxCHECK_MSG( IsValid(n), NULL,
                  "Invalid index passed to GetClientObject()" );
 
     return static_cast<wxClientData *>(DoGetItemClientData(n));
@@ -196,7 +197,7 @@ wxClientData *wxItemContainer::DetachClientObject(unsigned int n)
     if ( data )
     {
         // reset the pointer as we don't own it any more
-        DoSetItemClientData(n, nullptr);
+        DoSetItemClientData(n, NULL);
     }
 
     return data;
@@ -220,10 +221,10 @@ void wxItemContainer::SetClientData(unsigned int n, void *data)
 
 void *wxItemContainer::GetClientData(unsigned int n) const
 {
-    wxCHECK_MSG( HasClientUntypedData(), nullptr,
+    wxCHECK_MSG( HasClientUntypedData(), NULL,
                   wxT("this window doesn't have void client data") );
 
-    wxCHECK_MSG( IsValid(n), nullptr,
+    wxCHECK_MSG( IsValid(n), NULL,
                  "Invalid index passed to GetClientData()" );
 
     return DoGetItemClientData(n);
@@ -264,7 +265,7 @@ void wxItemContainer::ResetItemClientObject(unsigned int n)
     if ( data )
     {
         delete data;
-        DoSetItemClientData(n, nullptr);
+        DoSetItemClientData(n, NULL);
     }
 }
 

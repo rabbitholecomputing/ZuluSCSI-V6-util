@@ -2,6 +2,7 @@
 // Name:        src/osx/carbon/cursor.cpp
 // Purpose:     wxCursor class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -32,10 +33,10 @@ public:
     wxCursorRefData(const wxCursorRefData& cursor);
     virtual ~wxCursorRefData();
 
-    virtual bool IsOk() const override
+    virtual bool IsOk() const wxOVERRIDE
     {
 #if wxOSX_USE_COCOA_OR_CARBON
-        if ( m_hCursor != nullptr )
+        if ( m_hCursor != NULL )
             return true;
 
         return false;
@@ -200,12 +201,12 @@ wxCursor    gMacCurrentCursor ;
 
 wxCursorRefData::wxCursorRefData()
 {
-    m_hCursor = nullptr;
+    m_hCursor = NULL;
 }
 
 wxCursorRefData::wxCursorRefData(const wxCursorRefData& cursor) : wxGDIRefData()
 {
-    m_hCursor = nullptr;
+    m_hCursor = NULL;
 
 #if wxOSX_USE_COCOA
     m_hCursor = (WX_NSCursor) wxMacCocoaRetain(cursor.m_hCursor);
@@ -248,7 +249,7 @@ wxGDIRefData *wxCursor::CloneGDIRefData(const wxGDIRefData *data) const
 
 WXHCURSOR wxCursor::GetHCURSOR() const
 {
-    return (M_CURSORDATA ? M_CURSORDATA->m_hCursor : nullptr);
+    return (M_CURSORDATA ? M_CURSORDATA->m_hCursor : 0);
 }
 
 #if wxUSE_IMAGE
@@ -290,7 +291,7 @@ wxCursor::wxCursor(const wxString& cursor_file, wxBitmapType flags, int hotSpotX
             image.SetOption( wxIMAGE_OPTION_CUR_HOTSPOT_X, hotSpotX ) ;
             image.SetOption( wxIMAGE_OPTION_CUR_HOTSPOT_Y, hotSpotY ) ;
             m_refData->DecRef() ;
-            m_refData = nullptr ;
+            m_refData = NULL ;
             InitFromImage( image ) ;
         }
 #endif
@@ -313,6 +314,10 @@ void wxCursor::MacInstall() const
     if ( IsOk() )
         wxMacCocoaSetCursor( M_CURSORDATA->m_hCursor );
 #endif
+}
+
+wxCursor::~wxCursor()
+{
 }
 
 // Global cursor setting

@@ -192,7 +192,7 @@ unsigned wxDataViewCtrl::GetColumnCount() const
 
 wxDataViewColumn* wxDataViewCtrl::GetColumn( unsigned int pos ) const
 {
-    return nullptr;
+    return NULL;
 }
 
 bool wxDataViewCtrl::DeleteColumn( wxDataViewColumn *column )
@@ -212,7 +212,7 @@ int wxDataViewCtrl::GetColumnPosition( const wxDataViewColumn *column ) const
 
 wxDataViewColumn *wxDataViewCtrl::GetSortingColumn() const
 {
-    return nullptr;
+    return NULL;
 }
 
 wxDataViewItem wxDataViewCtrl::GetSelection() const

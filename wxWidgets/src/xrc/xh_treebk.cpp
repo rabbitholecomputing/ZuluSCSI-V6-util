@@ -27,7 +27,7 @@
 wxIMPLEMENT_DYNAMIC_CLASS(wxTreebookXmlHandler, wxXmlResourceHandler);
 
 wxTreebookXmlHandler::wxTreebookXmlHandler()
-                    : m_tbk(nullptr)
+                    : m_tbk(NULL)
 {
     XRC_ADD_STYLE(wxBK_DEFAULT);
     XRC_ADD_STYLE(wxBK_TOP);
@@ -125,14 +125,14 @@ wxObject *wxTreebookXmlHandler::DoCreateResource()
     if ( depth > m_treeContext.GetCount() )
     {
         ReportParamError("depth", "invalid depth");
-        return nullptr;
+        return NULL;
     }
 
     wxObject* const page = DoCreatePage(m_tbk);
     if ( !page )
     {
         // Error was already reported by DoCreatePage().
-        return nullptr;
+        return NULL;
     }
 
     // Determine the index of the parent page to use.

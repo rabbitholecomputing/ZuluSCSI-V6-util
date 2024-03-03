@@ -2,6 +2,7 @@
 // Name:        sashtest.h
 // Purpose:     Layout window/sash sample
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -13,14 +14,14 @@
 class MyApp: public wxApp
 {
   public:
-    bool OnInit(void) override;
+    bool OnInit(void) wxOVERRIDE;
 };
 
 class MyCanvas: public wxScrolledWindow
 {
   public:
     MyCanvas(wxWindow *parent, const wxPoint& pos, const wxSize& size);
-    virtual void OnDraw(wxDC& dc) override;
+    virtual void OnDraw(wxDC& dc) wxOVERRIDE;
     void OnEvent(wxMouseEvent& event);
 
     wxDECLARE_EVENT_TABLE();

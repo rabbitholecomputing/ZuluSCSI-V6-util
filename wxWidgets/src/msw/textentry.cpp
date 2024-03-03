@@ -177,7 +177,7 @@ public:
 
     virtual HRESULT STDMETHODCALLTYPE Next(ULONG celt,
                                            LPOLESTR *rgelt,
-                                           ULONG *pceltFetched) override
+                                           ULONG *pceltFetched) wxOVERRIDE
     {
         if ( !rgelt || (!pceltFetched && celt > 1) )
             return E_POINTER;
@@ -219,7 +219,7 @@ public:
         return S_OK;
     }
 
-    virtual HRESULT STDMETHODCALLTYPE Skip(ULONG celt) override
+    virtual HRESULT STDMETHODCALLTYPE Skip(ULONG celt) wxOVERRIDE
     {
         if ( !celt )
             return E_INVALIDARG;
@@ -241,7 +241,7 @@ public:
         return S_OK;
     }
 
-    virtual HRESULT STDMETHODCALLTYPE Reset() override
+    virtual HRESULT STDMETHODCALLTYPE Reset() wxOVERRIDE
     {
         CSLock lock(m_csRestart);
 
@@ -250,7 +250,7 @@ public:
         return S_OK;
     }
 
-    virtual HRESULT STDMETHODCALLTYPE Clone(IEnumString **ppEnum) override
+    virtual HRESULT STDMETHODCALLTYPE Clone(IEnumString **ppEnum) wxOVERRIDE
     {
         if ( !ppEnum )
             return E_POINTER;
@@ -286,7 +286,7 @@ private:
         ::InitializeCriticalSection(&m_csCompleter);
         ::InitializeCriticalSection(&m_csRestart);
 
-        m_completer = nullptr;
+        m_completer = NULL;
         m_restart = FALSE;
     }
 
@@ -328,7 +328,7 @@ private:
     CRITICAL_SECTION m_csCompleter;
 
     // The completer we delegate to for the completions generation. It is never
-    // nullptr after the initial ChangeCompleter() call.
+    // NULL after the initial ChangeCompleter() call.
     wxTextCompleter *m_completer;
 
 
@@ -369,12 +369,12 @@ public:
         : m_entry(entry),
           m_win(entry->GetEditableWindow())
     {
-        m_autoComplete = nullptr;
-        m_autoCompleteDropDown = nullptr;
-        m_enumStrings = nullptr;
+        m_autoComplete = NULL;
+        m_autoCompleteDropDown = NULL;
+        m_enumStrings = NULL;
 
-        m_fixedCompleter = nullptr;
-        m_customCompleter = nullptr;
+        m_fixedCompleter = NULL;
+        m_customCompleter = NULL;
 
         m_connectedCharEvent = false;
 
@@ -384,7 +384,7 @@ public:
         HRESULT hr = CoCreateInstance
                      (
                         wxCLSID_AutoComplete,
-                        nullptr,
+                        NULL,
                         CLSCTX_INPROC_SERVER,
                         IID_IAutoComplete,
                         reinterpret_cast<void **>(&m_autoComplete)
@@ -399,13 +399,13 @@ public:
         m_enumStrings = new wxIEnumString;
         m_enumStrings->AddRef();
         hr = m_autoComplete->Init(m_entry->GetEditHWND(), m_enumStrings,
-                                  nullptr, nullptr);
+                                  NULL, NULL);
         if ( FAILED(hr) )
         {
             wxLogApiError(wxT("IAutoComplete::Init"), hr);
 
             m_enumStrings->Release();
-            m_enumStrings = nullptr;
+            m_enumStrings = NULL;
 
             return;
         }
@@ -428,7 +428,7 @@ public:
         }
 
         // Finally set the completion options using IAutoComplete2.
-        IAutoComplete2 *pAutoComplete2 = nullptr;
+        IAutoComplete2 *pAutoComplete2 = NULL;
         hr = m_autoComplete->QueryInterface
                              (
                                IID_IAutoComplete2,
@@ -477,7 +477,7 @@ public:
         DoRefresh();
     }
 
-    // Takes ownership of the pointer if it is non-null.
+    // Takes ownership of the pointer if it is non-NULL.
     bool ChangeCustomCompleter(wxTextCompleter *completer)
     {
         // Ensure that the old completer is not used any more before deleting
@@ -601,7 +601,7 @@ private:
             // Check if the drop down is currently open.
             DWORD dwFlags = 0;
             if ( SUCCEEDED(m_autoCompleteDropDown->GetDropDownStatus(&dwFlags,
-                                                                     nullptr))
+                                                                     NULL))
                     && dwFlags == ACDD_VISIBLE )
             {
                 if ( event.GetKeyCode() == WXK_ESCAPE )
@@ -646,10 +646,10 @@ private:
     // Enumerator for strings currently used for auto-completion.
     wxIEnumString *m_enumStrings;
 
-    // Fixed string completer or nullptr if none.
+    // Fixed string completer or NULL if none.
     wxTextCompleterFixed *m_fixedCompleter;
 
-    // Custom completer or nullptr if none.
+    // Custom completer or NULL if none.
     wxTextCompleter *m_customCompleter;
 
     // Initially false, set to true after connecting OnTextChanged() handler.
@@ -676,7 +676,7 @@ static wxTextAutoCompleteData* const wxDUMMY_SHAUTOCOMPLETE_DATA =
 wxTextEntry::wxTextEntry()
 {
 #ifdef HAS_AUTOCOMPLETE
-    m_autoCompleteData = nullptr;
+    m_autoCompleteData = NULL;
 #endif // HAS_AUTOCOMPLETE
 }
 
@@ -773,7 +773,7 @@ void wxTextEntry::SetInsertionPoint(long pos)
 long wxTextEntry::GetInsertionPoint() const
 {
     long from;
-    GetSelection(&from, nullptr);
+    GetSelection(&from, NULL);
     return from;
 }
 
@@ -813,6 +813,8 @@ void wxTextEntry::GetSelection(long *from, long *to) const
 
 #ifdef HAS_AUTOCOMPLETE
 
+#if wxUSE_DYNLIB_CLASS
+
 bool wxTextEntry::DoAutoCompleteFileNames(int flags)
 {
     DWORD dwFlags = 0;
@@ -845,6 +847,8 @@ bool wxTextEntry::DoAutoCompleteFileNames(int flags)
     return true;
 }
 
+#endif // wxUSE_DYNLIB_CLASS
+
 void wxTextEntry::MSWProcessSpecialKey(wxKeyEvent& WXUNUSED(event))
 {
     wxFAIL_MSG(wxS("Must be overridden if can be called"));
@@ -859,8 +863,8 @@ bool wxTextEntry::MSWHasAutoCompleteData() const
 {
     // We use special wxDUMMY_SHAUTOCOMPLETE_DATA for the pointer to indicate
     // that we're using SHAutoComplete(), so we need to check for it too, and
-    // not just whether the pointer is non-null.
-    return m_autoCompleteData != nullptr
+    // not just whether the pointer is non-NULL.
+    return m_autoCompleteData != NULL
             && m_autoCompleteData != wxDUMMY_SHAUTOCOMPLETE_DATA;
 }
 
@@ -991,7 +995,7 @@ void wxTextEntry::ForceUpper()
 
 bool wxTextEntry::SetHint(const wxString& hint)
 {
-    if ( wxUxThemeIsActive() )
+    if ( wxGetWinVersion() >= wxWinVersion_Vista && wxUxThemeIsActive() )
     {
         // notice that this message always works with Unicode strings
         //

@@ -92,10 +92,7 @@ enum wxDialogLayoutAdaptationMode
 
     @beginStyleTable
     @style{wxCAPTION}
-           Shows the title bar, containing the window title, for this window.
-           Note that this style is implicitly enabled by wxMINIMIZE_BOX,
-           wxMAXIMIZE_BOX and wxCLOSE_BOX on most systems as the corresponding
-           buttons couldn't be shown if the window had no title bar at all.
+           Puts a caption on the dialog box.
     @style{wxDEFAULT_DIALOG_STYLE}
            Equivalent to a combination of wxCAPTION, wxCLOSE_BOX and
            wxSYSTEM_MENU (the last one is not used under Unix).
@@ -104,14 +101,11 @@ enum wxDialogLayoutAdaptationMode
     @style{wxSYSTEM_MENU}
            Display a system menu.
     @style{wxCLOSE_BOX}
-           Displays a close box on the frame. This style implicitly enables
-           wxCAPTION too.
+           Displays a close box on the frame.
     @style{wxMAXIMIZE_BOX}
-           Displays a maximize box on the dialog.  This style implicitly enables
-           wxCAPTION too.
+           Displays a maximize box on the dialog.
     @style{wxMINIMIZE_BOX}
-           Displays a minimize box on the dialog. This style implicitly enables
-           wxCAPTION too.
+           Displays a minimize box on the dialog.
     @style{wxTHICK_FRAME}
            Display a thick frame around the window.
     @style{wxSTAY_ON_TOP}
@@ -136,8 +130,9 @@ enum wxDialogLayoutAdaptationMode
            look. This is an extra style.
     @endStyleTable
 
-    Under Unix a window manager recognizing the WM hints should be running for
-    any of these styles to have an effect.
+    Under Unix or Linux, MWM (the Motif Window Manager) or other window
+    managers recognizing the MHM hints should be running for any of these
+    styles to have an effect.
 
 
     @beginEventEmissionTable{wxCloseEvent}
@@ -183,8 +178,8 @@ public:
         @param style
             The window style.
         @param name
-            Used to associate a name with the window. This is @a not the same
-            as the title of the window.
+            Used to associate a name with the window, allowing the application
+            user to set Motif resource values for individual dialog boxes.
 
         @see Create()
     */
@@ -279,7 +274,7 @@ public:
 
         @since 2.9.2
 
-        @param sizer The sizer to wrap, must be non-null.
+        @param sizer The sizer to wrap, must be non-@NULL.
         @return The sizer wrapping the input one or possibly the input sizer
             itself if no wrapping is necessary.
      */
@@ -291,12 +286,6 @@ public:
         wxCLOSE, wxHELP, wxNO_DEFAULT.
 
         The sizer lays out the buttons in a manner appropriate to the platform.
-
-        @note Unlike when using wxStdDialogButtonSizer directly, creating the sizer
-              with this method usually results in one of its buttons being default
-              (and having initial focus): @a wxNO_DEFAULT will make the No button
-              the default, otherwise the OK or Yes button will be set as the default
-              when present.
     */
     wxStdDialogButtonSizer* CreateStdDialogButtonSizer(long flags);
 
@@ -438,8 +427,11 @@ public:
             If @true, iconizes the dialog box; if @false, shows and restores it.
 
         @remarks Note that in Windows, iconization has no effect since dialog
-                 boxes cannot be iconized. However calling Iconize(@false) will
-                 bring the window to the front, as does Show(@true).
+                 boxes cannot be iconized. However, applications may need to
+                 explicitly restore dialog boxes under Motif which have
+                 user-iconizable frames, and under Windows calling
+                 Iconize(@false) will bring the window to the front, as does
+                 Show(@true).
     */
     virtual void Iconize(bool iconize = true);
 
@@ -642,7 +634,7 @@ public:
         passed as the argument upon completion, instead of generating the
         wxEVT_WINDOW_MODAL_DIALOG_CLOSED event.
 
-        This form is particularly useful in combination with lambdas,
+        This form is particularly useful in combination with C++11 lambdas,
         when it allows writing window-modal very similarly to how ShowModal()
         is used (with the notable exception of not being able to create
         the dialog on stack):

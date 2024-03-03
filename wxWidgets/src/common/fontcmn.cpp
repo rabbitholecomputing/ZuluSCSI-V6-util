@@ -2,6 +2,7 @@
 // Name:        src/common/fontcmn.cpp
 // Purpose:     implementation of wxFontBase methods
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     20.09.99
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -138,6 +139,11 @@ void wxFontBase::SetDefaultEncoding(wxFontEncoding encoding)
                  wxT("can't set default encoding to wxFONTENCODING_DEFAULT") );
 
     ms_encodingDefault = encoding;
+}
+
+wxFontBase::~wxFontBase()
+{
+    // this destructor is required for Darwin
 }
 
 /* static */
@@ -427,7 +433,12 @@ bool wxFontBase::operator==(const wxFontBase& font) const
            (
             IsOk() == font.IsOk() &&
             GetPointSize() == font.GetPointSize() &&
+            // in wxGTK1 GetPixelSize() calls GetInternalFont() which uses
+            // operator==() resulting in infinite recursion so we can't use it
+            // in that port
+#if (!defined(__WXGTK__) || defined(__WXGTK20__))
             GetPixelSize() == font.GetPixelSize() &&
+#endif
             GetFamily() == font.GetFamily() &&
             GetStyle() == font.GetStyle() &&
             GetNumericWeight() == font.GetNumericWeight() &&
@@ -909,7 +920,7 @@ void wxNativeFontInfo::SetEncoding(wxFontEncoding encoding_)
 // conversion to/from user-readable string: this is used in the generic
 // versions and under MSW as well because there is no standard font description
 // format there anyhow (but there is a well-defined standard for X11 fonts used
-// by wxGTK and wxX11)
+// by wxGTK and wxMotif)
 
 #if defined(wxNO_NATIVE_FONTINFO) || defined(__WXMSW__) || defined(__WXOSX__)
 
@@ -1355,7 +1366,7 @@ wxString wxToString(const wxFontBase& font)
 
 bool wxFromString(const wxString& str, wxFontBase *font)
 {
-    wxCHECK_MSG( font, false, wxT("null output parameter") );
+    wxCHECK_MSG( font, false, wxT("NULL output parameter") );
 
     if ( str.empty() )
     {

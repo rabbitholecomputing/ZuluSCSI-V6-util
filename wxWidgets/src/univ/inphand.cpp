@@ -2,6 +2,7 @@
 // Name:        src/univ/inphand.cpp
 // Purpose:     (trivial) wxInputHandler implementation
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     18.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence

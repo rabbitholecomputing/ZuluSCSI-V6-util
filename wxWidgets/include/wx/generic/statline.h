@@ -22,7 +22,7 @@ class WXDLLIMPEXP_CORE wxStaticLine : public wxStaticLineBase
 
 public:
     // constructors and pseudo-constructors
-    wxStaticLine() { m_statbox = nullptr; }
+    wxStaticLine() { m_statbox = NULL; }
 
     wxStaticLine( wxWindow *parent,
                   wxWindowID id = wxID_ANY,

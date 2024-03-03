@@ -46,12 +46,12 @@ private:
         {
         }
 
-        ~TestPersistenceManager() override
+        ~TestPersistenceManager() wxOVERRIDE
         {
             m_config.DeleteAll();
         }
 
-        wxConfigBase* GetConfig() const override
+        wxConfigBase* GetConfig() const wxOVERRIDE
         {
             return const_cast<wxConfig*>(&m_config);
         }

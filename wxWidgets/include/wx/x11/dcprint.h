@@ -2,6 +2,7 @@
 // Name:        wx/x11/dcprint.h
 // Purpose:     wxPrinterDC class
 // Author:      Julian Smart
+// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence

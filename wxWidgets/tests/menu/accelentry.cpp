@@ -17,8 +17,7 @@
 #endif // WX_PRECOMP
 
 #include "wx/accel.h"
-
-#include <memory>
+#include "wx/scopedptr.h"
 
 namespace
 {
@@ -37,7 +36,7 @@ void CheckAccelEntry(const wxAcceleratorEntry& accel, int keycode, int flags)
  */
 TEST_CASE( "wxAcceleratorEntry::Create", "[accelentry]" )
 {
-    std::unique_ptr<wxAcceleratorEntry> pa;
+    wxScopedPtr<wxAcceleratorEntry> pa;
 
     SECTION( "Correct behavior" )
     {

@@ -30,7 +30,7 @@ class WXDLLIMPEXP_FWD_CORE wxBrush;
 class WXDLLIMPEXP_CORE wxBrush : public wxBrushBase
 {
 public:
-    wxBrush() = default;
+    wxBrush() {}
     wxBrush(const wxColour &colour, wxBrushStyle style = wxBRUSHSTYLE_SOLID);
     wxBrush(const wxBitmap &stippleBitmap);
 

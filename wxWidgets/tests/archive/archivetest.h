@@ -9,7 +9,10 @@
 #ifndef WX_ARCHIVETEST_INCLUDED
 #define WX_ARCHIVETEST_INCLUDED 1
 
+#define WX_TEST_ARCHIVE_ITERATOR
+
 #include "wx/archive.h"
+#include "wx/scopedptr.h"
 #include "wx/wfstream.h"
 
 #include <map>
@@ -39,8 +42,8 @@ public:
     ~TestOutputStream() { delete [] m_data; }
 
     int GetOptions() const { return m_options; }
-    wxFileOffset GetLength() const override { return m_size; }
-    bool IsSeekable() const override { return (m_options & PipeOut) == 0; }
+    wxFileOffset GetLength() const wxOVERRIDE { return m_size; }
+    bool IsSeekable() const wxOVERRIDE { return (m_options & PipeOut) == 0; }
 
     // gives away the data, this stream is then empty, and can be reused
     void GetData(char*& data, size_t& size);
@@ -48,9 +51,9 @@ public:
 private:
     void Init();
 
-    wxFileOffset OnSysSeek(wxFileOffset pos, wxSeekMode mode) override;
-    wxFileOffset OnSysTell() const override;
-    size_t OnSysWrite(const void *buffer, size_t size) override;
+    wxFileOffset OnSysSeek(wxFileOffset pos, wxSeekMode mode) wxOVERRIDE;
+    wxFileOffset OnSysTell() const wxOVERRIDE;
+    size_t OnSysWrite(const void *buffer, size_t size) wxOVERRIDE;
 
     int m_options;
     size_t m_pos;
@@ -71,23 +74,23 @@ public:
 
     // ctor takes the data from the output stream, which is then empty
     TestInputStream(TestOutputStream& out, int eoftype)
-        : m_data(nullptr), m_eoftype(eoftype) { SetData(out); }
+        : m_data(NULL), m_eoftype(eoftype) { SetData(out); }
     // this ctor 'dups'
     TestInputStream(const TestInputStream& in);
     ~TestInputStream() { delete [] m_data; }
 
     void Rewind();
-    wxFileOffset GetLength() const override { return m_size; }
-    bool IsSeekable() const override { return (m_options & PipeIn) == 0; }
+    wxFileOffset GetLength() const wxOVERRIDE { return m_size; }
+    bool IsSeekable() const wxOVERRIDE { return (m_options & PipeIn) == 0; }
     void SetData(TestOutputStream& out);
 
     void Chop(size_t size) { m_size = size; }
     char& operator [](size_t pos) { return m_data[pos]; }
 
 private:
-    wxFileOffset OnSysSeek(wxFileOffset pos, wxSeekMode mode) override;
-    wxFileOffset OnSysTell() const override;
-    size_t OnSysRead(void *buffer, size_t size) override;
+    wxFileOffset OnSysSeek(wxFileOffset pos, wxSeekMode mode) wxOVERRIDE;
+    wxFileOffset OnSysTell() const wxOVERRIDE;
+    size_t OnSysRead(void *buffer, size_t size) wxOVERRIDE;
 
     int m_options;
     size_t m_pos;
@@ -168,7 +171,7 @@ protected:
     typedef typename ClassFactoryT::pairiter_type  PairIterT;
 
     // the entry point for the test
-    void runTest() override;
+    void runTest() wxOVERRIDE;
 
     // create the test data
     void CreateTestData();
@@ -209,15 +212,15 @@ protected:
 
     virtual void OnCreateEntry(     OutputStreamT& WXUNUSED(arc),
                                     TestEntry& WXUNUSED(testEntry),
-                                    EntryT *entry = nullptr) { (void)entry; }
+                                    EntryT *entry = NULL) { (void)entry; }
 
     virtual void OnEntryExtracted(  EntryT& WXUNUSED(entry),
                                     const TestEntry& WXUNUSED(testEntry),
-                                    InputStreamT *arc = nullptr) { (void)arc; }
+                                    InputStreamT *arc = NULL) { (void)arc; }
 
     typedef std::map<wxString, TestEntry*> TestEntries;
     TestEntries m_testEntries;              // test data
-    std::unique_ptr<ClassFactoryT> m_factory;   // factory to make classes
+    wxScopedPtr<ClassFactoryT> m_factory;   // factory to make classes
     int m_options;                          // test options
     wxDateTime m_timeStamp;                 // timestamp to give test entries
     int m_id;                               // select between the possibilites

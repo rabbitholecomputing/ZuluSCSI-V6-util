@@ -2,6 +2,7 @@
 // Name:        src/osx/core/strconv_cf.cpp
 // Purpose:     Unicode conversion classes
 // Author:      David Elliott
+// Modified by:
 // Created:     2007-07-06
 // Copyright:   (c) 2007 David Elliott
 // Licence:     wxWindows licence
@@ -38,7 +39,7 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf( const char* name)
     if(!result->IsOk())
     {
         delete result;
-        return nullptr;
+        return NULL;
     }
     else
         return result;
@@ -51,7 +52,7 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf(wxFontEncoding encoding)
     if(!result->IsOk())
     {
         delete result;
-        return nullptr;
+        return NULL;
     }
     else
         return result;
@@ -78,14 +79,14 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf(wxFontEncoding encoding)
 
         // First create the temporary CFString
         wxCFRef<CFStringRef> theString( CFStringCreateWithBytes (
-                                                nullptr, //the allocator
+                                                NULL, //the allocator
                                                 (const UInt8*)src,
                                                 srcSize,
                                                 m_encoding,
                                                 false //no BOM/external representation
                                                 ));
 
-        if ( theString == nullptr )
+        if ( theString == NULL )
             return wxCONV_FAILED;
 
         if ( m_normalization & ToWChar_C )
@@ -94,14 +95,14 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf(wxFontEncoding encoding)
             // important because Darwin uses decomposed form (NFD) for e.g. file
             // names but we want to use NFC internally.
             wxCFRef<CFMutableStringRef>
-            cfMutableString(CFStringCreateMutableCopy(nullptr, 0, theString));
+            cfMutableString(CFStringCreateMutableCopy(NULL, 0, theString));
             CFStringNormalize(cfMutableString, kCFStringNormalizationFormC);
             theString = cfMutableString;
         }
 
-        /* NOTE: The string content includes the null element if the source string did
+        /* NOTE: The string content includes the NULL element if the source string did
          * That means we have to do nothing special because the destination will have
-         * the null element iff the source did and the null element will be included
+         * the NULL element iff the source did and the NULL element will be included
          * in the count iff it was included in the source count.
          */
 
@@ -114,8 +115,8 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf(wxFontEncoding encoding)
                     wxCFStringEncodingWcharT,
                     0,
                     false,
-                    // if dstSize is 0 then pass nullptr to get required length in usedBufLen
-                    dstSize != 0?(UInt8*)dst:nullptr,
+                    // if dstSize is 0 then pass NULL to get required length in usedBufLen
+                    dstSize != 0?(UInt8*)dst:NULL,
                     dstSize * sizeof(wchar_t),
                     &usedBufLen);
 
@@ -128,7 +129,7 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf(wxFontEncoding encoding)
             wxASSERT( (usedBufLen % sizeof(wchar_t)) == 0 );
 
             // CFStringGetBytes does exactly the right thing when buffer
-            // pointer is null and returns the number of bytes required
+            // pointer is NULL and returns the number of bytes required
             return usedBufLen / sizeof(wchar_t);
 
     }
@@ -150,7 +151,7 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf(wxFontEncoding encoding)
                     wxCFStringEncodingWcharT,
                     false));
 
-        wxCHECK(theString != nullptr, wxCONV_FAILED);
+        wxCHECK(theString != NULL, wxCONV_FAILED);
 
         if ( m_normalization & FromWChar_D )
         {
@@ -171,8 +172,8 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf(wxFontEncoding encoding)
                 &usedBufLen
             );
 
-        // when dst is non-null, we check usedBufLen against dstSize as
-        // CFStringGetBytes sometimes treats dst as being null when dstSize==0
+        // when dst is non-NULL, we check usedBufLen against dstSize as
+        // CFStringGetBytes sometimes treats dst as being NULL when dstSize==0
         if( (charsConverted < CFStringGetLength(theString)) ||
                 (dst && (size_t) usedBufLen > dstSize) )
             return wxCONV_FAILED;
@@ -187,9 +188,16 @@ WXDLLIMPEXP_BASE wxMBConv* new_wxMBConv_cf(wxFontEncoding encoding)
 wxMacUniCharBuffer::wxMacUniCharBuffer( const wxString &str )
 {
     wxMBConvUTF16 converter ;
-    size_t unicharlen = converter.WC2MB( nullptr , str.wc_str() , 0 ) ;
+#if wxUSE_UNICODE
+    size_t unicharlen = converter.WC2MB( NULL , str.wc_str() , 0 ) ;
     m_ubuf = (UniChar*) malloc( unicharlen + 2 ) ;
     converter.WC2MB( (char*) m_ubuf , str.wc_str(), unicharlen + 2 ) ;
+#else
+    const wxWCharBuffer wchar = str.wc_str( wxConvLocal ) ;
+    size_t unicharlen = converter.WC2MB( NULL , wchar.data() , 0 ) ;
+    m_ubuf = (UniChar*) malloc( unicharlen + 2 ) ;
+    converter.WC2MB( (char*) m_ubuf , wchar.data() , unicharlen + 2 ) ;
+#endif
     m_chars = unicharlen / 2 ;
 }
 

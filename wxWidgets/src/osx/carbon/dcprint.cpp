@@ -2,6 +2,7 @@
 // Name:        src/osx/carbon/dcprint.cpp
 // Purpose:     wxPrinterDC class
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -51,13 +52,13 @@ class wxMacCarbonPrinterDC : public wxNativePrinterDC
 public :
     wxMacCarbonPrinterDC( wxPrintData* data ) ;
     virtual ~wxMacCarbonPrinterDC() ;
-    virtual bool StartDoc(  wxPrinterDC* dc , const wxString& message ) override ;
-    virtual void EndDoc( wxPrinterDC* dc ) override ;
-    virtual void StartPage( wxPrinterDC* dc ) override ;
-    virtual void EndPage( wxPrinterDC* dc ) override ;
-    virtual wxUint32 GetStatus() const override { return m_err ; }
-    virtual void GetSize( int *w , int *h) const override ;
-    virtual wxSize GetPPI() const override ;
+    virtual bool StartDoc(  wxPrinterDC* dc , const wxString& message ) wxOVERRIDE ;
+    virtual void EndDoc( wxPrinterDC* dc ) wxOVERRIDE ;
+    virtual void StartPage( wxPrinterDC* dc ) wxOVERRIDE ;
+    virtual void EndPage( wxPrinterDC* dc ) wxOVERRIDE ;
+    virtual wxUint32 GetStatus() const wxOVERRIDE { return m_err ; }
+    virtual void GetSize( int *w , int *h) const wxOVERRIDE ;
+    virtual wxSize GetPPI() const wxOVERRIDE ;
 private :
     wxCoord m_maxX ;
     wxCoord m_maxY ;
@@ -183,9 +184,9 @@ void wxMacCarbonPrinterDC::StartPage( wxPrinterDC* dc )
 
     m_err = PMSessionBeginPageNoDialog(native->GetPrintSession(),
                  native->GetPageFormat(),
-                 nullptr);
+                 NULL);
 
-    CGContextRef pageContext = nullptr ;
+    CGContextRef pageContext = NULL ;
 
     if ( m_err == noErr )
     {
@@ -268,7 +269,7 @@ wxPrinterDCImpl::wxPrinterDCImpl( wxPrinterDC *owner, const wxPrintData& printda
         {
             wxString message ;
             message.Printf( wxT("Print Error %u"), m_nativePrinterDC->GetStatus() ) ;
-            wxMessageDialog dialog( nullptr , message , wxEmptyString, wxICON_HAND | wxOK) ;
+            wxMessageDialog dialog( NULL , message , wxEmptyString, wxICON_HAND | wxOK) ;
             dialog.ShowModal();
         }
         else
@@ -309,7 +310,7 @@ bool wxPrinterDCImpl::StartDoc( const wxString& message )
     {
         wxString message ;
         message.Printf( wxT("Print Error %u"), m_nativePrinterDC->GetStatus() ) ;
-        wxMessageDialog dialog( nullptr , message , wxEmptyString, wxICON_HAND | wxOK) ;
+        wxMessageDialog dialog( NULL , message , wxEmptyString, wxICON_HAND | wxOK) ;
         dialog.ShowModal();
     }
 
@@ -328,7 +329,7 @@ void wxPrinterDCImpl::EndDoc()
     {
         wxString message ;
         message.Printf( wxT("Print Error %u"), m_nativePrinterDC->GetStatus() ) ;
-        wxMessageDialog dialog( nullptr , message , wxEmptyString, wxICON_HAND | wxOK) ;
+        wxMessageDialog dialog( NULL , message , wxEmptyString, wxICON_HAND | wxOK) ;
         dialog.ShowModal();
     }
 }

@@ -200,43 +200,38 @@ public:
     /**
         @name Miscellaneous operators
 
-        Note that binary operators are defined as friend functions inside this
-        class, making them accessible via argument-dependent lookup, but hidden
-        otherwise.
+        Note that these operators are documented as class members
+        (to make them easier to find) but, as their prototype shows,
+        they are implemented as global operators; note that this is
+        transparent to the user but it helps to understand why the
+        following functions are documented to take the wxPoint they
+        operate on as an explicit argument.
     */
     ///@{
     wxRealPoint& operator=(const wxRealPoint& pt);
 
-    friend bool operator ==(const wxRealPoint& p1, const wxRealPoint& p2);
-    friend bool operator !=(const wxRealPoint& p1, const wxRealPoint& p2);
+    bool operator ==(const wxRealPoint& p1, const wxRealPoint& p2);
+    bool operator !=(const wxRealPoint& p1, const wxRealPoint& p2);
 
-    friend wxRealPoint operator +(const wxRealPoint& p1, const wxRealPoint& p2);
-    friend wxRealPoint operator -(const wxRealPoint& p1, const wxRealPoint& p2);
+    wxRealPoint operator +(const wxRealPoint& p1, const wxRealPoint& p2);
+    wxRealPoint operator -(const wxRealPoint& p1, const wxRealPoint& p2);
 
     wxRealPoint& operator +=(const wxRealPoint& pt);
     wxRealPoint& operator -=(const wxRealPoint& pt);
 
-    friend wxRealPoint operator +(const wxRealPoint& pt, const wxSize& sz);
-    friend wxRealPoint operator -(const wxRealPoint& pt, const wxSize& sz);
-    friend wxRealPoint operator +(const wxSize& sz, const wxRealPoint& pt);
-    friend wxRealPoint operator -(const wxSize& sz, const wxRealPoint& pt);
+    wxRealPoint operator +(const wxRealPoint& pt, const wxSize& sz);
+    wxRealPoint operator -(const wxRealPoint& pt, const wxSize& sz);
+    wxRealPoint operator +(const wxSize& sz, const wxRealPoint& pt);
+    wxRealPoint operator -(const wxSize& sz, const wxRealPoint& pt);
 
     wxRealPoint& operator +=(const wxSize& sz);
     wxRealPoint& operator -=(const wxSize& sz);
 
-    friend wxRealPoint operator -(const wxRealPoint& pt);
-
-    friend wxRealPoint operator /(const wxRealPoint& sz, int divisor);
-    friend wxRealPoint operator *(const wxRealPoint& sz, int factor);
-    friend wxRealPoint operator *(int factor, const wxRealPoint& pt);
-    wxRealPoint& operator /=(int divisor);
-    wxRealPoint& operator *=(int factor);
-
-    friend wxRealPoint operator /(const wxRealPoint& pt, double divisor);
-    friend wxRealPoint operator *(const wxRealPoint& pt, double factor);
-    friend wxRealPoint operator *(double factor, const wxRealPoint& pt);
-    wxRealPoint& operator /=(double divisor);
-    wxRealPoint& operator *=(double factor);
+    wxSize operator /(const wxRealPoint& sz, int factor);
+    wxSize operator *(const wxRealPoint& sz, int factor);
+    wxSize operator *(int factor, const wxSize& sz);
+    wxSize& operator /=(int factor);
+    wxSize& operator *=(int factor);
     ///@}
 
     /**
@@ -312,8 +307,6 @@ public:
         centred in both directions but if @a dir includes only @c wxVERTICAL or
         only @c wxHORIZONTAL, then it is only centered in this direction while
         the other component of its position remains unchanged.
-
-        @see MakeCenteredIn()
     */
     wxRect CentreIn(const wxRect& r, int dir = wxBOTH) const;
     wxRect CenterIn(const wxRect& r, int dir = wxBOTH) const;
@@ -482,20 +475,6 @@ public:
     */
     bool IsEmpty() const;
 
-    /**
-        Center this rectangle inside the given rectangle @a r.
-
-        By default, rectangle is centred in both directions but if @a dir
-        includes only @c wxVERTICAL or only @c wxHORIZONTAL, then it is only
-        centered in this direction while the other component of its position
-        remains unchanged.
-
-        @see CenterIn()
-
-        @since 3.3.0
-     */
-    void MakeCenteredIn(const wxRect& r, int dir = wxBOTH);
-
     ///@{
     /**
         Moves the rectangle by the specified offset. If @a dx is positive, the
@@ -605,13 +584,13 @@ public:
     /**
         Inequality operator.
     */
-    friend bool operator !=(const wxRect& r1, const wxRect& r2);
+    bool operator !=(const wxRect& r1, const wxRect& r2);
 
     ///@{
     /**
         Like Union(), but doesn't treat empty rectangles specially.
     */
-    friend wxRect operator +(const wxRect& r1, const wxRect& r2);
+    wxRect operator +(const wxRect& r1, const wxRect& r2);
     wxRect& operator +=(const wxRect& r);
     ///@}
 
@@ -619,7 +598,7 @@ public:
     /**
         Returns the intersection of two rectangles (which may be empty).
     */
-    friend wxRect operator *(const wxRect& r1, const wxRect& r2);
+    wxRect operator *(const wxRect& r1, const wxRect& r2);
     wxRect& operator *=(const wxRect& r);
     ///@}
 
@@ -631,7 +610,7 @@ public:
     /**
         Equality operator.
     */
-    friend bool operator ==(const wxRect& r1, const wxRect& r2);
+    bool operator ==(const wxRect& r1, const wxRect& r2);
 
     /**
         Height member.
@@ -709,43 +688,38 @@ public:
     /**
         @name Miscellaneous operators
 
-        Note that binary operators are defined as friend functions inside this
-        class, making them accessible via argument-dependent lookup, but hidden
-        otherwise.
+        Note that these operators are documented as class members
+        (to make them easier to find) but, as their prototype shows,
+        they are implemented as global operators; note that this is
+        transparent to the user but it helps to understand why the
+        following functions are documented to take the wxPoint they
+        operate on as an explicit argument.
     */
     ///@{
     wxPoint& operator=(const wxPoint& pt);
 
-    friend bool operator ==(const wxPoint& p1, const wxPoint& p2);
-    friend bool operator !=(const wxPoint& p1, const wxPoint& p2);
+    bool operator ==(const wxPoint& p1, const wxPoint& p2);
+    bool operator !=(const wxPoint& p1, const wxPoint& p2);
 
-    friend wxPoint operator +(const wxPoint& p1, const wxPoint& p2);
-    friend wxPoint operator -(const wxPoint& p1, const wxPoint& p2);
+    wxPoint operator +(const wxPoint& p1, const wxPoint& p2);
+    wxPoint operator -(const wxPoint& p1, const wxPoint& p2);
 
     wxPoint& operator +=(const wxPoint& pt);
     wxPoint& operator -=(const wxPoint& pt);
 
-    friend wxPoint operator +(const wxPoint& pt, const wxSize& sz);
-    friend wxPoint operator -(const wxPoint& pt, const wxSize& sz);
-    friend wxPoint operator +(const wxSize& sz, const wxPoint& pt);
-    friend wxPoint operator -(const wxSize& sz, const wxPoint& pt);
+    wxPoint operator +(const wxPoint& pt, const wxSize& sz);
+    wxPoint operator -(const wxPoint& pt, const wxSize& sz);
+    wxPoint operator +(const wxSize& sz, const wxPoint& pt);
+    wxPoint operator -(const wxSize& sz, const wxPoint& pt);
 
     wxPoint& operator +=(const wxSize& sz);
     wxPoint& operator -=(const wxSize& sz);
 
-    wxPoint operator -(const wxPoint& pt);
-
-    friend wxPoint operator /(const wxPoint& sz, int divisor);
-    friend wxPoint operator *(const wxPoint& sz, int factor);
-    friend wxPoint operator *(int factor, const wxPoint& sz);
-    wxPoint& operator /=(int divisor);
-    wxPoint& operator *=(int factor);
-
-    friend wxPoint operator /(const wxPoint& pt, double divisor);
-    friend wxPoint operator *(const wxPoint& pt, double factor);
-    friend wxPoint operator *(double factor, const wxPoint& pt);
-    wxPoint& operator /=(double divisor);
-    wxPoint& operator *=(double factor);
+    wxSize operator /(const wxPoint& sz, int factor);
+    wxSize operator *(const wxPoint& sz, int factor);
+    wxSize operator *(int factor, const wxSize& sz);
+    wxSize& operator /=(int factor);
+    wxSize& operator *=(int factor);
     ///@}
 
 
@@ -897,9 +871,6 @@ const wxPoint wxDefaultPosition;
     </td></tr>
     @endTable
 
-    See the "Database colours" page of the @ref page_samples_drawing to see how
-    all these colours look like.
-
     @library{wxcore}
     @category{gdi}
 
@@ -932,13 +903,6 @@ public:
         colour is not found in the database.
     */
     wxString FindName(const wxColour& colour) const;
-
-    /**
-        List all known colours by name.
-
-        @since 3.3.0
-    */
-    wxVector<wxString> GetAllNames() const;
 };
 
 
@@ -1048,14 +1012,6 @@ public:
     void IncTo(const wxSize& size);
 
     /**
-        Returns @true if this size is at least as big as the other one in both
-        directions.
-
-        @since 3.3.0
-     */
-    bool IsAtLeast(const wxSize& size) const;
-
-    /**
         Returns @true if neither of the size object components is equal to -1,
         which is used as default for the size values in wxWidgets (hence the
         predefined ::wxDefaultSize has both of its components equal to -1).
@@ -1111,9 +1067,12 @@ public:
         Sizes can be added to or subtracted from each other or divided or
         multiplied by a number.
 
-        Note that binary operators are defined as friend functions inside this
-        class, making them accessible via argument-dependent lookup, but hidden
-        otherwise.
+        Note that these operators are documented as class members
+        (to make them easier to find) but, as their prototype shows,
+        they are implemented as global operators; note that this is
+        transparent to the user but it helps to understand why the
+        following functions are documented to take the wxSize they
+        operate on as an explicit argument.
 
         Also note that using @c double factor may result in rounding errors,
         as wxSize always stores @c int coordinates and the result is always
@@ -1122,20 +1081,20 @@ public:
     ///@{
     wxSize& operator=(const wxSize& sz);
 
-    friend bool operator ==(const wxSize& s1, const wxSize& s2);
-    friend bool operator !=(const wxSize& s1, const wxSize& s2);
+    bool operator ==(const wxSize& s1, const wxSize& s2);
+    bool operator !=(const wxSize& s1, const wxSize& s2);
 
-    friend wxSize operator +(const wxSize& s1, const wxSize& s2);
-    friend wxSize operator -(const wxSize& s1, const wxSize& s2);
+    wxSize operator +(const wxSize& s1, const wxSize& s2);
+    wxSize operator -(const wxSize& s1, const wxSize& s2);
     wxSize& operator +=(const wxSize& sz);
     wxSize& operator -=(const wxSize& sz);
 
-    friend wxSize operator /(const wxSize& sz, int factor);
-    friend wxSize operator /(const wxSize& sz, double factor);
-    friend wxSize operator *(const wxSize& sz, int factor);
-    friend wxSize operator *(const wxSize& sz, double factor);
-    friend wxSize operator *(int factor, const wxSize& sz);
-    friend wxSize operator *(double factor, const wxSize& sz);
+    wxSize operator /(const wxSize& sz, int factor);
+    wxSize operator /(const wxSize& sz, double factor);
+    wxSize operator *(const wxSize& sz, int factor);
+    wxSize operator *(const wxSize& sz, double factor);
+    wxSize operator *(int factor, const wxSize& sz);
+    wxSize operator *(double factor, const wxSize& sz);
     wxSize& operator /=(int factor);
     wxSize& operator /=(double factor);
     wxSize& operator *=(int factor);
@@ -1161,13 +1120,9 @@ const wxSize wxDefaultSize;
 /**
     This macro loads a bitmap from either application resources (on the
     platforms for which they exist, i.e.\ Windows) or from an XPM file.
+    This can help to avoid using @ifdef_ when creating bitmaps.
 
-    You can use `wxHAS_IMAGES_IN_RESOURCES` to check if the XPM needs to be
-    included when using this macro.
-
-    See also wxBITMAP_PNG() if you want to use images with alpha channel.
-
-    @see @ref overview_bitmap_embedding, wxICON()
+    @see @ref overview_bitmap, wxICON()
 
     @header{wx/gdicmn.h}
 */
@@ -1211,7 +1166,7 @@ const wxSize wxDefaultSize;
     @endcode
     in your application startup code.
 
-    @see @ref overview_bitmap_embedding, wxBITMAP_PNG_FROM_DATA()
+    @see wxBITMAP_PNG_FROM_DATA()
 
     @header{wx/gdicmn.h}
 
@@ -1243,13 +1198,9 @@ const wxSize wxDefaultSize;
 /**
     This macro loads an icon from either application resources (on the
     platforms for which they exist, i.e.\ Windows) or from an XPM file.
+    This can help to avoid using @ifdef_ when creating icons.
 
-    You can use `wxHAS_IMAGES_IN_RESOURCES` to check if the XPM needs to be
-    included when using this macro.
-
-    See also wxBITMAP_PNG() if you want to use images with alpha channel.
-
-    @see @ref overview_bitmap_embedding, wxBITMAP()
+    @see @ref overview_bitmap, wxBITMAP()
 
     @header{wx/gdicmn.h}
 */

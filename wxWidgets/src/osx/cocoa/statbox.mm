@@ -2,6 +2,7 @@
 // Name:        src/osx/cocoa/statbox.mm
 // Purpose:     wxStaticBox
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
@@ -53,14 +54,14 @@ namespace
         {
         }
 
-        virtual void SetLabel( const wxString& title ) override
+        virtual void SetLabel( const wxString& title, wxFontEncoding encoding ) wxOVERRIDE
         {
             if (title.empty())
                 [GetNSBox() setTitlePosition:NSNoTitle];
             else
                 [GetNSBox() setTitlePosition:NSAtTop];
 
-            wxWidgetCocoaImpl::SetLabel(title);
+            wxWidgetCocoaImpl::SetLabel(title, encoding);
         }
 
     private:

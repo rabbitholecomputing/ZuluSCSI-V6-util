@@ -479,19 +479,19 @@ class wxMyVariantData : public wxVariantData
 {
 public:
     wxMyVariantData(const MyClass& value)
-        : m_value(value)
     {
+        m_value = value;
     }
 
-    virtual bool Eq(wxVariantData& WXUNUSED(data)) const override
+    virtual bool Eq(wxVariantData& WXUNUSED(data)) const wxOVERRIDE
     {
         return false;
     }
 
     // What type is it? Return a string name.
-    virtual wxString GetType() const override { return "MyClass"; }
+    virtual wxString GetType() const wxOVERRIDE { return "MyClass"; }
 
-    virtual wxVariantData* Clone() const override
+    virtual wxVariantData* Clone() const wxOVERRIDE
     {
         return new wxMyVariantData(m_value);
     }
@@ -570,7 +570,9 @@ void wxAnyTestCase::wxVariantConversions()
     res = any.GetAs(&variant);
     CPPUNIT_ASSERT(res);
     CPPUNIT_ASSERT(variant.GetType() == "string");
+#if wxUSE_UNICODE
     CPPUNIT_ASSERT(variant.GetString() == L"ABC");
+#endif
 
     any = vDouble;
     double d = any.As<double>();
@@ -680,7 +682,7 @@ public:
 
     virtual bool ConvertValue(const wxAnyValueBuffer& src,
                               wxAnyValueType* dstType,
-                              wxAnyValueBuffer& dst) const override
+                              wxAnyValueBuffer& dst) const wxOVERRIDE
     {
         MyClass value = GetValue(src);
 

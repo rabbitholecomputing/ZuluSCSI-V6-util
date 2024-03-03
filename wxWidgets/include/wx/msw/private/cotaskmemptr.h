@@ -24,7 +24,7 @@ public:
     typedef T element_type;
 
     wxCoTaskMemPtr()
-        : m_ptr(nullptr)
+        : m_ptr(NULL)
     {}
 
     explicit wxCoTaskMemPtr(T* ptr)
@@ -41,7 +41,7 @@ public:
         ::CoTaskMemFree(m_ptr);
     }
 
-    void reset(T* ptr = nullptr)
+    void reset(T* ptr = NULL)
     {
         if ( m_ptr != ptr )
         {
@@ -68,11 +68,11 @@ public:
 
     // Gives up the ownership of the pointer,
     // making the caller responsible for freeing it.
-    wxNODISCARD T* release()
+    T* release()
     {
         T* ptr(m_ptr);
 
-        m_ptr = nullptr;
+        m_ptr = NULL;
         return ptr;
     }
 

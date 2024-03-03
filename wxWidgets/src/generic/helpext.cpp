@@ -2,6 +2,7 @@
 // Name:        src/generic/helpext.cpp
 // Purpose:     an external help controller for wxWidgets
 // Author:      Karsten Ballueder
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
@@ -64,7 +65,7 @@ wxIMPLEMENT_CLASS(wxExtHelpController, wxHelpControllerBase);
 wxExtHelpController::wxExtHelpController(wxWindow* parentWindow)
                    : wxHelpControllerBase(parentWindow)
 {
-    m_MapList = nullptr;
+    m_MapList = NULL;
     m_NumOfEntries = 0;
     m_BrowserIsNetscape = false;
 
@@ -81,6 +82,14 @@ wxExtHelpController::~wxExtHelpController()
 {
     DeleteList();
 }
+
+#if WXWIN_COMPATIBILITY_2_8
+void wxExtHelpController::SetBrowser(const wxString& browsername, bool isNetscape)
+{
+    m_BrowserName = browsername;
+    m_BrowserIsNetscape = isNetscape;
+}
+#endif
 
 void wxExtHelpController::SetViewer(const wxString& viewer, long flags)
 {
@@ -390,7 +399,7 @@ bool wxExtHelpController::KeywordSearch(const wxString& k,
         if (! showAll)
         {
             compA = k;
-            compA.MakeLower();
+            compA.LowerCase();
         }
 
         while (node)
@@ -401,7 +410,7 @@ bool wxExtHelpController::KeywordSearch(const wxString& k,
             bool testTarget = ! compB.empty();
             if (testTarget && ! showAll)
             {
-                compB.MakeLower();
+                compB.LowerCase();
                 testTarget = compB.Contains(compA);
             }
 

@@ -24,7 +24,7 @@
 class wxGnomeVFSMimeTypesManagerImpl: public wxMimeTypesManagerImpl
 {
 public:
-    wxGnomeVFSMimeTypesManagerImpl() = default;
+    wxGnomeVFSMimeTypesManagerImpl() { }
 
 protected:
     virtual bool DoAssociation(const wxString& strType,
@@ -41,7 +41,7 @@ protected:
 class wxGnomeVFSMimeTypesManagerFactory: public wxMimeTypesManagerFactory
 {
 public:
-    wxGnomeVFSMimeTypesManagerFactory() = default;
+    wxGnomeVFSMimeTypesManagerFactory() {}
 
     virtual wxMimeTypesManagerImpl *CreateMimeTypesManagerImpl();
 };

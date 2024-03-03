@@ -19,32 +19,64 @@
 
 #include "wx/url.h"
 #include "wx/mstream.h"
+#include "wx/scopedptr.h"
 #include "wx/utils.h"
-
-#include <memory>
 
 // ----------------------------------------------------------------------------
 // test class
 // ----------------------------------------------------------------------------
 
-TEST_CASE("wxURL::GetInputStream", "[url]")
+class URLTestCase : public CppUnit::TestCase
+{
+public:
+    URLTestCase();
+    ~URLTestCase();
+
+private:
+    CPPUNIT_TEST_SUITE( URLTestCase );
+        CPPUNIT_TEST( GetInputStream );
+        CPPUNIT_TEST( CopyAndAssignment );
+    CPPUNIT_TEST_SUITE_END();
+
+    void GetInputStream();
+    void CopyAndAssignment();
+
+    wxDECLARE_NO_COPY_CLASS(URLTestCase);
+};
+
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( URLTestCase );
+
+// also include in its own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( URLTestCase, "URLTestCase" );
+
+
+URLTestCase::URLTestCase()
+{
+    wxSocketBase::Initialize();
+}
+
+URLTestCase::~URLTestCase()
+{
+    wxSocketBase::Shutdown();
+}
+
+void URLTestCase::GetInputStream()
 {
     if (!IsNetworkAvailable())      // implemented in test.cpp
     {
-        WARN("No network connectivity; skipping the wxURL::GetInputStream test unit.");
+        WARN("No network connectivity; skipping the URLTestCase::GetInputStream test unit.");
         return;
     }
-
-    wxSocketInitializer socketInit;
 
     // We need a site never redirecting to HTTPs and this one seems better than
     // the other alternatives such as Microsoft's www.msftconnecttest.com or
     // Apple's captive.apple.com. IANAs example.com might be another good
     // choice but it's not clear if it's never going to redirect to HTTPs.
     wxURL url("http://detectportal.firefox.com/");
-    CHECK(url.GetError() == wxURL_NOERR);
+    CPPUNIT_ASSERT_EQUAL(wxURL_NOERR, url.GetError());
 
-    std::unique_ptr<wxInputStream> in_stream(url.GetInputStream());
+    wxScopedPtr<wxInputStream> in_stream(url.GetInputStream());
     if ( !in_stream && IsAutomaticTest() )
     {
         // Sometimes the connection fails during CI runs, don't consider this
@@ -54,16 +86,16 @@ TEST_CASE("wxURL::GetInputStream", "[url]")
         return;
     }
 
-    REQUIRE(in_stream);
-    CHECK(in_stream->IsOk());
+    CPPUNIT_ASSERT(in_stream);
+    CPPUNIT_ASSERT(in_stream->IsOk());
 
     wxMemoryOutputStream ostream;
-    CHECK(in_stream->Read(ostream).GetLastError() == wxSTREAM_EOF);
+    CPPUNIT_ASSERT(in_stream->Read(ostream).GetLastError() == wxSTREAM_EOF);
 
-    CHECK(ostream.GetSize() == strlen("success\n"));
+    CPPUNIT_ASSERT_EQUAL(strlen("success\n"), ostream.GetSize());
 }
 
-TEST_CASE("wxURL::CopyAndAssignment", "[url]")
+void URLTestCase::CopyAndAssignment()
 {
     wxURL url1("http://www.example.org/");
     wxURL url2;
@@ -71,20 +103,20 @@ TEST_CASE("wxURL::CopyAndAssignment", "[url]")
 
     { // Copy constructor
         wxURL url3(url1);
-        CHECK(url1 == url3);
+        CPPUNIT_ASSERT(url1 == url3);
     }
     { // Constructor for string
         wxURL url3(url1.GetURL());
-        CHECK(url1 == url3);
+        CPPUNIT_ASSERT(url1 == url3);
     }
     { // 'Copy' constructor for uri
         wxURL url3(*puri);
-        CHECK(url2 == url3);
+        CPPUNIT_ASSERT(url2 == url3);
     }
 
     // assignment for uri
     *puri = url1;
-    CHECK(url1 == url2);
+    CPPUNIT_ASSERT(url1 == url2);
 
     // assignment to self through base pointer
     *puri = url2;
@@ -92,12 +124,12 @@ TEST_CASE("wxURL::CopyAndAssignment", "[url]")
     // Assignment of string
     url1 = wxS("http://www.example2.org/index.html");
     *puri = wxS("http://www.example2.org/index.html");
-    CHECK(url1 == url2);
+    CPPUNIT_ASSERT(url1 == url2);
 
     // Assignment
     url1 = wxS("");
     url2 = url1;
-    CHECK(url1 == url2);
+    CPPUNIT_ASSERT(url1 == url2);
 
     // assignment to self
     wxCLANG_WARNING_SUPPRESS(self-assign-overloaded)

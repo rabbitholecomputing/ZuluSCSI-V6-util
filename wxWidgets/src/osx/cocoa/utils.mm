@@ -2,6 +2,7 @@
 // Name:        src/osx/cocoa/utils.mm
 // Purpose:     various cocoa utility functions
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -13,6 +14,7 @@
 #include "wx/platinfo.h"
 
 #ifndef WX_PRECOMP
+    #include "wx/intl.h"
     #include "wx/app.h"
     #if wxUSE_GUI
         #include "wx/dialog.h"
@@ -93,7 +95,7 @@ void wxBell()
         CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle() ) ;
         CFStringRef path = CFURLCopyFileSystemPath ( url , kCFURLPOSIXPathStyle ) ;
         CFRelease( url ) ;
-        wxString app = wxCFStringRef(path).AsString();
+        wxString app = wxCFStringRef(path).AsString(wxLocale::GetSystemEncoding());
         if ( !app.EndsWith(".app") )
         {
             [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
@@ -109,12 +111,7 @@ void wxBell()
         }
 
         if ( activate ) {
-            if ( [NSApp activationPolicy] == NSApplicationActivationPolicyAccessory ) {
-                [[NSRunningApplication currentApplication] activateWithOptions: NSApplicationActivateIgnoringOtherApps];
-            }
-            else {
-                [NSApp activateIgnoringOtherApps: YES];
-            }
+            [[NSRunningApplication currentApplication] activateWithOptions: NSApplicationActivateIgnoringOtherApps];
         }
     }
 }
@@ -244,14 +241,14 @@ void wxBell()
          ++i )
     {
         wxTopLevelWindow * const win = static_cast<wxTopLevelWindow *>(*i);
-        wxNonOwnedWindowImpl* winimpl = win ? win->GetNonOwnedPeer() : nullptr;
+        wxNonOwnedWindowImpl* winimpl = win ? win->GetNonOwnedPeer() : NULL;
         WXWindow nswindow = win ? win->GetWXWindow() : nil;
         
         if ( nswindow && [nswindow hidesOnDeactivate] == NO && winimpl)
             winimpl->RestoreWindowLevel();
     }
     if ( wxTheApp )
-        wxTheApp->SetActive( true , nullptr ) ;
+        wxTheApp->SetActive( true , NULL ) ;
 }
 
 - (void)applicationWillResignActive:(NSNotification *)notification
@@ -274,7 +271,7 @@ void wxBell()
 {
     wxUnusedVar(notification);
     if ( wxTheApp )
-        wxTheApp->SetActive( false , nullptr ) ;
+        wxTheApp->SetActive( false , NULL ) ;
 }
 
 @end
@@ -290,7 +287,7 @@ void wxBell()
     {
         sheetFinished = NO;
         resultCode = -1;
-        impl = nullptr;
+        impl = 0;
     }
     return self;
 }
@@ -466,7 +463,7 @@ extern // used from src/osx/core/display.cpp
 wxRect wxOSXGetMainDisplayClientArea()
 {
     NSRect displayRect = [wxOSXGetMenuScreen() visibleFrame];
-    return wxFromNSRect( nullptr, displayRect );
+    return wxFromNSRect( NULL, displayRect );
 }
 
 static NSScreen* wxOSXGetScreenFromDisplay( CGDirectDisplayID ID)
@@ -477,19 +474,19 @@ static NSScreen* wxOSXGetScreenFromDisplay( CGDirectDisplayID ID)
         if ( displayID == ID )
             return screen;
     }
-    return nullptr;
+    return NULL;
 }
 
 extern // used from src/osx/core/display.cpp
 wxRect wxOSXGetDisplayClientArea(CGDirectDisplayID ID)
 {
     NSRect displayRect = [wxOSXGetScreenFromDisplay(ID) visibleFrame];
-    return wxFromNSRect( nullptr, displayRect );
+    return wxFromNSRect( NULL, displayRect );
 }
 
 void wxGetMousePosition( int* x, int* y )
 {
-    wxPoint pt = wxFromNSPoint(nullptr, [NSEvent mouseLocation]);
+    wxPoint pt = wxFromNSPoint(NULL, [NSEvent mouseLocation]);
     if ( x )
         *x = pt.x;
     if ( y )
@@ -585,7 +582,7 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
 
     const wxSize bitmapSize(subrect ? subrect->GetSize() : m_window->GetSize());
     wxBitmap bitmap;
-    bitmap.CreateWithLogicalSize(bitmapSize, m_contentScaleFactor);
+    bitmap.CreateWithDIPSize(bitmapSize, m_contentScaleFactor);
 
     NSView* view = (NSView*) m_window->GetHandle();
     if ( [view isHiddenOrHasHiddenAncestor] == NO )
@@ -617,7 +614,7 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
 
         CGRect r = CGRectMake( 0 , 0 , CGImageGetWidth(cgImageRef)  , CGImageGetHeight(cgImageRef) );
 
-        // The bitmap created by wxBitmap::CreateWithLogicalSize() above is scaled,
+        // The bitmap created by wxBitmap::CreateWithDIPSize() above is scaled,
         // so we need to adjust the coordinates for it.
         r.size.width /= m_contentScaleFactor;
         r.size.height /= m_contentScaleFactor;

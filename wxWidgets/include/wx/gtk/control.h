@@ -37,13 +37,13 @@ public:
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxASCII_STR(wxControlNameStr));
 
-    virtual wxVisualAttributes GetDefaultAttributes() const override;
+    virtual wxVisualAttributes GetDefaultAttributes() const wxOVERRIDE;
 #ifdef __WXGTK3__
-    virtual bool SetFont(const wxFont& font) override;
+    virtual bool SetFont(const wxFont& font) wxOVERRIDE;
 #endif
 
 protected:
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
     void PostCreation(const wxSize& size);
 
     // sets the label to the given string and also sets it for the given widget
@@ -87,8 +87,6 @@ protected:
     wxSize GTKGetEntryMargins(GtkEntry* entry) const;
 
 private:
-    virtual void GTKRemoveBorder() override;
-
     wxDECLARE_DYNAMIC_CLASS(wxControl);
 };
 

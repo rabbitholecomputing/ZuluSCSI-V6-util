@@ -62,7 +62,7 @@ class WXDLLIMPEXP_CORE wxTextDropTarget: public wxDropTarget
 {
 public:
 
-    wxTextDropTarget() = default;
+    wxTextDropTarget() {}
     virtual bool OnDrop( long x, long y, const void *data, size_t size );
     virtual bool OnDropText( long x, long y, const char *psz );
 
@@ -110,7 +110,7 @@ class WXDLLIMPEXP_CORE wxFileDropTarget: public wxDropTarget
 {
 public:
 
-    wxFileDropTarget() = default;
+    wxFileDropTarget() {}
 
     virtual bool OnDrop( long x, long y, const void *data, size_t size );
     virtual bool OnDropFiles( long x, long y,

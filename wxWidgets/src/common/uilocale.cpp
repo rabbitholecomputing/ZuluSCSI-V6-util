@@ -24,17 +24,12 @@
 
 #include "wx/arrstr.h"
 #include "wx/intl.h"
-#include "wx/log.h"
-#include "wx/tokenzr.h"
-#include "wx/utils.h"
 
 #ifndef __WINDOWS__
     #include "wx/language.h"
 #endif
 
 #include "wx/private/uilocale.h"
-
-#define TRACE_I18N wxS("i18n")
 
 // ----------------------------------------------------------------------------
 // helper functions
@@ -67,6 +62,7 @@ inline bool IsDefaultCLocale(const wxString& locale)
 }
 
 } // anonymous namespace
+
 
 // ----------------------------------------------------------------------------
 // global variables
@@ -488,7 +484,7 @@ bool wxUILocale::UseDefault()
 /* static */
 bool wxUILocale::UseLocaleName(const wxString& localeName)
 {
-    wxUILocaleImpl* impl = nullptr;
+    wxUILocaleImpl* impl = NULL;
     if (IsDefaultCLocale(localeName))
     {
         impl = wxUILocaleImpl::CreateStdC();
@@ -536,7 +532,7 @@ wxUILocale::wxUILocale(const wxLocaleIdent& localeId)
     if ( localeId.IsEmpty() )
     {
         wxFAIL_MSG( "Locale identifier must be initialized" );
-        m_impl = nullptr;
+        m_impl = NULL;
         return;
     }
 
@@ -571,7 +567,7 @@ wxUILocale& wxUILocale::operator=(const wxUILocale& loc)
 
 bool wxUILocale::IsSupported() const
 {
-    return m_impl != nullptr;
+    return m_impl != NULL;
 }
 
 wxString wxUILocale::GetName() const
@@ -607,20 +603,20 @@ wxString wxUILocale::GetLocalizedName(wxLocaleName name, wxLocaleForm form) cons
 }
 
 #if wxUSE_DATETIME
-wxString wxUILocale::GetMonthName(wxDateTime::Month month, wxDateTime::NameForm form) const
+wxString wxUILocale::GetMonthName(wxDateTime::Month month, wxDateTime::NameFlags flags) const
 {
     if (!m_impl)
         return wxString();
 
-    return m_impl->GetMonthName(month, form);
+    return m_impl->GetMonthName(month, flags);
 }
 
-wxString wxUILocale::GetWeekDayName(wxDateTime::WeekDay weekday, wxDateTime::NameForm form) const
+wxString wxUILocale::GetWeekDayName(wxDateTime::WeekDay weekday, wxDateTime::NameFlags flags) const
 {
     if (!m_impl)
         return wxString();
 
-    return m_impl->GetWeekDayName(weekday, form);
+    return m_impl->GetWeekDayName(weekday, flags);
 }
 #endif // wxUSE_DATETIME
 
@@ -683,7 +679,7 @@ int wxUILocale::GetSystemLanguage()
 {
     const wxLanguageInfos& languagesDB = wxGetLanguageInfos();
     size_t count = languagesDB.size();
-    wxVector<wxString> preferred = wxUILocale::GetPreferredUILanguages();
+    wxVector<wxString> preferred = wxUILocaleImpl::GetPreferredUILanguages();
 
     for (wxVector<wxString>::const_iterator j = preferred.begin();
         j != preferred.end();
@@ -748,29 +744,6 @@ int wxUILocale::GetSystemLocale()
 /* static */
 wxVector<wxString> wxUILocale::GetPreferredUILanguages()
 {
-    // The WXLANGUAGE variable may contain a colon separated list of language
-    // codes in the order of preference. It is modelled after GNU's LANGUAGE:
-    // http://www.gnu.org/software/gettext/manual/html_node/The-LANGUAGE-variable.html
-    wxString languageFromEnv;
-    if (wxGetEnv("WXLANGUAGE", &languageFromEnv) && !languageFromEnv.empty())
-    {
-        wxVector<wxString> preferred;
-        wxStringTokenizer tknzr(languageFromEnv, ":");
-        while (tknzr.HasMoreTokens())
-        {
-            const wxString tok = tknzr.GetNextToken();
-            if (const wxLanguageInfo* li = wxUILocale::FindLanguageInfo(tok))
-            {
-                preferred.push_back(li->CanonicalName);
-            }
-        }
-        if (!preferred.empty())
-        {
-            wxLogTrace(TRACE_I18N, " - using languages override from WXLANGUAGE: '%s'", languageFromEnv);
-            return preferred;
-        }
-    }
-
     return wxUILocaleImpl::GetPreferredUILanguages();
 }
 
@@ -785,7 +758,7 @@ const wxLanguageInfo* wxUILocale::GetLanguageInfo(int lang)
         lang = GetSystemLanguage();
 
     if (lang == wxLANGUAGE_UNKNOWN)
-        return nullptr;
+        return NULL;
 
     const wxLanguageInfos& languagesDB = wxGetLanguageInfos();
     const size_t count = languagesDB.size();
@@ -795,7 +768,7 @@ const wxLanguageInfo* wxUILocale::GetLanguageInfo(int lang)
             return &languagesDB[i];
     }
 
-    return nullptr;
+    return NULL;
 }
 
 /* static */
@@ -832,7 +805,7 @@ wxString wxUILocale::GetLanguageCanonicalName(int lang)
 const wxLanguageInfo* wxUILocale::FindLanguageInfo(const wxString& localeOrig)
 {
     if (localeOrig.empty())
-        return nullptr;
+        return NULL;
 
     CreateLanguagesDB();
 
@@ -854,7 +827,7 @@ const wxLanguageInfo* wxUILocale::FindLanguageInfo(const wxString& localeOrig)
         language << " (" << region << ")";
     }
 
-    const wxLanguageInfo* infoRet = nullptr;
+    const wxLanguageInfo* infoRet = NULL;
 
     const wxLanguageInfos& languagesDB = wxGetLanguageInfos();
     const size_t count = languagesDB.size();
@@ -891,11 +864,11 @@ const wxLanguageInfo* wxUILocale::FindLanguageInfo(const wxString& localeOrig)
 const wxLanguageInfo* wxUILocale::FindLanguageInfo(const wxLocaleIdent& locId)
 {
     if (locId.IsEmpty())
-        return nullptr;
+        return NULL;
 
     CreateLanguagesDB();
 
-    const wxLanguageInfo* infoRet = nullptr;
+    const wxLanguageInfo* infoRet = NULL;
 
     wxString lang = locId.GetLanguage();
     wxString localeTag = locId.GetTag(wxLOCALE_TAGTYPE_BCP47);
@@ -944,9 +917,6 @@ int wxUILocaleImpl::ArrayIndexFromFlag(wxDateTime::NameFlags flags)
 
         case wxDateTime::Name_Abbr:
             return 1;
-
-        case wxDateTime::Name_Shortest:
-            return 2;
 
         default:
             wxFAIL_MSG("unknown wxDateTime::NameFlags value");

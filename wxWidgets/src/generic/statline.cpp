@@ -43,7 +43,7 @@ bool wxStaticLine::Create( wxWindow *parent,
                            long style,
                            const wxString &name)
 {
-    m_statbox = nullptr;
+    m_statbox = NULL;
 
     if ( !CreateBase(parent, id, pos, size, style, wxDefaultValidator, name) )
         return false;

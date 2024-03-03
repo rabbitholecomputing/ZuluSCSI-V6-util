@@ -130,7 +130,7 @@ public:
         @see SetSize()
     */
     void SetFonts(const wxString& normal_face, const wxString& fixed_face,
-                  const int* sizes = nullptr);
+                  const int* sizes = NULL);
 
     /**
         Sets font sizes to be relative to the given size or the system
@@ -218,7 +218,7 @@ public:
             May be @NULL.
     */
     wxHtmlEasyPrinting(const wxString& name = "Printing",
-                       wxWindow* parentWindow = nullptr);
+                       wxWindow* parentWindow = NULL);
 
     /**
         Returns the current name being used for preview frames and setup
@@ -300,7 +300,7 @@ public:
         Sets fonts. See wxHtmlDCRenderer::SetFonts for detailed description.
     */
     void SetFonts(const wxString& normal_face, const wxString& fixed_face,
-                  const int* sizes = nullptr);
+                  const int* sizes = NULL);
 
     /**
         Sets the name used for preview frames and setup dialogs.
@@ -438,7 +438,7 @@ public:
         for detailed description.
     */
     void SetFonts(const wxString& normal_face, const wxString& fixed_face,
-                  const int* sizes = nullptr);
+                  const int* sizes = NULL);
 
     /**
         Set page footer. The following macros can be used inside it:

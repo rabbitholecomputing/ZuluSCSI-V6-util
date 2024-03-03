@@ -11,8 +11,6 @@
 
 #include <wx/scopedarray.h>
 
-#include <memory>
-
 class QApplication;
 class WXDLLIMPEXP_CORE wxApp : public wxAppBase
 {
@@ -20,10 +18,10 @@ public:
     wxApp();
     ~wxApp();
 
-    virtual bool Initialize(int& argc, wxChar **argv) override;
+    virtual bool Initialize(int& argc, wxChar **argv) wxOVERRIDE;
 
 private:
-    std::unique_ptr<QApplication> m_qtApplication;
+    wxScopedPtr<QApplication> m_qtApplication;
     int m_qtArgc;
     wxScopedArray<char*> m_qtArgv;
 

@@ -2,6 +2,7 @@
 // Name:        src/x11/cursor.cpp
 // Purpose:     wxCursor class
 // Author:      Julian Smart
+// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -48,8 +49,8 @@ private:
 
 wxCursorRefData::wxCursorRefData()
 {
-    m_cursor = nullptr;
-    m_display = nullptr;
+    m_cursor = NULL;
+    m_display = NULL;
 }
 
 wxCursorRefData::~wxCursorRefData()
@@ -145,6 +146,10 @@ wxCursor::wxCursor(const char* const* WXUNUSED(xpmData))
     wxFAIL_MSG( wxT("wxCursor creation from XPM not yet implemented") );
 }
 #endif
+
+wxCursor::~wxCursor()
+{
+}
 
 wxGDIRefData *wxCursor::CreateGDIRefData() const
 {

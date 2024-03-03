@@ -2,6 +2,7 @@
 // Name:        wx/osx/core/mimetype.h
 // Purpose:     Mac implementation for wx mime-related classes
 // Author:      Neil Perkins
+// Modified by:
 // Created:     2010-05-15
 // Copyright:   (C) 2010 Neil Perkins
 // Licence:     wxWindows licence
@@ -15,9 +16,9 @@
 #if wxUSE_MIMETYPE
 
 #include "wx/mimetype.h"
+#include "wx/hashmap.h"
 #include "wx/iconloc.h"
 
-#include <unordered_map>
 
 // This class implements mime type functionality for Mac OS X using UTIs and Launch Services
 // Currently only the GetFileTypeFromXXXX public functions have been implemented
@@ -67,10 +68,14 @@ private:
     }
     FileTypeInfo;
 
+    // Map types
+    WX_DECLARE_STRING_HASH_MAP( wxString, TagMap );
+    WX_DECLARE_STRING_HASH_MAP( FileTypeData, UtiMap );
+
     // Data store
-    std::unordered_map<wxString, wxString> m_extMap,
-                                           m_mimeMap;
-    std::unordered_map<wxString, FileTypeData> m_utiMap;
+    TagMap m_extMap;
+    TagMap m_mimeMap;
+    UtiMap m_utiMap;
 
     friend class wxFileTypeImpl;
 };

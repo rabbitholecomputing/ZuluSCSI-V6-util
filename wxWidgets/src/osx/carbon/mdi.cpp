@@ -2,6 +2,7 @@
 // Name:        src/osx/carbon/mdi.cpp
 // Purpose:     MDI classes
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -73,7 +74,7 @@ bool wxMDIParentFrame::Create(wxWindow *parent,
     // "Window" menu
     if ( style & wxFRAME_NO_WINDOW_MENU )
     {
-        m_windowMenu = nullptr;
+        m_windowMenu = NULL;
         style -= wxFRAME_NO_WINDOW_MENU ;
     }
     else // normal case: we have the window menu, so construct it
@@ -105,7 +106,7 @@ wxMDIParentFrame::~wxMDIParentFrame()
     DestroyChildren();
 
     // already deleted by DestroyChildren()
-    m_clientWindow = nullptr ;
+    m_clientWindow = NULL ;
 }
 
 void wxMDIParentFrame::SetMenuBar(wxMenuBar *menu_bar)
@@ -146,7 +147,7 @@ void wxMDIParentFrame::RemoveChild(wxWindowBase *child)
     if ( child == m_currentChild )
     {
         // the current child isn't active any more, try to find another one
-        m_currentChild = nullptr;
+        m_currentChild = NULL;
 
         for ( wxWindowList::compatibility_iterator node = GetChildren().GetFirst();
               node;
@@ -193,15 +194,15 @@ void wxMDIParentFrame::MacActivate(long timestamp, bool activating)
 
             wxLogTrace(TRACE_MDI, wxT("finished highliting child"));
 
-            s_macDeactivateWindow = nullptr;
+            s_macDeactivateWindow = NULL;
         }
         else if (s_macDeactivateWindow == this)
         {
             wxLogTrace(TRACE_MDI, wxT("Avoided deactivation/activation of this=%p"), this);
 
-            s_macDeactivateWindow = nullptr;
+            s_macDeactivateWindow = NULL;
         }
-        else // window to deactivate is null or is not us or one of our kids
+        else // window to deactivate is NULL or is not us or one of our kids
         {
             // activate kid instead
             if (m_currentChild)
@@ -215,7 +216,7 @@ void wxMDIParentFrame::MacActivate(long timestamp, bool activating)
         // We were scheduled for deactivation, and now we do it.
         if (s_macDeactivateWindow == this)
         {
-            s_macDeactivateWindow = nullptr;
+            s_macDeactivateWindow = NULL;
             if (m_currentChild)
                 m_currentChild->MacActivate(timestamp, activating);
             wxFrame::MacActivate(timestamp, activating);
@@ -347,7 +348,7 @@ void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
 
             wxLogTrace(TRACE_MDI, wxT("finished highliting parent"));
 
-            s_macDeactivateWindow = nullptr;
+            s_macDeactivateWindow = NULL;
         }
         else if ((mdiparent->m_currentChild == this) || !s_macDeactivateWindow)
             mdiparent->wxFrame::MacActivate(timestamp, activating);
@@ -360,7 +361,7 @@ void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
         {
             wxLogTrace(TRACE_MDI, wxT("Avoided deactivation/activation of this=%p"), this);
 
-            s_macDeactivateWindow = nullptr;
+            s_macDeactivateWindow = NULL;
         }
         else
             wxFrame::MacActivate(timestamp, activating);
@@ -370,7 +371,7 @@ void wxMDIChildFrame::MacActivate(long timestamp, bool activating)
         // We were scheduled for deactivation, and now we do it.
         if (s_macDeactivateWindow == this)
         {
-            s_macDeactivateWindow = nullptr;
+            s_macDeactivateWindow = NULL;
             wxFrame::MacActivate(timestamp, activating);
             if (mdiparent->m_currentChild == this)
                 mdiparent->wxFrame::MacActivate(timestamp, activating);

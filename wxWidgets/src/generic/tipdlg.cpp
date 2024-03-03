@@ -2,6 +2,7 @@
 // Name:        src/generic/tipdlg.cpp
 // Purpose:     implementation of wxTipDialog
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     28.06.99
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -58,7 +59,7 @@ class WXDLLIMPEXP_ADV wxFileTipProvider : public wxTipProvider
 public:
     wxFileTipProvider(const wxString& filename, size_t currentTip);
 
-    virtual wxString GetTip() override;
+    virtual wxString GetTip() wxOVERRIDE;
 
 private:
     wxTextFile m_textfile;
@@ -74,7 +75,7 @@ class WXDLLIMPEXP_ADV wxRegTipProvider : public wxTipProvider
 public:
     wxRegTipProvider(const wxString& keyname);
 
-    virtual wxString GetTip() override;
+    virtual wxString GetTip() wxOVERRIDE;
 };
 
 // Empty implementation for now to keep the linker happy

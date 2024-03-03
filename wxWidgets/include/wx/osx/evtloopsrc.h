@@ -24,7 +24,7 @@ public:
     wxCFEventLoopSource(wxEventLoopSourceHandler *handler, int flags)
         : wxEventLoopSource(handler, flags)
     {
-        m_cfSocket = nullptr;
+        m_cfSocket = NULL;
     }
 
     // Finish initialization of the event loop source by providing the

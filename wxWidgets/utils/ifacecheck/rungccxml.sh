@@ -49,7 +49,7 @@ for f in $headerlist; do
 done
 
 # filter the configure flags to pass to gccxml
-wx_top_builddir="/Users/heron/Development/wxWidgets"
+wx_top_builddir="C:/tools/msys64/home/gregc/Development/wxWidgets"
 top_srcdir="../.."
 flags=" "
 
@@ -59,7 +59,7 @@ flags=" "
 flags=`echo "$flags" | sed -e 's/-pthread//g' | sed -e 's/__WXDEBUG__//g'`
 
 # append some other flags:
-flags="-I . -I ../../include $flags -D__WXDEBUG__ -D__WXOSX_COCOA__ -DWXBUILDING $allheaders"
+flags="-I . -I ../../include $flags -D__WXDEBUG__ -D__WXMSW__ -DWXBUILDING $allheaders"
 
 # run gccxml with the same flag used for the real compilation of wx sources:
 echo "Running gccxml on the $allheaders file... results in $gccxmloutput"

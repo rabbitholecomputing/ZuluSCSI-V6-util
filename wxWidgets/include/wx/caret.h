@@ -2,6 +2,7 @@
 // Name:        wx/caret.h
 // Purpose:     wxCaretBase class - the interface of wxCaret
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     23.05.99
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -56,7 +57,7 @@ public:
     }
 
     // a virtual dtor has been provided since this class has virtual members
-    virtual ~wxCaretBase() = default;
+    virtual ~wxCaretBase() { }
 
     // Create() functions - same as ctor but returns the success code
     // --------------------------------------------------------------
@@ -178,7 +179,7 @@ protected:
 private:
     void Init()
     {
-        m_window = nullptr;
+        m_window = NULL;
         m_x = m_y = 0;
         m_width = m_height = 0;
         m_countVisible = 0;

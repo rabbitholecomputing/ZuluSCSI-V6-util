@@ -2,6 +2,7 @@
 // Name:        wx/osx/combobox.h
 // Purpose:     wxComboBox class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -37,13 +38,13 @@ class WXDLLIMPEXP_CORE wxComboBox :
     virtual void DelegateTextChanged( const wxString& value );
     virtual void DelegateChoice( const wxString& value );
 
-    wxComboBox() = default;
+    wxComboBox() { }
 
     wxComboBox(wxWindow *parent, wxWindowID id,
            const wxString& value = wxEmptyString,
            const wxPoint& pos = wxDefaultPosition,
            const wxSize& size = wxDefaultSize,
-           int n = 0, const wxString choices[] = nullptr,
+           int n = 0, const wxString choices[] = NULL,
            long style = 0,
            const wxValidator& validator = wxDefaultValidator,
            const wxString& name = wxASCII_STR(wxComboBoxNameStr))
@@ -67,7 +68,7 @@ class WXDLLIMPEXP_CORE wxComboBox :
            const wxString& value = wxEmptyString,
            const wxPoint& pos = wxDefaultPosition,
            const wxSize& size = wxDefaultSize,
-           int n = 0, const wxString choices[] = nullptr,
+           int n = 0, const wxString choices[] = NULL,
            long style = 0,
            const wxValidator& validator = wxDefaultValidator,
            const wxString& name = wxASCII_STR(wxComboBoxNameStr));
@@ -81,55 +82,55 @@ class WXDLLIMPEXP_CORE wxComboBox :
            const wxValidator& validator = wxDefaultValidator,
            const wxString& name = wxASCII_STR(wxComboBoxNameStr));
 
-    virtual int GetSelection() const override;
-    virtual void GetSelection(long *from, long *to) const override;
-    virtual void SetSelection(int n) override;
-    virtual void SetSelection(long from, long to) override;
-    virtual int FindString(const wxString& s, bool bCase = false) const override;
-    virtual wxString GetString(unsigned int n) const override;
-    virtual wxString GetStringSelection() const override;
-    virtual void SetString(unsigned int n, const wxString& s) override;
+    virtual int GetSelection() const wxOVERRIDE;
+    virtual void GetSelection(long *from, long *to) const wxOVERRIDE;
+    virtual void SetSelection(int n) wxOVERRIDE;
+    virtual void SetSelection(long from, long to) wxOVERRIDE;
+    virtual int FindString(const wxString& s, bool bCase = false) const wxOVERRIDE;
+    virtual wxString GetString(unsigned int n) const wxOVERRIDE;
+    virtual wxString GetStringSelection() const wxOVERRIDE;
+    virtual void SetString(unsigned int n, const wxString& s) wxOVERRIDE;
 
-    virtual unsigned int GetCount() const override;
+    virtual unsigned int GetCount() const wxOVERRIDE;
 
-    virtual void SetValue(const wxString& value) override;
+    virtual void SetValue(const wxString& value) wxOVERRIDE;
 // these methods are provided by wxTextEntry for the native impl.
 
 #if wxOSX_USE_COCOA
-    virtual void Popup() override;
-    virtual void Dismiss() override;
+    virtual void Popup() wxOVERRIDE;
+    virtual void Dismiss() wxOVERRIDE;
 #endif // wxOSX_USE_COCOA
 
 
-    virtual const wxTextEntry* WXGetTextEntry() const override { return this; }
+    virtual const wxTextEntry* WXGetTextEntry() const wxOVERRIDE { return this; }
 
     // osx specific event handling common for all osx-ports
 
-    virtual bool OSXHandleClicked(double timestampsec) override;
+    virtual bool OSXHandleClicked(double timestampsec) wxOVERRIDE;
 
 #if wxOSX_USE_COCOA
     wxComboWidgetImpl* GetComboPeer() const;
 #endif
 protected:
     // List functions
-    virtual void DoDeleteOneItem(unsigned int n) override;
-    virtual void DoClear() override;
+    virtual void DoDeleteOneItem(unsigned int n) wxOVERRIDE;
+    virtual void DoClear() wxOVERRIDE;
 
     // wxTextEntry functions
-    virtual wxWindow *GetEditableWindow() override { return this; }
+    virtual wxWindow *GetEditableWindow() wxOVERRIDE { return this; }
 
     // override the base class virtuals involved in geometry calculations
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
     virtual int DoInsertItems(const wxArrayStringsAdapter& items,
                               unsigned int pos,
-                              void **clientData, wxClientDataType type) override;
+                              void **clientData, wxClientDataType type) wxOVERRIDE;
 
-    virtual void DoSetItemClientData(unsigned int n, void* clientData) override;
-    virtual void * DoGetItemClientData(unsigned int n) const override;
+    virtual void DoSetItemClientData(unsigned int n, void* clientData) wxOVERRIDE;
+    virtual void * DoGetItemClientData(unsigned int n) const wxOVERRIDE;
 
 
-    virtual void EnableTextChangedEvents(bool enable) override;
+    virtual void EnableTextChangedEvents(bool enable) wxOVERRIDE;
 
     // callbacks
     void OnChar(wxKeyEvent& event); // Process 'enter' if required

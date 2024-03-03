@@ -22,38 +22,64 @@
 #include "asserthelper.h"
 
 // ----------------------------------------------------------------------------
-// tests
+// test class
 // ----------------------------------------------------------------------------
 
-TEST_CASE("wxRect::CentreIn", "[rect]")
+class RectTestCase : public CppUnit::TestCase
+{
+public:
+    RectTestCase() { }
+
+private:
+    CPPUNIT_TEST_SUITE( RectTestCase );
+        CPPUNIT_TEST( CentreIn );
+        CPPUNIT_TEST( InflateDeflate );
+        CPPUNIT_TEST( Operators );
+        CPPUNIT_TEST( Union );
+    CPPUNIT_TEST_SUITE_END();
+
+    void CentreIn();
+    void InflateDeflate();
+    void Operators();
+    void Union();
+
+    wxDECLARE_NO_COPY_CLASS(RectTestCase);
+};
+
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( RectTestCase );
+
+// also include in its own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( RectTestCase, "RectTestCase" );
+
+void RectTestCase::CentreIn()
 {
     typedef wxRect R;
 
-    CHECK( R(0, 0, 10, 10).CentreIn(R(0, 0, 100, 100)) == R(45, 45, 10, 10) );
-    CHECK( R(0, 0, 20, 20).CentreIn(R(0, 0, 10, 10)) == R(-5, -5, 20, 20) );
+    CPPUNIT_ASSERT_EQUAL( R(45, 45, 10, 10),
+                          R(0, 0, 10, 10).CentreIn(R(0, 0, 100, 100)));
 
-    R r(-10, -10, 20, 20);
-    r.MakeCenteredIn(R(0, 0, 100, 100), wxHORIZONTAL);
-    CHECK( r == R(40, -10, 20, 20) );
+    CPPUNIT_ASSERT_EQUAL( R(-5, -5, 20, 20),
+                          R(0, 0, 20, 20).CentreIn(R(0, 0, 10, 10)));
 }
 
-TEST_CASE("wxRect::InflateDeflate", "[rect]")
+void RectTestCase::InflateDeflate()
 {
     // This is the rectangle from the example in the documentation of wxRect::Inflate().
     const wxRect r1(10, 10, 20, 40);
 
-    CHECK(r1.Inflate( 10,  10)==wxRect(  0,   0, 40,  60));
-    CHECK(r1.Inflate( 20,  30)==wxRect(-10, -20, 60, 100));
-    CHECK(r1.Inflate(-10, -10)==wxRect( 20,  20,  0,  20));
-    CHECK(r1.Inflate(-15, -15)==wxRect( 20,  25,  0,  10));
+    CPPUNIT_ASSERT(r1.Inflate( 10,  10)==wxRect(  0,   0, 40,  60));
+    CPPUNIT_ASSERT(r1.Inflate( 20,  30)==wxRect(-10, -20, 60, 100));
+    CPPUNIT_ASSERT(r1.Inflate(-10, -10)==wxRect( 20,  20,  0,  20));
+    CPPUNIT_ASSERT(r1.Inflate(-15, -15)==wxRect( 20,  25,  0,  10));
 
-    CHECK(r1.Inflate( 10,  10)==r1.Deflate(-10, -10));
-    CHECK(r1.Inflate( 20,  30)==r1.Deflate(-20, -30));
-    CHECK(r1.Inflate(-10, -10)==r1.Deflate( 10,  10));
-    CHECK(r1.Inflate(-15, -15)==r1.Deflate( 15,  15));
+    CPPUNIT_ASSERT(r1.Inflate( 10,  10)==r1.Deflate(-10, -10));
+    CPPUNIT_ASSERT(r1.Inflate( 20,  30)==r1.Deflate(-20, -30));
+    CPPUNIT_ASSERT(r1.Inflate(-10, -10)==r1.Deflate( 10,  10));
+    CPPUNIT_ASSERT(r1.Inflate(-15, -15)==r1.Deflate( 15,  15));
 }
 
-TEST_CASE("wxRect::Operators", "[rect]")
+void RectTestCase::Operators()
 {
     // test + operator which works like Union but does not ignore empty rectangles
     static const struct RectData
@@ -80,20 +106,25 @@ TEST_CASE("wxRect::Operators", "[rect]")
     {
         const RectData& data = s_rects[n];
 
-        CHECK( (data.GetFirst() + data.GetSecond()) == data.GetResult() );
-        CHECK( (data.GetSecond() + data.GetFirst()) == data.GetResult() );
+        CPPUNIT_ASSERT(
+            ( data.GetFirst() + data.GetSecond() ) == data.GetResult()
+        );
+
+        CPPUNIT_ASSERT(
+            ( data.GetSecond() + data.GetFirst() ) == data.GetResult()
+        );
     }
 
     // test operator*() which returns the intersection of two rectangles
     wxRect r1 = wxRect(0, 2, 3, 4);
     wxRect r2 = wxRect(1, 2, 7, 8);
     r1 *= r2;
-    CHECK(wxRect(1, 2, 2, 4) == r1);
+    CPPUNIT_ASSERT(wxRect(1, 2, 2, 4) == r1);
 
-    CHECK( (r1 * wxRect()).IsEmpty() );
+    CPPUNIT_ASSERT( (r1 * wxRect()).IsEmpty() );
 }
 
-TEST_CASE("wxRect::Union", "[rect]")
+void RectTestCase::Union()
 {
     static const struct RectData
     {
@@ -119,8 +150,12 @@ TEST_CASE("wxRect::Union", "[rect]")
     {
         const RectData& data = s_rects[n];
 
-        CHECK( data.GetFirst().Union(data.GetSecond()) == data.GetResult() );
+        CPPUNIT_ASSERT(
+            data.GetFirst().Union(data.GetSecond()) == data.GetResult()
+        );
 
-        CHECK( data.GetSecond().Union(data.GetFirst()) == data.GetResult() );
+        CPPUNIT_ASSERT(
+            data.GetSecond().Union(data.GetFirst()) == data.GetResult()
+        );
     }
 }

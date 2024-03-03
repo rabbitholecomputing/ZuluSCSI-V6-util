@@ -64,14 +64,14 @@ wxIMPLEMENT_ABSTRACT_CLASS(wx28HtmlParser, wxObject);
 
 wx28HtmlParser::wx28HtmlParser()
     : wxObject(), m_HandlersHash(wxKEY_STRING),
-      m_FS(nullptr), m_HandlersStack(nullptr)
+      m_FS(NULL), m_HandlersStack(NULL)
 {
     m_entitiesParser = new wx28HtmlEntitiesParser;
-    m_Tags = nullptr;
-    m_CurTag = nullptr;
-    m_TextPieces = nullptr;
+    m_Tags = NULL;
+    m_CurTag = NULL;
+    m_TextPieces = NULL;
     m_CurTextPiece = 0;
-    m_SavedStates = nullptr;
+    m_SavedStates = NULL;
 }
 
 wx28HtmlParser::~wx28HtmlParser()
@@ -118,7 +118,7 @@ void wx28HtmlParser::SetSource(const wxString& src)
     DestroyDOMTree();
     m_Source = src;
     CreateDOMTree();
-    m_CurTag = nullptr;
+    m_CurTag = NULL;
     m_CurTextPiece = 0;
 }
 
@@ -126,7 +126,7 @@ void wx28HtmlParser::CreateDOMTree()
 {
     wx28HtmlTagsCache cache(m_Source);
     m_TextPieces = new wx28HtmlTextPieces;
-    CreateDOMSubTree(nullptr, 0, m_Source.length(), &cache);
+    CreateDOMSubTree(NULL, 0, m_Source.length(), &cache);
     m_CurTextPiece = 0;
 }
 
@@ -146,7 +146,7 @@ void wx28HtmlParser::CreateDOMSubTree(wx28HtmlTag *cur,
     // and ending tag verbosely. Setting i=end_pos will skip to the very
     // end of this function where text piece is added, bypassing any child
     // tags parsing (CDATA element can't have child elements by definition):
-    if (cur != nullptr && wxIsCDATAElement(cur->GetName().c_str()))
+    if (cur != NULL && wxIsCDATAElement(cur->GetName().c_str()))
     {
         i = end_pos;
     }
@@ -197,7 +197,7 @@ void wx28HtmlParser::CreateDOMSubTree(wx28HtmlTag *cur,
                                         i, end_pos, cache, m_entitiesParser);
                 else
                 {
-                    chd = new wx28HtmlTag(nullptr, m_Source,
+                    chd = new wx28HtmlTag(NULL, m_Source,
                                         i, end_pos, cache, m_entitiesParser);
                     if (!m_Tags)
                     {
@@ -253,10 +253,10 @@ void wx28HtmlParser::DestroyDOMTree()
         delete t1;
         t1 = t2;
     }
-    m_Tags = m_CurTag = nullptr;
+    m_Tags = m_CurTag = NULL;
 
     delete m_TextPieces;
-    m_TextPieces = nullptr;
+    m_TextPieces = NULL;
 }
 
 void wx28HtmlParser::DoParsing()
@@ -347,7 +347,7 @@ void wx28HtmlParser::PushTagHandler(wx28HtmlTagHandler *handler, const wxString&
     wxStringTokenizer tokenizer(tags, wxT(", "));
     wxString key;
 
-    if (m_HandlersStack == nullptr)
+    if (m_HandlersStack == NULL)
     {
         m_HandlersStack = new wxList;
     }
@@ -367,7 +367,12 @@ void wx28HtmlParser::PopTagHandler()
     wxList::compatibility_iterator first;
 
     if ( !m_HandlersStack ||
-         !(first = m_HandlersStack->GetFirst()) )
+#if wxUSE_STL
+         !(first = m_HandlersStack->GetFirst())
+#else // !wxUSE_STL
+         ((first = m_HandlersStack->GetFirst()) == NULL)
+#endif // wxUSE_STL/!wxUSE_STL
+        )
     {
         wxLogWarning(_("Warning: attempt to remove HTML tag handler from empty stack."));
         return;
@@ -390,9 +395,9 @@ void wx28HtmlParser::SetSourceAndSaveState(const wxString& src)
     s->m_nextState = m_SavedStates;
     m_SavedStates = s;
 
-    m_CurTag = nullptr;
-    m_Tags = nullptr;
-    m_TextPieces = nullptr;
+    m_CurTag = NULL;
+    m_Tags = NULL;
+    m_TextPieces = NULL;
     m_CurTextPiece = 0;
     m_Source = wxEmptyString;
 
@@ -447,16 +452,35 @@ void wx28HtmlTagHandler::ParseInnerSource(const wxString& source)
 wxIMPLEMENT_DYNAMIC_CLASS(wx28HtmlEntitiesParser,wxObject);
 
 wx28HtmlEntitiesParser::wx28HtmlEntitiesParser()
+#if !wxUSE_UNICODE
+    : m_conv(NULL), m_encoding(wxFONTENCODING_SYSTEM)
+#endif
 {
 }
 
 wx28HtmlEntitiesParser::~wx28HtmlEntitiesParser()
 {
+#if !wxUSE_UNICODE
+    delete m_conv;
+#endif
 }
 
 void wx28HtmlEntitiesParser::SetEncoding(wxFontEncoding encoding)
 {
+#if !wxUSE_UNICODE
+    if (encoding == m_encoding)
+        return;
+
+    delete m_conv;
+
+    m_encoding = encoding;
+    if (m_encoding == wxFONTENCODING_SYSTEM)
+        m_conv = NULL;
+    else
+        m_conv = new wxCSConv(wxFontMapper::GetEncodingName(m_encoding));
+#else
     (void) encoding;
+#endif
 }
 
 wxString wx28HtmlEntitiesParser::Parse(const wxString& input)
@@ -517,6 +541,20 @@ extern "C" int LINKAGEMODE wx28HtmlEntityCompare(const void *key, const void *it
 {
     return wxStrcmp((wxChar*)key, ((wx28HtmlEntityInfo*)item)->name);
 }
+
+#if !wxUSE_UNICODE
+wxChar wx28HtmlEntitiesParser::GetCharForCode(unsigned code)
+{
+    char buf[2];
+    wchar_t wbuf[2];
+    wbuf[0] = (wchar_t)code;
+    wbuf[1] = 0;
+    wxMBConv *conv = m_conv ? m_conv : &wxConvLocal;
+    if (conv->WC2MB(buf, wbuf, 2) == (size_t)-1)
+        return '?';
+    return buf[0];
+}
+#endif
 
 wxChar wx28HtmlEntitiesParser::GetEntityChar(const wxString& entity)
 {
@@ -794,14 +832,14 @@ wxChar wx28HtmlEntitiesParser::GetEntityChar(const wxString& entity)
             { wxT("zeta"),950 },
             { wxT("zwj"),8205 },
             { wxT("zwnj"),8204 },
-            {nullptr, 0}};
+            {NULL, 0}};
         static size_t substitutions_cnt = 0;
 
         if (substitutions_cnt == 0)
             while (substitutions[substitutions_cnt].code != 0)
                 substitutions_cnt++;
 
-        wx28HtmlEntityInfo *info = nullptr;
+        wx28HtmlEntityInfo *info = NULL;
         info = (wx28HtmlEntityInfo*) bsearch(entity.c_str(), substitutions,
                                            substitutions_cnt,
                                            sizeof(wx28HtmlEntityInfo),
@@ -819,7 +857,7 @@ wxChar wx28HtmlEntitiesParser::GetEntityChar(const wxString& entity)
 wxFSFile *wx28HtmlParser::OpenURL(wx28HtmlURLType WXUNUSED(type),
                                 const wxString& url) const
 {
-    return m_FS ? m_FS->OpenFile(url) : nullptr;
+    return m_FS ? m_FS->OpenFile(url) : NULL;
 
 }
 
@@ -833,7 +871,7 @@ class wxMetaTagParser : public wx28HtmlParser
 public:
     wxMetaTagParser() { }
 
-    wxObject* GetProduct() { return nullptr; }
+    wxObject* GetProduct() { return NULL; }
 
 protected:
     virtual void AddText(const wxChar* WXUNUSED(txt)) {}

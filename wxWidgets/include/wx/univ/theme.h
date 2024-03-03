@@ -4,6 +4,7 @@
 //              application including the look (wxRenderer), feel
 //              (wxInputHandler) and the colours (wxColourScheme)
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     06.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -34,13 +35,13 @@ public:
     // create the default theme
     static bool CreateDefault();
 
-    // create the theme by name (will return nullptr if not found)
+    // create the theme by name (will return NULL if not found)
     static wxTheme *Create(const wxString& name);
 
     // change the current scheme
     static wxTheme *Set(wxTheme *theme);
 
-    // get the current theme (never null)
+    // get the current theme (never NULL)
     static wxTheme *Get() { return ms_theme; }
 
     // the theme methods
@@ -116,7 +117,7 @@ struct WXDLLIMPEXP_CORE wxThemeInfo
     // the function to create a theme object
     Constructor ctor;
 
-    // next node in the linked list or nullptr
+    // next node in the linked list or NULL
     wxThemeInfo *next;
 
     // constructor for the struct itself

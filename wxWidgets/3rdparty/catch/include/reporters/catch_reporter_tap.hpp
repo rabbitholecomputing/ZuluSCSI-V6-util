@@ -19,57 +19,61 @@
 
 namespace Catch {
 
-    struct TAPReporter : StreamingReporterBase<TAPReporter> {
+    struct TAPReporter : StreamingReporterBase {
 
-        using StreamingReporterBase::StreamingReporterBase;
+        TAPReporter( ReporterConfig const& _config )
+        : StreamingReporterBase( _config ),
+          counter(0)
+        {}
 
-        TAPReporter( ReporterConfig const& config ):
-            StreamingReporterBase( config ) {
-            m_reporterPrefs.shouldReportAllAssertions = true;
-        }
-
-        ~TAPReporter() override;
+        virtual ~TAPReporter();
 
         static std::string getDescription() {
-            return "Reports test results in TAP format, suitable for test harnesses";
+            return "Reports test results in TAP format, suitable for test harneses";
         }
 
-        void noMatchingTestCases( std::string const& spec ) override {
+        virtual ReporterPreferences getPreferences() const {
+            ReporterPreferences prefs;
+            prefs.shouldRedirectStdOut = false;
+            return prefs;
+        }
+
+        virtual void noMatchingTestCases( std::string const& spec ) {
             stream << "# No test cases matched '" << spec << "'" << std::endl;
         }
 
-        void assertionStarting( AssertionInfo const& ) override {}
+        virtual void assertionStarting( AssertionInfo const& ) {}
 
-        bool assertionEnded( AssertionStats const& _assertionStats ) override {
+        virtual bool assertionEnded( AssertionStats const& _assertionStats ) {
             ++counter;
 
-            stream << "# " << currentTestCaseInfo->name << std::endl;
             AssertionPrinter printer( stream, _assertionStats, counter );
             printer.print();
+            stream << " # " << currentTestCaseInfo->name ;
 
             stream << std::endl;
             return true;
         }
 
-        void testRunEnded( TestRunStats const& _testRunStats ) override {
+        virtual void testRunEnded( TestRunStats const& _testRunStats ) {
             printTotals( _testRunStats.totals );
             stream << "\n" << std::endl;
             StreamingReporterBase::testRunEnded( _testRunStats );
         }
 
     private:
-        std::size_t counter = 0;
+        size_t counter;
         class AssertionPrinter {
+            void operator= ( AssertionPrinter const& );
         public:
-            AssertionPrinter& operator= ( AssertionPrinter const& ) = delete;
-            AssertionPrinter( AssertionPrinter const& ) = delete;
-            AssertionPrinter( std::ostream& _stream, AssertionStats const& _stats, std::size_t _counter )
+            AssertionPrinter( std::ostream& _stream, AssertionStats const& _stats, size_t counter )
             : stream( _stream )
+            , stats( _stats )
             , result( _stats.assertionResult )
             , messages( _stats.infoMessages )
             , itMessage( _stats.infoMessages.begin() )
             , printInfoMessages( true )
-            , counter(_counter)
+            , counter(counter)
             {}
 
             void print() {
@@ -204,15 +208,16 @@ namespace Catch {
                     return;
                 }
 
-                const auto itEnd = messages.cend();
-                const auto N = static_cast<std::size_t>( std::distance( itMessage, itEnd ) );
+                // using messages.end() directly yields compilation error:
+                std::vector<MessageInfo>::const_iterator itEnd = messages.end();
+                const std::size_t N = static_cast<std::size_t>( std::distance( itMessage, itEnd ) );
 
                 {
                     Colour colourGuard( colour );
                     stream << " with " << pluralise( N, "message" ) << ":";
                 }
 
-                while( itMessage != itEnd ) {
+                for(; itMessage != itEnd; ) {
                     // If this assertion is a warning ignore any INFO messages
                     if( printInfoMessages || itMessage->type != ResultWas::Info ) {
                         stream << " '" << itMessage->message << "'";
@@ -220,25 +225,25 @@ namespace Catch {
                             Colour colourGuard( dimColour() );
                             stream << " and";
                         }
-                        continue;
                     }
-                    ++itMessage;
                 }
             }
 
         private:
             std::ostream& stream;
+            AssertionStats const& stats;
             AssertionResult const& result;
             std::vector<MessageInfo> messages;
             std::vector<MessageInfo>::const_iterator itMessage;
             bool printInfoMessages;
-            std::size_t counter;
+            size_t counter;
         };
 
         void printTotals( const Totals& totals ) const {
-            stream << "1.." << totals.assertions.total();
             if( totals.testCases.total() == 0 ) {
-                stream << " # Skipped: No tests ran.";
+                stream << "1..0 # Skipped: No tests ran.";
+            } else {
+                stream << "1.." << counter;
             }
         }
     };
@@ -247,7 +252,7 @@ namespace Catch {
     TAPReporter::~TAPReporter() {}
 #endif
 
-    CATCH_REGISTER_REPORTER( "tap", TAPReporter )
+    INTERNAL_CATCH_REGISTER_REPORTER( "tap", TAPReporter )
 
 } // end namespace Catch
 

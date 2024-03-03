@@ -2,6 +2,7 @@
 // Name:        wx/osx/frame.h
 // Purpose:     wxFrame class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -20,7 +21,7 @@ class WXDLLIMPEXP_CORE wxFrame: public wxFrameBase
 {
 public:
     // construction
-    wxFrame() = default;
+    wxFrame() { }
     wxFrame(wxWindow *parent,
             wxWindowID id,
             const wxString& title,
@@ -45,11 +46,11 @@ public:
 
     // get the origin of the client area (which may be different from (0, 0)
     // if the frame has a toolbar) in client coordinates
-    virtual wxPoint GetClientAreaOrigin() const override;
+    virtual wxPoint GetClientAreaOrigin() const wxOVERRIDE;
 
     // override some more virtuals
-    virtual bool Show(bool show = true) override;
-    virtual bool Enable(bool enable = true) override;
+    virtual bool Show(bool show = true) wxOVERRIDE;
+    virtual bool Enable(bool enable = true) wxOVERRIDE;
 
     // event handlers
     void OnActivate(wxActivateEvent& event);
@@ -59,9 +60,9 @@ public:
 #if wxUSE_TOOLBAR
     virtual wxToolBar* CreateToolBar(long style = -1,
                                      wxWindowID id = -1,
-                                     const wxString& name = wxASCII_STR(wxToolBarNameStr)) override;
+                                     const wxString& name = wxASCII_STR(wxToolBarNameStr)) wxOVERRIDE;
 
-    virtual void SetToolBar(wxToolBar *toolbar) override;
+    virtual void SetToolBar(wxToolBar *toolbar) wxOVERRIDE;
 #endif // wxUSE_TOOLBAR
 
     // Status bar
@@ -69,34 +70,34 @@ public:
     virtual wxStatusBar* OnCreateStatusBar(int number = 1,
                                            long style = wxSTB_DEFAULT_STYLE,
                                            wxWindowID id = 0,
-                                           const wxString& name = wxASCII_STR(wxStatusLineNameStr)) override;
+                                           const wxString& name = wxASCII_STR(wxStatusLineNameStr)) wxOVERRIDE;
 
-    virtual void SetStatusBar(wxStatusBar *statbar) override;
+    virtual void SetStatusBar(wxStatusBar *statbar) wxOVERRIDE;
 #endif // wxUSE_STATUSBAR
 
     void PositionBars();
 
     // internal response to size events
-    virtual void MacOnInternalSize() override { PositionBars(); }
+    virtual void MacOnInternalSize() wxOVERRIDE { PositionBars(); }
 
 protected:
 #if wxUSE_TOOLBAR
-    virtual void PositionToolBar() override;
+    virtual void PositionToolBar() wxOVERRIDE;
 #endif
 #if wxUSE_STATUSBAR
-    virtual void PositionStatusBar() override;
+    virtual void PositionStatusBar() wxOVERRIDE;
 #endif
 
     // override base class virtuals
-    virtual void DoGetClientSize(int *width, int *height) const override;
-    virtual void DoSetClientSize(int width, int height) override;
+    virtual void DoGetClientSize(int *width, int *height) const wxOVERRIDE;
+    virtual void DoSetClientSize(int width, int height) wxOVERRIDE;
 
 #if wxUSE_MENUBAR
-    virtual void DetachMenuBar() override;
-    virtual void AttachMenuBar(wxMenuBar *menubar) override;
+    virtual void DetachMenuBar() wxOVERRIDE;
+    virtual void AttachMenuBar(wxMenuBar *menubar) wxOVERRIDE;
 #endif
 
-    virtual bool        MacIsChildOfClientArea( const wxWindow* child ) const override;
+    virtual bool        MacIsChildOfClientArea( const wxWindow* child ) const wxOVERRIDE;
 
     wxDECLARE_EVENT_TABLE();
     wxDECLARE_DYNAMIC_CLASS(wxFrame);

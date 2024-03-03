@@ -2,6 +2,7 @@
 // Name:        src/univ/themes/mono.cpp
 // Purpose:     wxUniversal theme for monochrome displays
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     2006-08-27
 // Copyright:   (c) 2006 REA Elektronik GmbH
 // Licence:     wxWindows licence
@@ -55,7 +56,7 @@ public:
                            int flags = 0,
                            int alignment = wxALIGN_LEFT | wxALIGN_TOP,
                            int indexAccel = -1,
-                           wxRect *rectBounds = nullptr);
+                           wxRect *rectBounds = NULL);
     virtual void DrawButtonLabel(wxDC& dc,
                                  const wxString& label,
                                  const wxBitmap& image,
@@ -63,14 +64,14 @@ public:
                                  int flags = 0,
                                  int alignment = wxALIGN_LEFT | wxALIGN_TOP,
                                  int indexAccel = -1,
-                                 wxRect *rectBounds = nullptr);
+                                 wxRect *rectBounds = NULL);
 
     virtual void DrawFocusRect(wxWindow* win, wxDC& dc, const wxRect& rect, int flags = 0);
 
     virtual void DrawButtonBorder(wxDC& dc,
                                   const wxRect& rect,
                                   int flags = 0,
-                                  wxRect *rectIn = nullptr);
+                                  wxRect *rectIn = NULL);
 
     virtual void DrawHorizontalLine(wxDC& dc,
                                     wxCoord y, wxCoord x1, wxCoord x2);
@@ -118,7 +119,7 @@ public:
                                  wxOrientation orient,
                                  int flags = 0,
                                  long style = 0,
-                                 wxRect *rectShaft = nullptr);
+                                 wxRect *rectShaft = NULL);
 
     virtual void DrawSliderThumb(wxDC& dc,
                                  const wxRect& rect,
@@ -517,9 +518,9 @@ WX_IMPLEMENT_THEME(wxMonoTheme, mono, wxTRANSLATE("Simple monochrome theme"));
 
 wxMonoTheme::wxMonoTheme()
 {
-    m_scheme = nullptr;
-    m_renderer = nullptr;
-    m_artProvider = nullptr;
+    m_scheme = NULL;
+    m_renderer = NULL;
+    m_artProvider = NULL;
 }
 
 wxMonoTheme::~wxMonoTheme()
@@ -563,7 +564,7 @@ wxInputHandler *wxMonoTheme::GetInputHandler(const wxString& WXUNUSED(control),
                                              wxInputConsumer *consumer)
 {
     // no special input handlers so far
-    return consumer->DoGetStdInputHandler(nullptr);
+    return consumer->DoGetStdInputHandler(NULL);
 }
 
 // ============================================================================
@@ -938,7 +939,7 @@ wxMenuGeometryInfo *wxMonoRenderer::GetMenuGeometry(wxWindow *WXUNUSED(win),
 {
     wxFAIL_MSG(wxT("TODO"));
 
-    return nullptr;
+    return NULL;
 }
 
 #endif // wxUSE_MENUS

@@ -313,7 +313,7 @@ public:
        Retrieve the text of the line containing the caret.
        Returns the index of the caret on the line.
     */
-    wxCharBuffer GetCurLineRaw(int* linePos=nullptr);
+    wxCharBuffer GetCurLineRaw(int* linePos=NULL);
 
     /**
        Retrieve the contents of a line.
@@ -718,7 +718,7 @@ public:
             The position of the point to check, in window device coordinates.
         @param pos
             Receives the position of the character at the given position. May
-            be @nullptr.
+            be @NULL.
 
         @see PositionToXY(), XYToPosition()
     */
@@ -744,10 +744,10 @@ public:
             The position of the point to check, in window device coordinates.
         @param col
             Receives the column of the character at the given position. May be
-            @nullptr.
+            @NULL.
         @param row
             Receives the row of the character at the given position. May be
-            @nullptr.
+            @NULL.
 
         @see PositionToXY(), XYToPosition()
     */

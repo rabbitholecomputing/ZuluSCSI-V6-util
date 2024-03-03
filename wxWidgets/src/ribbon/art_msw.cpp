@@ -2,6 +2,7 @@
 // Name:        src/ribbon/art_msw.cpp
 // Purpose:     MSW style art provider for ribbon interface
 // Author:      Peter Cawley
+// Modified by:
 // Created:     2009-05-25
 // Copyright:   (C) Peter Cawley
 // Licence:     wxWindows licence
@@ -262,7 +263,7 @@ static const char * const ribbon_help_button_xpm[] = {
 };
 
 wxRibbonMSWArtProvider::wxRibbonMSWArtProvider(bool set_colour_scheme)
-#if defined( __WXOSX__ )
+#if defined( __WXMAC__ )
     : m_tab_label_font(*wxSMALL_FONT)
 #else
     : m_tab_label_font(*wxNORMAL_FONT)
@@ -306,11 +307,11 @@ void wxRibbonMSWArtProvider::GetColourScheme(
                          wxColour* secondary,
                          wxColour* tertiary) const
 {
-    if(primary != nullptr)
+    if(primary != NULL)
         *primary = m_primary_scheme_colour;
-    if(secondary != nullptr)
+    if(secondary != NULL)
         *secondary = m_secondary_scheme_colour;
-    if(tertiary != nullptr)
+    if(tertiary != NULL)
         *tertiary = m_tertiary_scheme_colour;
 }
 
@@ -354,18 +355,12 @@ void wxRibbonMSWArtProvider::SetColourScheme(
     // Map secondary luminance from [0, 1] to [0.1, 0.9]
     secondary_hsl.luminance = std::cos(secondary_hsl.luminance * float(M_PI)) * -0.4f + 0.5f;
 
-    const auto LikePrimary = [primary_hsl, primary_is_gray]
-        (double h, double s, double l)
-        {
-            return primary_hsl.ShiftHue(h).Saturated(primary_is_gray ? 0.0 : s)
-                .Lighter(l).ToRGB();
-        };
-    const auto LikeSecondary = [secondary_hsl, secondary_is_gray]
-        (double h, double s, double l)
-        {
-            return secondary_hsl.ShiftHue(h).Saturated(secondary_is_gray ? 0.0 : s)
-                .Lighter(l).ToRGB();
-        };
+#define LikePrimary(h, s, l) \
+    primary_hsl.ShiftHue(h ## f).Saturated(primary_is_gray ? 0 : s ## f) \
+    .Lighter(l ## f).ToRGB()
+#define LikeSecondary(h, s, l) \
+    secondary_hsl.ShiftHue(h ## f).Saturated(secondary_is_gray ? 0 : s ## f) \
+    .Lighter(l ## f).ToRGB()
 
     m_page_border_pen = LikePrimary(1.4, 0.00, -0.08);
 
@@ -488,6 +483,9 @@ void wxRibbonMSWArtProvider::SetColourScheme(
 
     m_tab_highlight_colour = top_colour2;
     m_tab_highlight_gradient_colour = bottom_colour2;
+
+#undef LikePrimary
+#undef LikeSecondary
 
     // Invalidate cached tab separator
     m_cached_tab_separator_visibility = -1.0;
@@ -693,7 +691,7 @@ int wxRibbonMSWArtProvider::GetMetric(int id) const
         case wxRIBBON_ART_GALLERY_BITMAP_PADDING_BOTTOM_SIZE:
             return m_gallery_bitmap_padding_bottom_size;
         default:
-            wxFAIL_MSG("Invalid Metric Ordinal");
+            wxFAIL_MSG(wxT("Invalid Metric Ordinal"));
             break;
     }
 
@@ -741,7 +739,7 @@ void wxRibbonMSWArtProvider::SetMetric(int id, int new_val)
             m_gallery_bitmap_padding_bottom_size = new_val;
             break;
         default:
-            wxFAIL_MSG("Invalid Metric Ordinal");
+            wxFAIL_MSG(wxT("Invalid Metric Ordinal"));
             break;
     }
 }
@@ -760,7 +758,7 @@ void wxRibbonMSWArtProvider::SetFont(int id, const wxFont& font)
             m_panel_label_font = font;
             break;
         default:
-            wxFAIL_MSG("Invalid Metric Ordinal");
+            wxFAIL_MSG(wxT("Invalid Metric Ordinal"));
             break;
     }
 }
@@ -776,7 +774,7 @@ wxFont wxRibbonMSWArtProvider::GetFont(int id) const
         case wxRIBBON_ART_PANEL_LABEL_FONT:
             return m_panel_label_font;
         default:
-            wxFAIL_MSG("Invalid Metric Ordinal");
+            wxFAIL_MSG(wxT("Invalid Metric Ordinal"));
             break;
     }
 
@@ -975,7 +973,7 @@ wxColour wxRibbonMSWArtProvider::GetColour(int id) const
         case wxRIBBON_ART_TOOL_ACTIVE_BACKGROUND_GRADIENT_COLOUR:
             return m_tool_active_background_gradient_colour;
         default:
-            wxFAIL_MSG("Invalid Metric Ordinal");
+            wxFAIL_MSG(wxT("Invalid Metric Ordinal"));
             break;
     }
 
@@ -1322,7 +1320,7 @@ void wxRibbonMSWArtProvider::SetColour(int id, const wxColor& colour)
             m_tool_active_background_gradient_colour = colour;
             break;        
         default:
-            wxFAIL_MSG("Invalid Metric Ordinal");
+            wxFAIL_MSG(wxT("Invalid Metric Ordinal"));
             break;
     }
 }
@@ -1454,7 +1452,7 @@ void wxRibbonMSWArtProvider::DrawTab(
     if(m_flags & wxRIBBON_BAR_SHOW_PAGE_LABELS)
     {
         wxString label = tab.page->GetLabel();
-        if(!label.empty())
+        if(!label.IsEmpty())
         {
             dc.SetFont(m_tab_label_font);
 
@@ -1921,7 +1919,7 @@ void wxRibbonMSWArtProvider::DrawPanelBackground(
         if(label_size.GetWidth() > label_rect.GetWidth())
         {
             // Test if there is enough length for 3 letters and ...
-            wxString new_label = label.Mid(0, 3) + "...";
+            wxString new_label = label.Mid(0, 3) + wxT("...");
             label_size = dc.GetTextExtent(new_label);
             if(label_size.GetWidth() > label_rect.GetWidth())
             {
@@ -1935,7 +1933,7 @@ void wxRibbonMSWArtProvider::DrawPanelBackground(
                 // Display as many characters as possible and append ...
                 for(size_t len = label.Len() - 1; len >= 3; --len)
                 {
-                    new_label = label.Mid(0, len) + "...";
+                    new_label = label.Mid(0, len) + wxT("...");
                     label_size = dc.GetTextExtent(new_label);
                     if(label_size.GetWidth() <= label_rect.GetWidth())
                     {
@@ -2251,7 +2249,7 @@ void wxRibbonMSWArtProvider::DrawMinimisedPanel(
     wxRect true_rect(rect);
     RemovePanelPadding(&true_rect);
 
-    if(wnd->GetExpandedPanel() != nullptr)
+    if(wnd->GetExpandedPanel() != NULL)
     {
         wxRect client_rect(true_rect);
         client_rect.x++;
@@ -2419,15 +2417,15 @@ void wxRibbonMSWArtProvider::DrawPartialPageBackground(
     // hovered panel somewhere between the window and the page, as it causes
     // the background to change.
     wxPoint offset(wnd->GetPosition());
-    wxRibbonPage* page = nullptr;
+    wxRibbonPage* page = NULL;
     wxWindow* parent = wnd->GetParent();
     wxRibbonPanel* panel = wxDynamicCast(wnd, wxRibbonPanel);
     bool hovered = false;
 
-    if(panel != nullptr)
+    if(panel != NULL)
     {
         hovered = allow_hovered && panel->IsHovered();
-        if(panel->GetExpandedDummy() != nullptr)
+        if(panel->GetExpandedDummy() != NULL)
         {
             offset = panel->GetExpandedDummy()->GetPosition();
             parent = panel->GetExpandedDummy()->GetParent();
@@ -2435,26 +2433,26 @@ void wxRibbonMSWArtProvider::DrawPartialPageBackground(
     }
     for(; parent; parent = parent->GetParent())
     {
-        if(panel == nullptr)
+        if(panel == NULL)
         {
             panel = wxDynamicCast(parent, wxRibbonPanel);
-            if(panel != nullptr)
+            if(panel != NULL)
             {
                 hovered = allow_hovered && panel->IsHovered();
-                if(panel->GetExpandedDummy() != nullptr)
+                if(panel->GetExpandedDummy() != NULL)
                 {
                     parent = panel->GetExpandedDummy();
                 }
             }
         }
         page = wxDynamicCast(parent, wxRibbonPage);
-        if(page != nullptr)
+        if(page != NULL)
         {
             break;
         }
         offset += parent->GetPosition();
     }
-    if(page != nullptr)
+    if(page != NULL)
     {
         DrawPartialPageBackground(dc, wnd, rect, page, offset, hovered);
         return;
@@ -2882,7 +2880,7 @@ void wxRibbonMSWArtProvider::GetBarTabWidth(
 {
     int width = 0;
     int min = 0;
-    if((m_flags & wxRIBBON_BAR_SHOW_PAGE_LABELS) && !label.empty())
+    if((m_flags & wxRIBBON_BAR_SHOW_PAGE_LABELS) && !label.IsEmpty())
     {
         dc.SetFont(m_tab_label_font);
         width += dc.GetTextExtent(label).GetWidth();
@@ -2900,19 +2898,19 @@ void wxRibbonMSWArtProvider::GetBarTabWidth(
         min += bitmap.GetLogicalWidth();
     }
 
-    if(ideal != nullptr)
+    if(ideal != NULL)
     {
         *ideal = width + 30;
     }
-    if(small_begin_need_separator != nullptr)
+    if(small_begin_need_separator != NULL)
     {
         *small_begin_need_separator = width + 20;
     }
-    if(small_must_have_separator != nullptr)
+    if(small_must_have_separator != NULL)
     {
         *small_must_have_separator = width + 10;
     }
-    if(minimum != nullptr)
+    if(minimum != NULL)
     {
         *minimum = min;
     }
@@ -2936,7 +2934,7 @@ int wxRibbonMSWArtProvider::GetTabCtrlHeight(
     if(m_flags & wxRIBBON_BAR_SHOW_PAGE_LABELS)
     {
         dc.SetFont(m_tab_label_font);
-        text_height = dc.GetTextExtent("ABCDEFXj").GetHeight() + 10;
+        text_height = dc.GetTextExtent(wxT("ABCDEFXj")).GetHeight() + 10;
     }
     if(m_flags & wxRIBBON_BAR_SHOW_PAGE_ICONS)
     {
@@ -2977,7 +2975,7 @@ wxSize wxRibbonMSWArtProvider::GetPanelSize(
     else
         client_size.IncBy(6, 6);
 
-    if(client_offset != nullptr)
+    if(client_offset != NULL)
     {
         if(m_flags & wxRIBBON_BAR_FLOW_VERTICAL)
             *client_offset = wxPoint(2, 3);
@@ -3003,7 +3001,7 @@ wxSize wxRibbonMSWArtProvider::GetPanelClientSize(
     else
         size.DecBy(6, 6);
 
-    if(client_offset != nullptr)
+    if(client_offset != NULL)
     {
         if(m_flags & wxRIBBON_BAR_FLOW_VERTICAL)
             *client_offset = wxPoint(2, 3);
@@ -3078,13 +3076,13 @@ wxSize wxRibbonMSWArtProvider::GetGalleryClientSize(
         size.DecBy( 2, 1);
     }
 
-    if(client_offset != nullptr)
+    if(client_offset != NULL)
         *client_offset = wxPoint(2, 1);
-    if(scroll_up_button != nullptr)
+    if(scroll_up_button != NULL)
         *scroll_up_button = scroll_up;
-    if(scroll_down_button != nullptr)
+    if(scroll_down_button != NULL)
         *scroll_down_button = scroll_down;
-    if(extension_button != nullptr)
+    if(extension_button != NULL)
         *extension_button = extension;
 
     return size;
@@ -3307,11 +3305,11 @@ wxSize wxRibbonMSWArtProvider::GetMinimisedPanelMinimumSize(
                         wxSize* desired_bitmap_size,
                         wxDirection* expanded_panel_direction)
 {
-    if(desired_bitmap_size != nullptr)
+    if(desired_bitmap_size != NULL)
     {
         *desired_bitmap_size = wxSize(16, 16);
     }
-    if(expanded_panel_direction != nullptr)
+    if(expanded_panel_direction != NULL)
     {
         if(m_flags & wxRIBBON_BAR_FLOW_VERTICAL)
             *expanded_panel_direction = wxEAST;

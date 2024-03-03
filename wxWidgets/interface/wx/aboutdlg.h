@@ -37,20 +37,13 @@
         aboutInfo.SetName("MyApp");
         aboutInfo.SetVersion(MY_APP_VERSION_STRING);
         aboutInfo.SetDescription(_("My wxWidgets-based application!"));
-        aboutInfo.SetCopyright("(C) 1992-2024");
+        aboutInfo.SetCopyright("(C) 1992-2023");
         aboutInfo.SetWebSite("http://myapp.org");
         aboutInfo.AddDeveloper("My Self");
 
         wxAboutBox(aboutInfo);
     }
     @endcode
-
-    Example of appearance of a simple about dialog:
-    @appearance{about-simple}
-
-    And that of a dialog using a web site link, which results in using the
-    generic version under MSW and Mac:
-    @appearance{about-with-url}
 
     @library{wxcore}
     @category{cmndlg,data}
@@ -146,10 +139,6 @@ public:
         any occurrences of @c "(C)" in @a copyright will be replaced by the
         copyright symbol (circled C) automatically, which means that you can avoid
         using this symbol in the program source code which can be problematic,
-
-        Also note that under MSW platform the word "Copyright" itself will be
-        removed from the string if it is followed by the copyright symbol, to
-        follow the platform convention.
     */
     void SetCopyright(const wxString& copyright);
 
@@ -354,7 +343,7 @@ public:
         info.SetName(_("My Program"));
         info.SetVersion(_("1.2.3 Beta"));
         info.SetDescription(_("This program does something great."));
-        info.SetCopyright("(C) 2007 Me <my@email.addre.ss>");
+        info.SetCopyright(wxT("(C) 2007 Me <my@email.addre.ss>"));
 
         wxAboutBox(info);
     }
@@ -366,7 +355,7 @@ public:
 
     @header{wx/aboutdlg.h}
 */
-void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = nullptr);
+void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = NULL);
 
 /**
     This function does the same thing as wxAboutBox() except that it always uses
@@ -383,6 +372,6 @@ void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = nullptr);
 
     @header{wx/aboutdlg.h}
 */
-void wxGenericAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = nullptr);
+void wxGenericAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = NULL);
 
 ///@}

@@ -2,6 +2,7 @@
 // Name:        src/osx/iphone/window.mm
 // Purpose:     widgets (non tlw) for iphone
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     2008-06-20
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -197,7 +198,7 @@ void SetupMouseEvent( wxMouseEvent &wxevent , NSSet* touches, UIEvent * nsEvent 
 void wxOSX_touchEvent(UIView* self, SEL _cmd, NSSet* touches, UIEvent *event )
 {
     wxWidgetIPhoneImpl* impl = (wxWidgetIPhoneImpl* ) wxWidgetImpl::FindFromWXWidget( self );
-    if (impl == nullptr)
+    if (impl == NULL)
         return;
 
     impl->touchEvent(touches, event, self, _cmd);
@@ -206,7 +207,7 @@ void wxOSX_touchEvent(UIView* self, SEL _cmd, NSSet* touches, UIEvent *event )
 BOOL wxOSX_becomeFirstResponder(UIView* self, SEL _cmd)
 {
     wxWidgetIPhoneImpl* impl = (wxWidgetIPhoneImpl* ) wxWidgetImpl::FindFromWXWidget( self );
-    if (impl == nullptr)
+    if (impl == NULL)
         return NO;
 
     return impl->becomeFirstResponder(self, _cmd);
@@ -215,7 +216,7 @@ BOOL wxOSX_becomeFirstResponder(UIView* self, SEL _cmd)
 BOOL wxOSX_resignFirstResponder(UIView* self, SEL _cmd)
 {
     wxWidgetIPhoneImpl* impl = (wxWidgetIPhoneImpl* ) wxWidgetImpl::FindFromWXWidget( self );
-    if (impl == nullptr)
+    if (impl == NULL)
         return NO;
 
     return impl->resignFirstResponder(self, _cmd);
@@ -224,7 +225,7 @@ BOOL wxOSX_resignFirstResponder(UIView* self, SEL _cmd)
 void wxOSX_drawRect(UIView* self, SEL _cmd, CGRect rect)
 {
     wxWidgetIPhoneImpl* impl = (wxWidgetIPhoneImpl* ) wxWidgetImpl::FindFromWXWidget( self );
-    if (impl == nullptr)
+    if (impl == NULL)
         return;
 
     return impl->drawRect(&rect, self, _cmd);
@@ -257,14 +258,14 @@ void wxOSXIPhoneClassAddWXMethods(Class c)
 - (void) WX_touchUpInsideAction:(id)sender event:(UIEvent*)event
 {
     wxWidgetIPhoneImpl* impl = (wxWidgetIPhoneImpl* ) wxWidgetImpl::FindFromWXWidget( self );
-    if (impl != nullptr)
+    if (impl != NULL)
         impl->controlAction(sender, UIControlEventTouchUpInside, event);
 }
 
 - (void) WX_valueChangedAction:(id)sender event:(UIEvent*)event
 {
     wxWidgetIPhoneImpl* impl = (wxWidgetIPhoneImpl* ) wxWidgetImpl::FindFromWXWidget( self );
-    if (impl != nullptr)
+    if (impl != NULL)
         impl->controlAction(sender, UIControlEventValueChanged, event);
 }
 
@@ -283,7 +284,7 @@ wxWidgetIPhoneImpl::wxWidgetIPhoneImpl()
 
 void wxWidgetIPhoneImpl::Init()
 {
-    m_osxView = nullptr;
+    m_osxView = NULL;
 }
 
 wxWidgetIPhoneImpl::~wxWidgetIPhoneImpl()
@@ -403,7 +404,7 @@ void wxWidgetIPhoneImpl::RemoveFromParent()
 void wxWidgetIPhoneImpl::Embed( wxWidgetImpl *parent )
 {
     UIView* container = parent->GetWXWidget() ;
-    wxASSERT_MSG( container != nullptr , wxT("No valid mac container control") ) ;
+    wxASSERT_MSG( container != NULL , wxT("No valid mac container control") ) ;
     [container addSubview:m_osxView];
 }
 
@@ -437,17 +438,17 @@ bool wxWidgetIPhoneImpl::SetBackgroundStyle(wxBackgroundStyle style)
     return true;
 }
 
-void wxWidgetIPhoneImpl::SetLabel(const wxString& title)
+void wxWidgetIPhoneImpl::SetLabel(const wxString& title, wxFontEncoding encoding)
 {
     if ( [m_osxView respondsToSelector:@selector(setTitle:forState:) ] )
     {
-        wxCFStringRef cf( title );
+        wxCFStringRef cf( title , encoding );
         [m_osxView setTitle:cf.AsNSString() forState:UIControlStateNormal ];
     }
 #if 0 // nonpublic API problems
     else if ( [m_osxView respondsToSelector:@selector(setStringValue:) ] )
     {
-        wxCFStringRef cf( title );
+        wxCFStringRef cf( title , encoding );
         [m_osxView setStringValue:cf.AsNSString()];
     }
 #endif
@@ -660,9 +661,9 @@ void wxWidgetIPhoneImpl::drawRect(CGRect* rect, WXWidget slf, void *WXUNUSED(_cm
     wxWindow* wxpeer = GetWXPeer();
     wxpeer->GetUpdateRegion() = updateRgn;
 
-    // note that context may be null in certain views
+    // note that context may be NULL in certain views
     CGContextRef context = (CGContextRef) UIGraphicsGetCurrentContext();
-    if ( context != nullptr )
+    if ( context != NULL )
     {
         CGContextSaveGState( context );
     // draw background
@@ -677,7 +678,7 @@ void wxWidgetIPhoneImpl::drawRect(CGRect* rect, WXWidget slf, void *WXUNUSED(_cm
 
     bool handled = wxpeer->MacDoRedraw( 0 );
 
-    if ( context != nullptr )
+    if ( context != NULL )
     {
         CGContextRestoreGState( context );
         CGContextSaveGState( context );
@@ -691,7 +692,7 @@ void wxWidgetIPhoneImpl::drawRect(CGRect* rect, WXWidget slf, void *WXUNUSED(_cm
         if ( superimpl != wxOSX_drawRect )
         {
             superimpl(slf, _cmd, *rect);
-            if ( context != nullptr )
+            if ( context != NULL )
             {
                 CGContextRestoreGState( context );
                 CGContextSaveGState( context );
@@ -699,13 +700,13 @@ void wxWidgetIPhoneImpl::drawRect(CGRect* rect, WXWidget slf, void *WXUNUSED(_cm
         }
     }
 
-    if ( context != nullptr )
+    if ( context != NULL )
     {
         wxpeer->MacPaintChildrenBorders();
         CGContextRestoreGState( context );
     }
     
-    wxpeer->MacSetCGContextRef( nullptr );
+    wxpeer->MacSetCGContextRef( NULL );
 }
 
 void wxWidgetIPhoneImpl::touchEvent(NSSet* touches, UIEvent *event, WXWidget slf, void *WXUNUSED(_cmd))

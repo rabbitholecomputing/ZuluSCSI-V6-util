@@ -23,7 +23,7 @@ enum wxCondError
     They may be used in a multithreaded application to wait until the given condition
     becomes @true which happens when the condition becomes signaled.
 
-    @note Prefer using @c std::condition rather than this class in the new code.
+    @note In C++11 programs, prefer using @c std::condition to this class.
 
     For example, if a worker thread is doing some long task and another thread has
     to wait until it is finished, the latter thread will wait on the condition
@@ -188,7 +188,7 @@ public:
         return wxCOND_NO_ERROR;
         @endcode
 
-        The predicate would typically be a lambda:
+        The predicate would typically be a C++11 lambda:
         @code
         condvar.Wait([]{return value == 1;});
         @endcode
@@ -486,10 +486,8 @@ public:
         will be executed in the context of the thread that called Delete() and
         <b>not</b> in this thread's context.
 
-        Note that TestDestroy() will block until OnDelete() returns, so this
-        function should return as quickly as possible and definitely shouldn't
-        perform any GUI actions nor try acquiring any locks, as this could
-        easily result in a deadlock.
+        TestDestroy() will be true for the thread before OnDelete() gets
+        executed.
 
         @since 2.9.2
 
@@ -650,7 +648,7 @@ enum wxThreadWait
     /**
         No events are processed while waiting.
 
-        This is the default value.
+        This is the default under all platforms except for wxMSW.
      */
     wxTHREAD_WAIT_BLOCK,
 
@@ -670,8 +668,14 @@ enum wxThreadWait
 
     /**
         Default wait mode for wxThread::Wait() and wxThread::Delete().
+
+        For compatibility reasons, the default wait mode is currently
+        wxTHREAD_WAIT_YIELD if WXWIN_COMPATIBILITY_2_8 is defined (and it is
+        by default). However, as mentioned above, you're strongly encouraged to
+        not use wxTHREAD_WAIT_YIELD and pass wxTHREAD_WAIT_BLOCK to wxThread
+        method explicitly.
      */
-    wxTHREAD_WAIT_DEFAULT = wxTHREAD_WAIT_BLOCK
+    wxTHREAD_WAIT_DEFAULT = wxTHREAD_WAIT_YIELD
 };
 
 /**
@@ -718,7 +722,7 @@ enum wxThreadError
     between threads and processes is that memory spaces of different processes are
     separated while all threads share the same address space.
 
-    @note Prefer using @c std::thread rather than this class in the new code.
+    @note In C++11 programs, consider using @c std::thread instead of this class.
 
     While it makes it much easier to share common data between several threads, it
     also makes it much easier to shoot oneself in the foot, so careful use of
@@ -815,13 +819,13 @@ enum wxThreadError
         {
             wxLogError("Can't create the thread!");
             delete m_pThread;
-            m_pThread = nullptr;
+            m_pThread = NULL;
         }
 
         // after the call to wxThread::Run(), the m_pThread pointer is "unsafe":
         // at any moment the thread may cease to exist (because it completes its work).
         // To avoid dangling pointers OnThreadExit() will set m_pThread
-        // to nullptr when the thread dies.
+        // to NULL when the thread dies.
     }
 
     wxThread::ExitCode MyThread::Entry()
@@ -846,7 +850,7 @@ enum wxThreadError
         wxCriticalSectionLocker enter(m_pHandler->m_pThreadCS);
 
         // the thread is being destroyed; make sure not to leave dangling pointers around
-        m_pHandler->m_pThread = nullptr;
+        m_pHandler->m_pThread = NULL;
     }
 
     void MyFrame::OnThreadCompletion(wxThreadEvent&)
@@ -1068,7 +1072,7 @@ public:
 
         @param rc
             For joinable threads, filled with the thread exit code on
-            successful return, if non-null. For detached threads this
+            successful return, if non-@NULL. For detached threads this
             parameter is not used.
 
         @param waitMode
@@ -1085,7 +1089,7 @@ public:
 
         See @ref thread_deletion for a broader explanation of this routine.
     */
-    wxThreadError Delete(ExitCode *rc = nullptr,
+    wxThreadError Delete(ExitCode *rc = NULL,
                          wxThreadWait waitMode = wxTHREAD_WAIT_DEFAULT);
 
     /**
@@ -1603,7 +1607,7 @@ enum wxMutexError
     from its usefulness in coordinating mutually-exclusive access to a shared
     resource as only one thread at a time can own a mutex object.
 
-    @note Prefer using @c std::mutex rather than this class in the new code.
+    @note In C++11 programs, prefer using @c std::mutex to this class.
 
     Mutexes may be recursive in the sense that a thread can lock a mutex which it
     had already locked before (instead of dead locking the entire process in this

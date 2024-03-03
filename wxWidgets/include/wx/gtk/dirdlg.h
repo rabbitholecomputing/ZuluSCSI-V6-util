@@ -16,7 +16,7 @@
 class WXDLLIMPEXP_CORE wxDirDialog : public wxDirDialogBase
 {
 public:
-    wxDirDialog() = default;
+    wxDirDialog() { }
 
     wxDirDialog(wxWindow *parent,
                 const wxString& message = wxASCII_STR(wxDirSelectorPromptStr),
@@ -32,12 +32,12 @@ public:
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 const wxString& name = wxASCII_STR(wxDirDialogNameStr));
-    virtual ~wxDirDialog() = default;
+    virtual ~wxDirDialog() { }
 
 
 public:     // overrides from wxGenericDirDialog
 
-    void SetPath(const wxString& path) override;
+    void SetPath(const wxString& path) wxOVERRIDE;
 
 
     // Implementation only.
@@ -50,7 +50,7 @@ protected:
     // form doesn't have any m_wxwindow
     virtual void DoSetSize(int x, int y,
                            int width, int height,
-                           int sizeFlags = wxSIZE_AUTO) override;
+                           int sizeFlags = wxSIZE_AUTO) wxOVERRIDE;
 
 
 private:

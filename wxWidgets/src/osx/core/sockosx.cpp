@@ -30,7 +30,7 @@ namespace
 
 // Sockets must use the event loop to monitor the events so we store a
 // reference to the main thread event loop here
-static CFRunLoopRef gs_mainRunLoop = nullptr;
+static CFRunLoopRef gs_mainRunLoop = NULL;
 
 // ----------------------------------------------------------------------------
 // Mac-specific socket implementation
@@ -42,8 +42,8 @@ public:
     wxSocketImplMac(wxSocketBase& wxsocket)
         : wxSocketImplUnix(wxsocket)
     {
-        m_socket = nullptr;
-        m_source = nullptr;
+        m_socket = NULL;
+        m_source = NULL;
     }
 
     virtual ~wxSocketImplMac()
@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    virtual void DoClose() override
+    virtual void DoClose() wxOVERRIDE
     {
         // No need to do anything if we had never created the underlying
         // socket: this avoids creating it from Uninstall_Callback() completely
@@ -83,10 +83,10 @@ private:
         CFSocketInvalidate(m_socket);
 
         CFRelease(m_source);
-        m_source = nullptr;
+        m_source = NULL;
 
         CFRelease(m_socket);
-        m_socket = nullptr;
+        m_socket = NULL;
     }
 
     // initialize the data associated with the given socket
@@ -99,13 +99,13 @@ private:
         CFSocketContext cont;
         cont.version = 0;               // this currently must be 0
         cont.info = this;               // pointer passed to our callback
-        cont.retain = nullptr;          // no need to retain/release/copy the
-        cont.release = nullptr;         //  socket pointer, so all callbacks
-        cont.copyDescription = nullptr; //  can be left nullptr
+        cont.retain = NULL;             // no need to retain/release/copy the
+        cont.release = NULL;            //  socket pointer, so all callbacks
+        cont.copyDescription = NULL;    //  can be left NULL
 
         m_socket = CFSocketCreateWithNative
                    (
-                        nullptr,                   // default allocator
+                        NULL,                   // default allocator
                         m_fd,
                         kCFSocketReadCallBack |
                         kCFSocketWriteCallBack |
@@ -116,12 +116,12 @@ private:
         if ( !m_socket )
             return false;
 
-        m_source = CFSocketCreateRunLoopSource(nullptr, m_socket, 0);
+        m_source = CFSocketCreateRunLoopSource(NULL, m_socket, 0);
 
         if ( !m_source )
         {
             CFRelease(m_socket);
-            m_socket = nullptr;
+            m_socket = NULL;
 
             return false;
         }
@@ -143,13 +143,13 @@ private:
         {
             case kCFSocketConnectCallBack:
                 wxASSERT(!socket->IsServer());
-                // KH: If data is non-null, the connect failed, do not call Detected_Write,
+                // KH: If data is non-NULL, the connect failed, do not call Detected_Write,
                 // which will only end up creating a spurious connect event because the
                 // call to getsocketopt SO_ERROR inexplicably returns no error.
                 // The change in behaviour cannot be traced to any particular commit or
                 // timeframe so I'm not sure what to think, but after so many hours,
                 // this seems to address the issue and it's time to move on.
-                if (data == nullptr)
+                if (data == NULL)
                     socket->OnWriteWaiting();
                 break;
 
@@ -189,16 +189,16 @@ private:
 class wxSocketManagerMac : public wxSocketManager
 {
 public:
-    virtual bool OnInit() override;
-    virtual void OnExit() override;
+    virtual bool OnInit() wxOVERRIDE;
+    virtual void OnExit() wxOVERRIDE;
 
-    virtual wxSocketImpl *CreateSocket(wxSocketBase& wxsocket) override
+    virtual wxSocketImpl *CreateSocket(wxSocketBase& wxsocket) wxOVERRIDE
     {
         return new wxSocketImplMac(wxsocket);
     }
 
-    virtual void Install_Callback(wxSocketImpl *socket, wxSocketNotify event) override;
-    virtual void Uninstall_Callback(wxSocketImpl *socket, wxSocketNotify event) override;
+    virtual void Install_Callback(wxSocketImpl *socket, wxSocketNotify event) wxOVERRIDE;
+    virtual void Uninstall_Callback(wxSocketImpl *socket, wxSocketNotify event) wxOVERRIDE;
 
 private:
     // return CFSocket callback mask corresponding to the given event (the
@@ -211,7 +211,7 @@ private:
 bool wxSocketManagerMac::OnInit()
 {
     // No need to store the main loop again
-    if (gs_mainRunLoop != nullptr)
+    if (gs_mainRunLoop != NULL)
         return true;
 
     // Get the loop for the main thread so our events will actually fire.
@@ -228,9 +228,9 @@ bool wxSocketManagerMac::OnInit()
 
 void wxSocketManagerMac::OnExit()
 {
-    // Release the reference count, and set the reference back to nullptr
+    // Release the reference count, and set the reference back to NULL
     CFRelease(gs_mainRunLoop);
-    gs_mainRunLoop = nullptr;
+    gs_mainRunLoop = NULL;
 }
 
 /* static */

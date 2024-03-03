@@ -19,38 +19,32 @@
 #include "wx/qt/private/converter.h"
 #include "wx/qt/private/winevent.h"
 
+#include <QtWidgets/QScrollArea>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 
 class wxQtMainWindow : public wxQtEventSignalHandler< QMainWindow, wxFrame >
 {
 public:
-    wxQtMainWindow( wxWindow *parent, wxFrame *handler )
-        : wxQtEventSignalHandler< QMainWindow, wxFrame >( parent, handler )
-    {
-    }
+    wxQtMainWindow( wxWindow *parent, wxFrame *handler );
 
 private:
-    virtual bool focusNextPrevChild(bool) override { return false; }
+    virtual bool focusNextPrevChild(bool) wxOVERRIDE { return false; }
 };
 
-// Central widget helper (container which receives events):
+// Central widget helper (container to show scroll bars and receive events):
 
-class wxQtCentralWidget : public wxQtEventSignalHandler< QWidget, wxFrame >
+class wxQtCentralWidget : public wxQtEventSignalHandler< QScrollArea, wxFrame >
 {
-public:
-    wxQtCentralWidget( wxWindow *parent, wxFrame *handler )
-        : wxQtEventSignalHandler< QWidget, wxFrame >( parent, handler )
-    {
-        setFocusPolicy(Qt::NoFocus);
-    }
+    public:
+        wxQtCentralWidget( wxWindow *parent, wxFrame *handler );
 };
 
 
 wxFrame::~wxFrame()
 {
     // central widget should be deleted by qt when the main window is destroyed
-    QtStoreWindowPointer( GetQMainWindow()->centralWidget(), nullptr );
+    QtStoreWindowPointer( GetQMainWindow()->centralWidget(), NULL );
 }
 
 bool wxFrame::Create( wxWindow *parent, wxWindowID id, const wxString& title,
@@ -58,18 +52,15 @@ bool wxFrame::Create( wxWindow *parent, wxWindowID id, const wxString& title,
 {
     m_qtWindow = new wxQtMainWindow( parent, this );
 
-    // QMainWindow takes ownership of the central widget pointer.
-    // Not using QScrollArea or wxPanel is intentional here as it makes the
-    // implementation simpler and more manageable.
-    GetQMainWindow()->setCentralWidget( new wxQtCentralWidget( this, this ) );
+    // TODO: Could we use a wxPanel as the central widget? If so then we could
+    // remove wxWindow::QtReparent.
+
+    GetQMainWindow()->setCentralWidget( new wxQtCentralWidget( parent, this ) );
 
     if ( !wxFrameBase::Create( parent, id, title, pos, size, style, name ) )
-    {
         return false;
-    }
 
-    SetWindowStyleFlag(style);
-
+    PostCreation();
     return true;
 }
 
@@ -97,21 +88,23 @@ void wxFrame::SetStatusBar( wxStatusBar *statusBar )
 {
     // The current status bar could be deleted by Qt when dereferencing it
     // TODO: add a mechanism like Detach in menus to avoid issues
-    if ( statusBar != nullptr )
+    if ( statusBar != NULL )
     {
         GetQMainWindow()->setStatusBar( statusBar->GetQStatusBar() );
+        // Update statusbar sizes now that it has a size
+        statusBar->Refresh();
     }
     else
     {
         // Remove the current status bar
-        GetQMainWindow()->setStatusBar(nullptr);
+        GetQMainWindow()->setStatusBar(NULL);
     }
     wxFrameBase::SetStatusBar( statusBar );
 }
 
 void wxFrame::SetToolBar(wxToolBar *toolbar)
 {
-    if ( toolbar != nullptr )
+    if ( toolbar != NULL )
     {
         int area = 0;
         if      (toolbar->HasFlag(wxTB_LEFT))  { area = Qt::LeftToolBarArea;  }
@@ -126,10 +119,10 @@ void wxFrame::SetToolBar(wxToolBar *toolbar)
 
         GetQMainWindow()->addToolBar((Qt::ToolBarArea)area, m_qtToolBar);
     }
-    else if ( m_frameToolBar != nullptr )
+    else if ( m_frameToolBar != NULL )
     {
         GetQMainWindow()->removeToolBar(m_qtToolBar);
-        m_qtToolBar = nullptr;
+        m_qtToolBar = NULL;
     }
     wxFrameBase::SetToolBar( toolbar );
 }
@@ -210,16 +203,29 @@ void wxFrame::RemoveChild( wxWindowBase *child )
     wxFrameBase::RemoveChild( child );
 }
 
-// get the origin of the client area in the client coordinates
-// excluding any menubar and toolbar if any.
-wxPoint wxFrame::GetClientAreaOrigin() const
+QScrollArea *wxFrame::QtGetScrollBarsContainer() const
 {
-    return wxQtConvertPoint( GetQMainWindow()->centralWidget()->pos() );
+    return dynamic_cast <QScrollArea *> (GetQMainWindow()->centralWidget() );
 }
 
 void wxFrame::DoGetClientSize(int *width, int *height) const
 {
-    wxFrameBase::DoGetClientSize(width, height);
+    wxWindow::DoGetClientSize(width, height);
+
+    // Adjust the height, taking the status and menu bars into account, if any:
+    if ( height )
+    {
+        if ( wxStatusBar *sb = GetStatusBar() )
+        {
+            *height -= sb->GetSize().y;
+        }
+
+
+        if ( QWidget *qmb = GetQMainWindow()->menuWidget() )
+        {
+            *height -= qmb->geometry().height();
+        }
+    }
 }
 
 void wxFrame::DoSetClientSize(int width, int height)
@@ -238,4 +244,18 @@ void wxFrame::DoSetClientSize(int width, int height)
 QMainWindow *wxFrame::GetQMainWindow() const
 {
     return static_cast<QMainWindow*>(m_qtWindow);
+}
+
+//=============================================================================
+
+wxQtMainWindow::wxQtMainWindow( wxWindow *parent, wxFrame *handler )
+    : wxQtEventSignalHandler< QMainWindow, wxFrame >( parent, handler )
+{
+//    setCentralWidget( new wxQtWidget( parent, handler ));
+}
+
+wxQtCentralWidget::wxQtCentralWidget( wxWindow *parent, wxFrame *handler )
+    : wxQtEventSignalHandler< QScrollArea, wxFrame >( parent, handler )
+{
+    setFocusPolicy(Qt::NoFocus);
 }

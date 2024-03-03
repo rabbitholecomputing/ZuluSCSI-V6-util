@@ -50,7 +50,7 @@ namespace
             m_operateOn(operateOn), m_testType(testType) {}
 
         // thread execution starts here
-        virtual void *Entry() override;
+        virtual void *Entry() wxOVERRIDE;
 
     public:
         wxAtomicInt &m_operateOn;
@@ -135,7 +135,7 @@ TEST_CASE("Atomic::WithThreads", "[atomic]")
     for ( i = 0; i < count; ++i )
     {
         // each thread should return 0, else it detected some problem
-        CHECK (threads[i]->Wait() == (wxThread::ExitCode)nullptr);
+        CHECK (threads[i]->Wait() == (wxThread::ExitCode)0);
         delete threads[i];
     }
 

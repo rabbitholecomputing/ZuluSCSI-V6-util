@@ -53,25 +53,25 @@ public:     // event handler
 
 public:     // public API
 
-    virtual bool LoadFile(const wxString& filename, wxAnimationType type = wxANIMATION_TYPE_ANY) override;
-    virtual bool Load(wxInputStream& stream, wxAnimationType type = wxANIMATION_TYPE_ANY) override;
+    virtual bool LoadFile(const wxString& filename, wxAnimationType type = wxANIMATION_TYPE_ANY) wxOVERRIDE;
+    virtual bool Load(wxInputStream& stream, wxAnimationType type = wxANIMATION_TYPE_ANY) wxOVERRIDE;
 
-    void SetAnimation(const wxAnimationBundle& anim) override;
+    void SetAnimation(const wxAnimation &anim) wxOVERRIDE;
 
-    virtual bool Play() override;
-    virtual void Stop() override;
+    virtual bool Play() wxOVERRIDE;
+    virtual void Stop() wxOVERRIDE;
 
-    virtual bool IsPlaying() const override;
+    virtual bool IsPlaying() const wxOVERRIDE;
 
-    bool SetBackgroundColour( const wxColour &colour ) override;
+    bool SetBackgroundColour( const wxColour &colour ) wxOVERRIDE;
 
     static wxAnimation CreateCompatibleAnimation();
 
 protected:
-    virtual wxAnimationImpl* DoCreateAnimationImpl() const override;
+    virtual wxAnimationImpl* DoCreateAnimationImpl() const wxOVERRIDE;
 
-    virtual void DisplayStaticImage() override;
-    virtual wxSize DoGetBestSize() const override;
+    virtual void DisplayStaticImage() wxOVERRIDE;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
     void FitToAnimation();
     void ClearToBackgroundColour();
 

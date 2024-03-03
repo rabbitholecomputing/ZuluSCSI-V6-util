@@ -2,6 +2,7 @@
 // Name:        wx/msw/cursor.h
 // Purpose:     wxCursor class
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -26,8 +27,13 @@ public:
              wxBitmapType type = wxCURSOR_DEFAULT_TYPE,
              int hotSpotX = 0, int hotSpotY = 0);
     wxCursor(wxStockCursor id) { InitFromStock(id); }
+#if WXWIN_COMPATIBILITY_2_8
+    wxCursor(int id) { InitFromStock((wxStockCursor)id); }
+#endif
 
-    virtual wxPoint GetHotSpot() const override;
+    virtual wxPoint GetHotSpot() const wxOVERRIDE;
+
+    virtual ~wxCursor();
 
     // implementation only
     void SetHCURSOR(WXHCURSOR cursor) { SetHandle((WXHANDLE)cursor); }
@@ -36,7 +42,7 @@ public:
 protected:
     void InitFromStock(wxStockCursor);
 
-    virtual wxGDIImageRefData *CreateData() const override;
+    virtual wxGDIImageRefData *CreateData() const wxOVERRIDE;
 
 private:
 #if wxUSE_IMAGE

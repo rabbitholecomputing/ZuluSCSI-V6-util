@@ -73,7 +73,7 @@ public:
 
         @param mat2D
             The rotational components of the matrix (upper 2 x 2), must be
-            non-null.
+            non-@NULL.
         @param tr
             The translational components of the matrix, may be @NULL.
     */

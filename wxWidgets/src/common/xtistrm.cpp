@@ -2,6 +2,7 @@
 // Name:        src/common/xtistrm.cpp
 // Purpose:     streaming runtime metadata information
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     27/07/03
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
@@ -17,6 +18,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/object.h"
+    #include "wx/hash.h"
     #include "wx/event.h"
 #endif
 
@@ -84,7 +86,7 @@ void wxObjectWriter::WriteObject(const wxObject *object, const wxClassInfo *clas
 
     if ( writercallback->BeforeWriteObject( this, object, classInfo, metadata) )
     {
-        if ( object == nullptr )
+        if ( object == NULL )
             DoWriteNullObject();
         else if ( IsObjectKnown( object ) )
             DoWriteRepeatedObject( GetObjectID(object) );
@@ -123,7 +125,7 @@ void wxObjectWriter::FindConnectEntry(const wxEvtHandler * evSource,
         if ( entry->m_fn &&
             (dti->GetEventType() == entry->m_eventType) &&
             (entry->m_id == -1 ) &&
-            (entry->m_fn->GetEvtHandler() != nullptr ) )
+            (entry->m_fn->GetEvtHandler() != NULL ) )
         {
             sink = entry->m_fn->GetEvtHandler();
             const wxClassInfo* sinkClassInfo = sink->GetClassInfo();
@@ -151,7 +153,7 @@ void wxObjectWriter::WriteAllProperties( const wxObject * obj, const wxClassInfo
     {
         wxString name = ci->GetCreateParamName(i);
         wxPropertyInfoMap::const_iterator iter = map.find(name);
-        const wxPropertyInfo* prop = iter == map.end() ? nullptr : iter->second;
+        const wxPropertyInfo* prop = iter == map.end() ? NULL : iter->second;
         if ( prop )
         {
             WriteOneProperty( obj, prop->GetDeclaringClass(), prop, writercallback, data );
@@ -215,7 +217,7 @@ void wxObjectWriter::WriteOneProperty( const wxObject *obj, const wxClassInfo* c
 
     // make sure that we are picking the correct object for accessing the property
     const wxDynamicObject* dynobj = wx_dynamic_cast(const wxDynamicObject*, obj );
-    if ( dynobj && (wx_dynamic_cast(const wxDynamicClassInfo*, ci) == nullptr) )
+    if ( dynobj && (wx_dynamic_cast(const wxDynamicClassInfo*, ci) == NULL) )
         obj = dynobj->GetSuperClassInstance();
 
     if ( pi->GetTypeInfo()->GetKind() == wxT_COLLECTION )
@@ -259,8 +261,8 @@ void wxObjectWriter::WriteOneProperty( const wxObject *obj, const wxClassInfo* c
             wx_dynamic_cast( const wxEventSourceTypeInfo* , pi->GetTypeInfo() );
         if ( dti )
         {
-            const wxObject* sink = nullptr;
-            const wxHandlerInfo *handler = nullptr;
+            const wxObject* sink = NULL;
+            const wxHandlerInfo *handler = NULL;
 
             const wxEvtHandler * evSource = wx_dynamic_cast(const wxEvtHandler *, obj);
             if ( evSource )
@@ -268,7 +270,7 @@ void wxObjectWriter::WriteOneProperty( const wxObject *obj, const wxClassInfo* c
                 FindConnectEntry( evSource, dti, sink, handler );
                 if ( writercallback->BeforeWriteDelegate( this, obj, ci, pi, sink, handler ) )
                 {
-                    if ( sink != nullptr && handler != nullptr )
+                    if ( sink != NULL && handler != NULL )
                     {
                         DoBeginWriteProperty( pi );
                         if ( IsObjectKnown( sink ) )
@@ -326,7 +328,7 @@ void wxObjectWriter::WriteOneProperty( const wxObject *obj, const wxClassInfo* c
             const wxClassTypeInfo* cti =
                 wx_dynamic_cast( const wxClassTypeInfo* , pi->GetTypeInfo() );
 
-            if ( cti && cti->GetKind() == wxT_OBJECT_PTR && wxAnyGetAsObjectPtr(value) == nullptr )
+            if ( cti && cti->GetKind() == wxT_OBJECT_PTR && wxAnyGetAsObjectPtr(value) == NULL )
                 return;
 
             if ( writercallback->BeforeWriteProperty( this, obj, pi, value ) )
@@ -398,12 +400,12 @@ wxClassInfo* wxObjectReader::GetObjectClassInfo(int objectID)
     if ( objectID == wxNullObjectID || objectID == wxInvalidObjectID )
     {
         wxLogError( _("Invalid or Null Object ID passed to GetObjectClassInfo" ) );
-        return nullptr;
+        return NULL;
     }
     if ( m_data->m_classInfos.find(objectID) == m_data->m_classInfos.end() )
     {
         wxLogError( _("Unknown Object passed to GetObjectClassInfo" ) );
-        return nullptr;
+        return NULL;
     }
     return m_data->m_classInfos[objectID];
 }
@@ -465,11 +467,11 @@ struct wxObjectRuntimeReaderCallback::wxObjectRuntimeReaderCallbackInternal
     wxObject* GetObject( int objectID )
     {
         if ( objectID == wxNullObjectID )
-            return nullptr;
+            return NULL;
         if ( m_objects.find(objectID) == m_objects.end() )
         {
             wxLogError( _("Passing an unknown object to GetObject") );
-            return nullptr;
+            return NULL;
         }
 
         return m_objects[objectID];
@@ -513,7 +515,7 @@ void wxObjectRuntimeReaderCallback::CreateObject(int objectID,
             // if this is a dynamic object and we are asked for another class
             // than wxDynamicObject we cast it down manually.
             wxDynamicObject *dyno = wx_dynamic_cast( wxDynamicObject *, o2);
-            if ( dyno!=nullptr && (objectClassInfos[i] != dyno->GetClassInfo()) )
+            if ( dyno!=NULL && (objectClassInfos[i] != dyno->GetClassInfo()) )
             {
                 o2 = dyno->GetSuperClassInstance();
             }
@@ -541,7 +543,7 @@ void wxObjectRuntimeReaderCallback::ConstructObject(int objectID,
             // if this is a dynamic object and we are asked for another class
             // than wxDynamicObject we cast it down manually.
             wxDynamicObject *dyno = wx_dynamic_cast( wxDynamicObject *, o2);
-            if ( dyno!=nullptr && (objectClassInfos[i] != dyno->GetClassInfo()) )
+            if ( dyno!=NULL && (objectClassInfos[i] != dyno->GetClassInfo()) )
             {
                 o2 = dyno->GetSuperClassInstance();
             }
@@ -584,7 +586,7 @@ void wxObjectRuntimeReaderCallback::SetPropertyAsObject(int objectID,
     // if this is a dynamic object and we are asked for another class
     // than wxDynamicObject we cast it down manually.
     wxDynamicObject *dynvalo = wx_dynamic_cast( wxDynamicObject *, valo);
-    if ( dynvalo!=nullptr  && (valClassInfo != dynvalo->GetClassInfo()) )
+    if ( dynvalo!=NULL  && (valClassInfo != dynvalo->GetClassInfo()) )
     {
         valo = dynvalo->GetSuperClassInstance();
     }
@@ -612,7 +614,7 @@ void wxObjectRuntimeReaderCallback::SetConnect(int eventSourceObjectID,
         if( delegateTypeInfo && delegateTypeInfo->GetLastEventType() == -1 )
         {
             ehsource->Connect( -1, delegateTypeInfo->GetEventType(),
-                handlerInfo->GetEventFunction(), nullptr /*user data*/,
+                handlerInfo->GetEventFunction(), NULL /*user data*/,
                 ehsink );
         }
         else
@@ -621,7 +623,7 @@ void wxObjectRuntimeReaderCallback::SetConnect(int eventSourceObjectID,
                   iter <= delegateTypeInfo->GetLastEventType(); ++iter )
             {
                 ehsource->Connect( -1, iter,
-                    handlerInfo->GetEventFunction(), nullptr /*user data*/,
+                    handlerInfo->GetEventFunction(), NULL /*user data*/,
                     ehsink );
             }
         }
@@ -659,7 +661,7 @@ void wxObjectRuntimeReaderCallback::AddToPropertyCollectionAsObject(int objectID
     // if this is a dynamic object and we are asked for another class
     // than wxDynamicObject we cast it down manually.
     wxDynamicObject *dynvalo = wx_dynamic_cast( wxDynamicObject *, valo);
-    if ( dynvalo!=nullptr  && (valClassInfo != dynvalo->GetClassInfo()) )
+    if ( dynvalo!=NULL  && (valClassInfo != dynvalo->GetClassInfo()) )
     {
         valo = dynvalo->GetSuperClassInstance();
     }

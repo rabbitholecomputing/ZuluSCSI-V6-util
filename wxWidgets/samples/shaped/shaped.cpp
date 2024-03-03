@@ -2,6 +2,7 @@
 // Name:        shaped.cpp
 // Purpose:     Shaped Window sample
 // Author:      Robin Dunn
+// Modified by:
 // Created:     28-Mar-2003
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
@@ -35,10 +36,9 @@
 #include "wx/dcclient.h"
 #include "wx/graphics.h"
 #include "wx/image.h"
+#include "wx/scopedptr.h"
 #include "wx/sizer.h"
 #include "wx/slider.h"
-
-#include <memory>
 
 #ifndef wxHAS_IMAGES_IN_RESOURCES
     #include "../sample.xpm"
@@ -78,7 +78,7 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 
@@ -250,7 +250,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame()
-         : wxFrame(nullptr, wxID_ANY, "wxWidgets Shaped Sample",
+         : wxFrame(NULL, wxID_ANY, "wxWidgets Shaped Sample",
                    wxDefaultPosition, wxSize(200, 100))
 {
     SetIcon(wxICON(sample));
@@ -539,7 +539,7 @@ SeeThroughFrame::Create(wxWindow* parent)
 void SeeThroughFrame::OnPaint(wxPaintEvent& WXUNUSED(evt))
 {
     wxPaintDC dc(this);
-    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+    wxScopedPtr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
 
     // Draw 3 bands: one opaque, one semi-transparent and one transparent.
     const wxSize size = GetClientSize();

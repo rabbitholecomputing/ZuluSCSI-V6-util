@@ -2,6 +2,7 @@
 // Name:        game.h
 // Purpose:     Forty Thieves patience game
 // Author:      Chris Breeze
+// Modified by:
 // Created:     21/07/97
 // Copyright:   (c) 1993-1998 Chris Breeze
 // Licence:     wxWindows licence
@@ -23,11 +24,11 @@ class Pack : public Pile {
 public:
     Pack(int x, int y);
     virtual ~Pack();
-    void Redraw(wxDC& dc) override;
-    void ResetPile() override { m_topCard = NumCards - 1; }
+    void Redraw(wxDC& dc) wxOVERRIDE;
+    void ResetPile() wxOVERRIDE { m_topCard = NumCards - 1; }
     void Shuffle();
-    void AddCard(Card* card) override; // Add card
-    void AddCard(wxDC& dc, Card* card) override { AddCard(card); Redraw(dc); }
+    void AddCard(Card* card) wxOVERRIDE; // Add card
+    void AddCard(wxDC& dc, Card* card) wxOVERRIDE { AddCard(card); Redraw(dc); }
 };
 
 
@@ -38,7 +39,7 @@ class Base : public Pile {
 public:
     Base(int x, int y);
     virtual ~Base(){}
-    bool AcceptCard(Card* card) override;
+    bool AcceptCard(Card* card) wxOVERRIDE;
 };
 
 
@@ -49,7 +50,7 @@ class Foundation : public Pile {
 public:
     Foundation(int x, int y);
     virtual ~Foundation(){}
-    bool AcceptCard(Card* card) override;
+    bool AcceptCard(Card* card) wxOVERRIDE;
 };
 
 
@@ -60,9 +61,9 @@ class Discard : public Pile {
 public:
     Discard(int x, int y);
     virtual ~Discard(){}
-    void Redraw(wxDC& dc) override;
-    void GetTopCardPos(int& x, int& y) override;
-    Card* RemoveTopCard(wxDC& dc, int m_xOffset, int m_yOffset) override;
+    void Redraw(wxDC& dc) wxOVERRIDE;
+    void GetTopCardPos(int& x, int& y) wxOVERRIDE;
+    Card* RemoveTopCard(wxDC& dc, int m_xOffset, int m_yOffset) wxOVERRIDE;
 };
 
 

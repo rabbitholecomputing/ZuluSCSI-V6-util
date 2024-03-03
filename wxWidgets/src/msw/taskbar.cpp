@@ -66,13 +66,13 @@ class wxTaskBarIconWindow : public wxFrame
 {
 public:
     wxTaskBarIconWindow(wxTaskBarIcon *icon)
-        : wxFrame(nullptr, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0),
+        : wxFrame(NULL, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0),
           m_icon(icon)
     {
     }
 
     WXLRESULT MSWWindowProc(WXUINT msg,
-                            WXWPARAM wParam, WXLPARAM lParam) override
+                            WXWPARAM wParam, WXLPARAM lParam) wxOVERRIDE
     {
         if (msg == gs_msgRestartTaskbar || msg == gs_msgTaskbar)
         {
@@ -93,10 +93,19 @@ private:
 // NotifyIconData: wrapper around NOTIFYICONDATA
 // ----------------------------------------------------------------------------
 
-struct NotifyIconData : public WinStruct<NOTIFYICONDATA>
+struct NotifyIconData : public NOTIFYICONDATA
 {
     NotifyIconData(WXHWND hwnd)
     {
+        wxZeroMemory(*this);
+
+        // Since Vista there is a new member hBalloonIcon which will be used
+        // if a user specified icon is specified in ShowBalloon(). For XP 
+        // use the old size
+        cbSize = wxPlatformInfo::Get().CheckOSVersion(6, 0)
+                    ? sizeof(NOTIFYICONDATA)
+                    : NOTIFYICONDATA_V2_SIZE;
+
         hWnd = (HWND) hwnd;
         uCallbackMessage = gs_msgTaskbar;
         uFlags = NIF_MESSAGE;
@@ -113,7 +122,7 @@ struct NotifyIconData : public WinStruct<NOTIFYICONDATA>
 
 wxTaskBarIcon::wxTaskBarIcon(wxTaskBarIconType WXUNUSED(iconType))
 {
-    m_win = nullptr;
+    m_win = NULL;
     m_iconAdded = false;
     RegisterWindowMessages();
 }
@@ -248,7 +257,8 @@ wxTaskBarIcon::ShowBalloon(const wxString& title,
 
     wxUnusedVar(icon); // It's only unused if not supported actually.
 
-    if ( icon.IsOk() )
+    // User specified icon is only supported since Vista
+    if ( icon.IsOk() && wxPlatformInfo::Get().CheckOSVersion(6, 0) )
     {
         m_balloonIcon = icon.GetIconFor(m_win);
         notifyData.hBalloonIcon = GetHiconOf(m_balloonIcon);
@@ -293,7 +303,7 @@ bool wxTaskBarIcon::RemoveIcon()
 #if wxUSE_MENUS
 bool wxTaskBarIcon::PopupMenu(wxMenu *menu)
 {
-    wxASSERT_MSG( m_win != nullptr, wxT("taskbar icon not initialized") );
+    wxASSERT_MSG( m_win != NULL, wxT("taskbar icon not initialized") );
 
     static bool s_inPopup = false;
 

@@ -36,6 +36,12 @@ enum wxPenStyle
     wxPENSTYLE_TRANSPARENT,
         /**< No pen is used. */
 
+    wxPENSTYLE_STIPPLE_MASK_OPAQUE,
+        /**< @todo WHAT's this? */
+
+    wxPENSTYLE_STIPPLE_MASK,
+        /**< @todo WHAT's this? */
+
     wxPENSTYLE_STIPPLE,
         /**< Use the stipple bitmap. */
 
@@ -99,14 +105,8 @@ enum wxPenJoin
     wxJOIN_INVALID = -1,
 
     wxJOIN_BEVEL = 120,
-        /**< The intersection of two lines will have
-             a diagonal edge "cut" into it. */
     wxJOIN_MITER,
-        /**< The intersection of two lines will have
-             a sharp corner. */
     wxJOIN_ROUND,
-        /**< The intersection of two lines will have
-             a rounded edge. */
 };
 
 
@@ -120,14 +120,8 @@ enum wxPenCap
     wxCAP_INVALID = -1,
 
     wxCAP_ROUND = 130,
-        /**< The pen will have a rounded edge and will extend
-             beyond the start and end of a line. */
     wxCAP_PROJECTING,
-        /**< The pen's edge will be square and will extend
-             beyond the start and end of a line. */
     wxCAP_BUTT
-        /**< The pen's edge will be square and will not extend
-             beyond the start and end of a line. */
 };
 
 
@@ -317,6 +311,18 @@ public:
             A pointer or reference to a pen to copy.
     */
     wxPen(const wxPen& pen);
+
+    /**
+        Destructor.
+        @see @ref overview_refcount_destruct "reference-counted object destruction"
+
+        @remarks Although all remaining pens are deleted when the application
+                 exits, the application should try to clean up all pens
+                 itself. This is because wxWidgets cannot know if a
+                 pointer to the pen object is stored in an application
+                 data structure, and there is a risk of double deletion.
+    */
+    virtual ~wxPen();
 
     /**
         Returns the pen cap style, which may be one of @c wxCAP_ROUND,

@@ -42,18 +42,18 @@ public:
     virtual ~wxDialog();
 
     // is the dialog in modal state right now?
-    virtual bool IsModal() const override;
+    virtual bool IsModal() const wxOVERRIDE;
 
     // For now, same as Show(true) but returns return code
-    virtual int ShowModal() override;
+    virtual int ShowModal() wxOVERRIDE;
 
     // may be called to terminate the dialog with the given return code
-    virtual void EndModal(int retCode) override;
+    virtual void EndModal(int retCode) wxOVERRIDE;
 
     // returns true if we're in a modal loop
     bool IsModalShowing() const;
 
-    virtual bool Show(bool show = true) override;
+    virtual bool Show(bool show = true) wxOVERRIDE;
 
     // implementation only from now on
     // -------------------------------

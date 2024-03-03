@@ -38,7 +38,7 @@
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 // Define a new html window type: this is a wrapper for handling wxHtmlWindow events
@@ -50,12 +50,10 @@ public:
         // no custom background initially to avoid confusing people
         m_drawCustomBg = false;
     }
-    MyHtmlWindow(const MyHtmlWindow&) = delete;
-    MyHtmlWindow& operator=(const MyHtmlWindow&) = delete;
 
     virtual wxHtmlOpeningStatus OnOpeningURL(wxHtmlURLType WXUNUSED(type),
                                              const wxString& WXUNUSED(url),
-                                             wxString *WXUNUSED(redirect)) const override;
+                                             wxString *WXUNUSED(redirect)) const wxOVERRIDE;
 
     // toggle drawing of custom background
     void DrawCustomBg(bool draw)
@@ -73,6 +71,7 @@ private:
     bool m_drawCustomBg;
 
     wxDECLARE_EVENT_TABLE();
+    wxDECLARE_NO_COPY_CLASS(MyHtmlWindow);
 };
 
 // Define a new frame type: this is going to be our main frame
@@ -108,7 +107,7 @@ private:
 class BoldProcessor : public wxHtmlProcessor
 {
 public:
-    virtual wxString Process(const wxString& s) const override
+    virtual wxString Process(const wxString& s) const wxOVERRIDE
     {
         wxString r(s);
         r.Replace("<b>", wxEmptyString);
@@ -200,7 +199,7 @@ bool MyApp::OnInit()
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-   : wxFrame(nullptr, wxID_ANY, title, pos, size,
+   : wxFrame((wxFrame *)NULL, wxID_ANY, title, pos, size,
              wxDEFAULT_FRAME_STYLE, "html_test_app")
 {
     // create a menu bar
@@ -273,7 +272,7 @@ MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 void MyFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
     m_Html->WriteCustomization(wxConfig::Get());
-    delete wxConfig::Set(nullptr);
+    delete wxConfig::Set(NULL);
 
     // true is to force the frame to close
     Close(true);

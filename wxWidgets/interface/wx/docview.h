@@ -433,7 +433,7 @@ public:
         changes.
 
         @param doc
-            The document to close, must be non-null.
+            The document to close, must be non-@NULL.
         @param force
             If @true, close the document even if wxDocument::Close() returns
             @false.
@@ -1239,12 +1239,12 @@ public:
         application-specific data.
 
         @param parent
-            Specifying a non-null parent document here makes this document a
+            Specifying a non-@c NULL parent document here makes this document a
             special <em>child document</em>, see their description in the class
             documentation. Notice that this parameter exists but is ignored in
             wxWidgets versions prior to 2.9.1.
     */
-    wxDocument(wxDocument* parent = nullptr);
+    wxDocument(wxDocument* parent = NULL);
 
     /**
         Destructor. Removes itself from the document manager.
@@ -1430,36 +1430,18 @@ public:
     */
     virtual bool IsModified() const;
 
+    ///@{
     /**
-        Override this function to load the object data from the provided stream.
+        Override this function and call it from your own LoadObject() before
+        streaming your own data. LoadObject() is called by the framework
+        automatically when the document contents need to be loaded.
 
-        LoadObject() is called by the framework automatically when the document
-        contents need to be loaded by default.
-
-        Note that if @a stream is in the failed state when this function
-        returns, i.e. its `failbit` is set, it indicates that loading the
-        object failed and an error is given. As `failbit` may be set by trying
-        to read after reaching the end of the stream, you may need to call
-        `stream.clear()` to reset it if necessary.
-
-        @note This overload of LoadObject() is not available if
-            `wxUSE_STD_IOSTREAM` is set to 0 (which is done by
-            `--disable-std_iostreams` option when using configure).
+        @note This version of LoadObject() may not exist depending on how
+              wxWidgets was configured.
     */
-    virtual std::istream& LoadObject(std::istream& stream);
-
-    /**
-        Override this function to load the object data from the provided stream.
-
-        @overload
-
-        @note This overload of LoadObject() is only available if
-            `wxUSE_STD_IOSTREAM` is set to 0 (which is done by
-            `--disable-std_iostreams` option when using configure). Otherwise,
-            i.e. in the default build of the library, only the overload taking
-            `std::istream` exists.
-     */
+    virtual istream& LoadObject(istream& stream);
     virtual wxInputStream& LoadObject(wxInputStream& stream);
+    ///@}
 
     /**
         Call with @true to mark the document as modified since the last save,
@@ -1490,12 +1472,10 @@ public:
         case since wxWidgets 2.9.0.
 
         Returning @false from this function prevents the document from closing.
-        Note that there is no need to ask the user if the changes to the
-        document should be saved, as this was already checked by
-        OnSaveModified() by the time this function is called, if necessary, and
-        so, typically, this function should always return @true to allow the
-        document to be closed, as leaving it open after asking the user about
-        saving the changes would be confusing.
+        The default implementation does this if the document is modified and
+        the user didn't confirm discarding the modifications to it.
+
+        Return @true to allow the document to be closed.
     */
     virtual bool OnCloseDocument();
 
@@ -1563,19 +1543,6 @@ public:
     virtual bool OnSaveModified();
 
     /**
-        This function is called when a document is forced to close.
-
-        The default implementation asks the user whether to save the changes
-        but, unlike OnSaveModified(), does not allow to cancel closing.
-
-        The document is force closed when wxDocManager::CloseDocument() is
-        called with its @c force argument set to @true.
-
-        @since 3.3.0
-     */
-    virtual void OnSaveBeforeForceClose();
-
-    /**
         Removes the view from the document's list of views.
 
         If the view was really removed, also calls OnChangedViewList().
@@ -1605,30 +1572,18 @@ public:
     */
     virtual bool Revert();
 
+    ///@{
     /**
-        Override this function to save the object data into the provided stream.
+        Override this function and call it from your own SaveObject() before
+        streaming your own data. SaveObject() is called by the framework
+        automatically when the document contents need to be saved.
 
-        SaveObject() is called by the framework automatically when the document
-        contents need to be saved by default.
-
-        @note This overload of SaveObject() is not available if
-            `wxUSE_STD_IOSTREAM` is set to 0 (which is done by
-            `--disable-std_iostreams` option when using configure).
+        @note This version of SaveObject() may not exist depending on how
+              wxWidgets was configured.
     */
-    virtual std::ostream& SaveObject(std::ostream& stream);
-
-    /**
-        Override this function to load the object data from the provided stream.
-
-        @overload
-
-        @note This overload of SaveObject() is only available if
-            `wxUSE_STD_IOSTREAM` is set to 0 (which is done by
-            `--disable-std_iostreams` option when using configure). Otherwise,
-            i.e. in the default build of the library, only the overload taking
-            `std::ostream` exists.
-     */
+    virtual ostream& SaveObject(ostream& stream);
     virtual wxOutputStream& SaveObject(wxOutputStream& stream);
+    ///@}
 
     /**
         Sets the command processor to be used for this document. The document
@@ -1690,11 +1645,11 @@ public:
     void SetTitle(const wxString& title);
 
     /**
-        Updates all views. If @a sender is non-null, does not update this
+        Updates all views. If @a sender is non-@NULL, does not update this
         view. @a hint represents optional information to allow a view to
         optimize its update.
     */
-    virtual void UpdateAllViews(wxView* sender = nullptr, wxObject* hint = nullptr);
+    virtual void UpdateAllViews(wxView* sender = NULL, wxObject* hint = NULL);
 
 protected:
     /**

@@ -2,6 +2,7 @@
 // Name:        src/common/colourcmn.cpp
 // Purpose:     wxColourBase implementation
 // Author:      Francesco Montorsi
+// Modified by:
 // Created:     20/4/2006
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
@@ -396,7 +397,7 @@ wxString wxToString(const wxColourBase& col)
 
 bool wxFromString(const wxString& str, wxColourBase *col)
 {
-    wxCHECK_MSG( col, false, wxT("null output parameter") );
+    wxCHECK_MSG( col, false, wxT("NULL output parameter") );
 
     if ( str.empty() )
     {

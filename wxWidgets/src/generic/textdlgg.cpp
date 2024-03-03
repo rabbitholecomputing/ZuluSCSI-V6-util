@@ -2,6 +2,7 @@
 // Name:        src/generic/textdlgg.cpp
 // Purpose:     wxTextEntryDialog
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -176,6 +177,13 @@ void wxTextEntryDialog::ForceUpper()
 }
 
 #if wxUSE_VALIDATORS
+
+#if WXWIN_COMPATIBILITY_2_8
+void wxTextEntryDialog::SetTextValidator( long style )
+{
+    SetTextValidator((wxTextValidatorStyle)style);
+}
+#endif
 
 void wxTextEntryDialog::SetTextValidator( wxTextValidatorStyle style )
 {

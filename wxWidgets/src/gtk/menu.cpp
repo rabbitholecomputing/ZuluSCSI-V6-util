@@ -24,8 +24,7 @@
 
 #if wxUSE_ACCEL
     #include "wx/accel.h"
-
-    #include <memory>
+    #include "wx/scopedptr.h"
 #endif // wxUSE_ACCEL
 
 #include "wx/stockitem.h"
@@ -145,8 +144,8 @@ wxMenuBar::~wxMenuBar()
 
 void wxMenuBar::Init(size_t n, wxMenu *menus[], const wxString titles[], long style)
 {
-    if (!PreCreation( nullptr, wxDefaultPosition, wxDefaultSize ) ||
-        !CreateBase( nullptr, -1, wxDefaultPosition, wxDefaultSize, style, wxDefaultValidator, wxT("menubar") ))
+    if (!PreCreation( NULL, wxDefaultPosition, wxDefaultSize ) ||
+        !CreateBase( NULL, -1, wxDefaultPosition, wxDefaultSize, style, wxDefaultValidator, wxT("menubar") ))
     {
         wxFAIL_MSG( wxT("wxMenuBar creation failed") );
         return;
@@ -189,12 +188,12 @@ wxMenuBar::wxMenuBar(size_t n, wxMenu *menus[], const wxString titles[], long st
 
 wxMenuBar::wxMenuBar(long style)
 {
-    Init(0, nullptr, nullptr, style);
+    Init(0, NULL, NULL, style);
 }
 
 wxMenuBar::wxMenuBar()
 {
-    Init(0, nullptr, nullptr, 0);
+    Init(0, NULL, NULL, 0);
 }
 
 // recursive helpers for wxMenuBar::Attach() and Detach(): they are called to
@@ -349,7 +348,7 @@ void wxMenuBar::GtkAppend(wxMenu* menu, const wxString& title, int pos)
 
         const wxString str(wxConvertMnemonicsToGTK(title));
         // The "m_owner" is the "menu item"
-        menu->m_owner = gtk_menu_item_new_with_mnemonic( str.utf8_str() );
+        menu->m_owner = gtk_menu_item_new_with_mnemonic( wxGTK_CONV( str ) );
 
         gtk_menu_item_set_submenu( GTK_MENU_ITEM(menu->m_owner), menu->m_menu );
     }
@@ -382,10 +381,10 @@ wxMenu *wxMenuBar::Replace(size_t pos, wxMenu *menu, const wxString& title)
     wxMenu *menuOld = Remove(pos);
     if ( menuOld && !Insert(pos, menu, title) )
     {
-        return nullptr;
+        return NULL;
     }
 
-    // either Insert() succeeded or Remove() failed and menuOld is null
+    // either Insert() succeeded or Remove() failed and menuOld is NULL
     return menuOld;
 }
 
@@ -393,21 +392,21 @@ wxMenu *wxMenuBar::Remove(size_t pos)
 {
     wxMenu *menu = wxMenuBarBase::Remove(pos);
     if ( !menu )
-        return nullptr;
+        return NULL;
 
     // remove item from menubar before destroying item to avoid spurious
     // warnings from Ubuntu libdbusmenu
     gtk_container_remove(GTK_CONTAINER(m_menubar), menu->m_owner);
     // remove submenu to avoid destroying it when item is destroyed
 #ifdef __WXGTK3__
-    gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu->m_owner), nullptr);
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(menu->m_owner), NULL);
 #else
     gtk_menu_item_remove_submenu(GTK_MENU_ITEM(menu->m_owner));
 #endif
 
     gtk_widget_destroy( menu->m_owner );
     g_object_unref(menu->m_owner);
-    menu->m_owner = nullptr;
+    menu->m_owner = NULL;
 
     if ( m_menuBarFrame )
         DetachFromFrame( menu, m_menuBarFrame );
@@ -458,7 +457,7 @@ static wxMenuItem* FindMenuItemByIdRecursive(const wxMenu* menu, int id)
     wxMenuItem* result = menu->FindChildItem(id);
 
     wxMenuItemList::compatibility_iterator node = menu->GetMenuItems().GetFirst();
-    while ( node && result == nullptr )
+    while ( node && result == NULL )
     {
         wxMenuItem *item = node->GetData();
         if (item->IsSubMenu())
@@ -473,9 +472,9 @@ static wxMenuItem* FindMenuItemByIdRecursive(const wxMenu* menu, int id)
 
 wxMenuItem* wxMenuBar::FindItem( int id, wxMenu **menuForItem ) const
 {
-    wxMenuItem* result = nullptr;
+    wxMenuItem* result = 0;
     wxMenuList::compatibility_iterator node = m_menus.GetFirst();
-    while (node && result == nullptr)
+    while (node && result == 0)
     {
         wxMenu *menu = node->GetData();
         result = FindMenuItemByIdRecursive( menu, id );
@@ -484,7 +483,7 @@ wxMenuItem* wxMenuBar::FindItem( int id, wxMenu **menuForItem ) const
 
     if ( menuForItem )
     {
-        *menuForItem = result ? result->GetMenu() : nullptr;
+        *menuForItem = result ? result->GetMenu() : NULL;
     }
 
     return result;
@@ -534,7 +533,7 @@ void wxMenuBar::SetMenuLabel( size_t pos, const wxString& label )
 
     const wxString str(wxConvertMnemonicsToGTK(label));
     if (menu->m_owner)
-        gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(menu->m_owner))), str.utf8_str());
+        gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(menu->m_owner))), wxGTK_CONV(str));
 }
 
 //-----------------------------------------------------------------------------
@@ -640,8 +639,22 @@ wxMenuItem::wxMenuItem(wxMenu *parentMenu,
                        wxMenu *subMenu)
           : wxMenuItemBase(parentMenu, id, text, help, kind, subMenu)
 {
-    m_menuItem = nullptr;
+    m_menuItem = NULL;
 }
+
+#if WXWIN_COMPATIBILITY_2_8
+wxMenuItem::wxMenuItem(wxMenu *parentMenu,
+                       int id,
+                       const wxString& text,
+                       const wxString& help,
+                       bool isCheckable,
+                       wxMenu *subMenu)
+          : wxMenuItemBase(parentMenu, id, text, help,
+                           isCheckable ? wxITEM_CHECK : wxITEM_NORMAL, subMenu)
+{
+    m_menuItem = NULL;
+}
+#endif
 
 wxMenuItem::~wxMenuItem()
 {
@@ -683,7 +696,7 @@ void wxMenuItem::SetGtkLabel()
 {
     const wxString text = wxConvertMnemonicsToGTK(m_text.BeforeFirst('\t'));
     GtkLabel* label = GTK_LABEL(gtk_bin_get_child(GTK_BIN(m_menuItem)));
-    gtk_label_set_text_with_mnemonic(label, text.utf8_str());
+    gtk_label_set_text_with_mnemonic(label, wxGTK_CONV_SYS(text));
 #if wxUSE_ACCEL
     GtkAccel gtkAccel(this);
     if ( gtkAccel.IsOk() )
@@ -755,10 +768,7 @@ void wxMenuItem::SetupBitmaps(wxWindow *win)
         GtkWidget* image = wxGtkImage::New(win);
         WX_GTK_IMAGE(image)->Set(m_bitmap);
         gtk_widget_show(image);
-
-        wxGCC_WARNING_SUPPRESS(deprecated-declarations)
         gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(m_menuItem), image);
-        wxGCC_WARNING_RESTORE(deprecated-declarations)
     }
 #endif
 }
@@ -852,7 +862,7 @@ void wxMenu::Init()
     m_menu = gtk_menu_new();
     g_object_ref_sink(m_menu);
 
-    m_owner = nullptr;
+    m_owner = NULL;
 
 #ifndef __WXGTK4__
     // Tearoffs are entries, just like separators. So if we want this
@@ -953,7 +963,7 @@ void wxMenu::GtkAppend(wxMenuItem* mitem, int pos)
             {
                 // See if we need to create a new radio group for this item or
                 // add it to an existing one.
-                wxMenuItem* radioGroupItem = nullptr;
+                wxMenuItem* radioGroupItem = NULL;
 
                 const size_t numItems = GetMenuItemCount();
                 const size_t n = pos == -1 ? numItems - 1 : size_t(pos);
@@ -969,7 +979,7 @@ void wxMenu::GtkAppend(wxMenuItem* mitem, int pos)
                     }
                 }
 
-                if (radioGroupItem == nullptr && n != numItems - 1)
+                if (radioGroupItem == NULL && n != numItems - 1)
                 {
                     wxMenuItem* const itemNext = FindItemByPosition(n + 1);
                     if ( itemNext->GetKind() == wxITEM_RADIO )
@@ -980,7 +990,7 @@ void wxMenu::GtkAppend(wxMenuItem* mitem, int pos)
                     }
                 }
 
-                GSList* group = nullptr;
+                GSList* group = NULL;
                 if ( radioGroupItem )
                 {
                     group = gtk_radio_menu_item_get_group(
@@ -1011,7 +1021,7 @@ void wxMenu::GtkAppend(wxMenuItem* mitem, int pos)
                 if (stockid)
                     // use stock bitmap for this item if available on the assumption
                     // that it never hurts to follow GTK+ conventions more closely
-                    menuItem = gtk_image_menu_item_new_from_stock(stockid, nullptr);
+                    menuItem = gtk_image_menu_item_new_from_stock(stockid, NULL);
                 else
                     menuItem = gtk_menu_item_new_with_label("");
             }
@@ -1064,7 +1074,7 @@ wxMenuItem* wxMenu::DoAppend(wxMenuItem *mitem)
         GtkAppend(mitem);
         return mitem;
     }
-    return nullptr;
+    return NULL;
 }
 
 wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
@@ -1074,26 +1084,26 @@ wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
         GtkAppend(item, int(pos));
         return item;
     }
-    return nullptr;
+    return NULL;
 }
 
 wxMenuItem *wxMenu::DoRemove(wxMenuItem *item)
 {
     if ( !wxMenuBase::DoRemove(item) )
-        return nullptr;
+        return NULL;
 
     GtkWidget * const mitem = item->GetMenuItem();
 
     g_signal_handlers_disconnect_by_data(mitem, item);
 
 #ifdef __WXGTK3__
-    gtk_menu_item_set_submenu(GTK_MENU_ITEM(mitem), nullptr);
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(mitem), NULL);
 #else
     gtk_menu_item_remove_submenu(GTK_MENU_ITEM(mitem));
 #endif
 
     gtk_widget_destroy(mitem);
-    item->SetMenuItem(nullptr);
+    item->SetMenuItem(NULL);
 
     return item;
 }
@@ -1367,7 +1377,7 @@ wxString GtkAccel::GetGtkHotKey(const wxAcceleratorEntry *accel)
                 if ( code < 127 )
                 {
                     const wxString
-                        name = wxString::FromUTF8(gdk_keyval_name((guint)code));
+                        name = wxGTK_CONV_BACK_SYS(gdk_keyval_name((guint)code));
                     if ( !name.empty() )
                     {
                         hotkey << name;
@@ -1411,7 +1421,7 @@ void GtkAccel::Init(const wxAcceleratorEntry* entry)
     const wxString string = GetGtkHotKey(entry);
     if (!string.empty())
     {
-        gtk_accelerator_parse(string.utf8_str(), &m_key, &m_mods);
+        gtk_accelerator_parse(wxGTK_CONV_SYS(string), &m_key, &m_mods);
 
         // Normally, we detect all the keys considered invalid by GTK in
         // GetGtkHotKey(), but just in case GTK decides to add more invalid
@@ -1434,7 +1444,7 @@ void GtkAccel::Init(const wxAcceleratorEntry* entry)
 
 GtkAccel::GtkAccel(const wxMenuItem* item)
 {
-    std::unique_ptr<wxAcceleratorEntry> accel(item->GetAccel());
+    wxScopedPtr<wxAcceleratorEntry> accel(item->GetAccel());
     Init(accel.get());
 
 #ifndef __WXGTK4__
@@ -1582,7 +1592,7 @@ const char *wxGetStockGtkID(wxWindowID id)
 
     #undef STOCKITEM
 
-    return nullptr;
+    return NULL;
 }
 wxGCC_WARNING_RESTORE(cast-qual)
 wxGCC_WARNING_RESTORE()

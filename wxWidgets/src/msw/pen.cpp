@@ -124,7 +124,7 @@ private:
         m_cap = wxCAP_ROUND;
         m_quality = wxPEN_QUALITY_DEFAULT;
         m_nbDash = 0;
-        m_dash = nullptr;
+        m_dash = NULL;
         m_hPen = 0;
     }
 
@@ -401,7 +401,7 @@ bool wxPenRefData::Alloc()
        }
        else
        {
-           dash = nullptr;
+           dash = NULL;
        }
 
        // Note that width can't be 0 for ExtCreatePen(), unlike for CreatePen().
@@ -615,9 +615,9 @@ int wxPen::GetDashes(wxDash** ptr) const
 
 wxDash* wxPen::GetDash() const
 {
-    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid pen") );
 
-    return m_refData ? M_PENDATA->GetDash() : nullptr;
+    return m_refData ? M_PENDATA->GetDash() : NULL;
 }
 
 int wxPen::GetDashCount() const
@@ -629,7 +629,7 @@ int wxPen::GetDashCount() const
 
 wxBitmap* wxPen::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid pen") );
 
-    return m_refData ? M_PENDATA->GetStipple() : nullptr;
+    return m_refData ? M_PENDATA->GetStipple() : NULL;
 }

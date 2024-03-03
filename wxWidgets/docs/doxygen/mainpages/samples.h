@@ -189,7 +189,7 @@ See @ref overview_config for the descriptions of all features of this class.
 
 This sample shows how to use wxDebugReport class to
 generate a debug report in case of a program crash or otherwise. On start up,
-it proposes to either crash itself (by dereferencing a @NULL) or
+it proposes to either crash itself (by dereferencing a NULL pointer) or
 generate debug report without doing it. Next it initializes the debug report
 with standard information adding a custom file to it (just a timestamp) and
 allows to view the information gathered using
@@ -505,6 +505,14 @@ and other files.
 It replaces the old @c dynamic sample.
 
 @sampledir{mediaplayer}
+
+@section page_samples_memcheck Memory Checking Sample
+
+@sampleabout{memory tracing using wxDebugContext}
+
+@sampledir{memcheck}
+
+@buildwith{wxUSE_MEMORY_TRACING, wxUSE_DEBUG_CONTEXT}
 
 @section page_samples_menu Menu Sample
 
@@ -923,7 +931,7 @@ control.
 
 @section page_samples_webview wxWebView Sample
 
-The wxWebView sample demonstrates the various capabilities of the wxWebView
+The wxWebView sample demonstarates the various capabilities of the wxWebView
 control. It is set up as a simple single window web browser, but with support
 for many of the more complex wxWebView features, including browsing through
 archives.

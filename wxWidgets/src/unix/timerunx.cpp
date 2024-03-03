@@ -24,6 +24,7 @@
     #include "wx/module.h"
     #include "wx/app.h"
     #include "wx/list.h"
+    #include "wx/hashmap.h"
     #include "wx/event.h"
 #endif
 
@@ -37,6 +38,9 @@
 
 #include "wx/unix/private/timer.h"
 
+#include "wx/listimpl.cpp"
+WX_DEFINE_LIST(wxTimerList)
+
 // trace mask for the debugging messages used here
 #define wxTrace_Timer wxT("timer")
 
@@ -44,31 +48,41 @@
 // wxTimerScheduler implementation
 // ============================================================================
 
-wxTimerScheduler *wxTimerScheduler::ms_instance = nullptr;
+wxTimerScheduler *wxTimerScheduler::ms_instance = NULL;
+
+wxTimerScheduler::~wxTimerScheduler()
+{
+    for ( wxTimerList::iterator node = m_timers.begin();
+          node != m_timers.end();
+          ++node )
+    {
+        delete *node;
+    }
+}
 
 void wxTimerScheduler::AddTimer(wxUnixTimerImpl *timer, wxUsecClock_t expiration)
 {
-    DoAddTimer(wxTimerSchedule(timer, expiration));
+    DoAddTimer(new wxTimerSchedule(timer, expiration));
 }
 
-void wxTimerScheduler::DoAddTimer(const wxTimerSchedule& s)
+void wxTimerScheduler::DoAddTimer(wxTimerSchedule *s)
 {
     // do an insertion sort to keep the list sorted in expiration order
     wxTimerList::iterator node;
     for ( node = m_timers.begin(); node != m_timers.end(); ++node )
     {
-        wxASSERT_MSG( node->m_timer != s.m_timer,
+        wxASSERT_MSG( (*node)->m_timer != s->m_timer,
                       wxT("adding the same timer twice?") );
 
-        if ( node->m_expiration > s.m_expiration )
+        if ( (*node)->m_expiration > s->m_expiration )
             break;
     }
 
     m_timers.insert(node, s);
 
     wxLogTrace(wxTrace_Timer, wxT("Inserted timer %d expiring at %s"),
-               s.m_timer->GetId(),
-               s.m_expiration.ToString());
+               s->m_timer->GetId(),
+               s->m_expiration.ToString());
 }
 
 void wxTimerScheduler::RemoveTimer(wxUnixTimerImpl *timer)
@@ -79,8 +93,9 @@ void wxTimerScheduler::RemoveTimer(wxUnixTimerImpl *timer)
           node != m_timers.end();
           ++node )
     {
-        if ( node->m_timer == timer )
+        if ( (*node)->m_timer == timer )
         {
+            delete *node;
             m_timers.erase(node);
             return;
         }
@@ -94,9 +109,9 @@ bool wxTimerScheduler::GetNext(wxUsecClock_t *remaining) const
     if ( m_timers.empty() )
       return false;
 
-    wxCHECK_MSG( remaining, false, wxT("null pointer") );
+    wxCHECK_MSG( remaining, false, wxT("NULL pointer") );
 
-    *remaining = m_timers.begin()->m_expiration - wxGetUTCTimeUSec();
+    *remaining = (*m_timers.begin())->m_expiration - wxGetUTCTimeUSec();
     if ( *remaining < 0 )
     {
         // timer already expired, don't wait at all before notifying it
@@ -118,8 +133,8 @@ bool wxTimerScheduler::NotifyExpired()
     for ( wxTimerList::iterator next,
             cur = m_timers.begin(); cur != m_timers.end(); cur = next )
     {
-        wxTimerSchedule s = *cur;
-        if ( s.m_expiration > now )
+        wxTimerSchedule * const s = *cur;
+        if ( s->m_expiration > now )
         {
             // as the list is sorted by expiration time, we can skip the rest
             break;
@@ -132,13 +147,16 @@ bool wxTimerScheduler::NotifyExpired()
         m_timers.erase(cur);
 
         // check whether we need to keep this timer
-        wxUnixTimerImpl * const timer = s.m_timer;
+        wxUnixTimerImpl * const timer = s->m_timer;
         if ( timer->IsOneShot() )
         {
             // the timer needs to be stopped but don't call its Stop() from
             // here as it would attempt to remove the timer from our list and
             // we had already done it, so we just need to reset its state
             timer->MarkStopped();
+
+            // don't need it any more
+            delete s;
         }
         else // reschedule the next timer expiration
         {
@@ -146,7 +164,7 @@ bool wxTimerScheduler::NotifyExpired()
             // the current time instead of just offsetting it from the current
             // expiration time because it could happen that we're late and the
             // current expiration time is (far) in the past
-            s.m_expiration = now + timer->GetInterval()*1000;
+            s->m_expiration = now + timer->GetInterval()*1000;
             DoAddTimer(s);
         }
 
@@ -220,8 +238,8 @@ class wxTimerUnixModule : public wxModule
 {
 public:
     wxTimerUnixModule() {}
-    virtual bool OnInit() override { return true; }
-    virtual void OnExit() override { wxTimerScheduler::Shutdown(); }
+    virtual bool OnInit() wxOVERRIDE { return true; }
+    virtual void OnExit() wxOVERRIDE { wxTimerScheduler::Shutdown(); }
 
     wxDECLARE_DYNAMIC_CLASS(wxTimerUnixModule);
 };

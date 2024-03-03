@@ -2,6 +2,7 @@
 // Name:        wx/fontenc.h
 // Purpose:     wxFontEncoding constants
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     29.03.00
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence

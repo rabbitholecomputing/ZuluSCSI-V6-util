@@ -2,6 +2,7 @@
 // Name:        src/generic/gridsel.cpp
 // Purpose:     wxGridSelection
 // Author:      Stefan Neis
+// Modified by:
 // Created:     20/02/1999
 // Copyright:   (c) Stefan Neis (Stefan.Neis@t-online.de)
 // Licence:     wxWindows licence
@@ -311,7 +312,7 @@ wxGridSelection::DeselectBlock(const wxGridBlockCoords& block,
     // Note: in row/column selection mode, we only need part1 and part2
 
     // Blocks to refresh.
-    wxGridBlockCoordsVector refreshBlocks;
+    wxVectorGridBlockCoords refreshBlocks;
     // Add the deselected block.
     refreshBlocks.push_back(canonicalizedBlock);
 
@@ -488,7 +489,7 @@ void wxGridSelection::UpdateRows( size_t pos, int numRows )
                         count--;
                     }
                     else
-                        block.SetBottomRow( pos - 1 );
+                        block.SetBottomRow( pos );
                 }
             }
         }
@@ -537,7 +538,7 @@ void wxGridSelection::UpdateCols( size_t pos, int numCols )
                         count--;
                     }
                     else
-                        block.SetRightCol( pos - 1 );
+                        block.SetRightCol(pos);
                 }
             }
         }
@@ -881,7 +882,7 @@ wxGridSelection::Select(const wxGridBlockCoords& block,
     }
 }
 
-void wxGridSelection::MergeOrAddBlock(wxGridBlockCoordsVector& blocks,
+void wxGridSelection::MergeOrAddBlock(wxVectorGridBlockCoords& blocks,
                                       const wxGridBlockCoords& newBlock)
 {
     size_t count = blocks.size();

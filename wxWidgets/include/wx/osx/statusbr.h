@@ -3,6 +3,7 @@
 // Purpose:     native implementation of wxStatusBar.
 //              Optional: can use generic version instead.
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -26,13 +27,13 @@ public:
               const wxString& name = wxASCII_STR(wxStatusBarNameStr));
 
     // Implementation
-    virtual void MacHiliteChanged() override;
+    virtual void MacHiliteChanged() wxOVERRIDE;
     void OnPaint(wxPaintEvent& event);
 
 protected:
-    virtual int GetEffectiveFieldStyle(int WXUNUSED(i)) const override { return wxSB_NORMAL; }
+    virtual int GetEffectiveFieldStyle(int WXUNUSED(i)) const wxOVERRIDE { return wxSB_NORMAL; }
 
-    virtual void InitColours() override;
+    virtual void InitColours() wxOVERRIDE;
 
 private:
     wxColour m_textActive, m_textInactive;

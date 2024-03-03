@@ -7,10 +7,10 @@
 
 
 
-prefix = /usr/local
+prefix = /mingw64
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
-INSTALL = /usr/local/bin/ginstall -c
+INSTALL = /usr/bin/install -c
 
 ### Variables: ###
 

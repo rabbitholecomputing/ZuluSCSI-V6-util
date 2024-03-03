@@ -610,18 +610,12 @@ public:
     int GetC();
 
     /**
-        Returns the last number of bytes read by the last input operation.
-
-        Such operations include Read(), GetC() and Peek().
+        Returns the last number of bytes read.
     */
     virtual size_t LastRead() const;
 
     /**
         Returns the first character in the input queue without removing it.
-
-        If Peek() failed, e.g. because there is nothing more to read in the
-        stream, LastRead() will return 0 after calling it, otherwise it will
-        return 1.
     */
     virtual char Peek();
 
@@ -789,12 +783,12 @@ public:
         @param stream
             The associated low-level stream.
         @param buffer
-            The buffer to use if non-null. Notice that the ownership of this
+            The buffer to use if non-@NULL. Notice that the ownership of this
             buffer is taken by the stream, i.e. it will delete it. If this
             parameter is @NULL a default 1KB buffer is used.
     */
     wxBufferedInputStream(wxInputStream& stream,
-                          wxStreamBuffer *buffer = nullptr);
+                          wxStreamBuffer *buffer = NULL);
 
     /**
         Constructor allowing to specify the size of the buffer.
@@ -893,7 +887,7 @@ public:
         const wxFilterClassFactory *factory = wxFilterClassFactory::GetFirst();
 
         while (factory) {
-            list << factory->GetProtocol() << "\n";
+            list << factory->GetProtocol() << wxT("\n");
             factory = factory->GetNext();
         }
         @endcode
@@ -923,7 +917,7 @@ public:
         const wxChar *const *p;
 
         for (p = factory->GetProtocols(wxSTREAM_FILEEXT); *p; p++)
-            list << *p << "\n";
+            list << *p << wxT("\n");
         @endcode
     */
     virtual const wxChar * const* GetProtocols(wxStreamProtocolType type = wxSTREAM_PROTOCOL) const = 0;
@@ -1064,12 +1058,12 @@ public:
         @param stream
             The associated low-level stream.
         @param buffer
-            The buffer to use if non-null. Notice that the ownership of this
+            The buffer to use if non-@NULL. Notice that the ownership of this
             buffer is taken by the stream, i.e. it will delete it. If this
             parameter is @NULL a default 1KB buffer is used.
     */
     wxBufferedOutputStream(wxOutputStream& stream,
-                           wxStreamBuffer *buffer = nullptr);
+                           wxStreamBuffer *buffer = NULL);
 
     /**
         Constructor allowing to specify the size of the buffer.

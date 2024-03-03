@@ -108,7 +108,7 @@ class TransformMatrixTestCaseDCBase : public CppUnit::TestCase
 public:
     TransformMatrixTestCaseDCBase()
     {
-        m_dc = nullptr;
+        m_dc = NULL;
         wxImage::AddHandler(new wxJPEGHandler);
         m_imgOrig.LoadFile(wxS("horse.jpg"));
         CPPUNIT_ASSERT( m_imgOrig.IsOk() );
@@ -118,7 +118,7 @@ public:
     {
     }
 
-    virtual void setUp() override
+    virtual void setUp() wxOVERRIDE
     {
         m_bmpOrig = wxBitmap(m_imgOrig);
         m_bmpUsingMatrix.Create(m_bmpOrig.GetSize(), m_bmpOrig.GetDepth());
@@ -159,20 +159,20 @@ public:
     {
     }
 
-    virtual void setUp() override
+    virtual void setUp() wxOVERRIDE
     {
         TransformMatrixTestCaseDCBase::setUp();
         m_mdc.SelectObject(m_bmpUsingMatrix);
     }
 
-    virtual void tearDown() override
+    virtual void tearDown() wxOVERRIDE
     {
         m_mdc.SelectObject(wxNullBitmap);
         TransformMatrixTestCaseDCBase::tearDown();
     }
 
 protected:
-    virtual void FlushDC() override {}
+    virtual void FlushDC() wxOVERRIDE {}
 
 private:
     CPPUNIT_TEST_SUITE( TransformMatrixTestCaseDC );
@@ -207,7 +207,7 @@ public:
 
     virtual ~TransformMatrixTestCaseGCDC() {}
 
-    virtual void setUp() override
+    virtual void setUp() wxOVERRIDE
     {
         TransformMatrixTestCaseDC::setUp();
 
@@ -218,14 +218,14 @@ public:
         ctx->SetAntialiasMode(wxANTIALIAS_NONE);
     }
 
-    virtual void tearDown() override
+    virtual void tearDown() wxOVERRIDE
     {
         delete m_gcdc;
         TransformMatrixTestCaseDC::tearDown();
     }
 
 protected:
-    virtual void FlushDC() override
+    virtual void FlushDC() wxOVERRIDE
     {
         m_gcdc->GetGraphicsContext()->Flush();
     }
@@ -263,7 +263,7 @@ public:
 
     virtual ~TransformMatrixTestCaseGCDCGDIPlus() {}
 
-    virtual void setUp() override
+    virtual void setUp() wxOVERRIDE
     {
         TransformMatrixTestCaseGCDC::setUp();
 
@@ -299,7 +299,7 @@ public:
 
     virtual ~TransformMatrixTestCaseGCDCDirect2D() {}
 
-    virtual void setUp() override
+    virtual void setUp() wxOVERRIDE
     {
         TransformMatrixTestCaseGCDC::setUp();
 
@@ -308,14 +308,14 @@ public:
         m_gcdc->SetGraphicsContext(ctx);
     }
 
-    virtual void FlushDC() override
+    virtual void FlushDC() wxOVERRIDE
     {
         // Apparently, flushing native Direct2D renderer
         // is not enough to update underlying DC (bitmap)
         // and therefore we have to destroy the renderer
         // to do so.
         TransformMatrixTestCaseGCDC::FlushDC();
-        m_gcdc->SetGraphicsContext(nullptr);
+        m_gcdc->SetGraphicsContext(NULL);
     }
 
 private:
@@ -347,7 +347,7 @@ public:
 
     virtual ~TransformMatrixTestCaseGCDCCairo() {}
 
-    virtual void setUp() override
+    virtual void setUp() wxOVERRIDE
     {
         TransformMatrixTestCaseGCDC::setUp();
 

@@ -41,11 +41,13 @@ typedef wxScopedArray<wxDataFormat> wxDataFormatArray;
 // data
 // ----------------------------------------------------------------------------
 
-static GdkAtom  g_targetsAtom     = nullptr;
-static GdkAtom  g_timestampAtom   = nullptr;
+static GdkAtom  g_targetsAtom     = 0;
+static GdkAtom  g_timestampAtom   = 0;
 
+#if wxUSE_UNICODE
 // This is defined in src/gtk/dataobj.cpp.
 extern GdkAtom wxGetAltTextAtom();
+#endif
 
 // the trace mask we use with wxLogTrace() - call
 // wxLog::AddTraceMask(TRACE_CLIPBOARD) to enable the trace messages from here
@@ -88,7 +90,7 @@ public:
         wxASSERT_MSG( clipboard == ms_clipboard,
                         wxT("got notification for alien clipboard") );
 
-        ms_clipboard = nullptr;
+        ms_clipboard = NULL;
     }
 
     // this method should be called if it's possible that no async clipboard
@@ -108,7 +110,7 @@ private:
     wxDECLARE_NO_COPY_CLASS(wxClipboardSync);
 };
 
-wxClipboard *wxClipboardSync::ms_clipboard = nullptr;
+wxClipboard *wxClipboardSync::ms_clipboard = NULL;
 
 // ============================================================================
 // clipboard callbacks implementation
@@ -315,6 +317,7 @@ selection_handler( GtkWidget *WXUNUSED(widget),
 
     // use UTF8_STRING format if requested in Unicode build but just plain
     // STRING one in ANSI or if explicitly asked in Unicode
+#if wxUSE_UNICODE
     if (format == wxDF_UNICODETEXT)
     {
         gtk_selection_data_set_text(
@@ -323,6 +326,7 @@ selection_handler( GtkWidget *WXUNUSED(widget),
             size );
     }
     else
+#endif // wxUSE_UNICODE
     {
         gtk_selection_data_set(
             selection_data,
@@ -440,10 +444,10 @@ wxClipboard::wxClipboard()
 
     m_dataPrimary =
     m_dataClipboard =
-    m_receivedData = nullptr;
+    m_receivedData = NULL;
 
     m_formatSupported = false;
-    m_targetRequested = nullptr;
+    m_targetRequested = 0;
 
     // we use m_targetsWidget to query what formats are available
     m_targetsWidget = gtk_window_new( GTK_WINDOW_POPUP );
@@ -467,7 +471,7 @@ wxClipboard::wxClipboard()
                       G_CALLBACK (selection_received), this);
 
     g_signal_connect (m_clipboardWidget, "selection_clear_event",
-                      G_CALLBACK (selection_clear_clip), nullptr);
+                      G_CALLBACK (selection_clear_clip), NULL);
 
     // initialize atoms we use if not done yet
     if ( !g_targetsAtom )
@@ -504,7 +508,7 @@ bool wxClipboard::SetSelectionOwner(bool set)
 {
     bool rc = gtk_selection_owner_set
               (
-                set ? m_clipboardWidget : nullptr,
+                set ? m_clipboardWidget : NULL,
                 GTKGetClipboardAtom(),
                 (guint32)GDK_CURRENT_TIME
               ) != 0;
@@ -593,16 +597,16 @@ void wxClipboard::Clear()
         if ( m_usePrimary )
         {
             delete m_dataPrimary;
-            m_dataPrimary = nullptr;
+            m_dataPrimary = NULL;
         }
         else
         {
             delete m_dataClipboard;
-            m_dataClipboard = nullptr;
+            m_dataClipboard = NULL;
         }
     }
 
-    m_targetRequested = nullptr;
+    m_targetRequested = 0;
     m_formatSupported = false;
 }
 
@@ -614,7 +618,7 @@ bool wxClipboard::Flush()
     {
         GtkClipboard* clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
 
-        gtk_clipboard_set_can_store(clipboard, nullptr, 0);
+        gtk_clipboard_set_can_store(clipboard, NULL, 0);
         gtk_clipboard_store(clipboard);
 
         return true;
@@ -702,11 +706,13 @@ bool wxClipboard::IsSupported( const wxDataFormat& format )
     if ( DoIsSupported(format) )
         return true;
 
+#if wxUSE_UNICODE
     if ( format == wxDF_UNICODETEXT )
     {
         // also with plain STRING format
         return DoIsSupported(wxGetAltTextAtom());
     }
+#endif // wxUSE_UNICODE
 
     return false;
 }
@@ -755,7 +761,11 @@ bool wxClipboard::GetData( wxDataObject& data )
            tokens is given (that is more than 1 for non-ASCII characters)
            (tested with Gnumeric-1.6.1 and OpenOffice.org-2.0.2)
          */
+#if wxUSE_UNICODE
         if ( format != wxDF_UNICODETEXT || data.GetDataSize(format) > 0 )
+#else // !UNICODE
+        if ( format != wxDF_TEXT || data.GetDataSize(format) > 1 )
+#endif // UNICODE / !UNICODE
         {
             wxCHECK_MSG( m_formatSupported, false,
                          wxT("error retrieving data from clipboard") );
@@ -788,7 +798,7 @@ wxDataObject* wxClipboard::GTKGetDataObject( GdkAtom atom )
     }
     else // some other selection, we're not concerned
     {
-        return (wxDataObject*)nullptr;
+        return (wxDataObject*)NULL;
     }
 }
 

@@ -1,23 +1,22 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from  __future__ import  print_function
 import os
 from scriptCommon import catchPath
 
+changedFiles = 0
+
 def isSourceFile( path ):
     return path.endswith( ".cpp" ) or path.endswith( ".h" ) or path.endswith( ".hpp" )
 
 def fixAllFilesInDir( dir ):
-    changedFiles = 0
     for f in os.listdir( dir ):
         path = os.path.join( dir,f )
         if os.path.isfile( path ):
             if isSourceFile( path ):
-                if fixFile( path ):
-                    changedFiles += 1
+                fixFile( path )
         else:
             fixAllFilesInDir( path )
-    return changedFiles
 
 def fixFile( path ):
     f = open( path, 'r' )
@@ -42,10 +41,8 @@ def fixFile( path ):
             f2.write( line )
         f2.close()
         os.remove( altPath )
-        return True
-    return False
 
-changedFiles = fixAllFilesInDir(catchPath)
+fixAllFilesInDir(catchPath)
 if changedFiles > 0:
     print( "Fixed " + str(changedFiles) + " file(s)" )
 else:

@@ -33,7 +33,7 @@ public:
         Save the animated gif.
 
         @param images
-            The images making up the animation.
+            The image array object which is to be affected by this operation.
         @param stream
             Opened output stream for writing the data.
         @param verbose
@@ -45,7 +45,7 @@ public:
         @return @true if the operation succeeded, @false otherwise.
 
     */
-    bool SaveAnimation(const std::vector<wxImage>& images, wxOutputStream *stream,
+    bool SaveAnimation(const wxImageArray& images, wxOutputStream *stream,
                         bool verbose = true, int delayMilliSecs = 1000);
 
 protected:

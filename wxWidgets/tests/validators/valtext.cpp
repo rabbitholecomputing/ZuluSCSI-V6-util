@@ -120,6 +120,7 @@ TEXT_VALIDATOR_TEST_CASE("wxTextValidator::IsValid", "[wxTextValidator][filters]
         {
             wxArrayString excludes;
             excludes.push_back("wxGTK");
+            excludes.push_back("wxGTK1");
             val.SetExcludes(excludes);
 
             CHECK( val.IsValid("wxOSX").empty() );

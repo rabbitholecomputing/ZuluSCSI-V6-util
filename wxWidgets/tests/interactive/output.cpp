@@ -105,7 +105,7 @@ void InteractiveOutputTestCase::TestDllListLoaded()
         const wxDynamicLibraryDetails& details = dlls[n];
         wxPrintf("%-45s", details.GetPath());
 
-        void *addr wxDUMMY_INITIALIZE(nullptr);
+        void *addr wxDUMMY_INITIALIZE(NULL);
         size_t len wxDUMMY_INITIALIZE(0);
         if ( details.GetAddress(&addr, &len) )
         {
@@ -154,7 +154,7 @@ void InteractiveOutputTestCase::TestMimeEnum()
         filetype->GetDescription(&desc);
         filetype->GetExtensions(exts);
 
-        filetype->GetIcon(nullptr);
+        filetype->GetIcon(NULL);
 
         wxString extsAll;
         for ( size_t e = 0; e < exts.GetCount(); e++ )
@@ -318,7 +318,7 @@ public:
     {
     }
 
-    virtual void Walk(size_t skip = 1, size_t maxdepth = wxSTACKWALKER_MAX_DEPTH) override
+    virtual void Walk(size_t skip = 1, size_t maxdepth = wxSTACKWALKER_MAX_DEPTH) wxOVERRIDE
     {
         wxPuts(wxT("Stack dump:"));
 
@@ -326,7 +326,7 @@ public:
     }
 
 protected:
-    virtual void OnStackFrame(const wxStackFrame& frame) override
+    virtual void OnStackFrame(const wxStackFrame& frame) wxOVERRIDE
     {
         wxPrintf("[%2zu] ", frame.GetLevel());
 
@@ -403,7 +403,6 @@ void InteractiveOutputTestCase::TestStandardPaths()
     wxPrintf(wxT("Executable path:\t%s\n"), stdp.GetExecutablePath());
     wxPrintf(wxT("Plugins dir:\t\t%s\n"), stdp.GetPluginsDir());
     wxPrintf(wxT("Resources dir:\t\t%s\n"), stdp.GetResourcesDir());
-    wxPrintf( "Shared Libraries dir:\t\t%s\n", stdp.GetSharedLibrariesDir() );
     wxPrintf(wxT("Localized res. dir:\t%s\n"),
              stdp.GetLocalizedResourcesDir(wxT("fr")));
     wxPrintf(wxT("Message catalogs dir:\t%s\n"),

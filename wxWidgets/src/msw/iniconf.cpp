@@ -2,6 +2,7 @@
 // Name:        src/msw/iniconf.cpp
 // Purpose:     implementation of wxIniConfig class
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     27.07.98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -252,13 +253,13 @@ bool wxIniConfig::IsEmpty() const
 {
     wxChar szBuf[1024];
 
-    GetPrivateProfileString(m_strGroup.t_str(), nullptr, wxT(""),
+    GetPrivateProfileString(m_strGroup.t_str(), NULL, wxT(""),
                             szBuf, WXSIZEOF(szBuf),
                             m_strLocalFilename.t_str());
     if ( !wxIsEmpty(szBuf) )
         return false;
 
-    GetProfileString(m_strGroup.t_str(), nullptr, wxT(""), szBuf, WXSIZEOF(szBuf));
+    GetProfileString(m_strGroup.t_str(), NULL, wxT(""), szBuf, WXSIZEOF(szBuf));
     if ( !wxIsEmpty(szBuf) )
         return false;
 
@@ -278,7 +279,7 @@ bool wxIniConfig::DoReadString(const wxString& szKey, wxString *pstr) const
 
   // first look in the private INI file
 
-  // NB: the lpDefault param to GetPrivateProfileString can't be null
+  // NB: the lpDefault param to GetPrivateProfileString can't be NULL
   GetPrivateProfileString(m_strGroup.t_str(), strKey.t_str(), wxT(""),
                           szBuf, WXSIZEOF(szBuf),
                           m_strLocalFilename.t_str());
@@ -380,7 +381,7 @@ bool wxIniConfig::DoWriteBinary(const wxString& WXUNUSED(key),
 bool wxIniConfig::Flush(bool /* bCurrentOnly */)
 {
   // this is just the way it works
-  return WritePrivateProfileString(nullptr, nullptr, nullptr,
+  return WritePrivateProfileString(NULL, NULL, NULL,
                                    m_strLocalFilename.t_str()) != 0;
 }
 
@@ -390,20 +391,20 @@ bool wxIniConfig::Flush(bool /* bCurrentOnly */)
 
 bool wxIniConfig::DeleteEntry(const wxString& szKey, bool bGroupIfEmptyAlso)
 {
-  // passing nullptr as value to WritePrivateProfileString deletes the key
+  // passing NULL as value to WritePrivateProfileString deletes the key
   wxConfigPathChanger path(this, szKey);
   wxString strKey = GetPrivateKeyName(path.Name());
 
   if (WritePrivateProfileString(m_strGroup.t_str(), strKey.t_str(),
-                                nullptr, m_strLocalFilename.t_str()) == 0)
+                                NULL, m_strLocalFilename.t_str()) == 0)
     return false;
 
   if ( !bGroupIfEmptyAlso || !IsEmpty() )
     return true;
 
   // delete the current group too
-  bool bOk = WritePrivateProfileString(m_strGroup.t_str(), nullptr,
-                                       nullptr, m_strLocalFilename.t_str()) != 0;
+  bool bOk = WritePrivateProfileString(m_strGroup.t_str(), NULL,
+                                       NULL, m_strLocalFilename.t_str()) != 0;
 
   if ( !bOk )
   {
@@ -417,10 +418,10 @@ bool wxIniConfig::DeleteGroup(const wxString& szKey)
 {
   wxConfigPathChanger path(this, szKey);
 
-  // passing nullptr as section name to WritePrivateProfileString deletes the
+  // passing NULL as section name to WritePrivateProfileString deletes the
   // whole section according to the docs
-  bool bOk = WritePrivateProfileString(path.Name().t_str(), nullptr,
-                                       nullptr, m_strLocalFilename.t_str()) != 0;
+  bool bOk = WritePrivateProfileString(path.Name().t_str(), NULL,
+                                       NULL, m_strLocalFilename.t_str()) != 0;
 
   if ( !bOk )
   {
@@ -437,7 +438,7 @@ bool wxIniConfig::DeleteGroup(const wxString& szKey)
 bool wxIniConfig::DeleteAll()
 {
   // first delete our group in win.ini
-  WriteProfileString(GetVendorName().t_str(), nullptr, nullptr);
+  WriteProfileString(GetVendorName().t_str(), NULL, NULL);
 
   // then delete our own ini file
   wxChar szBuf[MAX_PATH];

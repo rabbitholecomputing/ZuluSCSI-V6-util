@@ -2,6 +2,7 @@
 // Name:        src/osx/core/fontenum.cpp
 // Purpose:     wxFontEnumerator class for MacOS
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -16,6 +17,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/font.h"
+    #include "wx/intl.h"
 #endif
 
 #include "wx/fontutil.h"
@@ -55,7 +57,7 @@ bool wxFontEnumerator::EnumerateFacenames(wxFontEncoding encoding,
 
             if ( encoding != wxFONTENCODING_SYSTEM || fixedWidthOnly)
             {
-                wxCFRef<CTFontRef> font(CTFontCreateWithName(fontName, 12.0, nullptr));
+                wxCFRef<CTFontRef> font(CTFontCreateWithName(fontName, 12.0, NULL));
                 if ( encoding != wxFONTENCODING_SYSTEM )
                 {
                     CFStringEncoding fontFamiliyEncoding = CTFontGetStringEncoding(font);
@@ -73,7 +75,7 @@ bool wxFontEnumerator::EnumerateFacenames(wxFontEncoding encoding,
             }
             
             wxCFStringRef cfName(wxCFRetain(fontName)) ;
-            fontFamilies.Add(cfName.AsString());
+            fontFamilies.Add(cfName.AsString(wxLocale::GetSystemEncoding()));
         }
         
         CFRelease(cfFontFamilies);

@@ -67,6 +67,7 @@ wxFLAGS_MEMBER(wxBORDER)
 // standard window styles
 wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
 wxFLAGS_MEMBER(wxCLIP_CHILDREN)
+wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
 wxFLAGS_MEMBER(wxWANTS_CHARS)
 wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
 wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
@@ -174,12 +175,12 @@ public:
     }
 
 protected:
-    virtual void OnOutputLine(const wxString& line) override
+    virtual void OnOutputLine(const wxString& line) wxOVERRIDE
     {
         m_text += line;
     }
 
-    virtual void OnNewLine() override
+    virtual void OnNewLine() wxOVERRIDE
     {
         m_text += wxT('\n');
     }

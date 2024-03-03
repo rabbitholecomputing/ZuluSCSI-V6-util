@@ -2,6 +2,7 @@
 // Name:        src/common/containr.cpp
 // Purpose:     implementation of wxControlContainer
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     06.08.01
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -184,7 +185,7 @@ bool wxControlContainerBase::HasTransparentBackground() const
 
 wxControlContainer::wxControlContainer()
 {
-    m_winLastFocused = nullptr;
+    m_winLastFocused = NULL;
 }
 
 void wxControlContainer::SetLastFocus(wxWindow *win)
@@ -245,7 +246,7 @@ wxRadioButton* wxGetSelectedButtonInGroup(const wxRadioButton *btn)
         return const_cast<wxRadioButton*>(btn);
 
     if (btn->HasFlag(wxRB_SINGLE))
-        return nullptr;
+        return NULL;
 
     wxRadioButton *selBtn;
 
@@ -259,7 +260,7 @@ wxRadioButton* wxGetSelectedButtonInGroup(const wxRadioButton *btn)
         if (selBtn->GetValue())
             return selBtn;
 
-    return nullptr;
+    return NULL;
 }
 
 } // anonymous namespace
@@ -278,7 +279,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
 {
     // for a TLW we shouldn't involve the parent window, it has nothing to do
     // with keyboard navigation inside this TLW
-    wxWindow *parent = m_winParent->IsTopLevel() ? nullptr
+    wxWindow *parent = m_winParent->IsTopLevel() ? NULL
                                                  : m_winParent->GetParent();
 
     // the event is propagated downwards if the event emitter was our parent
@@ -296,7 +297,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
     if ( event.IsWindowChange() && !goingDown )
     {
         // check if we have a unique notebook-like child
-        wxWindow *bookctrl = nullptr;
+        wxWindow *bookctrl = NULL;
         for ( wxWindowList::const_iterator i = children.begin(),
                                          end = children.end();
               i != end;
@@ -310,7 +311,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
                     // this is the second book-like control already so don't do
                     // anything as we don't know which one should have its page
                     // changed
-                    bookctrl = nullptr;
+                    bookctrl = NULL;
                     break;
                 }
 
@@ -358,7 +359,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
     {
         // just to be sure it's not used (normally this is not necessary, but
         // doesn't hurt either)
-        m_winLastFocused = nullptr;
+        m_winLastFocused = NULL;
 
         // start from first or last depending on where we're going
         node = forward ? children.GetFirst() : children.GetLast();
@@ -408,7 +409,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
         node = forward ? start_node->GetNext() : start_node->GetPrevious();
     }
 
-    // we want to cycle over all elements passing by nullptr
+    // we want to cycle over all elements passing by NULL
     for ( ;; )
     {
         // don't go into infinite loop
@@ -567,7 +568,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
 void wxControlContainer::HandleOnWindowDestroy(wxWindowBase *child)
 {
     if ( child == m_winLastFocused )
-        m_winLastFocused = nullptr;
+        m_winLastFocused = NULL;
 }
 
 // ----------------------------------------------------------------------------
@@ -591,7 +592,7 @@ void wxControlContainer::HandleOnFocus(wxFocusEvent& event)
 
 bool wxControlContainer::SetFocusToChild()
 {
-    return wxSetFocusToChild(m_winParent, nullptr);
+    return wxSetFocusToChild(m_winParent, NULL);
 }
 
 
@@ -606,7 +607,7 @@ bool wxSetFocusToChild(wxWindow *win, wxWindow **childLastFocused)
 {
     wxCHECK_MSG( win, false, wxT("wxSetFocusToChild(): invalid window") );
     //    wxCHECK_MSG( childLastFocused, false,
-    //             wxT("wxSetFocusToChild(): null child pointer") );
+    //             wxT("wxSetFocusToChild(): NULL child pointer") );
 
     if ( childLastFocused && *childLastFocused )
     {
@@ -615,7 +616,7 @@ bool wxSetFocusToChild(wxWindow *win, wxWindow **childLastFocused)
         {
             // And it also could have become hidden in the meanwhile
             // We want to focus on the deepest widget visible
-            wxWindow *deepestVisibleWindow = nullptr;
+            wxWindow *deepestVisibleWindow = NULL;
 
             while ( *childLastFocused )
             {
@@ -625,7 +626,7 @@ bool wxSetFocusToChild(wxWindow *win, wxWindow **childLastFocused)
                         deepestVisibleWindow = *childLastFocused;
                 }
                 else
-                    deepestVisibleWindow = nullptr;
+                    deepestVisibleWindow = NULL;
 
                 // We shouldn't be looking for the child to focus beyond the
                 // TLW boundary. And we use IsTopNavigationDomain() here
@@ -657,7 +658,7 @@ bool wxSetFocusToChild(wxWindow *win, wxWindow **childLastFocused)
         else
         {
             // it doesn't count as such any more
-            *childLastFocused = nullptr;
+            *childLastFocused = NULL;
         }
     }
 

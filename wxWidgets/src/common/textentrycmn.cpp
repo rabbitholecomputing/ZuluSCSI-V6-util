@@ -191,6 +191,10 @@ wxTextEntryBase::~wxTextEntryBase()
     delete m_hintData;
 }
 
+void* wxTextEntryBase::WXReservedTextEntry1(void*) { return NULL; }
+void* wxTextEntryBase::WXReservedTextEntry2(void*) { return NULL; }
+void* wxTextEntryBase::WXReservedTextEntry3(void*) { return NULL; }
+
 // ----------------------------------------------------------------------------
 // text accessors
 // ----------------------------------------------------------------------------
@@ -313,7 +317,9 @@ bool wxTextEntryBase::CanPaste() const
 #if wxUSE_CLIPBOARD
         // check if there is any text on the clipboard
         if ( wxTheClipboard->IsSupported(wxDF_TEXT)
+#if wxUSE_UNICODE
                 || wxTheClipboard->IsSupported(wxDF_UNICODETEXT)
+#endif // wxUSE_UNICODE
            )
         {
             return true;
@@ -338,7 +344,7 @@ struct ForceUpperFunctor
 {
     // This class must have default ctor in wxNO_RTTI case, so allow creating
     // it with null entry even if this never actually happens in practice.
-    explicit ForceUpperFunctor(wxTextEntryBase* entry = nullptr)
+    explicit ForceUpperFunctor(wxTextEntryBase* entry = NULL)
         : m_entry(entry)
     {
     }
@@ -408,7 +414,7 @@ bool wxTextEntryBase::SetHint(const wxString& hint)
     {
         // Setting empty hint removes any currently set one.
         delete m_hintData;
-        m_hintData = nullptr;
+        m_hintData = NULL;
     }
     //else: Setting empty hint when we don't have any doesn't do anything.
 

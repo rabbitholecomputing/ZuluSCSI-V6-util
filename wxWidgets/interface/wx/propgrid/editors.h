@@ -14,7 +14,7 @@
 class wxPGWindowList
 {
 public:
-    wxPGWindowList(wxWindow* primary, wxWindow* secondary = nullptr);
+    wxPGWindowList(wxWindow* primary, wxWindow* secondary = NULL);
 
     void SetSecondary(wxWindow* secondary);
 
@@ -441,8 +441,8 @@ public:
         wxDECLARE_DYNAMIC_CLASS(wxSampleMultiButtonEditor);
 
     public:
-        wxSampleMultiButtonEditor() = default;
-        virtual ~wxSampleMultiButtonEditor() = default;
+        wxSampleMultiButtonEditor() {}
+        virtual ~wxSampleMultiButtonEditor() {}
 
         virtual wxString GetName() const { return "SampleMultiButtonEditor"; }
 
@@ -543,7 +543,7 @@ public:
     /**
         Destructor.
     */
-    virtual ~wxPGMultiButton() = default;
+    virtual ~wxPGMultiButton() { }
 
     /**
         Adds new button, with given label.

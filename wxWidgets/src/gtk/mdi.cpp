@@ -44,7 +44,7 @@ switch_page(GtkNotebook* widget, GtkNotebookPage*, guint page_num, wxMDIParentFr
     if ( !client_window )
         return;
 
-    child = nullptr;
+    child = NULL;
     GtkWidget* page = gtk_notebook_get_nth_page(widget, page_num);
 
     wxWindowList::compatibility_iterator node = client_window->GetChildren().GetFirst();
@@ -52,7 +52,7 @@ switch_page(GtkNotebook* widget, GtkNotebookPage*, guint page_num, wxMDIParentFr
     {
         wxMDIChildFrame *child_frame = wxDynamicCast( node->GetData(), wxMDIChildFrame );
 
-        // child_frame can be null when this is called from dtor, probably
+        // child_frame can be NULL when this is called from dtor, probably
         // because g_signal_connect (m_widget, "switch_page", (see below)
         // isn't deleted early enough
         if (child_frame && child_frame->m_widget == page)
@@ -115,7 +115,7 @@ void wxMDIParentFrame::OnInternalIdle()
 
         /* need to set the menubar of the child */
         wxMDIChildFrame *active_child_frame = GetActiveChild();
-        if (active_child_frame != nullptr)
+        if (active_child_frame != NULL)
         {
             wxMenuBar *menu_bar = active_child_frame->m_menuBar;
             if (menu_bar)
@@ -199,7 +199,7 @@ void wxMDIParentFrame::DoGetClientSize(int* width, int* height) const
             if (menubar && menubar->IsShown())
             {
                 GtkRequisition req;
-                gtk_widget_get_preferred_height(menubar->m_widget, nullptr, &req.height);
+                gtk_widget_get_preferred_height(menubar->m_widget, NULL, &req.height);
                 *height -= req.height;
                 if (*height < 0) *height = 0;
             }
@@ -209,27 +209,27 @@ void wxMDIParentFrame::DoGetClientSize(int* width, int* height) const
 
 wxMDIChildFrame *wxMDIParentFrame::GetActiveChild() const
 {
-    if (!m_clientWindow) return nullptr;
+    if (!m_clientWindow) return NULL;
 
     GtkNotebook *notebook = GTK_NOTEBOOK(m_clientWindow->m_widget);
-    if (!notebook) return nullptr;
+    if (!notebook) return NULL;
 
     gint i = gtk_notebook_get_current_page( notebook );
-    if (i < 0) return nullptr;
+    if (i < 0) return NULL;
 
     GtkWidget* page = gtk_notebook_get_nth_page(notebook, i);
-    if (!page) return nullptr;
+    if (!page) return NULL;
 
     wxWindowList::compatibility_iterator node = m_clientWindow->GetChildren().GetFirst();
     while (node)
     {
         if ( wxPendingDelete.Member(node->GetData()) )
-            return nullptr;
+            return NULL;
 
         wxMDIChildFrame *child_frame = wxDynamicCast( node->GetData(), wxMDIChildFrame );
 
         if (!child_frame)
-            return nullptr;
+            return NULL;
 
         if (child_frame->m_widget == page)
             return child_frame;
@@ -237,7 +237,7 @@ wxMDIChildFrame *wxMDIParentFrame::GetActiveChild() const
         node = node->GetNext();
     }
 
-    return nullptr;
+    return NULL;
 }
 
 void wxMDIParentFrame::ActivateNext()
@@ -265,7 +265,7 @@ wxEND_EVENT_TABLE()
 
 void wxMDIChildFrame::Init()
 {
-    m_menuBar = nullptr;
+    m_menuBar = NULL;
 }
 
 bool wxMDIChildFrame::Create(wxMDIParentFrame *parent,
@@ -301,7 +301,7 @@ void wxMDIChildFrame::GTKHandleRealized()
 
 void wxMDIChildFrame::SetMenuBar( wxMenuBar *menu_bar )
 {
-    wxASSERT_MSG( m_menuBar == nullptr, "Only one menubar allowed" );
+    wxASSERT_MSG( m_menuBar == NULL, "Only one menubar allowed" );
 
     m_menuBar = menu_bar;
 
@@ -328,7 +328,7 @@ GtkNotebook *wxMDIChildFrame::GTKGetNotebook() const
 {
     wxMDIClientWindow * const
         client = wxStaticCast(GetParent(), wxMDIClientWindow);
-    wxCHECK( client, nullptr );
+    wxCHECK( client, NULL );
 
     return GTK_NOTEBOOK(client->m_widget);
 }
@@ -368,7 +368,7 @@ void wxMDIChildFrame::SetTitle( const wxString &title )
 
     GtkNotebook * const notebook = GTKGetNotebook();
     wxCHECK_RET( notebook, "no parent notebook?" );
-    gtk_notebook_set_tab_label_text(notebook, m_widget, title.utf8_str() );
+    gtk_notebook_set_tab_label_text(notebook, m_widget, wxGTK_CONV( title ) );
 }
 
 void wxMDIChildFrame::DoGetPosition(int *x, int *y) const
@@ -434,7 +434,7 @@ void wxMDIClientWindow::AddChildGTK(wxWindowGTK* child)
 
     GtkWidget *label_widget = gtk_label_new( s.mbc_str() );
 #ifdef __WXGTK4__
-    g_object_set(label_widget, "xalign", 0.0f, nullptr);
+    g_object_set(label_widget, "xalign", 0.0f, NULL);
 #else
     wxGCC_WARNING_SUPPRESS(deprecated-declarations)
     gtk_misc_set_alignment( GTK_MISC(label_widget), 0.0, 0.5 );

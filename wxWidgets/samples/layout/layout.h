@@ -2,6 +2,7 @@
 // Name:        layout.h
 // Purpose:     Layout sample
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -12,7 +13,7 @@ class MyApp: public wxApp
 {
 public:
     MyApp(){}
-    bool OnInit() override;
+    bool OnInit() wxOVERRIDE;
 };
 
 // the main frame class

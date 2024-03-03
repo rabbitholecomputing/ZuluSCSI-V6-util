@@ -2,6 +2,7 @@
 // Name:        wx/osx/accel.h
 // Purpose:     wxAcceleratorTable class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -19,6 +20,8 @@ class WXDLLIMPEXP_CORE wxAcceleratorTable: public wxObject
 public:
     wxAcceleratorTable();
     wxAcceleratorTable(int n, const wxAcceleratorEntry entries[]); // Load from array
+
+    virtual ~wxAcceleratorTable();
 
     bool Ok() const { return IsOk(); }
     bool IsOk() const;

@@ -21,7 +21,7 @@ class BombsFrame;
 class BombsApp: public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 
 private :
     BombsFrame *m_frame;

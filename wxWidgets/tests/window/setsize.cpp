@@ -19,10 +19,10 @@
     #include "wx/window.h"
 #endif // WX_PRECOMP
 
-#include <memory>
+#include "wx/scopedptr.h"
 
 #include "asserthelper.h"
-#include "waitfor.h"
+#include "waitforpaint.h"
 
 // ----------------------------------------------------------------------------
 // tests helpers
@@ -41,7 +41,7 @@ public:
     }
 
 protected:
-    virtual wxSize DoGetBestSize() const override { return wxSize(50, 250); }
+    virtual wxSize DoGetBestSize() const wxOVERRIDE { return wxSize(50, 250); }
 };
 
 } // anonymous namespace
@@ -52,7 +52,7 @@ protected:
 
 TEST_CASE("wxWindow::SetSize", "[window][size]")
 {
-    std::unique_ptr<wxWindow> w(new MyWindow(wxTheApp->GetTopWindow()));
+    wxScopedPtr<wxWindow> w(new MyWindow(wxTheApp->GetTopWindow()));
 
     SECTION("Simple")
     {
@@ -73,7 +73,7 @@ TEST_CASE("wxWindow::SetSize", "[window][size]")
 
 TEST_CASE("wxWindow::GetBestSize", "[window][size][best-size]")
 {
-    std::unique_ptr<wxWindow> w(new MyWindow(wxTheApp->GetTopWindow()));
+    wxScopedPtr<wxWindow> w(new MyWindow(wxTheApp->GetTopWindow()));
 
     CHECK( wxSize(50, 250) == w->GetBestSize() );
 
@@ -86,7 +86,7 @@ TEST_CASE("wxWindow::GetBestSize", "[window][size][best-size]")
 
 TEST_CASE("wxWindow::MovePreservesSize", "[window][size][move]")
 {
-    std::unique_ptr<wxWindow>
+    wxScopedPtr<wxWindow>
         w(new wxFrame(wxTheApp->GetTopWindow(), wxID_ANY, "Test child frame"));
 
     // Unfortunately showing the window is asynchronous, at least when using

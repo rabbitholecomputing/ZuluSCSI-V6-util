@@ -94,7 +94,7 @@ wxSize wxDataViewCustomRenderer::GetSize() const
 
 wxDC *wxDataViewCustomRenderer::GetDC()
 {
-    return nullptr;
+    return NULL;
 }
 
 //==============================================================================
@@ -185,7 +185,7 @@ wxSize wxDataViewIconTextRenderer::GetSize() const
 
 wxControl *wxDataViewIconTextRenderer::CreateEditorCtrl( wxWindow *parent, wxRect labelRect, const wxVariant &value )
 {
-    return nullptr;
+    return NULL;
 }
 
 bool wxDataViewIconTextRenderer::GetValueFromEditorCtrl( wxControl* editor, wxVariant &value )

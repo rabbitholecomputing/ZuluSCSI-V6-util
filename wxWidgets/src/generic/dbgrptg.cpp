@@ -2,6 +2,7 @@
 // Name:        src/generic/dbgrptg.cpp
 // Purpose:     implementation of wxDebugReportPreviewStd
 // Author:      Vadim Zeitlin, Andrej Putrin
+// Modified by:
 // Created:     2005-01-21
 // Copyright:   (c) 2005 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -248,8 +249,8 @@ class wxDebugReportDialog : public wxDialog
 public:
     wxDebugReportDialog(wxDebugReport& dbgrpt);
 
-    virtual bool TransferDataToWindow() override;
-    virtual bool TransferDataFromWindow() override;
+    virtual bool TransferDataToWindow() wxOVERRIDE;
+    virtual bool TransferDataFromWindow() wxOVERRIDE;
 
 private:
     void OnView(wxCommandEvent& );
@@ -296,7 +297,7 @@ wxEND_EVENT_TABLE()
 // ----------------------------------------------------------------------------
 
 wxDebugReportDialog::wxDebugReportDialog(wxDebugReport& dbgrpt)
-                   : wxDialog(nullptr, wxID_ANY,
+                   : wxDialog(NULL, wxID_ANY,
                               wxString::Format(_("Debug report \"%s\""),
                               dbgrpt.GetReportName().c_str()),
                               wxDefaultPosition,
@@ -534,7 +535,8 @@ bool wxDebugReportPreviewStd::Show(wxDebugReport& dbgrpt) const
     // handling for all other windows as this could result in more crashes
     wxEventLoop::SetCriticalWindow(&dlg);
 
-    wxON_BLOCK_EXIT1( wxEventLoop::SetCriticalWindow, nullptr );
+    wxON_BLOCK_EXIT1( wxEventLoop::SetCriticalWindow,
+                        static_cast<wxWindow *>(NULL) );
 #endif // __WXMSW__
 
     return dlg.ShowModal() == wxID_OK && dbgrpt.GetFilesCount() != 0;

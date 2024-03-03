@@ -33,6 +33,10 @@
     #include <stat.h>
 #endif
 
+#if wxUSE_STD_IOSTREAM
+    #include <fstream>
+#endif
+
 #include "wx/filefn.h"
 #include "wx/sysopt.h"
 #include "wx/thread.h"
@@ -67,7 +71,7 @@ void wxTextCtrl::Init()
 {
     m_dirty = false;
 
-    m_privateContextMenu = nullptr;
+    m_privateContextMenu = NULL;
 }
 
 wxTextCtrl::~wxTextCtrl()
@@ -399,7 +403,6 @@ void wxTextCtrl::OnKeyDown(wxKeyEvent& event)
                     return;
                 }
                 // else fall through to Redo
-                wxFALLTHROUGH;
             case 'Y':
                 if ( CanRedo() )
                     Redo() ;
@@ -628,7 +631,7 @@ void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
     }
 
 #if wxUSE_MENUS
-    if (m_privateContextMenu == nullptr)
+    if (m_privateContextMenu == NULL)
     {
         m_privateContextMenu = new wxMenu;
         m_privateContextMenu->Append(wxID_UNDO, _("&Undo"));

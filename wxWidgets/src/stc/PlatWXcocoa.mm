@@ -90,7 +90,7 @@
 - (void)drawRect:(NSRect)dirtyRect
 {
     static_cast<wxWidgetCocoaImpl*>(m_wxWin->GetPeer())->
-        drawRect(&dirtyRect, self, nil);
+        drawRect(&dirtyRect, self, NULL);
 }
 
 @end

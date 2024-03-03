@@ -2,6 +2,7 @@
 // Name:        cube.h
 // Purpose:     wxGLCanvas demo program
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -30,15 +31,15 @@ private:
 class MyApp : public wxApp
 {
 public:
-    MyApp() { m_glContext = nullptr; m_glStereoContext = nullptr; }
+    MyApp() { m_glContext = NULL; m_glStereoContext = NULL; }
 
     // Returns the shared context used by all frames and sets it as current for
     // the given canvas.
     TestGLContext& GetContext(wxGLCanvas *canvas, bool useStereo);
 
     // virtual wxApp methods
-    virtual bool OnInit() override;
-    virtual int OnExit() override;
+    virtual bool OnInit() wxOVERRIDE;
+    virtual int OnExit() wxOVERRIDE;
 
 private:
     // the GL context we use for all our mono rendering windows
@@ -64,7 +65,7 @@ private:
 class TestGLCanvas : public wxGLCanvas
 {
 public:
-    TestGLCanvas(wxWindow *parent, bool useStereo);
+    TestGLCanvas(wxWindow *parent, int *attribList = NULL);
 
 private:
     void OnPaint(wxPaintEvent& event);
@@ -85,7 +86,7 @@ private:
 
 enum
 {
-    NEW_STEREO_WINDOW = wxID_HIGHEST
+    NEW_STEREO_WINDOW = wxID_HIGHEST + 1
 };
 
 #endif // _WX_CUBE_H_

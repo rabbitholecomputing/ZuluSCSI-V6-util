@@ -111,7 +111,7 @@ long wxGetNumberFromUser(const wxString& message,
                          long value,
                          long min = 0,
                          long max = 100,
-                         wxWindow* parent = nullptr,
+                         wxWindow* parent = NULL,
                          const wxPoint& pos = wxDefaultPosition);
 
 ///@}

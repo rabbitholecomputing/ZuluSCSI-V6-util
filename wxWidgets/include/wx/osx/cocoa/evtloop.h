@@ -20,18 +20,18 @@ public:
 
     void EndModalSession();
 
-    virtual void WakeUp() override;
+    virtual void WakeUp() wxOVERRIDE;
 
     void OSXUseLowLevelWakeup(bool useIt)
         { m_osxLowLevelWakeUp = useIt ; }
 
 protected:
-    virtual int DoDispatchTimeout(unsigned long timeout) override;
+    virtual int DoDispatchTimeout(unsigned long timeout) wxOVERRIDE;
 
-    virtual void OSXDoRun() override;
-    virtual void OSXDoStop() override;
+    virtual void OSXDoRun() wxOVERRIDE;
+    virtual void OSXDoStop() wxOVERRIDE;
 
-    virtual CFRunLoopRef CFGetCurrentRunLoop() const override;
+    virtual CFRunLoopRef CFGetCurrentRunLoop() const wxOVERRIDE;
 
     void* m_modalSession;
 

@@ -43,7 +43,7 @@ wxObject *wxRadioBoxXmlHandler::DoCreateResource()
 
         // need to build the list of strings from children
         m_insideBox = true;
-        CreateChildrenPrivately( nullptr, GetParamNode(wxT("content")));
+        CreateChildrenPrivately( NULL, GetParamNode(wxT("content")));
 
         XRC_MAKE_INSTANCE(control, wxRadioBox)
 
@@ -118,12 +118,12 @@ wxObject *wxRadioBoxXmlHandler::DoCreateResource()
 #if wxUSE_HELP
         const wxXmlNode* const nodeHelp = GetParamNode(wxT("helptext"));
         m_helptexts.push_back(GetNodeText(nodeHelp, wxXRC_TEXT_NO_ESCAPE));
-        m_helptextSpecified.push_back(nodeHelp != nullptr);
+        m_helptextSpecified.push_back(nodeHelp != NULL);
 #endif // wxUSE_HELP
         m_isEnabled.push_back(GetBoolAttr("enabled", 1));
         m_isShown.push_back(!GetBoolAttr("hidden", 0));
 
-        return nullptr;
+        return NULL;
     }
 
 }

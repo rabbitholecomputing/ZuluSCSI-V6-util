@@ -2,6 +2,7 @@
 // Name:        src/msw/ole/dataobj.cpp
 // Purpose:     implementation of wx[I]DataObject class
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     10.05.98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -92,7 +93,7 @@ wxDataFormat NonStandardFormatsFixup(wxDataFormat format)
 // helper function for wxCopyStgMedium()
 HGLOBAL wxGlobalClone(HGLOBAL hglobIn)
 {
-    HGLOBAL hglobOut = nullptr;
+    HGLOBAL hglobOut = NULL;
 
     GlobalPtrLock ptrIn(hglobIn);
     if (ptrIn)
@@ -118,7 +119,7 @@ HRESULT wxCopyStgMedium(const STGMEDIUM *pmediumIn, STGMEDIUM *pmediumOut)
     HRESULT hres = S_OK;
     STGMEDIUM stgmOut = *pmediumIn;
 
-    if (pmediumIn->pUnkForRelease == nullptr &&
+    if (pmediumIn->pUnkForRelease == NULL &&
         !(pmediumIn->tymed & (TYMED_ISTREAM | TYMED_ISTORAGE)))
     {
         // Object needs to be cloned.
@@ -173,10 +174,10 @@ public:
     virtual ~wxIEnumFORMATETC() { delete [] m_formats; }
 
     // IEnumFORMATETC
-    STDMETHODIMP Next(ULONG celt, FORMATETC *rgelt, ULONG *pceltFetched) override;
-    STDMETHODIMP Skip(ULONG celt) override;
-    STDMETHODIMP Reset() override;
-    STDMETHODIMP Clone(IEnumFORMATETC **ppenum) override;
+    STDMETHODIMP Next(ULONG celt, FORMATETC *rgelt, ULONG *pceltFetched) wxOVERRIDE;
+    STDMETHODIMP Skip(ULONG celt) wxOVERRIDE;
+    STDMETHODIMP Reset() wxOVERRIDE;
+    STDMETHODIMP Clone(IEnumFORMATETC **ppenum) wxOVERRIDE;
 
     DECLARE_IUNKNOWN_METHODS;
 
@@ -204,15 +205,15 @@ public:
     void SetDeleteFlag() { m_mustDelete = true; }
 
     // IDataObject
-    STDMETHODIMP GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium) override;
-    STDMETHODIMP GetDataHere(FORMATETC *pformatetc, STGMEDIUM *pmedium) override;
-    STDMETHODIMP QueryGetData(FORMATETC *pformatetc) override;
-    STDMETHODIMP GetCanonicalFormatEtc(FORMATETC *In, FORMATETC *pOut) override;
-    STDMETHODIMP SetData(FORMATETC *pfetc, STGMEDIUM *pmedium, BOOL fRelease) override;
-    STDMETHODIMP EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppenumFEtc) override;
-    STDMETHODIMP DAdvise(FORMATETC *pfetc, DWORD ad, IAdviseSink *p, DWORD *pdw) override;
-    STDMETHODIMP DUnadvise(DWORD dwConnection) override;
-    STDMETHODIMP EnumDAdvise(IEnumSTATDATA **ppenumAdvise) override;
+    STDMETHODIMP GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium) wxOVERRIDE;
+    STDMETHODIMP GetDataHere(FORMATETC *pformatetc, STGMEDIUM *pmedium) wxOVERRIDE;
+    STDMETHODIMP QueryGetData(FORMATETC *pformatetc) wxOVERRIDE;
+    STDMETHODIMP GetCanonicalFormatEtc(FORMATETC *In, FORMATETC *pOut) wxOVERRIDE;
+    STDMETHODIMP SetData(FORMATETC *pfetc, STGMEDIUM *pmedium, BOOL fRelease) wxOVERRIDE;
+    STDMETHODIMP EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppenumFEtc) wxOVERRIDE;
+    STDMETHODIMP DAdvise(FORMATETC *pfetc, DWORD ad, IAdviseSink *p, DWORD *pdw) wxOVERRIDE;
+    STDMETHODIMP DUnadvise(DWORD dwConnection) wxOVERRIDE;
+    STDMETHODIMP EnumDAdvise(IEnumSTATDATA **ppenumAdvise) wxOVERRIDE;
 
     DECLARE_IUNKNOWN_METHODS;
 
@@ -298,7 +299,7 @@ wxIDataObject::SaveSystemData(FORMATETC *pformatetc,
                                  STGMEDIUM *pmedium,
                                  BOOL fRelease)
 {
-    if ( pformatetc == nullptr || pmedium == nullptr )
+    if ( pformatetc == NULL || pmedium == NULL )
         return E_INVALIDARG;
 
     // remove entry if already available
@@ -443,7 +444,7 @@ STDMETHODIMP wxIEnumFORMATETC::Next(ULONG      celt,
     while (m_nCurrent < m_nCount && numFetched < celt) {
         FORMATETC format;
         format.cfFormat = m_formats[m_nCurrent++];
-        format.ptd      = nullptr;
+        format.ptd      = NULL;
         format.dwAspect = DVASPECT_CONTENT;
         format.lindex   = -1;
         format.tymed    = TYMED_HGLOBAL;
@@ -486,7 +487,7 @@ STDMETHODIMP wxIEnumFORMATETC::Clone(IEnumFORMATETC **ppenum)
     wxLogTrace(wxTRACE_OleCalls, wxT("wxIEnumFORMATETC::Clone"));
 
     // unfortunately, we can't reuse the code in ctor - types are different
-    wxIEnumFORMATETC *pNew = new wxIEnumFORMATETC(nullptr, 0);
+    wxIEnumFORMATETC *pNew = new wxIEnumFORMATETC(NULL, 0);
     pNew->m_nCount = m_nCount;
     pNew->m_formats = new CLIPFORMAT[m_nCount];
     for ( ULONG n = 0; n < m_nCount; n++ ) {
@@ -586,7 +587,7 @@ STDMETHODIMP wxIDataObject::GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium)
             size += m_pDataObject->GetBufferOffset( format );
 
             HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE, size);
-            if ( hGlobal == nullptr ) {
+            if ( hGlobal == NULL ) {
                 wxLogLastError(wxT("GlobalAlloc"));
                 return E_OUTOFMEMORY;
             }
@@ -596,7 +597,7 @@ STDMETHODIMP wxIDataObject::GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium)
             pmedium->hGlobal = hGlobal;
     }
 
-    pmedium->pUnkForRelease = nullptr;
+    pmedium->pUnkForRelease = NULL;
 
     // do copy the data
     hr = GetDataHere(pformatetcIn, pmedium);
@@ -797,7 +798,7 @@ STDMETHODIMP wxIDataObject::SetData(FORMATETC *pformatetc,
 STDMETHODIMP wxIDataObject::QueryGetData(FORMATETC *pformatetc)
 {
     // do we accept data in this format?
-    if ( pformatetc == nullptr ) {
+    if ( pformatetc == NULL ) {
         wxLogTrace(wxTRACE_OleCalls,
                    wxT("wxIDataObject::QueryGetData: invalid ptr."));
 
@@ -868,8 +869,8 @@ STDMETHODIMP wxIDataObject::GetCanonicalFormatEtc(FORMATETC *WXUNUSED(pFormatetc
     wxLogTrace(wxTRACE_OleCalls, wxT("wxIDataObject::GetCanonicalFormatEtc"));
 
     // TODO we might want something better than this trivial implementation here
-    if ( pFormatetcOut != nullptr )
-        pFormatetcOut->ptd = nullptr;
+    if ( pFormatetcOut != NULL )
+        pFormatetcOut->ptd = NULL;
 
     return DATA_S_SAMEFORMATETC;
 }
@@ -953,7 +954,7 @@ void wxDataObject::SetAutoDelete()
     m_pIDataObject->Release();
 
     // so that the dtor doesn't crash
-    m_pIDataObject = nullptr;
+    m_pIDataObject = NULL;
 }
 
 size_t wxDataObject::GetBufferOffset(const wxDataFormat& format )
@@ -970,7 +971,7 @@ const void *wxDataObject::GetSizeFromBuffer(const void *buffer,
     if ( !realsz )
     {
         wxLogLastError(wxT("GlobalSize"));
-        return nullptr;
+        return NULL;
     }
 
     *size = realsz;
@@ -1077,7 +1078,7 @@ size_t wxBitmapDataObject::GetDataSize() const
     // because the size of the bitmap without the alpha channel is different.
     RemoveAlphaIfNecessary(bmp);
 
-    return wxDIB::ConvertFromBitmap(nullptr, GetHbitmapOf(bmp));
+    return wxDIB::ConvertFromBitmap(NULL, GetHbitmapOf(bmp));
 #else
     return 0;
 #endif
@@ -1184,9 +1185,9 @@ size_t wxBitmapDataObject::GetDataSize(const wxDataFormat& format) const
         // first get the info
         BITMAPINFO bi;
         if ( !GetDIBits(hdc, (HBITMAP)m_bitmap.GetHBITMAP(), 0, 0,
-                        nullptr, &bi, DIB_RGB_COLORS) )
+                        NULL, &bi, DIB_RGB_COLORS) )
         {
-            wxLogLastError(wxT("GetDIBits(nullptr)"));
+            wxLogLastError(wxT("GetDIBits(NULL)"));
 
             return 0;
         }
@@ -1217,9 +1218,9 @@ bool wxBitmapDataObject::GetDataHere(const wxDataFormat& format,
 
         // first get the info
         BITMAPINFO *pbi = (BITMAPINFO *)pBuf;
-        if ( !GetDIBits(hdc, hbmp, 0, 0, nullptr, pbi, DIB_RGB_COLORS) )
+        if ( !GetDIBits(hdc, hbmp, 0, 0, NULL, pbi, DIB_RGB_COLORS) )
         {
-            wxLogLastError(wxT("GetDIBits(nullptr)"));
+            wxLogLastError(wxT("GetDIBits(NULL)"));
 
             return 0;
         }
@@ -1309,7 +1310,7 @@ bool wxFileDataObject::SetData(size_t WXUNUSED(size),
     HDROP hdrop = static_cast<HDROP>(const_cast<void*>(pData));   // NB: it works, but I'm not sure about it
 
     // get number of files (magic value -1)
-    UINT nFiles = ::DragQueryFile(hdrop, (unsigned)-1, nullptr, 0u);
+    UINT nFiles = ::DragQueryFile(hdrop, (unsigned)-1, NULL, 0u);
 
     wxCHECK_MSG ( nFiles != (UINT)-1, FALSE, wxT("wrong HDROP handle") );
 
@@ -1318,7 +1319,7 @@ bool wxFileDataObject::SetData(size_t WXUNUSED(size),
     UINT len, n;
     for ( n = 0; n < nFiles; n++ ) {
         // +1 for terminating NUL
-        len = ::DragQueryFile(hdrop, n, nullptr, 0) + 1;
+        len = ::DragQueryFile(hdrop, n, NULL, 0) + 1;
 
         UINT len2 = ::DragQueryFile(hdrop, n, wxStringBuffer(str, len), len);
         m_filenames.Add(str);
@@ -1371,7 +1372,7 @@ bool wxFileDataObject::GetDataHere(void *pData) const
     // pData points to an externally allocated memory block
     // created using the size returned by GetDataSize()
 
-    // if pData is null, or there are no files, return
+    // if pData is NULL, or there are no files, return
     if ( !pData || m_filenames.empty() )
         return false;
 
@@ -1381,7 +1382,7 @@ bool wxFileDataObject::GetDataHere(void *pData) const
     // initialize DROPFILES struct
     pDrop->pFiles = sizeof(DROPFILES);
     pDrop->fNC = FALSE;                 // not non-client coords
-    pDrop->fWide = TRUE;
+    pDrop->fWide = wxUSE_UNICODE;
 
     const size_t sizeOfChar = pDrop->fWide ? sizeof(wchar_t) : 1;
 
@@ -1412,7 +1413,7 @@ bool wxFileDataObject::GetDataHere(void *pData) const
 // ----------------------------------------------------------------------------
 
 // Work around bug in Wine headers
-#if defined(__WINE__) && defined(CFSTR_SHELLURL)
+#if defined(__WINE__) && defined(CFSTR_SHELLURL) && wxUSE_UNICODE
 #undef CFSTR_SHELLURL
 #define CFSTR_SHELLURL wxT("CFSTR_SHELLURL")
 #endif
@@ -1422,13 +1423,13 @@ class CFSTR_SHELLURLDataObject : public wxCustomDataObject
 public:
     CFSTR_SHELLURLDataObject() : wxCustomDataObject(CFSTR_SHELLURL) {}
 
-    virtual size_t GetBufferOffset( const wxDataFormat& WXUNUSED(format) ) override
+    virtual size_t GetBufferOffset( const wxDataFormat& WXUNUSED(format) ) wxOVERRIDE
     {
         return 0;
     }
 
     virtual const void* GetSizeFromBuffer( const void* buffer, size_t* size,
-                                           const wxDataFormat& WXUNUSED(format) ) override
+                                           const wxDataFormat& WXUNUSED(format) ) wxOVERRIDE
     {
         // CFSTR_SHELLURL is _always_ ANSI text
         *size = strlen( (const char*)buffer );
@@ -1437,7 +1438,7 @@ public:
     }
 
     virtual void* SetSizeInBuffer( void* buffer, size_t WXUNUSED(size),
-                                   const wxDataFormat& WXUNUSED(format) ) override
+                                   const wxDataFormat& WXUNUSED(format) ) wxOVERRIDE
     {
         return buffer;
     }
@@ -1456,7 +1457,7 @@ wxURLDataObject::wxURLDataObject(const wxString& url)
     Add(new CFSTR_SHELLURLDataObject());
 
     // we don't have any data yet
-    m_dataObjectLast = nullptr;
+    m_dataObjectLast = NULL;
 
     if ( !url.empty() )
         SetURL(url);
@@ -1487,10 +1488,15 @@ wxString wxURLDataObject::GetURL() const
 
         // CFSTR_SHELLURL is always ANSI so we need to convert it from it in
         // Unicode build
+#if wxUSE_UNICODE
         wxCharBuffer buf(len);
 
         if ( m_dataObjectLast->GetDataHere(buf.data()) )
             url = buf;
+#else // !wxUSE_UNICODE
+        // in ANSI build no conversion is necessary
+        m_dataObjectLast->GetDataHere(wxStringBuffer(url, len));
+#endif // wxUSE_UNICODE/!wxUSE_UNICODE
     }
     else // must be wxTextDataObject
     {
@@ -1507,13 +1513,21 @@ void wxURLDataObject::SetURL(const wxString& url)
     {
         const size_t len = strlen(urlMB);
 
+#if !wxUSE_UNICODE
+        // wxTextDataObject takes the number of characters in the string, not
+        // the size of the buffer (which would be len+1)
+        SetData(wxDF_TEXT, len, urlMB);
+#endif // !wxUSE_UNICODE
+
         // however CFSTR_SHELLURLDataObject doesn't append NUL automatically
         // but we probably still want to have it on the clipboard (just to be
         // safe), so do append it
         SetData(wxDataFormat(CFSTR_SHELLURL), len + 1, urlMB);
     }
 
+#if wxUSE_UNICODE
     SetData(wxDF_UNICODETEXT, (url.length() + 1)*sizeof(wxChar), url.wc_str());
+#endif
 }
 
 #if wxUSE_OLE
@@ -1562,14 +1576,14 @@ void wxDataObject::SetAutoDelete()
 
 const wxChar *wxDataObject::GetFormatName(wxDataFormat WXUNUSED(format))
 {
-    return nullptr;
+    return NULL;
 }
 
 const void* wxDataObject::GetSizeFromBuffer(const void* WXUNUSED(buffer),
     size_t* size, const wxDataFormat& WXUNUSED(format))
 {
     *size = 0;
-    return nullptr;
+    return NULL;
 }
 
 void* wxDataObject::SetSizeInBuffer(void* buffer, size_t WXUNUSED(size),

@@ -6,6 +6,16 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /**
+    Default width of the choice dialog.
+*/
+#define wxCHOICE_WIDTH 150
+
+/**
+    Default height of the choice dialog.
+*/
+#define wxCHOICE_HEIGHT 200
+
+/**
     Default style of the choice dialog.
 */
 #define wxCHOICEDLG_STYLE (wxDEFAULT_DIALOG_STYLE | wxOK | wxCANCEL | wxCENTRE | wxRESIZE_BORDER)
@@ -177,7 +187,7 @@ public:
     wxSingleChoiceDialog(wxWindow* parent, const wxString& message,
                          const wxString& caption,
                          int n, const wxString* choices,
-                         void** clientData = nullptr,
+                         void** clientData = NULL,
                          long style = wxCHOICEDLG_STYLE,
                          const wxPoint& pos = wxDefaultPosition);
     /**
@@ -213,7 +223,7 @@ public:
                          const wxString& message,
                          const wxString& caption,
                          const wxArrayString& choices,
-                         void** clientData = nullptr,
+                         void** clientData = NULL,
                          long style = wxCHOICEDLG_STYLE,
                          const wxPoint& pos = wxDefaultPosition);
     ///@}
@@ -268,7 +278,7 @@ public:
 int wxGetSingleChoiceIndex(const wxString& message,
                            const wxString& caption,
                            const wxArrayString& aChoices,
-                           wxWindow* parent = nullptr,
+                           wxWindow* parent = NULL,
                            int x = wxDefaultCoord,
                            int y = wxDefaultCoord,
                            bool centre = true,
@@ -280,7 +290,7 @@ int wxGetSingleChoiceIndex(const wxString& message,
                            const wxString& caption,
                            int n,
                            const wxString& choices[],
-                           wxWindow* parent = nullptr,
+                           wxWindow* parent = NULL,
                            int x = wxDefaultCoord,
                            int y = wxDefaultCoord,
                            bool centre = true,
@@ -293,13 +303,13 @@ int wxGetSingleChoiceIndex(const wxString& message,
                            const wxString& caption,
                            const wxArrayString& choices,
                            int initialSelection,
-                           wxWindow *parent = nullptr);
+                           wxWindow *parent = NULL);
 
 int wxGetSingleChoiceIndex(const wxString& message,
                            const wxString& caption,
                            int n, const wxString *choices,
                            int initialSelection,
-                           wxWindow *parent = nullptr);
+                           wxWindow *parent = NULL);
 ///@}
 
 /** @addtogroup group_funcmacro_dialog */
@@ -319,11 +329,6 @@ int wxGetSingleChoiceIndex(const wxString& message,
     If @c centre is @true, the message text (which may include new line
     characters) is centred; if @false, the message is left-justified.
 
-    Note that the @a x, @a y, @a centre, @a width and @a height parameters are
-    all ignored. To change the dialog's position or size, create a @c
-    wxSingleChoiceDialog object instead of calling @c wxGetSingleChoice() and
-    change its size before showing it.
-
     @header{wx/choicdlg.h}
 
     @beginWxPerlOnly
@@ -333,7 +338,7 @@ int wxGetSingleChoiceIndex(const wxString& message,
 wxString wxGetSingleChoice(const wxString& message,
                            const wxString& caption,
                            const wxArrayString& aChoices,
-                           wxWindow* parent = nullptr,
+                           wxWindow* parent = NULL,
                            int x = wxDefaultCoord,
                            int y = wxDefaultCoord,
                            bool centre = true,
@@ -344,7 +349,7 @@ wxString wxGetSingleChoice(const wxString& message,
                            const wxString& caption,
                            int n,
                            const wxString& choices[],
-                           wxWindow* parent = nullptr,
+                           wxWindow* parent = NULL,
                            int x = wxDefaultCoord,
                            int y = wxDefaultCoord,
                            bool centre = true,
@@ -357,13 +362,13 @@ wxString wxGetSingleChoice(const wxString& message,
                            const wxString& caption,
                            const wxArrayString& choices,
                            int initialSelection,
-                           wxWindow *parent = nullptr);
+                           wxWindow *parent = NULL);
 
 wxString wxGetSingleChoice(const wxString& message,
                            const wxString& caption,
                            int n, const wxString *choices,
                            int initialSelection,
-                           wxWindow *parent = nullptr);
+                           wxWindow *parent = NULL);
 
 ///@}
 
@@ -376,11 +381,6 @@ wxString wxGetSingleChoice(const wxString& message,
     if Cancel was pressed. The @c client_data array must have the same number
     of elements as @c choices or @c aChoices!
 
-    Note that the @a x, @a y, @a centre, @a width and @a height parameters are
-    all ignored. To change the dialog's position or size, create a @c
-    wxSingleChoiceDialog object instead of calling @c wxGetSingleChoice() and
-    change its size before showing it.
-
     @header{wx/choicdlg.h}
 
     @beginWxPerlOnly
@@ -391,7 +391,7 @@ wxString wxGetSingleChoiceData(const wxString& message,
                                const wxString& caption,
                                const wxArrayString& aChoices,
                                const wxString& client_data[],
-                               wxWindow* parent = nullptr,
+                               wxWindow* parent = NULL,
                                int x = wxDefaultCoord,
                                int y = wxDefaultCoord,
                                bool centre = true,
@@ -404,7 +404,7 @@ wxString wxGetSingleChoiceData(const wxString& message,
                                int n,
                                const wxString& choices[],
                                const wxString& client_data[],
-                               wxWindow* parent = nullptr,
+                               wxWindow* parent = NULL,
                                int x = wxDefaultCoord,
                                int y = wxDefaultCoord,
                                bool centre = true,
@@ -417,14 +417,14 @@ void* wxGetSingleChoiceData(const wxString& message,
                             const wxArrayString& choices,
                             void **client_data,
                             int initialSelection,
-                            wxWindow *parent = nullptr);
+                            wxWindow *parent = NULL);
 
 void* wxGetSingleChoiceData(const wxString& message,
                             const wxString& caption,
                             int n, const wxString *choices,
                             void **client_data,
                             int initialSelection,
-                            wxWindow *parent = nullptr);
+                            wxWindow *parent = NULL);
 
 ///@}
 
@@ -443,10 +443,8 @@ void* wxGetSingleChoiceData(const wxString& message,
     which is an array of @a n strings for the listbox or by using a single
     @c aChoices parameter of type wxArrayString.
 
-    Note that the @a x, @a y, @a centre, @a width and @a height parameters are
-    all ignored. To change the dialog's position or size, create a @c
-    wxSingleChoiceDialog object instead of calling @c wxGetSingleChoice() and
-    change its size before showing it.
+    If @c centre is @true, the message text (which may include new line
+    characters) is centred; if @false, the message is left-justified.
 
     @header{wx/choicdlg.h}
 
@@ -460,7 +458,7 @@ int wxGetSelectedChoices(wxArrayInt& selections,
                             const wxString& message,
                             const wxString& caption,
                             const wxArrayString& aChoices,
-                            wxWindow* parent = nullptr,
+                            wxWindow* parent = NULL,
                             int x = wxDefaultCoord,
                             int y = wxDefaultCoord,
                             bool centre = true,
@@ -472,7 +470,7 @@ int wxGetSelectedChoices(wxArrayInt& selections,
                             const wxString& caption,
                             int n,
                             const wxString& choices[],
-                            wxWindow* parent = nullptr,
+                            wxWindow* parent = NULL,
                             int x = wxDefaultCoord,
                             int y = wxDefaultCoord,
                             bool centre = true,

@@ -10,38 +10,42 @@
 #ifndef _WX_IMAGLISTG_H_
 #define _WX_IMAGLISTG_H_
 
+#include "wx/bitmap.h"
 #include "wx/gdicmn.h"
 #include "wx/vector.h"
 
-class WXDLLIMPEXP_CORE wxGenericImageList : public wxImageListBase
+class WXDLLIMPEXP_FWD_CORE wxDC;
+class WXDLLIMPEXP_FWD_CORE wxIcon;
+class WXDLLIMPEXP_FWD_CORE wxColour;
+
+
+class WXDLLIMPEXP_CORE wxGenericImageList: public wxObject
 {
 public:
     wxGenericImageList();
     wxGenericImageList( int width, int height, bool mask = true, int initialCount = 1 );
     virtual ~wxGenericImageList();
     bool Create( int width, int height, bool mask = true, int initialCount = 1 );
-    virtual void Destroy() override;
+    void Destroy();
 
-    virtual int GetImageCount() const override;
-    virtual bool GetSize( int index, int &width, int &height ) const override;
+    virtual int GetImageCount() const;
+    virtual bool GetSize( int index, int &width, int &height ) const;
+    virtual wxSize GetSize() const { return m_size; }
 
-    using wxImageListBase::GetSize;
-
-    virtual int Add( const wxBitmap& bitmap ) override;
-    virtual int Add( const wxBitmap& bitmap, const wxBitmap& mask ) override;
-    virtual int Add( const wxBitmap& bitmap, const wxColour& maskColour ) override;
-
-    virtual wxBitmap GetBitmap(int index) const override;
-    virtual wxIcon GetIcon(int index) const override;
-    virtual bool Replace( int index,
+    int Add( const wxBitmap& bitmap );
+    int Add( const wxBitmap& bitmap, const wxBitmap& mask );
+    int Add( const wxBitmap& bitmap, const wxColour& maskColour );
+    wxBitmap GetBitmap(int index) const;
+    wxIcon GetIcon(int index) const;
+    bool Replace( int index,
                   const wxBitmap& bitmap,
-                  const wxBitmap& mask = wxNullBitmap ) override;
-    virtual bool Remove( int index ) override;
-    virtual bool RemoveAll() override;
+                  const wxBitmap& mask = wxNullBitmap );
+    bool Remove( int index );
+    bool RemoveAll();
 
     virtual bool Draw(int index, wxDC& dc, int x, int y,
               int flags = wxIMAGELIST_DRAW_NORMAL,
-              bool solidBackground = false) override;
+              bool solidBackground = false);
 
 #if WXWIN_COMPATIBILITY_3_0
     wxDEPRECATED_MSG("Don't use this overload: it's not portable and does nothing")
@@ -57,6 +61,10 @@ private:
     wxBitmap GetImageListBitmap(const wxBitmap& bitmap) const;
 
     wxVector<wxBitmap> m_images;
+    bool m_useMask;
+
+    // Size of a single bitmap in the list.
+    wxSize m_size;
 
     wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxGenericImageList);
 };
@@ -73,7 +81,12 @@ class WXDLLIMPEXP_CORE wxImageList: public wxGenericImageList
     wxDECLARE_DYNAMIC_CLASS(wxImageList);
 
 public:
-    using wxGenericImageList::wxGenericImageList;
+    wxImageList() {}
+
+    wxImageList( int width, int height, bool mask = true, int initialCount = 1 )
+        : wxGenericImageList(width, height, mask, initialCount)
+    {
+    }
 };
 #endif // !wxHAS_NATIVE_IMAGELIST
 

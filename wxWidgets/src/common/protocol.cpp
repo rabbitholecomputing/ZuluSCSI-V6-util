@@ -2,6 +2,7 @@
 // Name:        src/common/protocol.cpp
 // Purpose:     Implement protocol base class
 // Author:      Guilhem Lavaux
+// Modified by:
 // Created:     07/07/1997
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
@@ -43,7 +44,7 @@ wxProtoInfo::wxProtoInfo(const wxChar *name, const wxChar *serv,
     next = wxURL::ms_protocols;
     wxURL::ms_protocols = this;
 #else
-    next = nullptr;
+    next = NULL;
 #endif
 }
 
@@ -65,7 +66,7 @@ wxProtocol::wxProtocol()
 #endif
 {
     m_lastError = wxPROTO_NOERR;
-    m_log = nullptr;
+    m_log = NULL;
     SetDefaultTimeout(60);      // default timeout is 60 seconds
 }
 
@@ -153,7 +154,7 @@ wxProtocolError wxProtocol::ReadLine(wxSocketBase *sock, wxString& result)
                 if ( result.empty() || result.Last() != wxT('\r') )
                 {
                     // ignore the stray '\n'
-                    eol = nullptr;
+                    eol = NULL;
                 }
                 //else: ok, got real EOL
 
@@ -168,7 +169,7 @@ wxProtocolError wxProtocol::ReadLine(wxSocketBase *sock, wxString& result)
                 if ( eol[-1] != '\r' )
                 {
                     // as above, simply ignore stray '\n'
-                    eol = nullptr;
+                    eol = NULL;
                 }
             }
         }

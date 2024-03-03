@@ -41,7 +41,7 @@ public:
 
 
     // virtual dtor for the base class
-    virtual ~wxFDIOHandler() = default;
+    virtual ~wxFDIOHandler() { }
 
 private:
     int m_regmask;

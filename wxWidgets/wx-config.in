@@ -60,8 +60,7 @@ usage()
 
     NOTE:    Usage of --debug and --query-debugtype are only relevant if you
   have any  versions prior to 2.9 installed  and use the --version option to
-  select an earlier version.  Similarly, usage of --unicode is only relevant
-  if a version prior to 3.3 is used, as all later ones always use Unicode.
+  select an earlier version.
 
     If multiple builds of wxWidgets  are available,  you can use the options
   --prefix, --host, --toolkit,  --unicode, --static, --universal,  --version
@@ -141,9 +140,6 @@ wxconfig_input_options="prefix exec_prefix utility $wxconfig_schema"
 # Notice that this includes "debug" but it is done only for compatibility, this
 # options (i.e. --debug[=yes] or --debug=no) is completely ignored as there is
 # no distinction between debug and release builds in wx any more
-#
-# For "unicode", the situation is similar except that specifying --unicode=no
-# will always fail with this wxWidgets version.
 wxconfig_yesno_options="universal unicode debug static"
 
 # Boolean options that do something or not.
@@ -415,7 +411,7 @@ is_cross && target="@host_alias@"
 this_host="${target:+${target}}"
 this_toolkit="@TOOLKIT_DIR@@TOOLKIT_VERSION@"
 this_widgetset="@WIDGET_SET@"
-this_chartype="unicode"
+this_chartype="@WX_CHARTYPE@"
 this_debugtype="release"
 this_flavour="@WX_FLAVOUR@"
 this_version="@WX_RELEASE@"
@@ -1033,7 +1029,7 @@ ldlibs_gl="@OPENGL_LIBS@"
 ldlibs_html="@EXTRALIBS_HTML@"
 ldlibs_media="@EXTRALIBS_MEDIA@"
 ldlibs_xml="@EXTRALIBS_XML@"
-ldlibs_stc="@WXCONFIG_STC_LIBS@ @EXTRALIBS_STC@"
+ldlibs_stc="@EXTRALIBS_STC@"
 ldlibs_webview="@EXTRALIBS_WEBVIEW@"
 
 

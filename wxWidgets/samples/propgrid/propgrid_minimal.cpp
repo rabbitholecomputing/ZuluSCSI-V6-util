@@ -2,6 +2,7 @@
 // Name:        samples/propgrid/propgrid_minimal.cpp
 // Purpose:     Minimal portion of wxPropertyGrid sample
 // Author:      Jaakko Salli
+// Modified by:
 // Created:     2008-08-23
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
@@ -27,7 +28,7 @@ private:
 
 enum
 {
-    ID_ACTION = wxID_HIGHEST
+    ID_ACTION = wxID_HIGHEST+1
 };
 
 wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
@@ -54,7 +55,7 @@ MyFrame::MyFrame(wxWindow* parent)
     pg->Append( new wxIntProperty("Int Property", wxPG_LABEL) );
     pg->Append( new wxBoolProperty("Bool Property", wxPG_LABEL) );
 
-    SetClientSize(FromDIP(wxSize(400, 300)));
+    SetSize(400, 600);
 }
 
 void MyFrame::OnPropertyGridChange(wxPropertyGridEvent &event)
@@ -68,7 +69,7 @@ void MyFrame::OnPropertyGridChange(wxPropertyGridEvent &event)
     }
     else
     {
-        wxLogVerbose("OnPropertyGridChange(nullptr)");
+        wxLogVerbose("OnPropertyGridChange(NULL)");
     }
 }
 

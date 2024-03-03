@@ -2,6 +2,7 @@
 // Name:        wx/osx/core/hid.h
 // Purpose:     DARWIN HID layer for WX
 // Author:      Ryan Norton
+// Modified by:
 // Created:     11/11/2003
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
@@ -54,7 +55,7 @@ extern "C" {
 class WXDLLIMPEXP_CORE wxHIDDevice
 {
 public:
-    wxHIDDevice() : m_ppDevice(nullptr), m_ppQueue(nullptr), m_pCookies(nullptr) {}
+    wxHIDDevice() : m_ppDevice(NULL), m_ppQueue(NULL), m_pCookies(NULL) {}
 
     bool Create (int nClass = -1, int nType = -1, int nDev = 1);
 
@@ -103,7 +104,7 @@ public:
     static int GetCount();
     bool Create(int nDev = 1);
     void AddCookie(CFTypeRef Data, int i);
-    virtual void BuildCookies(CFArrayRef Array) override;
+    virtual void BuildCookies(CFArrayRef Array) wxOVERRIDE;
     void DoBuildCookies(CFArrayRef Array);
 };
 

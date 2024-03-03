@@ -34,7 +34,7 @@
         aboutInfo.SetName("MyApp");
         aboutInfo.SetVersion(MY_APP_VERSION_STRING);
         aboutInfo.SetDescription(_("My wxWidgets-based application!"));
-        aboutInfo.SetCopyright("(C) 1992-2024");
+        aboutInfo.SetCopyright("(C) 1992-2023");
         aboutInfo.SetWebSite("http://myapp.org");
         aboutInfo.AddDeveloper("My Self");
 
@@ -59,22 +59,20 @@ public:
     /**
         Creates the dialog and initializes it with the given information.
     */
-    wxGenericAboutDialog(const wxAboutDialogInfo& info, wxWindow* parent = nullptr);
+    wxGenericAboutDialog(const wxAboutDialogInfo& info, wxWindow* parent = NULL);
 
     /**
         Initializes the dialog created using the default constructor.
     */
-    bool Create(const wxAboutDialogInfo& info, wxWindow* parent = nullptr);
+    bool Create(const wxAboutDialogInfo& info, wxWindow* parent = NULL);
 
 protected:
     /**
         This virtual method may be overridden to add more controls to the
         dialog.
 
-        The custom controls should be created with GetCustomControlParent() as
-        parent and then can be passed to the protected AddControl() method.
-        AddText() and AddCollapsiblePane() methods can also be used to add
-        simple static custom controls.
+        Use the protected AddControl(), AddText() and AddCollapsiblePane()
+        methods to add custom controls.
 
         This method is called during the dialog creation and you don't need to
         call it, only to override it.
@@ -108,15 +106,6 @@ protected:
         Add a wxCollapsiblePane containing the given text.
     */
     void AddCollapsiblePane(const wxString& title, const wxString& text);
-
-    /**
-        Return the parent to use for custom controls.
-
-        See DoAddCustomControls().
-
-        @since 3.3.0
-     */
-    wxWindow* GetCustomControlParent() const;
 };
 
 /**
@@ -125,4 +114,4 @@ protected:
     This function does the same thing as wxAboutBox() except that it always
     uses the generic wxWidgets version of the dialog instead of the native one.
 */
-void wxGenericAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = nullptr);
+void wxGenericAboutBox(const wxAboutDialogInfo& info, wxWindow* parent = NULL);

@@ -28,7 +28,7 @@
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 #if USE_ASYNCHRONOUS_CLIPBOARD_REQUEST
@@ -98,7 +98,7 @@ bool MyApp::OnInit()
 }
 
 MyFrame::MyFrame(const wxString& title)
-       : wxFrame(nullptr, wxID_ANY, title)
+       : wxFrame(NULL, wxID_ANY, title)
 {
     // set the frame icon
     SetIcon(wxICON(sample));

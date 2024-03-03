@@ -95,10 +95,6 @@ public:
     void OnAnnotationRemove(wxCommandEvent& event);
     void OnAnnotationClear(wxCommandEvent& event);
     void OnAnnotationStyle(wxCommandEvent& event);
-    // indicators
-    void OnIndicatorFill(wxCommandEvent& event);
-    void OnIndicatorClear(wxCommandEvent& event);
-    void OnIndicatorStyle(wxCommandEvent& event);
     //! extra
     void OnChangeCase (wxCommandEvent &event);
     void OnConvertEOL (wxCommandEvent &event);
@@ -176,12 +172,12 @@ public:
     EditPrint (Edit *edit, const wxString& title = "");
 
     //! event handlers
-    bool OnPrintPage (int page) override;
-    bool OnBeginDocument (int startPage, int endPage) override;
+    bool OnPrintPage (int page) wxOVERRIDE;
+    bool OnBeginDocument (int startPage, int endPage) wxOVERRIDE;
 
     //! print functions
-    bool HasPage (int page) override;
-    void GetPageInfo (int *minPage, int *maxPage, int *selPageFrom, int *selPageTo) override;
+    bool HasPage (int page) wxOVERRIDE;
+    void GetPageInfo (int *minPage, int *maxPage, int *selPageFrom, int *selPageTo) wxOVERRIDE;
 
 private:
     Edit *m_edit;

@@ -794,7 +794,7 @@ TEST_CASE("wxFileName::SameAs", "[filename]")
     // We need to create a temporary directory and a temporary link.
     // Unfortunately we can't use wxFileName::CreateTempFileName() for either
     // as it creates plain files, so use tempnam() explicitly instead.
-    char* tn = tempnam(nullptr, "wxfn1");
+    char* tn = tempnam(NULL, "wxfn1");
     const wxString tempdir1 = wxString::From8BitData(tn);
     free(tn);
 
@@ -803,7 +803,7 @@ TEST_CASE("wxFileName::SameAs", "[filename]")
     wxON_BLOCK_EXIT2( static_cast<bool (*)(const wxString&, int)>(wxFileName::Rmdir),
                       tempdir1, static_cast<int>(wxPATH_RMDIR_RECURSIVE) );
 
-    tn = tempnam(nullptr, "wxfn2");
+    tn = tempnam(NULL, "wxfn2");
     const wxString tempdir2 = wxString::From8BitData(tn);
     free(tn);
     CHECK( symlink(tempdir1.c_str(), tempdir2.c_str()) == 0 );
@@ -993,7 +993,7 @@ void CreateShortcut(const wxString& pathFile, const wxString& pathLink)
    HRESULT hr;
 
    wxCOMPtr<IShellLink> sl;
-   hr = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER,
+   hr = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER,
                          IID_IShellLink, (void **)&sl);
    REQUIRE( SUCCEEDED(hr) );
 
@@ -1039,12 +1039,6 @@ TEST_CASE("wxFileName::GetSizeSpecial", "[filename][linux][special-file]")
     wxULongLong size = wxFileName::GetSize("/proc/kcore");
     INFO( "size of /proc/kcore=" << size );
     CHECK( size > 0 );
-
-    if ( !wxFile::Exists("/sys/power/state") )
-    {
-        WARN("/sys/power/state doesn't exist, skipping test");
-        return;
-    }
 
     // All files in /sys are one page in size, irrespectively of the size of
     // their actual contents.

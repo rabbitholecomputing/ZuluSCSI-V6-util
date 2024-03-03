@@ -126,31 +126,6 @@ bool wxAnimation::Load(wxInputStream& stream, wxAnimationType type)
     return GetImpl()->Load(stream, type);
 }
 
-// ----------------------------------------------------------------------------
-// wxAnimationBundle
-// ----------------------------------------------------------------------------
-
-void wxAnimationBundle::Add(const wxAnimation& anim)
-{
-    // It's ok to have empty animation bundle, but any animations added to
-    // it should be valid.
-    wxCHECK_RET( anim.IsOk(), "shouldn't add invalid animations" );
-
-    if ( !m_animations.empty() )
-    {
-        // They also should be added in increasing size.
-        const wxSize thisSize = anim.GetSize();
-        const wxSize lastSize = m_animations.back().GetSize();
-
-        wxCHECK_RET( thisSize != lastSize,
-                     "shouldn't have multiple animations of the same size" );
-
-        wxCHECK_RET( thisSize.IsAtLeast(lastSize),
-                     "should be added in order of increasing size" );
-    }
-
-    m_animations.push_back(anim);
-}
 
 // ----------------------------------------------------------------------------
 // wxAnimationCtrlBase
@@ -173,7 +148,7 @@ void wxAnimationCtrlBase::UpdateStaticImage()
             m_bmpStaticReal.GetLogicalHeight() != sz.GetHeight())
         {
             // need to (re)create m_bmpStaticReal
-            if (!m_bmpStaticReal.CreateWithLogicalSize(sz,
+            if (!m_bmpStaticReal.CreateWithDIPSize(sz,
                                           bmpCurrent.GetScaleFactor(),
                                           bmpCurrent.GetDepth()))
             {
@@ -227,7 +202,7 @@ void wxAnimationCtrlBase::SetInactiveBitmap(const wxBitmapBundle &bmp)
 void wxAnimation::AddHandler( wxAnimationDecoder *handler )
 {
     // Check for an existing handler of the type being added.
-    if (FindHandler( handler->GetType() ) == nullptr)
+    if (FindHandler( handler->GetType() ) == 0)
     {
         sm_handlers.Append( handler );
     }
@@ -247,7 +222,7 @@ void wxAnimation::AddHandler( wxAnimationDecoder *handler )
 void wxAnimation::InsertHandler( wxAnimationDecoder *handler )
 {
     // Check for an existing handler of the type being added.
-    if (FindHandler( handler->GetType() ) == nullptr)
+    if (FindHandler( handler->GetType() ) == 0)
     {
         sm_handlers.Insert( handler );
     }
@@ -269,7 +244,7 @@ const wxAnimationDecoder *wxAnimation::FindHandler( wxAnimationType animType )
         if (handler->GetType() == animType) return handler;
         node = node->GetNext();
     }
-    return nullptr;
+    return 0;
 }
 
 void wxAnimation::InitStandardHandlers()
@@ -306,8 +281,8 @@ class wxAnimationModule: public wxModule
     wxDECLARE_DYNAMIC_CLASS(wxAnimationModule);
 public:
     wxAnimationModule() {}
-    bool OnInit() override { wxAnimation::InitStandardHandlers(); return true; }
-    void OnExit() override { wxAnimation::CleanUpHandlers(); }
+    bool OnInit() wxOVERRIDE { wxAnimation::InitStandardHandlers(); return true; }
+    void OnExit() wxOVERRIDE { wxAnimation::CleanUpHandlers(); }
 };
 
 wxIMPLEMENT_DYNAMIC_CLASS(wxAnimationModule, wxModule);

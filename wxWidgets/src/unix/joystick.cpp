@@ -2,6 +2,7 @@
 // Name:        src/unix/joystick.cpp
 // Purpose:     wxJoystick class
 // Author:      Ported to Linux by Guilhem Lavaux
+// Modified by:
 // Created:     05/23/98
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
@@ -62,7 +63,7 @@ class wxJoystickThread : public wxThread
 {
 public:
     wxJoystickThread(int device, int joystick);
-    void* Entry() override;
+    void* Entry() wxOVERRIDE;
 
 private:
     void      SendEvent(wxEventType type, long ts, int change = 0);
@@ -84,7 +85,7 @@ wxJoystickThread::wxJoystickThread(int device, int joystick)
       m_joystick(joystick),
       m_lastposition(wxDefaultPosition),
       m_buttons(0),
-      m_catchwin(nullptr),
+      m_catchwin(NULL),
       m_polling(0),
       m_threshold(0)
 {
@@ -124,7 +125,7 @@ void* wxJoystickThread::Entry()
             time_out.tv_usec = 10 * 1000; // check at least every 10 msec in blocking case
 
         wxFD_SET(m_device, &read_fds);
-        select(m_device+1, &read_fds, nullptr, nullptr, &time_out);
+        select(m_device+1, &read_fds, NULL, NULL, &time_out);
         if (wxFD_ISSET(m_device, &read_fds))
         {
             memset(&j_evt, 0, sizeof(j_evt));
@@ -183,7 +184,7 @@ void* wxJoystickThread::Entry()
         }
     }
 
-    return nullptr;
+    return NULL;
 }
 
 
@@ -192,7 +193,7 @@ void* wxJoystickThread::Entry()
 wxJoystick::wxJoystick(int joystick)
     : m_device(-1),
       m_joystick(joystick),
-      m_thread(nullptr)
+      m_thread(NULL)
 {
     wxString dev_name;
 
@@ -523,7 +524,7 @@ bool wxJoystick::ReleaseCapture()
 {
     if (m_thread)
     {
-        m_thread->m_catchwin = nullptr;
+        m_thread->m_catchwin = NULL;
         m_thread->m_polling = 0;
         return true;
     }

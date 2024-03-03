@@ -2,6 +2,7 @@
 // Name:        wx/osx/dirdlg.h
 // Purpose:     wxDirDialog class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -44,15 +45,15 @@ public:
     ~wxDirDialog();
 #endif
 
-    virtual int ShowModal() override;
+    virtual int ShowModal() wxOVERRIDE;
 
     // MacOS 10.11 has removed the titlebar from the dialog, so this is provided
     // only for compatibility with older versions
-    virtual void SetTitle(const wxString& title) override;
+    virtual void SetTitle(const wxString& title) wxOVERRIDE;
 
 #if wxOSX_USE_COCOA
-    virtual void ShowWindowModal() override;
-    virtual void ModalFinishedCallback(void* panel, int returnCode) override;
+    virtual void ShowWindowModal() wxOVERRIDE;
+    virtual void ModalFinishedCallback(void* panel, int returnCode) wxOVERRIDE;
 #endif
 
 private:

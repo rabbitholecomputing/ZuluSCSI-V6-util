@@ -20,10 +20,104 @@
 #include "wx/private/localeset.h"
 
 // ----------------------------------------------------------------------------
-// tests
+// test class
 // ----------------------------------------------------------------------------
 
-TEST_CASE("StringAssign", "[wxString]")
+class StringTestCase : public CppUnit::TestCase
+{
+public:
+    StringTestCase();
+
+private:
+    CPPUNIT_TEST_SUITE( StringTestCase );
+        CPPUNIT_TEST( String );
+        CPPUNIT_TEST( PChar );
+        CPPUNIT_TEST( Format );
+        CPPUNIT_TEST( FormatUnicode );
+        CPPUNIT_TEST( Constructors );
+        CPPUNIT_TEST( StaticConstructors );
+        CPPUNIT_TEST( Extraction );
+        CPPUNIT_TEST( Trim );
+        CPPUNIT_TEST( Find );
+        CPPUNIT_TEST( Replace );
+        CPPUNIT_TEST( Match );
+        CPPUNIT_TEST( CaseChanges );
+        CPPUNIT_TEST( Compare );
+        CPPUNIT_TEST( CompareNoCase );
+        CPPUNIT_TEST( Contains );
+        CPPUNIT_TEST( ToInt );
+        CPPUNIT_TEST( ToUInt );
+        CPPUNIT_TEST( ToLong );
+        CPPUNIT_TEST( ToULong );
+#ifdef wxLongLong_t
+        CPPUNIT_TEST( ToLongLong );
+        CPPUNIT_TEST( ToULongLong );
+#endif // wxLongLong_t
+        CPPUNIT_TEST( ToDouble );
+        CPPUNIT_TEST( FromDouble );
+        CPPUNIT_TEST( StringBuf );
+        CPPUNIT_TEST( UTF8Buf );
+        CPPUNIT_TEST( CStrDataTernaryOperator );
+        CPPUNIT_TEST( CStrDataOperators );
+        CPPUNIT_TEST( CStrDataImplicitConversion );
+        CPPUNIT_TEST( ExplicitConversion );
+        CPPUNIT_TEST( IndexedAccess );
+        CPPUNIT_TEST( BeforeAndAfter );
+        CPPUNIT_TEST( ScopedBuffers );
+        CPPUNIT_TEST( SupplementaryUniChar );
+    CPPUNIT_TEST_SUITE_END();
+
+    void String();
+    void PChar();
+    void Format();
+    void FormatUnicode();
+    void Constructors();
+    void StaticConstructors();
+    void Extraction();
+    void Trim();
+    void Find();
+    void Replace();
+    void Match();
+    void CaseChanges();
+    void Compare();
+    void CompareNoCase();
+    void Contains();
+    void ToInt();
+    void ToUInt();
+    void ToLong();
+    void ToULong();
+#ifdef wxLongLong_t
+    void ToLongLong();
+    void ToULongLong();
+#endif // wxLongLong_t
+    void ToDouble();
+    void FromDouble();
+    void StringBuf();
+    void UTF8Buf();
+    void CStrDataTernaryOperator();
+    void DoCStrDataTernaryOperator(bool cond);
+    void CStrDataOperators();
+    void CStrDataImplicitConversion();
+    void ExplicitConversion();
+    void IndexedAccess();
+    void BeforeAndAfter();
+    void ScopedBuffers();
+    void SupplementaryUniChar();
+
+    wxDECLARE_NO_COPY_CLASS(StringTestCase);
+};
+
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( StringTestCase );
+
+// also include in its own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( StringTestCase, "StringTestCase" );
+
+StringTestCase::StringTestCase()
+{
+}
+
+void StringTestCase::String()
 {
     wxString a, b, c;
 
@@ -39,11 +133,11 @@ TEST_CASE("StringAssign", "[wxString]")
         a += b;
         a += c;
         c = wxT("Hello world! What's up?");
-        CHECK( c != a );
+        CPPUNIT_ASSERT( c != a );
     }
 }
 
-TEST_CASE("StringPChar", "[wxString]")
+void StringTestCase::PChar()
 {
     wxChar a [128];
     wxChar b [128];
@@ -57,17 +151,17 @@ TEST_CASE("StringPChar", "[wxString]")
         wxStrcat (a, b);
         wxStrcat (a, c);
         wxStrcpy (c, wxT("Hello world! What's up?"));
-        CHECK( wxStrcmp (c, a) != 0 );
+        CPPUNIT_ASSERT( wxStrcmp (c, a) != 0 );
     }
 }
 
-TEST_CASE("StringFormat", "[wxString]")
+void StringTestCase::Format()
 {
     wxString s1,s2;
     s1.Printf(wxT("%03d"), 18);
-    CHECK( s1 == wxString::Format(wxT("%03d"), 18) );
+    CPPUNIT_ASSERT( s1 == wxString::Format(wxT("%03d"), 18) );
     s2.Printf(wxT("Number 18: %s\n"), s1.c_str());
-    CHECK( s2 == wxString::Format(wxT("Number 18: %s\n"), s1.c_str()) );
+    CPPUNIT_ASSERT( s2 == wxString::Format(wxT("Number 18: %s\n"), s1.c_str()) );
 
     static const size_t lengths[] = { 1, 512, 1024, 1025, 2048, 4096, 4097 };
     for ( size_t n = 0; n < WXSIZEOF(lengths); n++ )
@@ -75,25 +169,35 @@ TEST_CASE("StringFormat", "[wxString]")
         const size_t len = lengths[n];
 
         wxString s(wxT('Z'), len);
-        CHECK( wxString::Format(wxT("%s"), s.c_str()).length() == len );
+        CPPUNIT_ASSERT_EQUAL( len, wxString::Format(wxT("%s"), s.c_str()).length());
     }
 
-    // wxString::Format() should not modify errno
-    errno = 1234;
-    wxString::Format("abc %d %d", 1, 1);
-    CHECK( errno == 1234 );
 
     // Positional parameters tests:
-    CHECK(wxString::Format(wxT("%2$s %1$s"), wxT("one"), wxT("two")) == "two one");
-    CHECK(wxString::Format("%1$s %1$s", "hello") == "hello hello");
-    CHECK(wxString::Format("%4$d %2$s %1$s %2$s %3$d", "hello", "world", 3, 4)
-            == "4 world hello world 3");
+    CPPUNIT_ASSERT_EQUAL
+    (
+        "two one",
+        wxString::Format(wxT("%2$s %1$s"), wxT("one"), wxT("two"))
+    );
+
+    CPPUNIT_ASSERT_EQUAL
+    (
+        "hello hello",
+        wxString::Format("%1$s %1$s", "hello")
+    );
+
+    CPPUNIT_ASSERT_EQUAL
+    (
+        "4 world hello world 3",
+        wxString::Format("%4$d %2$s %1$s %2$s %3$d", "hello", "world", 3, 4)
+    );
 
     CHECK( wxString::Format("%1$o %1$d %1$x", 20) == "24 20 14" );
 }
 
-TEST_CASE("StringFormatUnicode", "[wxString]")
+void StringTestCase::FormatUnicode()
 {
+#if wxUSE_UNICODE
     // At least under FreeBSD vsnprintf(), used by wxString::Format(), doesn't
     // work with Unicode strings unless a UTF-8 locale is used, so set it.
     wxLocaleSetter loc("C.UTF-8");
@@ -105,33 +209,27 @@ TEST_CASE("StringFormatUnicode", "[wxString]")
     wxString s = wxString::Format(fmt, 1, 1);
     wxString expected(fmt);
     expected.Replace("%i", "1");
-    CHECK( s == expected );
-
-    // Repeat exactly the same after creating a wxLocale
-    // object, and ensure formatting Unicode strings still works.
-    wxLocale l(wxLANGUAGE_DEFAULT);
-
-    wxString s2 = wxString::Format(fmt, 1, 1);
-    wxString expected2(fmt);
-    expected2.Replace("%i", "1");
-    CHECK( s2 == expected2 );
+    CPPUNIT_ASSERT_EQUAL( expected, s );
+#endif // wxUSE_UNICODE
 }
 
-TEST_CASE("StringConstructors", "[wxString]")
+void StringTestCase::Constructors()
 {
-    CHECK( wxString('Z', 0) == "" );
-    CHECK( wxString('Z') == "Z" );
-    CHECK( wxString('Z', 4) == "ZZZZ" );
-    CHECK( wxString("Hello", 4) == "Hell" );
-    CHECK( wxString("Hello", 5) == "Hello" );
+    CPPUNIT_ASSERT_EQUAL( "", wxString('Z', 0) );
+    CPPUNIT_ASSERT_EQUAL( "Z", wxString('Z') );
+    CPPUNIT_ASSERT_EQUAL( "ZZZZ", wxString('Z', 4) );
+    CPPUNIT_ASSERT_EQUAL( "Hell", wxString("Hello", 4) );
+    CPPUNIT_ASSERT_EQUAL( "Hello", wxString("Hello", 5) );
 
-    CHECK( wxString(L'Z', 0) == L"" );
-    CHECK( wxString(L'Z') == L"Z" );
-    CHECK( wxString(L'Z', 4) == L"ZZZZ" );
-    CHECK( wxString(L"Hello", 4) == L"Hell" );
-    CHECK( wxString(L"Hello", 5) == L"Hello" );
+#if wxUSE_UNICODE
+    CPPUNIT_ASSERT_EQUAL( L"", wxString(L'Z', 0) );
+    CPPUNIT_ASSERT_EQUAL( L"Z", wxString(L'Z') );
+    CPPUNIT_ASSERT_EQUAL( L"ZZZZ", wxString(L'Z', 4) );
+    CPPUNIT_ASSERT_EQUAL( L"Hell", wxString(L"Hello", 4) );
+    CPPUNIT_ASSERT_EQUAL( L"Hello", wxString(L"Hello", 5) );
+#endif // wxUSE_UNICODE
 
-    CHECK( wxString(wxString(), 17).length() == 0 );
+    CPPUNIT_ASSERT_EQUAL( 0, wxString(wxString(), 17).length() );
 
 #if wxUSE_UNICODE_UTF8
     // This string has 3 characters (<h>, <e'> and <l>), not 4 when using UTF-8
@@ -139,8 +237,8 @@ TEST_CASE("StringConstructors", "[wxString]")
     if ( wxConvLibc.IsUTF8() )
     {
         wxString s3("h\xc3\xa9llo", 4);
-        CHECK( s3.length() == 3 );
-        CHECK( (char)s3[2] == 'l' );
+        CPPUNIT_ASSERT_EQUAL( 3, s3.length() );
+        CPPUNIT_ASSERT_EQUAL( 'l', (char)s3[2] );
     }
 #endif // wxUSE_UNICODE_UTF8
 
@@ -148,60 +246,64 @@ TEST_CASE("StringConstructors", "[wxString]")
     static const char *s = "?really!";
     const char *start = wxStrchr(s, 'r');
     const char *end = wxStrchr(s, '!');
-    CHECK( wxString(start, end) == "really" );
+    CPPUNIT_ASSERT_EQUAL( "really", wxString(start, end) );
 
-    // test if creating string from null C pointer works:
-    CHECK( wxString((const char *)nullptr) == "" );
+    // test if creating string from NULL C pointer works:
+    CPPUNIT_ASSERT_EQUAL( "", wxString((const char *)NULL) );
 }
 
-TEST_CASE("StringStaticConstructors", "[wxString]")
+void StringTestCase::StaticConstructors()
 {
-    CHECK( wxString::FromAscii("") == "" );
-    CHECK( wxString::FromAscii("Hello", 0) == "" );
-    CHECK( wxString::FromAscii("Hello", 4) == "Hell" );
-    CHECK( wxString::FromAscii("Hello", 5) == "Hello" );
-    CHECK( wxString::FromAscii("Hello") == "Hello" );
+    CPPUNIT_ASSERT_EQUAL( "", wxString::FromAscii("") );
+    CPPUNIT_ASSERT_EQUAL( "", wxString::FromAscii("Hello", 0) );
+    CPPUNIT_ASSERT_EQUAL( "Hell", wxString::FromAscii("Hello", 4) );
+    CPPUNIT_ASSERT_EQUAL( "Hello", wxString::FromAscii("Hello", 5) );
+    CPPUNIT_ASSERT_EQUAL( "Hello", wxString::FromAscii("Hello") );
 
     // FIXME: this doesn't work currently but should!
-    //CHECK( wxString::FromAscii("", 1).length() == 1 );
+    //CPPUNIT_ASSERT_EQUAL( 1, wxString::FromAscii("", 1).length() );
 
 
-    CHECK( wxString::FromUTF8("") == "" );
-    CHECK( wxString::FromUTF8("Hello", 0) == "" );
-    CHECK( wxString::FromUTF8("Hello", 4) == "Hell" );
-    CHECK( wxString::FromUTF8("Hello", 5) == "Hello" );
-    CHECK( wxString::FromUTF8("Hello") == "Hello" );
+    CPPUNIT_ASSERT_EQUAL( "", wxString::FromUTF8("") );
+    CPPUNIT_ASSERT_EQUAL( "", wxString::FromUTF8("Hello", 0) );
+    CPPUNIT_ASSERT_EQUAL( "Hell", wxString::FromUTF8("Hello", 4) );
+    CPPUNIT_ASSERT_EQUAL( "Hello", wxString::FromUTF8("Hello", 5) );
+    CPPUNIT_ASSERT_EQUAL( "Hello", wxString::FromUTF8("Hello") );
 
-    CHECK( wxString::FromUTF8("h\xc3\xa9llo", 3).length() == 2 );
+#if wxUSE_UNICODE
+    CPPUNIT_ASSERT_EQUAL( 2, wxString::FromUTF8("h\xc3\xa9llo", 3).length() );
+#endif // wxUSE_UNICODE
 
 
-    //CHECK( wxString::FromUTF8("", 1).length() == 1 );
+    //CPPUNIT_ASSERT_EQUAL( 1, wxString::FromUTF8("", 1).length() );
 }
 
-TEST_CASE("StringExtraction", "[wxString]")
+void StringTestCase::Extraction()
 {
     wxString s(wxT("Hello, world!"));
 
-    CHECK( wxStrcmp( s.c_str() , wxT("Hello, world!") ) == 0 );
-    CHECK( wxStrcmp( s.Left(5).c_str() , wxT("Hello") ) == 0 );
-    CHECK( wxStrcmp( s.Right(6).c_str() , wxT("world!") ) == 0 );
-    CHECK( wxStrcmp( s(3, 5).c_str() , wxT("lo, w") ) == 0 );
-    CHECK( wxStrcmp( s.Mid(3).c_str() , wxT("lo, world!") ) == 0 );
-    CHECK( wxStrcmp( s.substr(3, 5).c_str() , wxT("lo, w") ) == 0 );
-    CHECK( wxStrcmp( s.substr(3).c_str() , wxT("lo, world!") ) == 0 );
+    CPPUNIT_ASSERT( wxStrcmp( s.c_str() , wxT("Hello, world!") ) == 0 );
+    CPPUNIT_ASSERT( wxStrcmp( s.Left(5).c_str() , wxT("Hello") ) == 0 );
+    CPPUNIT_ASSERT( wxStrcmp( s.Right(6).c_str() , wxT("world!") ) == 0 );
+    CPPUNIT_ASSERT( wxStrcmp( s(3, 5).c_str() , wxT("lo, w") ) == 0 );
+    CPPUNIT_ASSERT( wxStrcmp( s.Mid(3).c_str() , wxT("lo, world!") ) == 0 );
+    CPPUNIT_ASSERT( wxStrcmp( s.substr(3, 5).c_str() , wxT("lo, w") ) == 0 );
+    CPPUNIT_ASSERT( wxStrcmp( s.substr(3).c_str() , wxT("lo, world!") ) == 0 );
 
+#if wxUSE_UNICODE
     static const char *germanUTF8 = "Oberfl\303\244che";
     wxString strUnicode(wxString::FromUTF8(germanUTF8));
 
-    CHECK( strUnicode.Mid(0, 10) == strUnicode );
-    CHECK( strUnicode.Mid(7, 2) == "ch" );
+    CPPUNIT_ASSERT( strUnicode.Mid(0, 10) == strUnicode );
+    CPPUNIT_ASSERT( strUnicode.Mid(7, 2) == "ch" );
+#endif // wxUSE_UNICODE
 
     wxString rest;
 
     #define TEST_STARTS_WITH(prefix, correct_rest, result)                    \
-        CHECK(s.StartsWith(prefix, &rest) == result);                         \
+        CPPUNIT_ASSERT_EQUAL(result, s.StartsWith(prefix, &rest));            \
         if ( result )                                                         \
-            CHECK(rest == correct_rest)
+            CPPUNIT_ASSERT_EQUAL(correct_rest, rest)
 
     TEST_STARTS_WITH( wxT("Hello"),           wxT(", world!"),      true  );
     TEST_STARTS_WITH( wxT("Hello, "),         wxT("world!"),        true  );
@@ -214,13 +316,13 @@ TEST_CASE("StringExtraction", "[wxString]")
     #undef TEST_STARTS_WITH
 
     rest = "Hello world";
-    CHECK( rest.StartsWith("Hello ", &rest) );
-    CHECK( rest == "world" );
+    CPPUNIT_ASSERT( rest.StartsWith("Hello ", &rest) );
+    CPPUNIT_ASSERT_EQUAL("world", rest);
 
     #define TEST_ENDS_WITH(suffix, correct_rest, result)                      \
-        CHECK(s.EndsWith(suffix, &rest) == result);                           \
+        CPPUNIT_ASSERT_EQUAL(result, s.EndsWith(suffix, &rest));              \
         if ( result )                                                         \
-            CHECK(rest == correct_rest)
+            CPPUNIT_ASSERT_EQUAL(correct_rest, rest)
 
     TEST_ENDS_WITH( wxT(""),                 wxT("Hello, world!"), true  );
     TEST_ENDS_WITH( wxT("!"),                wxT("Hello, world"),  true  );
@@ -235,10 +337,10 @@ TEST_CASE("StringExtraction", "[wxString]")
     #undef TEST_ENDS_WITH
 }
 
-TEST_CASE("StringTrim", "[wxString]")
+void StringTestCase::Trim()
 {
     #define TEST_TRIM( str , dir , result )  \
-        CHECK( wxString(str).Trim(dir) == result )
+        CPPUNIT_ASSERT( wxString(str).Trim(dir) == result )
 
     TEST_TRIM( wxT("  Test  "),  true, wxT("  Test") );
     TEST_TRIM( wxT("    "),      true, wxT("")       );
@@ -253,10 +355,10 @@ TEST_CASE("StringTrim", "[wxString]")
     #undef TEST_TRIM
 }
 
-TEST_CASE("StringFind", "[wxString]")
+void StringTestCase::Find()
 {
     #define TEST_FIND( str , start , result )  \
-        CHECK( wxString(str).find(wxT("ell"), start) == result );
+        CPPUNIT_ASSERT( wxString(str).find(wxT("ell"), start) == result );
 
     TEST_FIND( wxT("Well, hello world"),  0, 1              );
     TEST_FIND( wxT("Well, hello world"),  6, 7              );
@@ -265,13 +367,13 @@ TEST_CASE("StringFind", "[wxString]")
     #undef TEST_FIND
 }
 
-TEST_CASE("StringReplace", "[wxString]")
+void StringTestCase::Replace()
 {
     #define TEST_REPLACE( original , pos , len , replacement , result ) \
         { \
             wxString s = original; \
             s.replace( pos , len , replacement ); \
-            CHECK( s == result ); \
+            CPPUNIT_ASSERT_EQUAL( result, s ); \
         }
 
     TEST_REPLACE( wxT("012-AWORD-XYZ"), 4, 5, wxT("BWORD"),  wxT("012-BWORD-XYZ") );
@@ -285,7 +387,7 @@ TEST_CASE("StringReplace", "[wxString]")
         { \
             wxString s(o,olen); \
             s.replace( pos , len , replacement ); \
-            CHECK( s == wxString(r, rlen) ); \
+            CPPUNIT_ASSERT_EQUAL( wxString(r,rlen), s ); \
         }
 
     TEST_NULLCHARREPLACE( wxT("null\0char"), 9, 5, 1, wxT("d"),
@@ -295,7 +397,7 @@ TEST_CASE("StringReplace", "[wxString]")
         { \
             wxString s(o,olen); \
             s.Replace( olds, news, all ); \
-            CHECK( s == wxString(r, rlen) ); \
+            CPPUNIT_ASSERT_EQUAL( wxString(r,rlen), s ); \
         }
 
     TEST_WXREPLACE( wxT("null\0char"), 9, wxT("c"), wxT("de"), true,
@@ -315,10 +417,10 @@ TEST_CASE("StringReplace", "[wxString]")
     #undef TEST_REPLACE
 }
 
-TEST_CASE("StringMatch", "[wxString]")
+void StringTestCase::Match()
 {
     #define TEST_MATCH( s1 , s2 , result ) \
-        CHECK( wxString(s1).Matches(s2) == result )
+        CPPUNIT_ASSERT( wxString(s1).Matches(s2) == result )
 
     TEST_MATCH( "foobar",       "foo*",        true  );
     TEST_MATCH( "foobar",       "*oo*",        true  );
@@ -336,7 +438,7 @@ TEST_CASE("StringMatch", "[wxString]")
 }
 
 
-TEST_CASE("StringCaseChanges", "[wxString]")
+void StringTestCase::CaseChanges()
 {
     wxString s1(wxT("Hello!"));
     wxString s1u(s1);
@@ -344,28 +446,28 @@ TEST_CASE("StringCaseChanges", "[wxString]")
     s1u.MakeUpper();
     s1l.MakeLower();
 
-    CHECK( s1u == wxT("HELLO!") );
-    CHECK( s1l == wxT("hello!") );
+    CPPUNIT_ASSERT_EQUAL( wxT("HELLO!"), s1u );
+    CPPUNIT_ASSERT_EQUAL( wxT("hello!"), s1l );
 
     wxString s2u, s2l;
     s2u.MakeUpper();
     s2l.MakeLower();
 
-    CHECK( s2u == "" );
-    CHECK( s2l == "" );
+    CPPUNIT_ASSERT_EQUAL( "", s2u );
+    CPPUNIT_ASSERT_EQUAL( "", s2l );
 
 
     wxString s3("good bye");
-    CHECK( s3.Capitalize() == "Good bye" );
+    CPPUNIT_ASSERT_EQUAL( "Good bye", s3.Capitalize() );
     s3.MakeCapitalized();
-    CHECK( s3 == "Good bye" );
+    CPPUNIT_ASSERT_EQUAL( "Good bye", s3 );
 
-    CHECK( wxString("ABC").Capitalize() == "Abc" );
+    CPPUNIT_ASSERT_EQUAL( "Abc", wxString("ABC").Capitalize() );
 
-    CHECK( wxString().Capitalize() == "" );
+    CPPUNIT_ASSERT_EQUAL( "", wxString().Capitalize() );
 }
 
-TEST_CASE("StringCompare", "[wxString]")
+void StringTestCase::Compare()
 {
     wxString s1 = wxT("AHH");
     wxString eq = wxT("AHH");
@@ -374,31 +476,31 @@ TEST_CASE("StringCompare", "[wxString]")
     wxString neq3 = wxT("AHHH");
     wxString neq4 = wxT("AhH");
 
-    CHECK( s1 == eq );
-    CHECK( s1 != neq1 );
-    CHECK( s1 != neq2 );
-    CHECK( s1 != neq3 );
-    CHECK( s1 != neq4 );
+    CPPUNIT_ASSERT( s1 == eq );
+    CPPUNIT_ASSERT( s1 != neq1 );
+    CPPUNIT_ASSERT( s1 != neq2 );
+    CPPUNIT_ASSERT( s1 != neq3 );
+    CPPUNIT_ASSERT( s1 != neq4 );
 
-    CHECK( s1 == wxT("AHH") );
-    CHECK( s1 != wxT("no") );
-    CHECK( s1 < wxT("AZ") );
-    CHECK( s1 <= wxT("AZ") );
-    CHECK( s1 <= wxT("AHH") );
-    CHECK( s1 > wxT("AA") );
-    CHECK( s1 >= wxT("AA") );
-    CHECK( s1 >= wxT("AHH") );
+    CPPUNIT_ASSERT( s1 == wxT("AHH") );
+    CPPUNIT_ASSERT( s1 != wxT("no") );
+    CPPUNIT_ASSERT( s1 < wxT("AZ") );
+    CPPUNIT_ASSERT( s1 <= wxT("AZ") );
+    CPPUNIT_ASSERT( s1 <= wxT("AHH") );
+    CPPUNIT_ASSERT( s1 > wxT("AA") );
+    CPPUNIT_ASSERT( s1 >= wxT("AA") );
+    CPPUNIT_ASSERT( s1 >= wxT("AHH") );
 
     // test comparison with C strings in Unicode build (must work in ANSI as
     // well, of course):
-    CHECK( s1 == "AHH" );
-    CHECK( s1 != "no" );
-    CHECK( s1 < "AZ" );
-    CHECK( s1 <= "AZ" );
-    CHECK( s1 <= "AHH" );
-    CHECK( s1 > "AA" );
-    CHECK( s1 >= "AA" );
-    CHECK( s1 >= "AHH" );
+    CPPUNIT_ASSERT( s1 == "AHH" );
+    CPPUNIT_ASSERT( s1 != "no" );
+    CPPUNIT_ASSERT( s1 < "AZ" );
+    CPPUNIT_ASSERT( s1 <= "AZ" );
+    CPPUNIT_ASSERT( s1 <= "AHH" );
+    CPPUNIT_ASSERT( s1 > "AA" );
+    CPPUNIT_ASSERT( s1 >= "AA" );
+    CPPUNIT_ASSERT( s1 >= "AHH" );
 
 //    wxString _s1 = wxT("A\0HH");
 //    wxString _eq = wxT("A\0HH");
@@ -413,18 +515,18 @@ TEST_CASE("StringCompare", "[wxString]")
     neq3.insert(1,1,'\0');
     neq4.insert(1,1,'\0');
 
-    CHECK( s1 == eq );
-    CHECK( s1 != neq1 );
-    CHECK( s1 != neq2 );
-    CHECK( s1 != neq3 );
-    CHECK( s1 != neq4 );
+    CPPUNIT_ASSERT( s1 == eq );
+    CPPUNIT_ASSERT( s1 != neq1 );
+    CPPUNIT_ASSERT( s1 != neq2 );
+    CPPUNIT_ASSERT( s1 != neq3 );
+    CPPUNIT_ASSERT( s1 != neq4 );
 
-    CHECK( wxString("\n").Cmp(" ") < 0 );
-    CHECK( wxString("'").Cmp("!") > 0 );
-    CHECK( wxString("!").Cmp("z") < 0 );
+    CPPUNIT_ASSERT( wxString("\n").Cmp(" ") < 0 );
+    CPPUNIT_ASSERT( wxString("'").Cmp("!") > 0 );
+    CPPUNIT_ASSERT( wxString("!").Cmp("z") < 0 );
 }
 
-TEST_CASE("StringCompareNoCase", "[wxString]")
+void StringTestCase::CompareNoCase()
 {
     wxString s1 = wxT("AHH");
     wxString eq = wxT("AHH");
@@ -434,16 +536,16 @@ TEST_CASE("StringCompareNoCase", "[wxString]")
     wxString neq2 = wxT("AH");
     wxString neq3 = wxT("AHHH");
 
-    #define CHECK_EQ_NO_CASE(s1, s2) CHECK( s1.CmpNoCase(s2) == 0)
-    #define CHECK_NEQ_NO_CASE(s1, s2) CHECK( s1.CmpNoCase(s2) != 0)
+    #define CPPUNIT_CNCEQ_ASSERT(s1, s2) CPPUNIT_ASSERT( s1.CmpNoCase(s2) == 0)
+    #define CPPUNIT_CNCNEQ_ASSERT(s1, s2) CPPUNIT_ASSERT( s1.CmpNoCase(s2) != 0)
 
-    CHECK_EQ_NO_CASE( s1, eq );
-    CHECK_EQ_NO_CASE( s1, eq2 );
-    CHECK_EQ_NO_CASE( s1, eq3 );
+    CPPUNIT_CNCEQ_ASSERT( s1, eq );
+    CPPUNIT_CNCEQ_ASSERT( s1, eq2 );
+    CPPUNIT_CNCEQ_ASSERT( s1, eq3 );
 
-    CHECK_NEQ_NO_CASE( s1, neq );
-    CHECK_NEQ_NO_CASE( s1, neq2 );
-    CHECK_NEQ_NO_CASE( s1, neq3 );
+    CPPUNIT_CNCNEQ_ASSERT( s1, neq );
+    CPPUNIT_CNCNEQ_ASSERT( s1, neq2 );
+    CPPUNIT_CNCNEQ_ASSERT( s1, neq3 );
 
 
 //    wxString _s1 = wxT("A\0HH");
@@ -462,20 +564,20 @@ TEST_CASE("StringCompareNoCase", "[wxString]")
     neq2.insert(1,1,'\0');
     neq3.insert(1,1,'\0');
 
-    CHECK_EQ_NO_CASE( s1, eq );
-    CHECK_EQ_NO_CASE( s1, eq2 );
-    CHECK_EQ_NO_CASE( s1, eq3 );
+    CPPUNIT_CNCEQ_ASSERT( s1, eq );
+    CPPUNIT_CNCEQ_ASSERT( s1, eq2 );
+    CPPUNIT_CNCEQ_ASSERT( s1, eq3 );
 
-    CHECK_NEQ_NO_CASE( s1, neq );
-    CHECK_NEQ_NO_CASE( s1, neq2 );
-    CHECK_NEQ_NO_CASE( s1, neq3 );
+    CPPUNIT_CNCNEQ_ASSERT( s1, neq );
+    CPPUNIT_CNCNEQ_ASSERT( s1, neq2 );
+    CPPUNIT_CNCNEQ_ASSERT( s1, neq3 );
 
-    CHECK( wxString("\n").CmpNoCase(" ") < 0 );
-    CHECK( wxString("'").CmpNoCase("!") > 0);
-    CHECK( wxString("!").Cmp("Z") < 0 );
+    CPPUNIT_ASSERT( wxString("\n").CmpNoCase(" ") < 0 );
+    CPPUNIT_ASSERT( wxString("'").CmpNoCase("!") > 0);
+    CPPUNIT_ASSERT( wxString("!").Cmp("Z") < 0 );
 }
 
-TEST_CASE("StringContains", "[wxString]")
+void StringTestCase::Contains()
 {
     static const struct ContainsData
     {
@@ -498,7 +600,7 @@ TEST_CASE("StringContains", "[wxString]")
     for ( size_t n = 0; n < WXSIZEOF(containsData); n++ )
     {
         const ContainsData& cd = containsData[n];
-        CHECK( wxString(cd.hay).Contains(cd.needle) == cd.contains );
+        CPPUNIT_ASSERT_EQUAL( cd.contains, wxString(cd.hay).Contains(cd.needle) );
     }
 }
 
@@ -580,9 +682,6 @@ static const struct ToLongData
     { wxT("-1"), -1, Number_Signed | Number_Long },
     // this is surprising but consistent with strtoul() behaviour
     { wxT("-1"), (TestValue_t)ULONG_MAX, Number_Unsigned | Number_Long },
-    // a couple of edge cases
-    { wxT(" +1"), 1, Number_Ok },
-    { wxT(" -1"), (TestValue_t)ULONG_MAX, Number_Unsigned | Number_Long },
 
     // this must overflow, even with 64 bit long
     { wxT("922337203685477580711"), 0, Number_Invalid },
@@ -610,22 +709,11 @@ static const struct ToLongData
     { wxT("0x11"), 17, Number_Ok,       0 },
     { wxT("0x11"),  0, Number_Invalid,  8 },
     { wxT("0x11"), 17, Number_Ok,      16 },
-
-    {
-#if SIZEOF_LONG == 4
-      wxT("0xffffffff"),
-#elif SIZEOF_LONG == 8
-      wxT("0xffffffffffffffff"),
-#else
-    #error "Unknown sizeof(long)"
-#endif
-      (TestValue_t)ULONG_MAX, Number_Unsigned, 0
-    },
 };
 
 wxGCC_WARNING_RESTORE(missing-field-initializers)
 
-TEST_CASE("StringToInt", "[wxString]")
+void StringTestCase::ToInt()
 {
     int i;
     for (size_t n = 0; n < WXSIZEOF(intData); n++)
@@ -635,25 +723,26 @@ TEST_CASE("StringToInt", "[wxString]")
         if (id.flags & (Number_Unsigned))
             continue;
 
-        CHECK(id.IsOk() == wxString(id.str).ToInt(&i, id.base));
+        CPPUNIT_ASSERT_EQUAL(id.IsOk(),
+            wxString(id.str).ToInt(&i, id.base));
 
         if (id.IsOk())
-            CHECK( i == id.IValue() );
+            CPPUNIT_ASSERT_EQUAL(id.IValue(), i);
     }
 
     // special case: check that the output is not modified if the parsing
     // failed completely
     i = 17;
-    CHECK(!wxString("foo").ToInt(&i));
-    CHECK( i == 17 );
+    CPPUNIT_ASSERT(!wxString("foo").ToInt(&i));
+    CPPUNIT_ASSERT_EQUAL(17, i);
 
     // also check that it is modified if we did parse something successfully in
     // the beginning of the string
-    CHECK(!wxString("9 cats").ToInt(&i));
-    CHECK( i == 9 );
+    CPPUNIT_ASSERT(!wxString("9 cats").ToInt(&i));
+    CPPUNIT_ASSERT_EQUAL(9, i);
 }
 
-TEST_CASE("StringToUInt", "[wxString]")
+void StringTestCase::ToUInt()
 {
     unsigned int i;
     for (size_t n = 0; n < WXSIZEOF(intData); n++)
@@ -663,25 +752,26 @@ TEST_CASE("StringToUInt", "[wxString]")
         if (id.flags & (Number_Signed))
             continue;
 
-        CHECK(id.IsOk() == wxString(id.str).ToUInt(&i, id.base));
+        CPPUNIT_ASSERT_EQUAL(id.IsOk(),
+            wxString(id.str).ToUInt(&i, id.base));
 
         if (id.IsOk())
-            CHECK( i == id.UIValue() );
+            CPPUNIT_ASSERT_EQUAL(id.UIValue(), i);
     }
 
     // special case: check that the output is not modified if the parsing
     // failed completely
     i = 17;
-    CHECK(!wxString("foo").ToUInt(&i));
-    CHECK( i == 17 );
+    CPPUNIT_ASSERT(!wxString("foo").ToUInt(&i));
+    CPPUNIT_ASSERT_EQUAL(17, i);
 
     // also check that it is modified if we did parse something successfully in
     // the beginning of the string
-    CHECK(!wxString("9 cats").ToUInt(&i));
-    CHECK( i == 9 );
+    CPPUNIT_ASSERT(!wxString("9 cats").ToUInt(&i));
+    CPPUNIT_ASSERT_EQUAL(9, i);
 }
 
-TEST_CASE("StringToLong", "[wxString]")
+void StringTestCase::ToLong()
 {
     long l;
     for ( size_t n = 0; n < WXSIZEOF(longData); n++ )
@@ -691,35 +781,33 @@ TEST_CASE("StringToLong", "[wxString]")
         if ( ld.flags & (Number_LongLong | Number_Unsigned) )
             continue;
 
-        INFO("Checking test case #" << (n + 1) << ": "
-             "\"" << wxString{ld.str} << "\" "
-             "(flags=" << ld.flags << ", base=" << ld.base << ")");
-
         // NOTE: unless you're using some exotic locale, ToCLong and ToLong
         //       should behave the same for our test data set:
 
-        CHECK( ld.IsOk() == wxString(ld.str).ToCLong(&l, ld.base) );
+        CPPUNIT_ASSERT_EQUAL( ld.IsOk(),
+                              wxString(ld.str).ToCLong(&l, ld.base) );
         if ( ld.IsOk() )
-            CHECK( l == ld.LValue() );
+            CPPUNIT_ASSERT_EQUAL( ld.LValue(), l );
 
-        CHECK( ld.IsOk() == wxString(ld.str).ToLong(&l, ld.base) );
+        CPPUNIT_ASSERT_EQUAL( ld.IsOk(),
+                              wxString(ld.str).ToLong(&l, ld.base) );
         if ( ld.IsOk() )
-            CHECK( l == ld.LValue() );
+            CPPUNIT_ASSERT_EQUAL( ld.LValue(), l );
     }
 
     // special case: check that the output is not modified if the parsing
     // failed completely
     l = 17;
-    CHECK( !wxString("foo").ToLong(&l) );
-    CHECK( l == 17 );
+    CPPUNIT_ASSERT( !wxString("foo").ToLong(&l) );
+    CPPUNIT_ASSERT_EQUAL( 17, l );
 
     // also check that it is modified if we did parse something successfully in
     // the beginning of the string
-    CHECK( !wxString("9 cats").ToLong(&l) );
-    CHECK( l == 9 );
+    CPPUNIT_ASSERT( !wxString("9 cats").ToLong(&l) );
+    CPPUNIT_ASSERT_EQUAL( 9, l );
 }
 
-TEST_CASE("StringToULong", "[wxString]")
+void StringTestCase::ToULong()
 {
     unsigned long ul;
     for ( size_t n = 0; n < WXSIZEOF(longData); n++ )
@@ -729,26 +817,24 @@ TEST_CASE("StringToULong", "[wxString]")
         if ( ld.flags & (Number_LongLong | Number_Signed) )
             continue;
 
-        INFO("Checking test case #" << (n + 1) << ": "
-             "\"" << wxString{ld.str} << "\" "
-             "(flags=" << ld.flags << ", base=" << ld.base << ")");
-
         // NOTE: unless you're using some exotic locale, ToCLong and ToLong
         //       should behave the same for our test data set:
 
-        CHECK( ld.IsOk() == wxString(ld.str).ToCULong(&ul, ld.base) );
+        CPPUNIT_ASSERT_EQUAL( ld.IsOk(),
+                              wxString(ld.str).ToCULong(&ul, ld.base) );
         if ( ld.IsOk() )
-            CHECK( ul == ld.ULValue() );
+            CPPUNIT_ASSERT_EQUAL( ld.ULValue(), ul );
 
-        CHECK( ld.IsOk() == wxString(ld.str).ToULong(&ul, ld.base) );
+        CPPUNIT_ASSERT_EQUAL( ld.IsOk(),
+                              wxString(ld.str).ToULong(&ul, ld.base) );
         if ( ld.IsOk() )
-            CHECK( ul == ld.ULValue() );
+            CPPUNIT_ASSERT_EQUAL( ld.ULValue(), ul );
     }
 }
 
 #ifdef wxLongLong_t
 
-TEST_CASE("StringToLongLong", "[wxString]")
+void StringTestCase::ToLongLong()
 {
     wxLongLong_t l;
     for ( size_t n = 0; n < WXSIZEOF(longData); n++ )
@@ -758,13 +844,14 @@ TEST_CASE("StringToLongLong", "[wxString]")
         if ( ld.flags & (Number_Long | Number_Unsigned) )
             continue;
 
-        CHECK( ld.IsOk() == wxString(ld.str).ToLongLong(&l, ld.base) );
+        CPPUNIT_ASSERT_EQUAL( ld.IsOk(),
+                              wxString(ld.str).ToLongLong(&l, ld.base) );
         if ( ld.IsOk() )
-            CHECK( l == ld.LLValue() );
+            CPPUNIT_ASSERT_EQUAL( ld.LLValue(), l );
     }
 }
 
-TEST_CASE("StringToULongLong", "[wxString]")
+void StringTestCase::ToULongLong()
 {
     wxULongLong_t ul;
     for ( size_t n = 0; n < WXSIZEOF(longData); n++ )
@@ -774,17 +861,18 @@ TEST_CASE("StringToULongLong", "[wxString]")
         if ( ld.flags & (Number_Long | Number_Signed) )
             continue;
 
-        CHECK( ld.IsOk() == wxString(ld.str).ToULongLong(&ul, ld.base) );
+        CPPUNIT_ASSERT_EQUAL( ld.IsOk(),
+                              wxString(ld.str).ToULongLong(&ul, ld.base) );
         if ( ld.IsOk() )
-            CHECK( ul == ld.ULLValue() );
+            CPPUNIT_ASSERT_EQUAL( ld.ULLValue(), ul );
     }
 }
 
 #endif // wxLongLong_t
 
-TEST_CASE("StringToDouble", "[wxString]")
+void StringTestCase::ToDouble()
 {
-    double d = 0.0;
+    double d;
     static const struct ToDoubleData
     {
         const wxChar *str;
@@ -804,17 +892,6 @@ TEST_CASE("StringToDouble", "[wxString]")
         { wxT("--1"), 0, false },
         { wxT("-3E-5"), -3E-5, true },
         { wxT("-3E-abcde5"), 0, false },
-
-        { wxT(" 1"), 1, true },
-        { wxT(" .1"), .1, true },
-        { wxT(" -1.2"), -1.2, true },
-
-        // printf can output + in a valid double/float string
-        { wxT("+1"), 1, true },
-        { wxT("+.1"), 0.1, true },
-        { wxT("++1"), 0, false },
-
-        { wxT("0X1.BC70A3D70A3D7p+6"), 111.11, true },
     };
 
     // test ToCDouble() first:
@@ -823,22 +900,10 @@ TEST_CASE("StringToDouble", "[wxString]")
     for ( n = 0; n < WXSIZEOF(doubleData); n++ )
     {
         const ToDoubleData& ld = doubleData[n];
-        CHECK( wxString(ld.str).ToCDouble(&d) == ld.ok );
+        CPPUNIT_ASSERT_EQUAL( ld.ok, wxString(ld.str).ToCDouble(&d) );
         if ( ld.ok )
-            CHECK( d == ld.value );
+            CPPUNIT_ASSERT_EQUAL( ld.value, d );
     }
-
-    CHECK( wxString("inf").ToCDouble(&d) );
-    CHECK( std::isinf(d) );
-
-    CHECK( wxString("INFINITY").ToCDouble(&d) );
-    CHECK( std::isinf(d) );
-
-    CHECK( wxString("nan").ToCDouble(&d) );
-    CHECK( std::isnan(d) );
-
-    CHECK( wxString("NAN").ToCDouble(&d) );
-    CHECK( std::isnan(d) );
 
 
     // test ToDouble() now:
@@ -851,7 +916,7 @@ TEST_CASE("StringToDouble", "[wxString]")
     wxLocale locale;
 
     // don't load default catalog, it may be unavailable:
-    CHECK( locale.Init(wxLANGUAGE_FRENCH, wxLOCALE_DONT_LOAD_DEFAULT) );
+    CPPUNIT_ASSERT( locale.Init(wxLANGUAGE_FRENCH, wxLOCALE_DONT_LOAD_DEFAULT) );
 
     static const struct ToDoubleData doubleData2[] =
     {
@@ -867,40 +932,18 @@ TEST_CASE("StringToDouble", "[wxString]")
         { wxT("--1"), 0, false },
         { wxT("-3E-5"), -3E-5, true },
         { wxT("-3E-abcde5"), 0, false },
-
-        { wxT(" 1"), 1, true },
-        { wxT(" ,1"), .1, true },
-
-        // printf can output + in a valid double/float string
-        { wxT("+1"), 1, true },
-        { wxT("+,1"), 0.1, true },
-        { wxT("++1"), 0, false },
-
-        { wxT("0X1,BC70A3D70A3D7P+6"), 111.11, true },
     };
 
     for ( n = 0; n < WXSIZEOF(doubleData2); n++ )
     {
         const ToDoubleData& ld = doubleData2[n];
-        CHECK( wxString(ld.str).ToDouble(&d) == ld.ok );
+        CPPUNIT_ASSERT_EQUAL( ld.ok, wxString(ld.str).ToDouble(&d) );
         if ( ld.ok )
-            CHECK( d == ld.value );
+            CPPUNIT_ASSERT_EQUAL( ld.value, d );
     }
-
-    CHECK( wxString("inf").ToDouble(&d) );
-    CHECK( std::isinf(d) );
-
-    CHECK( wxString("INFINITY").ToDouble(&d) );
-    CHECK( std::isinf(d) );
-
-    CHECK( wxString("nan").ToDouble(&d) );
-    CHECK( std::isnan(d) );
-
-    CHECK( wxString("NAN").ToDouble(&d) );
-    CHECK( std::isnan(d) );
 }
 
-TEST_CASE("StringFromDouble", "[wxString]")
+void StringTestCase::FromDouble()
 {
     static const struct FromDoubleTestData
     {
@@ -925,14 +968,14 @@ TEST_CASE("StringFromDouble", "[wxString]")
     for ( unsigned n = 0; n < WXSIZEOF(testData); n++ )
     {
         const FromDoubleTestData& td = testData[n];
-        CHECK( wxString::FromCDouble(td.value, td.prec) == td.str );
+        CPPUNIT_ASSERT_EQUAL( td.str, wxString::FromCDouble(td.value, td.prec) );
     }
 
     if ( !wxLocale::IsAvailable(wxLANGUAGE_FRENCH) )
         return;
 
     wxLocale locale;
-    CHECK( locale.Init(wxLANGUAGE_FRENCH, wxLOCALE_DONT_LOAD_DEFAULT) );
+    CPPUNIT_ASSERT( locale.Init(wxLANGUAGE_FRENCH, wxLOCALE_DONT_LOAD_DEFAULT) );
 
     for ( unsigned m = 0; m < WXSIZEOF(testData); m++ )
     {
@@ -940,37 +983,37 @@ TEST_CASE("StringFromDouble", "[wxString]")
 
         wxString str(td.str);
         str.Replace(".", ",");
-        CHECK( wxString::FromDouble(td.value, td.prec) == str );
+        CPPUNIT_ASSERT_EQUAL( str, wxString::FromDouble(td.value, td.prec) );
     }
 }
 
-TEST_CASE("StringStringBuf", "[wxString]")
+void StringTestCase::StringBuf()
 {
     // check that buffer can be used to write into the string
     wxString s;
     wxStrcpy(wxStringBuffer(s, 10), wxT("foo"));
 
-    CHECK( s.length() == 3 );
-    CHECK(wxT('f') == s[0u]);
-    CHECK(wxT('o') == s[1]);
-    CHECK(wxT('o') == s[2]);
+    CPPUNIT_ASSERT_EQUAL(3, s.length());
+    CPPUNIT_ASSERT(wxT('f') == s[0u]);
+    CPPUNIT_ASSERT(wxT('o') == s[1]);
+    CPPUNIT_ASSERT(wxT('o') == s[2]);
 
     {
         // also check that the buffer initially contains the original string
         // contents
         wxStringBuffer buf(s, 10);
-        CHECK( buf[0] == wxT('f') );
-        CHECK( buf[1] == wxT('o') );
-        CHECK( buf[2] == wxT('o') );
-        CHECK( buf[3] == wxT('\0') );
+        CPPUNIT_ASSERT_EQUAL( wxT('f'), buf[0] );
+        CPPUNIT_ASSERT_EQUAL( wxT('o'), buf[1] );
+        CPPUNIT_ASSERT_EQUAL( wxT('o'), buf[2] );
+        CPPUNIT_ASSERT_EQUAL( wxT('\0'), buf[3] );
     }
 
     {
         wxStringBufferLength buf(s, 10);
-        CHECK( buf[0] == wxT('f') );
-        CHECK( buf[1] == wxT('o') );
-        CHECK( buf[2] == wxT('o') );
-        CHECK( buf[3] == wxT('\0') );
+        CPPUNIT_ASSERT_EQUAL( wxT('f'), buf[0] );
+        CPPUNIT_ASSERT_EQUAL( wxT('o'), buf[1] );
+        CPPUNIT_ASSERT_EQUAL( wxT('o'), buf[2] );
+        CPPUNIT_ASSERT_EQUAL( wxT('\0'), buf[3] );
 
         // and check that it can be used to write only the specified number of
         // characters to the string
@@ -978,11 +1021,11 @@ TEST_CASE("StringStringBuf", "[wxString]")
         buf.SetLength(4);
     }
 
-    CHECK( s.length() == 4 );
-    CHECK(wxT('b') == s[0u]);
-    CHECK(wxT('a') == s[1]);
-    CHECK(wxT('r') == s[2]);
-    CHECK(wxT('r') == s[3]);
+    CPPUNIT_ASSERT_EQUAL(4, s.length());
+    CPPUNIT_ASSERT(wxT('b') == s[0u]);
+    CPPUNIT_ASSERT(wxT('a') == s[1]);
+    CPPUNIT_ASSERT(wxT('r') == s[2]);
+    CPPUNIT_ASSERT(wxT('r') == s[3]);
 
     // check that creating buffer of length smaller than string works, i.e. at
     // least doesn't crash (it would if we naively copied the entire original
@@ -990,31 +1033,40 @@ TEST_CASE("StringStringBuf", "[wxString]")
     *wxStringBuffer(s, 1) = '!';
 }
 
-TEST_CASE("StringUTF8Buf", "[wxString]")
+void StringTestCase::UTF8Buf()
 {
+#if wxUSE_UNICODE
     // "czech" in Czech ("cestina"):
     static const char *textUTF8 = "\304\215e\305\241tina";
     static const wchar_t textUTF16[] = {0x10D, 0x65, 0x161, 0x74, 0x69, 0x6E, 0x61, 0};
 
     wxString s;
     wxStrcpy(wxUTF8StringBuffer(s, 9), textUTF8);
-    CHECK(s == textUTF16);
+    CPPUNIT_ASSERT(s == textUTF16);
 
     {
         wxUTF8StringBufferLength buf(s, 20);
         wxStrcpy(buf, textUTF8);
         buf.SetLength(5);
     }
-    CHECK(s == wxString(textUTF16, 0, 3));
+    CPPUNIT_ASSERT(s == wxString(textUTF16, 0, 3));
+#endif // wxUSE_UNICODE
 }
 
+
+
+void StringTestCase::CStrDataTernaryOperator()
+{
+    DoCStrDataTernaryOperator(true);
+    DoCStrDataTernaryOperator(false);
+}
 
 template<typename T> bool CheckStr(const wxString& expected, T s)
 {
     return expected == wxString(s);
 }
 
-void DoCStrDataTernaryOperator(bool cond)
+void StringTestCase::DoCStrDataTernaryOperator(bool cond)
 {
     // test compilation of wxCStrData when used with operator?: (the asserts
     // are not very important, we're testing if the code compiles at all):
@@ -1028,46 +1080,39 @@ void DoCStrDataTernaryOperator(bool cond)
     wxCLANG_WARNING_SUPPRESS(c++11-compat-deprecated-writable-strings)
 
     const wchar_t *wcStr = L"foo";
-    CHECK( CheckStr(s, (cond ? s.c_str() : wcStr)) );
-    CHECK( CheckStr(s, (cond ? s.c_str() : L"foo")) );
-    CHECK( CheckStr(s, (cond ? wcStr : s.c_str())) );
-    CHECK( CheckStr(s, (cond ? L"foo" : s.c_str())) );
+    CPPUNIT_ASSERT( CheckStr(s, (cond ? s.c_str() : wcStr)) );
+    CPPUNIT_ASSERT( CheckStr(s, (cond ? s.c_str() : L"foo")) );
+    CPPUNIT_ASSERT( CheckStr(s, (cond ? wcStr : s.c_str())) );
+    CPPUNIT_ASSERT( CheckStr(s, (cond ? L"foo" : s.c_str())) );
 
     const char *mbStr = "foo";
-    CHECK( CheckStr(s, (cond ? s.c_str() : mbStr)) );
-    CHECK( CheckStr(s, (cond ? s.c_str() : "foo")) );
-    CHECK( CheckStr(s, (cond ? mbStr : s.c_str())) );
-    CHECK( CheckStr(s, (cond ? "foo" : s.c_str())) );
+    CPPUNIT_ASSERT( CheckStr(s, (cond ? s.c_str() : mbStr)) );
+    CPPUNIT_ASSERT( CheckStr(s, (cond ? s.c_str() : "foo")) );
+    CPPUNIT_ASSERT( CheckStr(s, (cond ? mbStr : s.c_str())) );
+    CPPUNIT_ASSERT( CheckStr(s, (cond ? "foo" : s.c_str())) );
 
     wxGCC_WARNING_RESTORE(write-strings)
     wxCLANG_WARNING_RESTORE(c++11-compat-deprecated-writable-strings)
 
     wxString empty("");
-    CHECK( CheckStr(empty, (cond ? empty.c_str() : wxEmptyString)) );
-    CHECK( CheckStr(empty, (cond ? wxEmptyString : empty.c_str())) );
+    CPPUNIT_ASSERT( CheckStr(empty, (cond ? empty.c_str() : wxEmptyString)) );
+    CPPUNIT_ASSERT( CheckStr(empty, (cond ? wxEmptyString : empty.c_str())) );
 }
 
-TEST_CASE("StringCStrDataTernaryOperator", "[wxString]")
-{
-    DoCStrDataTernaryOperator(true);
-    DoCStrDataTernaryOperator(false);
-}
-
-
-TEST_CASE("StringCStrDataOperators", "[wxString]")
+void StringTestCase::CStrDataOperators()
 {
     wxString s("hello");
 
-    CHECK( s.c_str()[0] == 'h' );
-    CHECK( s.c_str()[1] == 'e' );
+    CPPUNIT_ASSERT( s.c_str()[0] == 'h' );
+    CPPUNIT_ASSERT( s.c_str()[1] == 'e' );
 
     // IMPORTANT: at least with the CRT coming with MSVC++ 2008 trying to access
     //            the final character results in an assert failure (with debug CRT)
-    //CHECK( s.c_str()[5] == '\0' );
+    //CPPUNIT_ASSERT( s.c_str()[5] == '\0' );
 
-    CHECK( *s.c_str() == 'h' );
-    CHECK( *(s.c_str() + 2) == 'l' );
-    //CHECK( *(s.c_str() + 5) == '\0' );
+    CPPUNIT_ASSERT( *s.c_str() == 'h' );
+    CPPUNIT_ASSERT( *(s.c_str() + 2) == 'l' );
+    //CPPUNIT_ASSERT( *(s.c_str() + 5) == '\0' );
 }
 
 bool CheckStrChar(const wxString& expected, char *s)
@@ -1079,87 +1124,94 @@ bool CheckStrConstChar(const wxString& expected, const char *s)
 bool CheckStrConstWChar(const wxString& expected, const wchar_t *s)
     { return CheckStr(expected, s); }
 
-TEST_CASE("StringCStrDataImplicitConversion", "[wxString]")
+void StringTestCase::CStrDataImplicitConversion()
 {
     wxString s("foo");
 
-    CHECK( CheckStrConstWChar(s, s.c_str()) );
-    CHECK( CheckStrConstChar(s, s.c_str()) );
+    CPPUNIT_ASSERT( CheckStrConstWChar(s, s.c_str()) );
+    CPPUNIT_ASSERT( CheckStrConstChar(s, s.c_str()) );
 
-#ifndef wxNO_IMPLICIT_WXSTRING_CONV_TO_PTR
-    CHECK( CheckStrConstWChar(s, s) );
-#ifndef wxNO_UNSAFE_WXSTRING_CONV
-    CHECK( CheckStrConstChar(s, s) );
+    // implicit conversion of wxString is not available in STL build
+#if !wxUSE_STL
+    CPPUNIT_ASSERT( CheckStrConstWChar(s, s) );
+#if wxUSE_UNSAFE_WXSTRING_CONV
+    CPPUNIT_ASSERT( CheckStrConstChar(s, s) );
 #endif
 #endif
 }
 
-TEST_CASE("StringExplicitConversion", "[wxString]")
+void StringTestCase::ExplicitConversion()
 {
     wxString s("foo");
 
-    CHECK( CheckStr(s, s.mb_str()) );
-    CHECK( CheckStrConstChar(s, s.mb_str()) );
-    CHECK( CheckStrChar(s, s.char_str()) );
+    CPPUNIT_ASSERT( CheckStr(s, s.mb_str()) );
+    CPPUNIT_ASSERT( CheckStrConstChar(s, s.mb_str()) );
+    CPPUNIT_ASSERT( CheckStrChar(s, s.char_str()) );
 
-    CHECK( CheckStr(s, s.wc_str()) );
-    CHECK( CheckStrConstWChar(s, s.wc_str()) );
-    CHECK( CheckStrWChar(s, s.wchar_str()) );
+    CPPUNIT_ASSERT( CheckStr(s, s.wc_str()) );
+    CPPUNIT_ASSERT( CheckStrConstWChar(s, s.wc_str()) );
+    CPPUNIT_ASSERT( CheckStrWChar(s, s.wchar_str()) );
 }
 
-TEST_CASE("StringIndexedAccess", "[wxString]")
+void StringTestCase::IndexedAccess()
 {
     wxString s("bar");
-    CHECK( (char)s[2] == 'r' );
+    CPPUNIT_ASSERT_EQUAL( 'r', (char)s[2] );
 
     // this tests for a possible bug in UTF-8 based wxString implementation:
     // the 3rd character of the underlying byte string is going to change, but
     // the 3rd character of wxString should remain the same
     s[0] = L'\xe9';
-    CHECK( (char)s[2] == 'r' );
+    CPPUNIT_ASSERT_EQUAL( 'r', (char)s[2] );
 }
 
-TEST_CASE("StringBeforeAndAfter", "[wxString]")
+void StringTestCase::BeforeAndAfter()
 {
     // Construct a string with 2 equal signs in it by concatenating its three
     // parts: before the first "=", in between the two "="s and after the last
     // one. This allows to avoid duplicating the string contents (which has to
     // be different for Unicode and ANSI builds) in the tests below.
+#if wxUSE_UNICODE
     #define FIRST_PART L"letter"
     #define MIDDLE_PART L"\xe9;\xe7a"
     #define LAST_PART L"l\xe0"
+#else // !wxUSE_UNICODE
+    #define FIRST_PART "letter"
+    #define MIDDLE_PART "e;ca"
+    #define LAST_PART "la"
+#endif // wxUSE_UNICODE/!wxUSE_UNICODE
 
     const wxString s(FIRST_PART wxT("=") MIDDLE_PART wxT("=") LAST_PART);
 
     wxString r;
 
-    CHECK( s.BeforeFirst('=', &r) == FIRST_PART );
-    CHECK( r == MIDDLE_PART wxT("=") LAST_PART );
+    CPPUNIT_ASSERT_EQUAL( FIRST_PART, s.BeforeFirst('=', &r) );
+    CPPUNIT_ASSERT_EQUAL( MIDDLE_PART wxT("=") LAST_PART, r );
 
-    CHECK( s.BeforeFirst('!', &r) == s );
-    CHECK( r == "" );
-
-
-    CHECK( s.BeforeLast('=', &r) == FIRST_PART wxT("=") MIDDLE_PART );
-    CHECK( r == LAST_PART );
-
-    CHECK( s.BeforeLast('!', &r) == "" );
-    CHECK( r == s );
+    CPPUNIT_ASSERT_EQUAL( s, s.BeforeFirst('!', &r) );
+    CPPUNIT_ASSERT_EQUAL( "", r );
 
 
-    CHECK( s.AfterFirst('=') == MIDDLE_PART wxT("=") LAST_PART );
-    CHECK( s.AfterFirst('!') == "" );
+    CPPUNIT_ASSERT_EQUAL( FIRST_PART wxT("=") MIDDLE_PART, s.BeforeLast('=', &r) );
+    CPPUNIT_ASSERT_EQUAL( LAST_PART, r );
+
+    CPPUNIT_ASSERT_EQUAL( "", s.BeforeLast('!', &r) );
+    CPPUNIT_ASSERT_EQUAL( s, r );
 
 
-    CHECK( s.AfterLast('=') == LAST_PART );
-    CHECK( s.AfterLast('!') == s );
+    CPPUNIT_ASSERT_EQUAL( MIDDLE_PART wxT("=") LAST_PART, s.AfterFirst('=') );
+    CPPUNIT_ASSERT_EQUAL( "", s.AfterFirst('!') );
+
+
+    CPPUNIT_ASSERT_EQUAL( LAST_PART, s.AfterLast('=') );
+    CPPUNIT_ASSERT_EQUAL( s, s.AfterLast('!') );
 
     #undef LAST_PART
     #undef MIDDLE_PART
     #undef FIRST_PART
 }
 
-TEST_CASE("StringScopedBuffers", "[wxString]")
+void StringTestCase::ScopedBuffers()
 {
     // wxString relies on efficient buffers, verify they work as they should
 
@@ -1167,49 +1219,50 @@ TEST_CASE("StringScopedBuffers", "[wxString]")
 
     // non-owned buffer points to the string passed to it
     wxScopedCharBuffer sbuf = wxScopedCharBuffer::CreateNonOwned(literal);
-    CHECK( sbuf.data() == literal );
+    CPPUNIT_ASSERT( sbuf.data() == literal );
 
     // a copy of scoped non-owned buffer still points to the same string
     wxScopedCharBuffer sbuf2(sbuf);
-    CHECK( sbuf.data() == sbuf2.data() );
+    CPPUNIT_ASSERT( sbuf.data() == sbuf2.data() );
 
     // but assigning it to wxCharBuffer makes a full copy
     wxCharBuffer buf(sbuf);
-    CHECK( buf.data() != literal );
-    CHECK( buf.data() == std::string(literal) );
+    CPPUNIT_ASSERT( buf.data() != literal );
+    CPPUNIT_ASSERT_EQUAL( std::string(literal), buf.data() );
 
     wxCharBuffer buf2 = sbuf;
-    CHECK( buf2.data() != literal );
-    CHECK( buf.data() == std::string(literal) );
+    CPPUNIT_ASSERT( buf2.data() != literal );
+    CPPUNIT_ASSERT_EQUAL( std::string(literal), buf.data() );
 
     // Check that extending the buffer keeps it NUL-terminated.
     size_t len = 10;
 
     wxCharBuffer buf3(len);
-    CHECK( buf3.data()[len] == '\0' );
+    CPPUNIT_ASSERT_EQUAL('\0', buf3.data()[len]);
 
     wxCharBuffer buf4;
     buf4.extend(len);
-    CHECK( buf4.data()[len] == '\0' );
+    CPPUNIT_ASSERT_EQUAL('\0', buf4.data()[len]);
 
     wxCharBuffer buf5(5);
     buf5.extend(len);
-    CHECK( buf5.data()[len] == '\0' );
+    CPPUNIT_ASSERT_EQUAL('\0', buf5.data()[len]);
 }
 
-TEST_CASE("StringSupplementaryUniChar", "[wxString]")
+void StringTestCase::SupplementaryUniChar()
 {
+#if wxUSE_UNICODE
     // Test wxString(wxUniChar ch, size_t nRepeat = 1),
     // which is implemented upon assign(size_t n, wxUniChar ch).
     {
         wxString s(wxUniChar(0x12345));
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 2 );
-        CHECK( s[0].GetValue() == 0xD808 );
-        CHECK( s[1].GetValue() == 0xDF45 );
+        CPPUNIT_ASSERT_EQUAL(2, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD808, s[0].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDF45, s[1].GetValue());
 #else
-        CHECK( s.length() == 1 );
-        CHECK( s[0].GetValue() == 0x12345 );
+        CPPUNIT_ASSERT_EQUAL(1, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x12345, s[0].GetValue());
 #endif
     }
 
@@ -1218,12 +1271,12 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         wxString s;
         s = wxUniChar(0x23456);
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 2 );
-        CHECK( s[0].GetValue() == 0xD84D );
-        CHECK( s[1].GetValue() == 0xDC56 );
+        CPPUNIT_ASSERT_EQUAL(2, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD84D, s[0].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDC56, s[1].GetValue());
 #else
-        CHECK( s.length() == 1 );
-        CHECK( s[0].GetValue() == 0x23456 );
+        CPPUNIT_ASSERT_EQUAL(1, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x23456, s[0].GetValue());
 #endif
     }
 
@@ -1232,12 +1285,12 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         wxString s = "A";
         s += wxUniChar(0x34567);
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 3 );
-        CHECK( s[1].GetValue() == 0xD891 );
-        CHECK( s[2].GetValue() == 0xDD67 );
+        CPPUNIT_ASSERT_EQUAL(3, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD891, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDD67, s[2].GetValue());
 #else
-        CHECK( s.length() == 2 );
-        CHECK( s[1].GetValue() == 0x34567 );
+        CPPUNIT_ASSERT_EQUAL(2, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x34567, s[1].GetValue());
 #endif
     }
 
@@ -1247,12 +1300,12 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         wxString s = "A";
         s << wxUniChar(0x45678);
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 3 );
-        CHECK( s[1].GetValue() == 0xD8D5 );
-        CHECK( s[2].GetValue() == 0xDE78 );
+        CPPUNIT_ASSERT_EQUAL(3, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD8D5, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDE78, s[2].GetValue());
 #else
-        CHECK( s.length() == 2 );
-        CHECK( s[1].GetValue() == 0x45678 );
+        CPPUNIT_ASSERT_EQUAL(2, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x45678, s[1].GetValue());
 #endif
     }
 
@@ -1261,15 +1314,15 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         wxString s = L"\x3042\x208\x3059";
         s.insert(1, 2, wxUniChar(0x12345));
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 7 );
-        CHECK( s[1].GetValue() == 0xD808 );
-        CHECK( s[2].GetValue() == 0xDF45 );
-        CHECK( s[3].GetValue() == 0xD808 );
-        CHECK( s[4].GetValue() == 0xDF45 );
+        CPPUNIT_ASSERT_EQUAL(7, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD808, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDF45, s[2].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xD808, s[3].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDF45, s[4].GetValue());
 #else
-        CHECK( s.length() == 5 );
-        CHECK( s[1].GetValue() == 0x12345 );
-        CHECK( s[2].GetValue() == 0x12345 );
+        CPPUNIT_ASSERT_EQUAL(5, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x12345, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0x12345, s[2].GetValue());
 #endif
     }
 
@@ -1278,12 +1331,12 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         wxString s = L"\x3042\x208\x3059";
         s.insert(s.begin() + 1, wxUniChar(0x23456));
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 5 );
-        CHECK( s[1].GetValue() == 0xD84D );
-        CHECK( s[2].GetValue() == 0xDC56 );
+        CPPUNIT_ASSERT_EQUAL(5, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD84D, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDC56, s[2].GetValue());
 #else
-        CHECK( s.length() == 4 );
-        CHECK( s[1].GetValue() == 0x23456 );
+        CPPUNIT_ASSERT_EQUAL(4, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x23456, s[1].GetValue());
 #endif
     }
 
@@ -1292,12 +1345,12 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         wxString s = L"\x3042\x208\x3059";
         s.insert(s.begin() + 1, 2, wxUniChar(0x34567));
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 7 );
-        CHECK( s[1].GetValue() == 0xD891 );
-        CHECK( s[2].GetValue() == 0xDD67 );
+        CPPUNIT_ASSERT_EQUAL(7, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD891, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDD67, s[2].GetValue());
 #else
-        CHECK( s.length() == 5 );
-        CHECK( s[1].GetValue() == 0x34567 );
+        CPPUNIT_ASSERT_EQUAL(5, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x34567, s[1].GetValue());
 #endif
     }
 
@@ -1306,15 +1359,15 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         wxString s = L"\x3042\x208\x3059";
         s.replace(1, 2, 2, wxUniChar(0x45678));
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 5 );
-        CHECK( s[1].GetValue() == 0xD8D5 );
-        CHECK( s[2].GetValue() == 0xDE78 );
-        CHECK( s[3].GetValue() == 0xD8D5 );
-        CHECK( s[4].GetValue() == 0xDE78 );
+        CPPUNIT_ASSERT_EQUAL(5, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD8D5, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDE78, s[2].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xD8D5, s[3].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDE78, s[4].GetValue());
 #else
-        CHECK( s.length() == 3 );
-        CHECK( s[1].GetValue() == 0x45678 );
-        CHECK( s[2].GetValue() == 0x45678 );
+        CPPUNIT_ASSERT_EQUAL(3, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x45678, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0x45678, s[2].GetValue());
 #endif
     }
 
@@ -1323,15 +1376,15 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         wxString s = L"\x3042\x208\x3059";
         s.replace(s.begin() + 1, s.end(), 2, wxUniChar(0x34567));
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 5 );
-        CHECK( s[1].GetValue() == 0xD891 );
-        CHECK( s[2].GetValue() == 0xDD67 );
-        CHECK( s[3].GetValue() == 0xD891 );
-        CHECK( s[4].GetValue() == 0xDD67 );
+        CPPUNIT_ASSERT_EQUAL(5, s.length());
+        CPPUNIT_ASSERT_EQUAL(0xD891, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDD67, s[2].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xD891, s[3].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0xDD67, s[4].GetValue());
 #else
-        CHECK( s.length() == 3 );
-        CHECK( s[1].GetValue() == 0x34567 );
-        CHECK( s[2].GetValue() == 0x34567 );
+        CPPUNIT_ASSERT_EQUAL(3, s.length());
+        CPPUNIT_ASSERT_EQUAL(0x34567, s[1].GetValue());
+        CPPUNIT_ASSERT_EQUAL(0x34567, s[2].GetValue());
 #endif
     }
 
@@ -1344,21 +1397,22 @@ TEST_CASE("StringSupplementaryUniChar", "[wxString]")
         s += wxUniChar(0x12345);
         s += "y";
 #if wxUSE_UNICODE_UTF16
-        CHECK( s.length() == 8 );
-        CHECK( s.find(wxUniChar(0x12345)) == 2 );
-        CHECK( s.find(wxUniChar(0x12345), 3) == 5 );
-        CHECK( s.rfind(wxUniChar(0x12345)) == 5 );
-        CHECK( s.rfind(wxUniChar(0x12345), 4) == 2 );
+        CPPUNIT_ASSERT_EQUAL(8, s.length());
+        CPPUNIT_ASSERT_EQUAL(2, s.find(wxUniChar(0x12345)));
+        CPPUNIT_ASSERT_EQUAL(5, s.find(wxUniChar(0x12345), 3));
+        CPPUNIT_ASSERT_EQUAL(5, s.rfind(wxUniChar(0x12345)));
+        CPPUNIT_ASSERT_EQUAL(2, s.rfind(wxUniChar(0x12345), 4));
 #else
-        CHECK( s.length() == 6 );
-        CHECK( s.find(wxUniChar(0x12345)) == 2 );
-        CHECK( s.find(wxUniChar(0x12345), 3) == 4 );
-        CHECK( s.rfind(wxUniChar(0x12345)) == 4 );
-        CHECK( s.rfind(wxUniChar(0x12345), 3) == 2 );
+        CPPUNIT_ASSERT_EQUAL(6, s.length());
+        CPPUNIT_ASSERT_EQUAL(2, s.find(wxUniChar(0x12345)));
+        CPPUNIT_ASSERT_EQUAL(4, s.find(wxUniChar(0x12345), 3));
+        CPPUNIT_ASSERT_EQUAL(4, s.rfind(wxUniChar(0x12345)));
+        CPPUNIT_ASSERT_EQUAL(2, s.rfind(wxUniChar(0x12345), 3));
 #endif
     }
 
     /* Not tested here:
          find_first_of, find_last_of, find_first_not_of, find_last_not_of
     */
+#endif
 }

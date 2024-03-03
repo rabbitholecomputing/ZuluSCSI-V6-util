@@ -20,14 +20,11 @@
 #endif // WX_PRECOMP
 
 #include "wx/menu.h"
+#include "wx/scopedptr.h"
 #include "wx/translation.h"
 #include "wx/uiaction.h"
 
-#include "waitfor.h"
-
 #include <stdarg.h>
-
-#include <memory>
 
 // ----------------------------------------------------------------------------
 // helper
@@ -83,8 +80,8 @@ class MenuTestCase : public CppUnit::TestCase
 public:
     MenuTestCase() {}
 
-    virtual void setUp() override { CreateFrame(); }
-    virtual void tearDown() override { m_frame->Destroy(); }
+    virtual void setUp() wxOVERRIDE { CreateFrame(); }
+    virtual void tearDown() wxOVERRIDE { m_frame->Destroy(); }
 
 private:
     CPPUNIT_TEST_SUITE( MenuTestCase );
@@ -93,7 +90,7 @@ private:
         CPPUNIT_TEST( EnableTop );
         CPPUNIT_TEST( Count );
         CPPUNIT_TEST( Labels );
-#if wxUSE_INTL
+#if wxUSE_INTL && wxUSE_UNICODE
         CPPUNIT_TEST( TranslatedMnemonics );
 #endif // wxUSE_INTL
         CPPUNIT_TEST( RadioItems );
@@ -109,7 +106,7 @@ private:
     void EnableTop();
     void Count();
     void Labels();
-#if wxUSE_INTL
+#if wxUSE_INTL && wxUSE_UNICODE
     void TranslatedMnemonics();
 #endif // wxUSE_INTL
     void RadioItems();
@@ -252,8 +249,8 @@ void MenuTestCase::FindInMenubar()
     }
 
     // Find by id:
-    wxMenu* menu = nullptr;
-    wxMenuItem* item = nullptr;
+    wxMenu* menu = NULL;
+    wxMenuItem* item = NULL;
     item = bar->FindItem(MenuTestCase_Foo, &menu);
     CPPUNIT_ASSERT( item );
     CPPUNIT_ASSERT( menu );
@@ -379,7 +376,7 @@ void MenuTestCase::Labels()
     CPPUNIT_ASSERT_EQUAL( "Foo", wxMenuItem::GetLabelText("&Foo\tCtrl-F") );
 }
 
-#if wxUSE_INTL
+#if wxUSE_INTL && wxUSE_UNICODE
 
 static wxString
 GetTranslatedString(const wxTranslations& trans, const wxString& s)
@@ -447,11 +444,15 @@ void MenuTestCase::RadioItems()
     // Subsequent items in a group are not checked.
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First + 1) );
 
+#ifdef __WXQT__
+    WARN("Radio check test does not work under Qt");
+#else
     // Checking the second one make the first one unchecked however.
     menu->Check(MenuTestCase_First + 1, true);
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First) );
     CPPUNIT_ASSERT( menu->IsChecked(MenuTestCase_First + 1) );
     menu->Check(MenuTestCase_First, true);
+#endif
 
     // Adding more radio items after a separator creates another radio group...
     menu->AppendSeparator();
@@ -463,22 +464,30 @@ void MenuTestCase::RadioItems()
     CPPUNIT_ASSERT( menu->IsChecked(MenuTestCase_First) );
     CPPUNIT_ASSERT( menu->IsChecked(MenuTestCase_First + 2) );
 
+#ifdef __WXQT__
+    WARN("Radio check test does not work under Qt");
+#else
     menu->Check(MenuTestCase_First + 3, true);
     CPPUNIT_ASSERT( menu->IsChecked(MenuTestCase_First + 3) );
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First + 2) );
 
     CPPUNIT_ASSERT( menu->IsChecked(MenuTestCase_First) );
     menu->Check(MenuTestCase_First + 2, true);
+#endif
 
     // Insert an item in the middle of an existing radio group.
     menu->InsertRadioItem(4, MenuTestCase_First + 5, "Radio 5");
     CPPUNIT_ASSERT( menu->IsChecked(MenuTestCase_First + 2) );
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First + 5) );
 
+#ifdef __WXQT__
+    WARN("Radio check test does not work under Qt");
+#else
     menu->Check( MenuTestCase_First + 5, true );
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First + 3) );
 
     menu->Check( MenuTestCase_First + 3, true );
+#endif
 
     // Prepend a couple of items before the first group.
     menu->PrependRadioItem(MenuTestCase_First + 6, "Radio 6");
@@ -486,6 +495,9 @@ void MenuTestCase::RadioItems()
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First + 6) );
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First + 7) );
 
+#ifdef __WXQT__
+    WARN("Radio check test does not work under Qt");
+#else
     menu->Check(MenuTestCase_First + 7, true);
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First + 1) );
 
@@ -493,6 +505,7 @@ void MenuTestCase::RadioItems()
     // Check that the last radio group still works as expected.
     menu->Check(MenuTestCase_First + 4, true);
     CPPUNIT_ASSERT( !menu->IsChecked(MenuTestCase_First + 5) );
+#endif
 }
 
 void MenuTestCase::RemoveAdd()
@@ -549,7 +562,7 @@ public:
     {
         m_win->Bind(wxEVT_MENU, &MenuEventHandler::OnMenu, this);
 
-        m_event = nullptr;
+        m_event = NULL;
     }
 
     virtual ~MenuEventHandler()
@@ -560,13 +573,13 @@ public:
     }
 
     // Check that we received an event with the given ID and return the event
-    // object if we did (otherwise fail the test and return nullptr).
+    // object if we did (otherwise fail the test and return NULL).
     const wxObject* CheckGot(int expectedId)
     {
         if ( !m_event )
         {
             FAIL("Event not generated");
-            return nullptr;
+            return NULL;
         }
 
         CHECK( m_event->GetId() == expectedId );
@@ -574,14 +587,14 @@ public:
         const wxObject* const src = m_event->GetEventObject();
 
         delete m_event;
-        m_event = nullptr;
+        m_event = NULL;
 
         return src;
     }
 
     bool GotEvent() const
     {
-        return m_event != nullptr;
+        return m_event != NULL;
     }
 
 private:
@@ -606,13 +619,7 @@ void MenuTestCase::Events()
     // Invoke the accelerator.
     m_frame->Show();
     m_frame->SetFocus();
-
-    // Wait for m_frame to become focused. Because (at least under wxQt when running
-    // the entire test suite) the first test below would fail due to the simulation
-    // starts before the frame become focused.
-    WaitFor("the frame to become focused", [this]() {
-        return m_frame->HasFocus();
-    });
+    wxYield();
 
     wxUIActionSimulator sim;
     sim.KeyDown(WXK_F1);
@@ -677,7 +684,7 @@ namespace
 
 void VerifyAccelAssigned( wxString labelText, int keycode )
 {
-    const std::unique_ptr<wxAcceleratorEntry> entry(
+    const wxScopedPtr<wxAcceleratorEntry> entry(
         wxAcceleratorEntry::Create( labelText )
     );
 

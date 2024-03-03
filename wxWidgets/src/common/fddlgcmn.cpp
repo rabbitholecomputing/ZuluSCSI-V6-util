@@ -2,6 +2,7 @@
 // Name:        src/common/fddlgcmn.cpp
 // Purpose:     common parts of wxFindReplaceDialog implementations
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     01.08.01
 // Copyright:   (c) 2001 Vadim Zeitlin
 // Licence:     wxWindows licence

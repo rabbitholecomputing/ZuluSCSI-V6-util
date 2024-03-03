@@ -25,19 +25,19 @@ class ToolbookTestCase : public BookCtrlBaseTestCase, public CppUnit::TestCase
 public:
     ToolbookTestCase() { }
 
-    virtual void setUp() override;
-    virtual void tearDown() override;
+    virtual void setUp() wxOVERRIDE;
+    virtual void tearDown() wxOVERRIDE;
 
 private:
-    virtual wxBookCtrlBase *GetBase() const override { return m_toolbook; }
+    virtual wxBookCtrlBase *GetBase() const wxOVERRIDE { return m_toolbook; }
 
-    virtual wxEventType GetChangedEvent() const override
+    virtual wxEventType GetChangedEvent() const wxOVERRIDE
     { return wxEVT_TOOLBOOK_PAGE_CHANGED; }
 
-    virtual wxEventType GetChangingEvent() const override
+    virtual wxEventType GetChangingEvent() const wxOVERRIDE
     { return wxEVT_TOOLBOOK_PAGE_CHANGING; }
 
-    virtual void Realize() override { m_toolbook->GetToolBar()->Realize(); }
+    virtual void Realize() wxOVERRIDE { m_toolbook->GetToolBar()->Realize(); }
 
     CPPUNIT_TEST_SUITE( ToolbookTestCase );
         wxBOOK_CTRL_BASE_TESTS();

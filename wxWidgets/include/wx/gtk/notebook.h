@@ -2,6 +2,7 @@
 // Name:        wx/gtk/notebook.h
 // Purpose:     wxNotebook class
 // Author:      Robert Roebling
+// Modified by:
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -9,13 +10,14 @@
 #ifndef _WX_GTKNOTEBOOK_H_
 #define _WX_GTKNOTEBOOK_H_
 
-#include <vector>
-
 //-----------------------------------------------------------------------------
 // internal class
 //-----------------------------------------------------------------------------
 
-class wxGtkNotebookPage;
+class WXDLLIMPEXP_FWD_CORE wxGtkNotebookPage;
+
+#include "wx/list.h"
+WX_DECLARE_LIST(wxGtkNotebookPage, wxGtkNotebookPagesList);
 
 //-----------------------------------------------------------------------------
 // wxNotebook
@@ -49,35 +51,35 @@ public:
     // set the currently selected page, return the index of the previously
     // selected one (or wxNOT_FOUND on error)
     // NB: this function will _not_ generate wxEVT_NOTEBOOK_PAGE_xxx events
-    int SetSelection(size_t nPage) override { return DoSetSelection(nPage, SetSelection_SendEvent); }
+    int SetSelection(size_t nPage) wxOVERRIDE { return DoSetSelection(nPage, SetSelection_SendEvent); }
     // get the currently selected page
-  int GetSelection() const override;
+  int GetSelection() const wxOVERRIDE;
 
   // changes selected page without sending events
-  int ChangeSelection(size_t nPage) override { return DoSetSelection(nPage); }
+  int ChangeSelection(size_t nPage) wxOVERRIDE { return DoSetSelection(nPage); }
 
     // set/get the title of a page
-  bool SetPageText(size_t nPage, const wxString& strText) override;
-  wxString GetPageText(size_t nPage) const override;
+  bool SetPageText(size_t nPage, const wxString& strText) wxOVERRIDE;
+  wxString GetPageText(size_t nPage) const wxOVERRIDE;
 
     // sets/returns item's image index in the current image list
-  int  GetPageImage(size_t nPage) const override;
-  bool SetPageImage(size_t nPage, int nImage) override;
+  int  GetPageImage(size_t nPage) const wxOVERRIDE;
+  bool SetPageImage(size_t nPage, int nImage) wxOVERRIDE;
 
   // control the appearance of the notebook pages
     // set the padding between tabs (in pixels)
-  void SetPadding(const wxSize& padding) override;
+  void SetPadding(const wxSize& padding) wxOVERRIDE;
     // sets the size of the tabs (assumes all tabs are the same size)
-  void SetTabSize(const wxSize& sz) override;
+  void SetTabSize(const wxSize& sz) wxOVERRIDE;
 
   // geometry
-  virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const override;
-  virtual int HitTest(const wxPoint& pt, long *flags = nullptr) const override;
+  virtual wxSize CalcSizeFromPage(const wxSize& sizePage) const wxOVERRIDE;
+  virtual int HitTest(const wxPoint& pt, long *flags = NULL) const wxOVERRIDE;
 
   // operations
   // ----------
     // remove all pages
-  bool DeleteAllPages() override;
+  bool DeleteAllPages() wxOVERRIDE;
 
     // adds a new page to the notebook (it will be deleted by the notebook,
     // don't delete it yourself). If bSelect, this page becomes active.
@@ -86,7 +88,7 @@ public:
                      wxNotebookPage *win,
                      const wxString& strText,
                      bool bSelect = false,
-                     int imageId = NO_IMAGE ) override;
+                     int imageId = NO_IMAGE ) wxOVERRIDE;
 
     // handler for tab navigation
     // --------------------------
@@ -100,8 +102,8 @@ public:
     // --------------
 
 #if wxUSE_CONSTRAINTS
-    void SetConstraintSizes(bool recurse) override;
-    bool DoPhase(int phase) override;
+    void SetConstraintSizes(bool recurse) wxOVERRIDE;
+    bool DoPhase(int phase) wxOVERRIDE;
 #endif
 
     // Called by GTK event handler when the current page is definitely changed.
@@ -110,6 +112,9 @@ public:
     // helper function
     wxGtkNotebookPage* GetNotebookPage(int page) const;
 
+    // the additional page data (the pages themselves are in m_pages array)
+    wxGtkNotebookPagesList m_pagesData;
+
     // we need to store the old selection since there
     // is no other way to know about it at the time
     // of the change selection event
@@ -117,23 +122,20 @@ public:
 
 protected:
     // set all page's attributes
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style) override;
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const override;
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) wxOVERRIDE;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
     // remove one page from the notebook but do not destroy it
-    virtual wxNotebookPage *DoRemovePage(size_t nPage) override;
+    virtual wxNotebookPage *DoRemovePage(size_t nPage) wxOVERRIDE;
 
-    int DoSetSelection(size_t nPage, int flags = 0) override;
+    int DoSetSelection(size_t nPage, int flags = 0) wxOVERRIDE;
 
 private:
     // the padding set by SetPadding()
     int m_padding;
 
-    // the additional page data (the pages themselves are in m_pages array)
-    std::vector<wxGtkNotebookPage> m_pagesData;
-
     void Init();
-    virtual void AddChildGTK(wxWindowGTK* child) override;
+    virtual void AddChildGTK(wxWindowGTK* child) wxOVERRIDE;
 
     wxDECLARE_DYNAMIC_CLASS(wxNotebook);
     wxDECLARE_EVENT_TABLE();

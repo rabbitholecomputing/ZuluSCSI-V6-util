@@ -15,6 +15,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            echo LD_LIBRARY_PATH=`pwd`/lib >> $BASH_ENV
+
             # Do _not_ use the CPU count returned by build/tools/proc_count.sh
             # for building, it is too high (36 logical CPUs) and results in
             # running out of memory, so limit ourselves to just 2 CPUs we're
@@ -33,7 +35,7 @@ jobs:
       - run:
           name: Checkout required submodules
           command: |
-            git submodule update --init 3rdparty/catch 3rdparty/nanosvg src/stc/scintilla src/stc/lexilla
+            git submodule update --init 3rdparty/catch 3rdparty/nanosvg
 
       - restore_cache:
           name: Restore ccache

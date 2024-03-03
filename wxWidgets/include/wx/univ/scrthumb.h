@@ -2,6 +2,7 @@
 // Name:        wx/univ/scrthumb.h
 // Purpose:     wxScrollThumb class
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     12.02.01
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -57,7 +58,7 @@ public:
 
 private:
     // do we have the mouse capture?
-    bool HasCapture() const { return m_captureData != nullptr; }
+    bool HasCapture() const { return m_captureData != NULL; }
 
     // get the coord of this event in the direction we're interested in (y for
     // vertical shaft or x for horizontal ones)
@@ -84,7 +85,7 @@ private:
 class WXDLLIMPEXP_CORE wxControlWithThumb
 {
 public:
-    virtual ~wxControlWithThumb() = default;
+    virtual ~wxControlWithThumb() {}
 
     // simple accessors
     // ----------------

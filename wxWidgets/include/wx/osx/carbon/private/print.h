@@ -2,6 +2,7 @@
 // Name:        wx/osx/carbon/private/print.h
 // Purpose:     private implementation for printing on OS X
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     03/02/99
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -22,13 +23,13 @@ public:
                             wxOSXPrintData();
     virtual                 ~wxOSXPrintData();
 
-    virtual bool            TransferTo( wxPrintData &data ) override;
-    virtual bool            TransferFrom( const wxPrintData &data ) override;
+    virtual bool            TransferTo( wxPrintData &data ) wxOVERRIDE;
+    virtual bool            TransferFrom( const wxPrintData &data ) wxOVERRIDE;
 
-    virtual bool            IsOk() const override;
+    virtual bool            IsOk() const wxOVERRIDE;
 
-    virtual void            TransferFrom( const wxPageSetupDialogData * ) override;
-    virtual void            TransferTo( wxPageSetupDialogData * ) override;
+    virtual void            TransferFrom( const wxPageSetupDialogData * ) wxOVERRIDE;
+    virtual void            TransferTo( wxPageSetupDialogData * ) wxOVERRIDE;
 
     virtual void            TransferFrom( const wxPrintDialogData * );
     virtual void            TransferTo( wxPrintDialogData * );
@@ -68,8 +69,8 @@ public:
 
     WX_NSPrintInfo          GetNSPrintInfo() { return m_macPrintInfo; }
 protected:
-    virtual void            UpdateFromPMState() override;
-    virtual void            UpdateToPMState() override;
+    virtual void            UpdateFromPMState() wxOVERRIDE;
+    virtual void            UpdateToPMState() wxOVERRIDE;
 
     WX_NSPrintInfo          m_macPrintInfo;
 private:

@@ -41,31 +41,31 @@ public:
     ////////////////////////////////////////////////////////////////////////////
 
     // Set the control colours
-    bool SetForegroundColour(const wxColour& col) override;
-    bool SetBackgroundColour(const wxColour& col) override;
+    bool SetForegroundColour(const wxColour& col) wxOVERRIDE;
+    bool SetBackgroundColour(const wxColour& col) wxOVERRIDE;
 
     // Gets information about this column
-    bool GetColumn(int col, wxListItem& info) const override;
+    bool GetColumn(int col, wxListItem& info) const wxOVERRIDE;
 
     // Sets information about this column
-    bool SetColumn(int col, const wxListItem& info) override;
+    bool SetColumn(int col, const wxListItem& info) wxOVERRIDE;
 
     // Gets the column width
-    int GetColumnWidth(int col) const override;
+    int GetColumnWidth(int col) const wxOVERRIDE;
 
     // Sets the column width
-    bool SetColumnWidth(int col, int width) override;
+    bool SetColumnWidth(int col, int width) wxOVERRIDE;
 
 
     // Gets the column order from its index or index from its order
-    int GetColumnOrder(int col) const override;
-    int GetColumnIndexFromOrder(int order) const override;
+    int GetColumnOrder(int col) const wxOVERRIDE;
+    int GetColumnIndexFromOrder(int order) const wxOVERRIDE;
 
     // Gets the column order for all columns
-    wxArrayInt GetColumnsOrder() const override;
+    wxArrayInt GetColumnsOrder() const wxOVERRIDE;
 
     // Sets the column order for all columns
-    bool SetColumnsOrder(const wxArrayInt& orders) override;
+    bool SetColumnsOrder(const wxArrayInt& orders) wxOVERRIDE;
 
 
     // Gets the number of items that can fit vertically in the
@@ -125,10 +125,10 @@ public:
     bool SetItemPosition(long item, const wxPoint& pos);
 
     // Gets the number of items in the list control
-    int GetItemCount() const override;
+    int GetItemCount() const wxOVERRIDE;
 
     // Gets the number of columns in the list control
-    int GetColumnCount() const override;
+    int GetColumnCount() const wxOVERRIDE;
 
     // get the horizontal and vertical components of the item spacing
     wxSize GetItemSpacing() const;
@@ -158,16 +158,16 @@ public:
     // list or report view
     long GetTopItem() const;
 
-    virtual bool HasCheckBoxes() const override;
-    virtual bool EnableCheckBoxes(bool enable = true) override;
-    virtual bool IsItemChecked(long item) const override;
-    virtual void CheckItem(long item, bool check) override;
+    virtual bool HasCheckBoxes() const wxOVERRIDE;
+    virtual bool EnableCheckBoxes(bool enable = true) wxOVERRIDE;
+    virtual bool IsItemChecked(long item) const wxOVERRIDE;
+    virtual void CheckItem(long item, bool check) wxOVERRIDE;
 
     // Add or remove a single window style
     void SetSingleStyle(long style, bool add = true);
 
     // Set the whole window style
-    void SetWindowStyleFlag(long style) override;
+    void SetWindowStyleFlag(long style) wxOVERRIDE;
 
     // Searches for an item, starting from 'item'.
     // item can be -1 to find the first item that matches the
@@ -192,10 +192,10 @@ public:
     bool DeleteAllItems();
 
     // Deletes a column
-    bool DeleteColumn(int col) override;
+    bool DeleteColumn(int col) wxOVERRIDE;
 
     // Deletes all columns
-    bool DeleteAllColumns() override;
+    bool DeleteAllColumns() wxOVERRIDE;
 
     // Clears items, and columns if there are any.
     void ClearAll();
@@ -208,8 +208,6 @@ public:
 
     // Ensures this item is visible
     bool EnsureVisible(long item);
-
-    bool IsVisible(long item) const override;
 
     // Find an item whose label matches this string, starting from the item after 'start'
     // or the beginning if 'start' is -1.
@@ -226,7 +224,7 @@ public:
     // Determines which item (if any) is at the specified point,
     // giving details in 'flags' (see wxLIST_HITTEST_... flags above)
     // Request the subitem number as well at the given coordinate.
-    long HitTest(const wxPoint& point, int& flags, long* ptrSubItem = nullptr) const;
+    long HitTest(const wxPoint& point, int& flags, long* ptrSubItem = NULL) const;
 
     // Inserts an item, returning the index of the new item if successful,
     // -1 otherwise.
@@ -264,19 +262,14 @@ public:
     // data is arbitrary data to be passed to the sort function.
     bool SortItems(wxListCtrlCompare fn, wxIntPtr data);
 
-    // Sort indicator in header.
-    virtual void ShowSortIndicator(int col, bool ascending = true) override;
-    virtual int GetSortIndicator() const override;
-    virtual bool IsAscendingSortIndicator() const override;
-
-    virtual QWidget *GetHandle() const override;
+    virtual QWidget *GetHandle() const wxOVERRIDE;
 
 protected:
     void Init();
 
     // Implement base class pure virtual methods.
-    virtual long DoInsertColumn(long col, const wxListItem& info) override;
-    void DoUpdateImages(int which) override;
+    virtual long DoInsertColumn(long col, const wxListItem& info) wxOVERRIDE;
+    void DoUpdateImages(int which) wxOVERRIDE;
 
     bool              m_hasCheckBoxes;
 

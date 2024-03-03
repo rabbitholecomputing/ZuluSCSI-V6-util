@@ -2,6 +2,7 @@
 // Name:        src/generic/dcpsg.cpp
 // Purpose:     Generic wxPostScriptDC implementation
 // Author:      Julian Smart, Robert Roebling, Markus Holzhem
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -289,7 +290,7 @@ wxPostScriptDCImpl::wxPostScriptDCImpl( wxPrinterDC *owner, const wxPrintData& d
 
 void wxPostScriptDCImpl::Init()
 {
-    m_pstream = nullptr;
+    m_pstream = NULL;
 
     m_currentRed = 0;
     m_currentGreen = 0;
@@ -310,7 +311,7 @@ wxPostScriptDCImpl::~wxPostScriptDCImpl ()
     if (m_pstream)
     {
         fclose( m_pstream );
-        m_pstream = nullptr;
+        m_pstream = NULL;
     }
 }
 
@@ -1209,7 +1210,7 @@ void wxPostScriptDCImpl::SetPen( const wxPen& pen )
                 PsPrint( buffer );
             }
             PsPrint ("] 0 setdash\n");
-            psdash = nullptr;
+            psdash = 0;
         }
         break;
         case wxPENSTYLE_SOLID:
@@ -1349,7 +1350,7 @@ void wxPostScriptDCImpl::DoDrawText( const wxString& text, wxCoord x, wxCoord y 
     SetPSFont();
 
     wxCoord text_descent;
-    GetOwner()->GetTextExtent(text, nullptr, nullptr, &text_descent);
+    GetOwner()->GetTextExtent(text, NULL, NULL, &text_descent);
     int size = m_font.GetPointSize();
 
 //    wxCoord by = y + (wxCoord)floor( double(size) * 2.0 / 3.0 ); // approximate baseline
@@ -1385,7 +1386,7 @@ void wxPostScriptDCImpl::DoDrawRotatedText( const wxString& text, wxCoord x, wxC
 
     // Calculate bottom-left coordinates of the rotated text
     wxCoord text_descent;
-    GetOwner()->GetTextExtent(text, nullptr, nullptr, &text_descent);
+    GetOwner()->GetTextExtent(text, NULL, NULL, &text_descent);
     int size = m_font.GetPointSize();
     double rad = wxDegToRad(angle);
     wxCoord bx = wxRound(x + (size - text_descent) * sin(rad));
@@ -1430,7 +1431,7 @@ void wxPostScriptDCImpl::SetLogicalFunction(wxRasterOperationMode WXUNUSED(funct
 void wxPostScriptDCImpl::DoDrawSpline( const wxPointList *points )
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
-    wxCHECK_RET(points, "null pointer to spline points?");
+    wxCHECK_RET(points, "NULL pointer to spline points?");
     wxCHECK_RET(points->size() >= 2, "incomplete list of spline points?");
 
     SetPen( m_pen );
@@ -1708,7 +1709,7 @@ void wxPostScriptDCImpl::EndDoc ()
 
     if ( m_pstream ) {
         fclose( m_pstream );
-        m_pstream = nullptr;
+        m_pstream = NULL;
     }
 
     // Reset the list of fonts for which PS font registration code was generated.
@@ -1973,7 +1974,7 @@ void wxPostScriptDCImpl::DoGetTextExtent(const wxString& string,
     /
     /  example:
     /
-    /    wxPostScriptDC dc(nullptr, true);
+    /    wxPostScriptDC dc(NULL, true);
     /    if (dc.IsOk()){
     /      wxSetAFMPath("d:\\wxw161\\afm\\");
     /      dc.StartDoc("Test");
@@ -2052,7 +2053,7 @@ void wxPostScriptDCImpl::DoGetTextExtent(const wxString& string,
             }
         }
 
-        FILE *afmFile = nullptr;
+        FILE *afmFile = NULL;
 
         // Get the directory of the AFM files
         wxString afmName;
@@ -2106,7 +2107,7 @@ void wxPostScriptDCImpl::DoGetTextExtent(const wxString& string,
            /
            /  when the font has changed, we read in the right AFM file and store the
            /  character widths in an array, which is processed below (see point 3.). */
-        if (afmFile==nullptr)
+        if (afmFile==NULL)
         {
             wxLogDebug( wxT("GetTextExtent: can't open AFM file '%s'"), afmName );
             wxLogDebug( wxT("               using approximate values"));
@@ -2125,7 +2126,7 @@ void wxPostScriptDCImpl::DoGetTextExtent(const wxString& string,
             char line[256];
             int ascii,cWidth;
             /* read in the file and parse it */
-            while(fgets(line,sizeof(line),afmFile)!=nullptr)
+            while(fgets(line,sizeof(line),afmFile)!=NULL)
             {
                 /* A.) check for descender definition */
                 if (strncmp(line,"Descender",9)==0)

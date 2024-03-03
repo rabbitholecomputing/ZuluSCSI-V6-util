@@ -3,6 +3,7 @@
 // Purpose:     implementation of time/date related classes
 //              (for formatting&parsing see datetimefmt.cpp)
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     11.05.99
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
@@ -74,7 +75,6 @@
 #include "wx/tokenzr.h"
 
 #include <ctype.h>
-#include <cmath>
 
 #ifdef __WINDOWS__
     #include <winnls.h>
@@ -92,7 +92,7 @@
 
 template<> void wxStringReadValue(const wxString &s , wxDateTime &data )
 {
-    data.ParseFormat(s,"%Y-%m-%d %H:%M:%S", nullptr);
+    data.ParseFormat(s,"%Y-%m-%d %H:%M:%S", NULL);
 }
 
 template<> void wxStringWriteValue(wxString &s , const wxDateTime &data )
@@ -119,14 +119,14 @@ wxCUSTOM_TYPE_INFO(wxDateTime, wxToStringConverter<wxDateTime> , wxFromStringCon
 class wxDateTimeHolidaysModule : public wxModule
 {
 public:
-    virtual bool OnInit() override
+    virtual bool OnInit() wxOVERRIDE
     {
         wxDateTimeHolidayAuthority::AddAuthority(new wxDateTimeWorkDays);
 
         return true;
     }
 
-    virtual void OnExit() override
+    virtual void OnExit() wxOVERRIDE
     {
         wxDateTimeHolidayAuthority::ClearAllAuthorities();
         wxDateTimeHolidayAuthority::ms_authorities.clear();
@@ -307,7 +307,7 @@ wxString wxCallStrftime(const wxString& format, const tm* tm)
 static void ReplaceDefaultYearMonthWithCurrent(int *year,
                                                wxDateTime::Month *month)
 {
-    struct tm *tmNow = nullptr;
+    struct tm *tmNow = NULL;
     struct tm tmstruct;
 
     if ( *year == wxDateTime::Inv_Year )
@@ -726,24 +726,20 @@ namespace
 {
 
 // helper function used by GetEnglish/WeekDayName(): returns 0 if flags is
-// Name_Full, 1 if it is Name_Abbr, and 2 if it isName_Shortest,
-// or -1 if the flags is incorrect (and asserts in this case)
+// Name_Full and 1 if it is Name_Abbr or -1 if the flags is incorrect (and
+// asserts in this case)
 //
 // the return value of this function is used as an index into 2D array
 // containing full names in its first row and abbreviated ones in the 2nd one
-// and very short ones in the 3rd row
 int NameArrayIndexFromFlag(wxDateTime::NameFlags flags)
 {
-  switch ( flags )
+    switch ( flags )
     {
-      case wxDateTime::Name_Full:
+        case wxDateTime::Name_Full:
             return 0;
 
         case wxDateTime::Name_Abbr:
             return 1;
-
-        case wxDateTime::Name_Shortest:
-            return 2;
 
         default:
             wxFAIL_MSG( "unknown wxDateTime::NameFlags value" );
@@ -755,21 +751,19 @@ int NameArrayIndexFromFlag(wxDateTime::NameFlags flags)
 } // anonymous namespace
 
 /* static */
-wxString wxDateTime::GetEnglishMonthName(Month month, const NameForm& form)
+wxString wxDateTime::GetEnglishMonthName(Month month, NameFlags flags)
 {
     wxCHECK_MSG( month != Inv_Month, wxEmptyString, "invalid month" );
 
-    static const char *const monthNames[3][MONTHS_IN_YEAR] =
+    static const char *const monthNames[2][MONTHS_IN_YEAR] =
     {
         { "January", "February", "March", "April", "May", "June",
           "July", "August", "September", "October", "November", "December" },
         { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" },
-        { "JA", "FE", "MR", "AL", "MA", "JN",
-          "JL", "AU", "SE", "OC", "NO", "DE" }
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
     };
 
-    const int idx = NameArrayIndexFromFlag(form.GetFlags());
+    const int idx = NameArrayIndexFromFlag(flags);
     if ( idx == -1 )
         return wxString();
 
@@ -777,32 +771,29 @@ wxString wxDateTime::GetEnglishMonthName(Month month, const NameForm& form)
 }
 
 /* static */
-wxString wxDateTime::GetMonthName(Month month,
-                                  const NameForm& form)
+wxString wxDateTime::GetMonthName(wxDateTime::Month month,
+                                  wxDateTime::NameFlags flags)
 {
     wxCHECK_MSG(month != Inv_Month, wxEmptyString, wxT("invalid month"));
-#if wxUSE_INTL
-    wxString name = wxUILocale::GetCurrent().GetMonthName(month, form);
-    if (!name.empty())
-        return name;
-#endif // wxUSE_INTL
-    return GetEnglishMonthName(month, form);
+    wxString name = wxUILocale::GetCurrent().GetMonthName(month, flags);
+    if (name.empty())
+        name = GetEnglishMonthName(month, flags);
+    return name;
 }
 
 /* static */
-wxString wxDateTime::GetEnglishWeekDayName(WeekDay wday, const NameForm& form)
+wxString wxDateTime::GetEnglishWeekDayName(WeekDay wday, NameFlags flags)
 {
     wxCHECK_MSG( wday != Inv_WeekDay, wxEmptyString, wxT("invalid weekday") );
 
-    static const char *const weekdayNames[3][DAYS_PER_WEEK] =
+    static const char *const weekdayNames[2][DAYS_PER_WEEK] =
     {
         { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
           "Saturday" },
         { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" },
-        { "Su", "Mo", "Tu", "We", "Th", "Fr", "Sa" }
     };
 
-    const int idx = NameArrayIndexFromFlag(form.GetFlags());
+    const int idx = NameArrayIndexFromFlag(flags);
     if ( idx == -1 )
         return wxString();
 
@@ -810,16 +801,14 @@ wxString wxDateTime::GetEnglishWeekDayName(WeekDay wday, const NameForm& form)
 }
 
 /* static */
-wxString wxDateTime::GetWeekDayName(WeekDay wday,
-                                    const NameForm& form)
+wxString wxDateTime::GetWeekDayName(wxDateTime::WeekDay wday,
+                                    wxDateTime::NameFlags flags)
 {
     wxCHECK_MSG(wday != Inv_WeekDay, wxEmptyString, wxT("invalid weekday"));
-#if wxUSE_INTL
-    wxString name = wxUILocale::GetCurrent().GetWeekDayName(wday, form);
-    if (!name.empty())
-        return name;
-#endif // wxUSE_INTL
-    return GetEnglishWeekDayName(wday, form);
+    wxString name = wxUILocale::GetCurrent().GetWeekDayName(wday, flags);
+    if (name.empty())
+        name = GetEnglishWeekDayName(wday, flags);
+    return name;
 }
 
 /* static */
@@ -866,7 +855,7 @@ wxDateTime::Country wxDateTime::GetCountry()
     if ( ms_country == Country_Unknown )
     {
         // try to guess from the time zone name
-        time_t t = time(nullptr);
+        time_t t = time(NULL);
         struct tm tmstruct;
         struct tm *tm = wxLocaltime_r(&t, &tmstruct);
 
@@ -1447,7 +1436,7 @@ const tm* wxTryGetTm(tm& tmstruct, time_t t, const wxDateTime::TimeZone& tz)
         t += (time_t)tz.GetOffset();
 #if !defined(__VMS__) // time is unsigned so avoid warning
         if ( t < 0 )
-            return nullptr;
+            return NULL;
 #endif
         return wxGmtime_r(&t, &tmstruct);
     }
@@ -2160,9 +2149,16 @@ void wxDateTime::UseEffectiveWeekDayFlags(WeekFlags &flags) const
 // wxDateTimeHolidayAuthority and related classes
 // ============================================================================
 
+#include "wx/arrimpl.cpp"
+
+WX_DEFINE_OBJARRAY(wxDateTimeArray)
+
 static int wxCMPFUNC_CONV
-wxDateTimeCompareFunc(wxDateTime dt1, wxDateTime dt2)
+wxDateTimeCompareFunc(wxDateTime **first, wxDateTime **second)
 {
+    wxDateTime dt1 = **first,
+               dt2 = **second;
+
     return dt1 == dt2 ? 0 : dt1 < dt2 ? -1 : +1;
 }
 
@@ -2270,133 +2266,6 @@ size_t wxDateTimeWorkDays::DoGetHolidaysInRange(const wxDateTime& dtStart,
     }
 
     return holidays.GetCount();
-}
-
-// ----------------------------------------------------------------------------
-// wxDateTimeUSCatholicFeasts
-// ----------------------------------------------------------------------------
-
-std::vector<wxDateTime> wxDateTimeUSCatholicFeasts::m_holyDaysOfObligation =
-{
-    // Feasts with fixed dates
-    { wxDateTime(1, wxDateTime::Month::Jan, 0) },  // Solemnity of Mary, Mother of God
-    { wxDateTime(15, wxDateTime::Month::Aug, 0) }, // Assumption of the Blessed Virgin Mary
-    { wxDateTime(1, wxDateTime::Month::Nov, 0) },  // All Saints Day
-    { wxDateTime(8, wxDateTime::Month::Dec, 0) },  // Immaculate Conception of the Blessed Virgin Mary
-    { wxDateTime(25, wxDateTime::Month::Dec, 0) }  // Christmas
-};
-
-wxDateTime wxDateTimeUSCatholicFeasts::GetEaster(int year)
-{
-    // Adjust for miscalculation in Gauss formula
-    if (year == 1734 || year == 1886)
-    {
-        return wxDateTime(25, wxDateTime::Apr, year);
-    }
-
-    // All calculations done
-    // on the basis of
-    // Gauss Easter Algorithm
-    const float A = year % 19;
-    const float B = year % 4;
-    const float C = year % 7;
-    const float P = std::floor((float)year / 100.0);
-
-    const float Q = std::floor((float)(13 + 8 * P) / 25.0);
-
-    const float M = (int)(15 - Q + P - std::floor((float)P / 4)) % 30;
-
-    const float N = (int)(4 + P - std::floor((float)P / 4)) % 7;
-
-    const float D = (int)(19 * A + M) % 30;
-
-    const float E = (int)(2 * B + 4 * C + 6 * D + N) % 7;
-
-    const int days = (int)(22 + D + E);
-
-    // A corner case,
-    // when D is 29
-    if ((D == 29) && (E == 6))
-    {
-        wxASSERT_MSG(
-            wxDateTime(19, wxDateTime::Apr, year).GetWeekDay() ==
-            wxDateTime::WeekDay::Sun,
-            "Error in Easter calculation!");
-        return wxDateTime(19, wxDateTime::Apr, year);
-    }
-    // Another corner case,
-    // when D is 28
-    else if ((D == 28) && (E == 6))
-    {
-        wxASSERT_MSG(
-            wxDateTime(18, wxDateTime::Apr, year).GetWeekDay() ==
-            wxDateTime::WeekDay::Sun,
-            "Error in Easter calculation!");
-        return wxDateTime(18, wxDateTime::Apr, year);
-    }
-    else
-    {
-        // If days > 31, move to April
-        // April = 4th Month
-        if (days > 31)
-        {
-            wxASSERT_MSG(
-                wxDateTime((days - 31), wxDateTime::Apr, year).GetWeekDay() ==
-                wxDateTime::WeekDay::Sun,
-                "Error in Easter calculation!");
-            return wxDateTime((days - 31), wxDateTime::Apr, year);
-        }
-        else
-        {
-            // Otherwise, stay on March
-            // March = 3rd Month
-            wxASSERT_MSG(
-                wxDateTime(days, wxDateTime::Mar, year).GetWeekDay() ==
-                wxDateTime::WeekDay::Sun,
-                "Error in Easter calculation!");
-            return wxDateTime(days, wxDateTime::Mar, year);
-        }
-    }
-}
-
-size_t wxDateTimeUSCatholicFeasts::DoGetHolidaysInRange(const wxDateTime& dtStart,
-                                                        const wxDateTime& dtEnd,
-                                                        wxDateTimeArray& holidays) const
-{
-    holidays.Clear();
-
-    for (wxDateTime dt = dtStart; dt <= dtEnd; dt += wxDateSpan::Day())
-    {
-        if (DoIsHoliday(dt) )
-        {
-            holidays.Add(dt);
-            continue;
-        }
-    }
-
-    return holidays.size();
-}
-
-// ----------------------------------------------------------------------------
-// wxDateTimeChristianHolidays
-// ----------------------------------------------------------------------------
-
-size_t wxDateTimeChristianHolidays::DoGetHolidaysInRange(const wxDateTime& dtStart,
-                                                         const wxDateTime& dtEnd,
-                                                         wxDateTimeArray& holidays) const
-{
-    holidays.Clear();
-
-    for (wxDateTime dt = dtStart; dt <= dtEnd; dt += wxDateSpan::Day())
-    {
-        if (DoIsHoliday(dt) )
-        {
-            holidays.Add(dt);
-            continue;
-        }
-    }
-
-    return holidays.size();
 }
 
 // ============================================================================

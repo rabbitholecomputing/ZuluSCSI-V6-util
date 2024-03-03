@@ -1,7 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/generic/tabg.cpp
-// Purpose:     Generic tabbed dialogs; used by generic wxNotebook
+// Purpose:     Generic tabbed dialogs; used by wxMotif's wxNotebook
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c)
 // Licence:     wxWindows licence
@@ -81,7 +82,12 @@ void wxTabControl::OnDraw(wxDC& dc, bool lastInRow)
     if(m_view->GetBackgroundBrush())
       dc.SetBrush(*m_view->GetBackgroundBrush());
 
+    // Add 1 because the pen is transparent. Under Motif, may be different.
+#ifdef __WXMOTIF__
+    dc.DrawRectangle(tabX, tabY, (GetWidth()+1), (GetHeight() + tabHeightInc));
+#else
     dc.DrawRectangle(tabX, tabY, (GetWidth()+1), (GetHeight() + 1 + tabHeightInc));
+#endif
   }
 
   // Draw highlight and shadow
@@ -89,7 +95,7 @@ void wxTabControl::OnDraw(wxDC& dc, bool lastInRow)
 
   // Calculate the top of the tab beneath. It's the height of the tab, MINUS
   // a bit if the tab below happens to be selected. Check.
-  wxTabControl *tabBeneath = nullptr;
+  wxTabControl *tabBeneath = NULL;
   int subtractThis = 0;
   if (GetColPosition() > 0)
     tabBeneath = m_view->FindTabControlForPosition(GetColPosition() - 1, GetRowPosition());
@@ -147,6 +153,10 @@ void wxTabControl::OnDraw(wxDC& dc, bool lastInRow)
       if ( GetRowPosition() < (maxPositions - 1) )
         topY = tabY + GetHeight() + tabHeightInc;
 
+#ifdef __WXMOTIF__
+      topY -= 1;
+#endif
+
       // Shadow
       dc.DrawLine((tabX + GetWidth()), tabY, (tabX + GetWidth()), topY);
       // Draw black line to emphasize shadow
@@ -158,12 +168,16 @@ void wxTabControl::OnDraw(wxDC& dc, bool lastInRow)
     {
       // Calculate the top of the tab beneath. It's the height of the tab, MINUS
       // a bit if the tab below (and next col along) happens to be selected. Check.
-      wxTabControl *tabBeneath = nullptr;
+      wxTabControl *tabBeneath = NULL;
       int subtractThis = 0;
       if (GetColPosition() > 0)
         tabBeneath = m_view->FindTabControlForPosition(GetColPosition() - 1, GetRowPosition() + 1);
       if (tabBeneath && tabBeneath->IsSelected())
         subtractThis = (m_view->GetTabSelectionHeight() - m_view->GetTabHeight());
+
+#ifdef __WXMOTIF__
+      subtractThis += 1;
+#endif
 
       // Draw only to next tab down.
       dc.DrawLine((tabX + GetWidth()), tabY,
@@ -511,7 +525,7 @@ wxTabView::wxTabView(long style)
   // SetBackgroundColour(m_backgroundColour);
   m_tabFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
   m_tabSelectedFont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-  m_window = nullptr;
+  m_window = NULL;
 }
 
 wxTabView::~wxTabView()
@@ -561,7 +575,7 @@ wxTabControl *wxTabView::AddTab(int id, const wxString& label, wxTabControl *exi
   tabControl->SetRowPosition(tabLayer->GetCount());
   tabControl->SetColPosition(layer);
 
-  wxTabControl *lastTab = nullptr;
+  wxTabControl *lastTab = NULL;
   if (lastTabNode)
     lastTab = (wxTabControl *)lastTabNode->GetData();
 
@@ -711,7 +725,7 @@ void wxTabView::LayoutTabs(void)
     layerNode = nextLayerNode;
   }
 
-  wxTabControl *lastTab = nullptr;
+  wxTabControl *lastTab = NULL;
 
   wxTabLayer *currentLayer = new wxTabLayer;
   m_layers.Append(currentLayer);
@@ -733,7 +747,7 @@ void wxTabView::LayoutTabs(void)
      {
        currentLayer = new wxTabLayer;
        m_layers.Append(currentLayer);
-       lastTab = nullptr;
+       lastTab = NULL;
      }
     }
 
@@ -781,7 +795,7 @@ void wxTabView::Draw(wxDC& dc)
         if(GetBackgroundBrush())
             dc.SetBrush(*GetBackgroundBrush());
 
-        // Add 1 because the pen is transparent.
+        // Add 1 because the pen is transparent. Under Motif, may be different.
         dc.DrawRectangle(
                 m_tabViewRect.x,
                 (m_tabViewRect.y - m_topMargin),
@@ -834,7 +848,12 @@ void wxTabView::Draw(wxDC& dc)
         dc.DrawLine(
                 (GetViewRect().x),
                 (GetViewRect().y + GetViewRect().height + 1),
+#if defined(__WXMOTIF__)
+                (GetViewRect().x + GetViewRect().width + 1),
+#else
                 (GetViewRect().x + GetViewRect().width + 2),
+#endif
+
                 (GetViewRect().y + GetViewRect().height + 1)
                 );
 
@@ -858,7 +877,7 @@ bool wxTabView::OnEvent(wxMouseEvent& event)
   wxCoord x, y;
   event.GetPosition(&x, &y);
 
-  wxTabControl *hitControl = nullptr;
+  wxTabControl *hitControl = NULL;
 
   wxTabLayerList::compatibility_iterator node = m_layers.GetFirst();
   while (node)
@@ -1003,7 +1022,7 @@ void wxTabView::SetBackgroundColour(const wxColour& col)
 }
 
 // this may be called with sel = zero (which doesn't match any page)
-// when deleting a page
+// when wxMotif deletes a page
 // so return the first tab...
 
 void wxTabView::SetTabSelection(int sel, bool activateTool)
@@ -1058,7 +1077,7 @@ wxTabControl *wxTabView::FindTabControlForId(int id) const
     }
     node1 = node1->GetNext();
   }
-  return nullptr;
+  return NULL;
 }
 
 // Find tab control for layer, position (starting from zero)
@@ -1066,11 +1085,11 @@ wxTabControl *wxTabView::FindTabControlForPosition(int layer, int position) cons
 {
   wxTabLayerList::compatibility_iterator node1 = m_layers.Item(layer);
   if (!node1)
-    return nullptr;
+    return NULL;
   wxTabLayer *tabLayer = (wxTabLayer *)node1->GetData();
   wxList::compatibility_iterator node2 = tabLayer->Item(position);
   if (!node2)
-    return nullptr;
+    return NULL;
   return (wxTabControl *)node2->GetData();
 }
 
@@ -1127,7 +1146,7 @@ wxTabbedDialog::wxTabbedDialog(wxWindow *parent, wxWindowID id,
     long windowStyle, const wxString& name):
    wxDialog(parent, id, title, pos, size, windowStyle, name)
 {
-  m_tabView = nullptr;
+  m_tabView = NULL;
 }
 
 wxTabbedDialog::~wxTabbedDialog(void)
@@ -1169,7 +1188,7 @@ wxTabbedPanel::wxTabbedPanel(wxWindow *parent, wxWindowID id, const wxPoint& pos
    const wxSize& size, long windowStyle, const wxString& name):
    wxPanel(parent, id, pos, size, windowStyle, name)
 {
-  m_tabView = nullptr;
+  m_tabView = NULL;
 }
 
 wxTabbedPanel::~wxTabbedPanel(void)
@@ -1200,7 +1219,7 @@ wxPanelTabView::wxPanelTabView(wxPanel *pan, long style)
     : wxTabView(style)
 {
   m_panel = pan;
-  m_currentWindow = nullptr;
+  m_currentWindow = NULL;
 
   if (m_panel->IsKindOf(wxCLASSINFO(wxTabbedDialog)))
     ((wxTabbedDialog *)m_panel)->SetTabView(this);
@@ -1243,7 +1262,7 @@ void wxPanelTabView::AddTabWindow(int id, wxWindow *window)
 wxWindow *wxPanelTabView::GetTabWindow(int id) const
 {
   wxIntToWindowHashMap::const_iterator it = m_tabWindows.find(id);
-  return it == m_tabWindows.end() ? nullptr : it->second;
+  return it == m_tabWindows.end() ? NULL : it->second;
 }
 
 void wxPanelTabView::ClearWindows(bool deleteWindows)

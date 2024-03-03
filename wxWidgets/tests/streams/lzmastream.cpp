@@ -43,8 +43,8 @@ public:
     CPPUNIT_TEST_SUITE_END();
 
 protected:
-    wxLZMAInputStream *DoCreateInStream() override;
-    wxLZMAOutputStream *DoCreateOutStream() override;
+    wxLZMAInputStream *DoCreateInStream() wxOVERRIDE;
+    wxLZMAOutputStream *DoCreateOutStream() wxOVERRIDE;
 
 private:
     wxDECLARE_NO_COPY_CLASS(LZMAStream);

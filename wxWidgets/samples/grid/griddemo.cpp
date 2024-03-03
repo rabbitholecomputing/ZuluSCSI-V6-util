@@ -49,8 +49,6 @@ public:
           m_colBg(colBg)
     {
     }
-    CustomColumnHeaderRenderer(const CustomColumnHeaderRenderer&) = delete;
-    CustomColumnHeaderRenderer& operator=(const CustomColumnHeaderRenderer&) = delete;
 
     virtual void DrawLabel(const wxGrid& WXUNUSED(grid),
                            wxDC& dc,
@@ -58,7 +56,7 @@ public:
                            const wxRect& rect,
                            int horizAlign,
                            int vertAlign,
-                           int WXUNUSED(textOrientation)) const override
+                           int WXUNUSED(textOrientation)) const wxOVERRIDE
     {
         dc.SetTextForeground(m_colFg);
         dc.SetFont(wxITALIC_FONT->Bold());
@@ -67,7 +65,7 @@ public:
 
     virtual void DrawBorder(const wxGrid& WXUNUSED(grid),
                             wxDC& dc,
-                            wxRect& rect) const override
+                            wxRect& rect) const wxOVERRIDE
     {
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(m_colBg));
@@ -76,6 +74,8 @@ public:
 
 private:
     const wxColour m_colFg, m_colBg;
+
+    wxDECLARE_NO_COPY_CLASS(CustomColumnHeaderRenderer);
 };
 
 // And a custom attributes provider which uses custom column header renderer
@@ -91,14 +91,12 @@ public:
           m_useCustom(false)
     {
     }
-    CustomColumnHeadersProvider(const CustomColumnHeadersProvider&) = delete;
-    CustomColumnHeadersProvider& operator=(const CustomColumnHeadersProvider&) = delete;
 
     // enable or disable the use of custom renderer for column headers
     void UseCustomColHeaders(bool use = true) { m_useCustom = use; }
 
 protected:
-    virtual const wxGridColumnHeaderRenderer& GetColumnHeaderRenderer(int col) override
+    virtual const wxGridColumnHeaderRenderer& GetColumnHeaderRenderer(int col) wxOVERRIDE
     {
         // if enabled, use custom renderers
         if ( m_useCustom )
@@ -116,6 +114,8 @@ private:
                                m_customEvenRenderer;
 
     bool m_useCustom;
+
+    wxDECLARE_NO_COPY_CLASS(CustomColumnHeadersProvider);
 };
 
 // ----------------------------------------------------------------------------
@@ -158,7 +158,7 @@ public:
                       wxDC& dc,
                       const wxRect& rect,
                       int row, int col,
-                      bool isSelected) override
+                      bool isSelected) wxOVERRIDE
     {
         wxGridCellRenderer::Draw(grid, attr, dc, rect, row, col, isSelected);
 
@@ -172,13 +172,13 @@ public:
                                wxGridCellAttr& attr,
                                wxDC& dc,
                                int WXUNUSED(row),
-                               int WXUNUSED(col)) override
+                               int WXUNUSED(col)) wxOVERRIDE
     {
         dc.SetFont(attr.GetFont());
         return dc.GetTextExtent(GetStarString(MAX_STARS));
     }
 
-    virtual wxGridCellRenderer *Clone() const override
+    virtual wxGridCellRenderer *Clone() const wxOVERRIDE
     {
         return new MyGridStarRenderer();
     }
@@ -190,7 +190,7 @@ class MyGridStarEditor : public wxGridCellActivatableEditor
 public:
     virtual wxGridActivationResult
     TryActivate(int row, int col, wxGrid* grid,
-                const wxGridActivationSource& actSource) override
+                const wxGridActivationSource& actSource) wxOVERRIDE
     {
         int numStars = -1;
 
@@ -235,12 +235,12 @@ public:
         return wxGridActivationResult::DoChange(m_value);
     }
 
-    virtual void DoActivate(int row, int col, wxGrid* grid) override
+    virtual void DoActivate(int row, int col, wxGrid* grid) wxOVERRIDE
     {
         grid->SetCellValue(row, col, m_value);
     }
 
-    virtual wxGridCellEditor *Clone() const override
+    virtual wxGridCellEditor *Clone() const wxOVERRIDE
     {
         return new MyGridStarEditor();
     }
@@ -382,7 +382,7 @@ wxEND_EVENT_TABLE()
 
 
 GridFrame::GridFrame()
-        : wxFrame( nullptr, wxID_ANY, "wxWidgets grid class demo",
+        : wxFrame( (wxFrame *)NULL, wxID_ANY, "wxWidgets grid class demo",
                    wxDefaultPosition,
                    wxDefaultSize )
 {
@@ -775,11 +775,11 @@ GridFrame::GridFrame()
     grid->SetRowAttr(10, attr);
     grid->SetCellValue(10, 0, "You can't resize this row interactively -- try it");
 
-    // this does exactly nothing except testing that SetAttr() handles null
+    // this does exactly nothing except testing that SetAttr() handles NULL
     // attributes and does reference counting correctly
-    grid->SetAttr(11, 11, nullptr);
+    grid->SetAttr(11, 11, NULL);
     grid->SetAttr(11, 11, new wxGridCellAttr);
-    grid->SetAttr(11, 11, nullptr);
+    grid->SetAttr(11, 11, NULL);
 
     grid->Bind(wxEVT_CONTEXT_MENU, &GridFrame::OnGridContextMenu, this, grid->GetId());
 
@@ -1045,7 +1045,7 @@ void GridFrame::ResizeCell( wxCommandEvent& ev )
 
 void GridFrame::SetLabelColour( wxCommandEvent& WXUNUSED(ev) )
 {
-    wxColourDialog dlg( nullptr );
+    wxColourDialog dlg( NULL );
     if ( dlg.ShowModal() == wxID_OK )
     {
         wxColourData retData;
@@ -1059,7 +1059,7 @@ void GridFrame::SetLabelColour( wxCommandEvent& WXUNUSED(ev) )
 
 void GridFrame::SetLabelTextColour( wxCommandEvent& WXUNUSED(ev) )
 {
-    wxColourDialog dlg( nullptr );
+    wxColourDialog dlg( NULL );
     if ( dlg.ShowModal() == wxID_OK )
     {
         wxColourData retData;
@@ -1243,7 +1243,7 @@ void GridFrame::ToggleCornerLabelOrientation( wxCommandEvent& WXUNUSED(ev) )
 
 void GridFrame::SetGridLineColour( wxCommandEvent& WXUNUSED(ev) )
 {
-    wxColourDialog dlg( nullptr );
+    wxColourDialog dlg( NULL );
     if ( dlg.ShowModal() == wxID_OK )
     {
         wxColourData retData;
@@ -1968,7 +1968,7 @@ void MyGridCellRenderer::Draw(wxGrid& grid,
 // ============================================================================
 
 BigGridFrame::BigGridFrame(long sizeGrid)
-            : wxFrame(nullptr, wxID_ANY, "Plugin Virtual Table")
+            : wxFrame(NULL, wxID_ANY, "Plugin Virtual Table")
 {
     m_grid = new wxGrid(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_table = new BigGridTable(sizeGrid);
@@ -2258,7 +2258,7 @@ wxString BugsGridTable::GetColLabelValue( int col )
 // ----------------------------------------------------------------------------
 
 BugsGridFrame::BugsGridFrame()
-             : wxFrame(nullptr, wxID_ANY, "Bugs table")
+             : wxFrame(NULL, wxID_ANY, "Bugs table")
 {
     wxGrid *grid = new wxGrid(this, wxID_ANY);
     wxGridTableBase *table = new BugsGridTable();
@@ -2303,12 +2303,12 @@ public:
         ROW_MAX = 3
     };
 
-    TabularGridTable() { m_sortOrder = nullptr; }
+    TabularGridTable() { m_sortOrder = NULL; }
 
-    virtual int GetNumberRows() override { return ROW_MAX; }
-    virtual int GetNumberCols() override { return COL_MAX; }
+    virtual int GetNumberRows() wxOVERRIDE { return ROW_MAX; }
+    virtual int GetNumberCols() wxOVERRIDE { return COL_MAX; }
 
-    virtual wxString GetValue(int row, int col) override
+    virtual wxString GetValue(int row, int col) wxOVERRIDE
     {
         if ( m_sortOrder )
             row = m_sortOrder[row];
@@ -2333,12 +2333,12 @@ public:
         return wxString();
     }
 
-    virtual void SetValue(int, int, const wxString&) override
+    virtual void SetValue(int, int, const wxString&) wxOVERRIDE
     {
         wxFAIL_MSG( "shouldn't be called" );
     }
 
-    virtual wxString GetColLabelValue(int col) override
+    virtual wxString GetColLabelValue(int col) wxOVERRIDE
     {
         // notice that column parameter here always refers to the internal
         // column index, independently of its position on the screen
@@ -2348,7 +2348,7 @@ public:
         return labels[col];
     }
 
-    virtual void SetColLabelValue(int, const wxString&) override
+    virtual void SetColLabelValue(int, const wxString&) wxOVERRIDE
     {
         wxFAIL_MSG( "shouldn't be called" );
     }
@@ -2365,7 +2365,7 @@ public:
             { { 1, 0, 2 }, { 2, 0, 1 } },
         };
 
-        m_sortOrder = col == wxNOT_FOUND ? nullptr : sortOrders[col][ascending];
+        m_sortOrder = col == wxNOT_FOUND ? NULL : sortOrders[col][ascending];
     }
 
 private:
@@ -2425,7 +2425,7 @@ public:
     }
 
 protected:
-    virtual wxSize DoGetBestSize() const override
+    virtual wxSize DoGetBestSize() const wxOVERRIDE
     {
         wxSize size = wxTextCtrl::DoGetBestSize();
         size.x = 3*GetCharWidth();
@@ -2437,8 +2437,6 @@ class TabularGridFrame : public wxFrame
 {
 public:
     TabularGridFrame();
-    TabularGridFrame(const TabularGridFrame&) = delete;
-    TabularGridFrame& operator=(const TabularGridFrame&) = delete;
 
 private:
     enum // control ids
@@ -2628,6 +2626,7 @@ private:
     bool m_shouldUpdateRowOrder,
          m_shouldUpdateColOrder;
 
+    wxDECLARE_NO_COPY_CLASS(TabularGridFrame);
     wxDECLARE_EVENT_TABLE();
 };
 
@@ -2658,7 +2657,7 @@ wxBEGIN_EVENT_TABLE(TabularGridFrame, wxFrame)
 wxEND_EVENT_TABLE()
 
 TabularGridFrame::TabularGridFrame()
-                : wxFrame(nullptr, wxID_ANY, "Tabular table")
+                : wxFrame(NULL, wxID_ANY, "Tabular table")
 {
     m_shouldUpdateColOrder = false;
 
@@ -2810,10 +2809,10 @@ void GridFrame::OnGridRender( wxCommandEvent& event )
     }
     else if ( grid->IsSelection() && grid->GetSelectionBlockTopLeft().Count() )
     {
-        wxGridCellCoordsVector cells = grid->GetSelectionBlockTopLeft();
+        wxGridCellCoordsArray cells = grid->GetSelectionBlockTopLeft();
         if ( grid->GetSelectionBlockBottomRight().Count() )
         {
-            cells.push_back( grid->GetSelectionBlockBottomRight()[ 0 ] );
+            cells.Add( grid->GetSelectionBlockBottomRight()[ 0 ] );
             topLeft.Set( cells[ 0 ].GetRow(),
                             cells[ 0 ].GetCol() );
             bottomRight.Set( cells[ 1 ].GetRow(),

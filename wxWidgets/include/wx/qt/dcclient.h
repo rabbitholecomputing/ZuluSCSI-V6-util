@@ -10,7 +10,7 @@
 
 #include "wx/qt/dc.h"
 
-#include <memory>
+#include "wx/scopedptr.h"
 
 class QPicture;
 
@@ -23,10 +23,7 @@ public:
     ~wxWindowDCImpl();
 
 protected:
-    std::unique_ptr<QPicture> m_pict;
-
-    // @true if m_qtPainter is owned by the window, @false otherwise (default).
-    bool m_isWindowPainter = false;
+    wxWindow *m_window;
 
 private:
     wxDECLARE_CLASS(wxWindowDCImpl);
@@ -40,10 +37,10 @@ public:
     wxClientDCImpl( wxDC *owner );
     wxClientDCImpl( wxDC *owner, wxWindow *win );
 
-    static bool
-    CanBeUsedForDrawing(const wxWindow* WXUNUSED(window)) { return false; }
-
+    ~wxClientDCImpl();
 private:
+    wxScopedPtr<QPicture> m_pict;
+
     wxDECLARE_CLASS(wxClientDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxClientDCImpl);
 };
@@ -54,7 +51,6 @@ class WXDLLIMPEXP_CORE wxPaintDCImpl : public wxWindowDCImpl
 public:
     wxPaintDCImpl( wxDC *owner );
     wxPaintDCImpl( wxDC *owner, wxWindow *win );
-
 private:
     wxDECLARE_CLASS(wxPaintDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxPaintDCImpl);

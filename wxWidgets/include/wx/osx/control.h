@@ -2,6 +2,7 @@
 // Name:        wx/osx/control.h
 // Purpose:     wxControl class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -35,7 +36,7 @@ public:
             const wxString& name = wxASCII_STR(wxControlNameStr));
 
    // Simulates an event
-   virtual void Command(wxCommandEvent& event) override { ProcessCommand(event); }
+   virtual void Command(wxCommandEvent& event) wxOVERRIDE { ProcessCommand(event); }
 
    // implementation from now on
    // --------------------------

@@ -18,7 +18,7 @@ class WXDLLIMPEXP_ADV wxTimePickerCtrl : public wxTimePickerCtrlBase
 {
 public:
     // ctors
-    wxTimePickerCtrl() = default;
+    wxTimePickerCtrl() { }
 
     wxTimePickerCtrl(wxWindow *parent,
                      wxWindowID id,
@@ -47,14 +47,14 @@ public:
     }
 
     // Override MSW-specific functions used during control creation.
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const override;
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const wxOVERRIDE;
 
 protected:
 #if wxUSE_INTL
-    virtual wxLocaleInfo MSWGetFormat() const override;
+    virtual wxLocaleInfo MSWGetFormat() const wxOVERRIDE;
 #endif // wxUSE_INTL
-    virtual bool MSWAllowsNone() const override { return false; }
-    virtual bool MSWOnDateTimeChange(const tagNMDATETIMECHANGE& dtch) override;
+    virtual bool MSWAllowsNone() const wxOVERRIDE { return false; }
+    virtual bool MSWOnDateTimeChange(const tagNMDATETIMECHANGE& dtch) wxOVERRIDE;
 
     wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxTimePickerCtrl);
 };

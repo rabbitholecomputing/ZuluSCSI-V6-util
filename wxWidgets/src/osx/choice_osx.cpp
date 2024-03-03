@@ -2,6 +2,7 @@
 // Name:        src/osx/choice_osx.cpp
 // Purpose:     wxChoice
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -40,7 +41,7 @@ bool wxChoice::Create(wxWindow *parent,
     const wxValidator& validator,
     const wxString& name )
 {
-    if ( !Create( parent, id, pos, size, 0, nullptr, style, validator, name ) )
+    if ( !Create( parent, id, pos, size, 0, NULL, style, validator, name ) )
         return false;
 
     Append( choices );
@@ -68,7 +69,7 @@ bool wxChoice::Create(wxWindow *parent,
     if ( !wxChoiceBase::Create( parent, id, pos, size, style, validator, name ) )
         return false;
 
-    SetPeer(wxWidgetImpl::CreateChoice( this, parent, id, nullptr, pos, size, style, GetExtraStyle() ));
+    SetPeer(wxWidgetImpl::CreateChoice( this, parent, id, NULL, pos, size, style, GetExtraStyle() ));
 
     MacPostControlCreate( pos, size );
 
@@ -129,7 +130,7 @@ int wxChoice::DoInsertItems(const wxArrayStringsAdapter & items,
         if (text.empty())
             text = " ";  // menu items can't have empty labels
         dynamic_cast<wxChoiceWidgetImpl*>(GetPeer())->InsertItem( idx, i+1, text );
-        m_datas.Insert( nullptr, idx );
+        m_datas.Insert( NULL, idx );
         AssignNewItemClientData(idx, clientData, i, type);
     }
 

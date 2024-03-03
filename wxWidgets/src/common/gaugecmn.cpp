@@ -2,6 +2,7 @@
 // Name:        src/common/gaugecmn.cpp
 // Purpose:     wxGaugeBase: common to all ports methods of wxGauge
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     20.02.01
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -65,6 +66,7 @@ wxFLAGS_MEMBER(wxBORDER)
 // standard window styles
 wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
 wxFLAGS_MEMBER(wxCLIP_CHILDREN)
+wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
 wxFLAGS_MEMBER(wxWANTS_CHARS)
 wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
 wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
@@ -101,11 +103,11 @@ wxCONSTRUCTOR_6( wxGauge, wxWindow*, Parent, wxWindowID, Id, int, Range, \
 
 void wxGaugeBase::InitProgressIndicatorIfNeeded()
 {
-    m_appProgressIndicator = nullptr;
+    m_appProgressIndicator = NULL;
     if ( HasFlag(wxGA_PROGRESS) )
     {
         wxWindow* topParent = wxGetTopLevelParent(this);
-        if ( topParent != nullptr )
+        if ( topParent != NULL )
         {
             m_appProgressIndicator =
                 new wxAppProgressIndicator(topParent, GetRange());

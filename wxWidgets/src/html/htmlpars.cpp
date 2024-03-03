@@ -70,15 +70,15 @@ wxIMPLEMENT_ABSTRACT_CLASS(wxHtmlParser,wxObject);
 
 wxHtmlParser::wxHtmlParser()
     : wxObject(),
-      m_FS(nullptr)
+      m_FS(NULL)
 {
-    m_Source = nullptr;
+    m_Source = NULL;
     m_entitiesParser = new wxHtmlEntitiesParser;
-    m_Tags = nullptr;
-    m_CurTag = nullptr;
-    m_TextPieces = nullptr;
+    m_Tags = NULL;
+    m_CurTag = NULL;
+    m_TextPieces = NULL;
     m_CurTextPiece = 0;
-    m_SavedStates = nullptr;
+    m_SavedStates = NULL;
 }
 
 wxHtmlParser::~wxHtmlParser()
@@ -86,6 +86,8 @@ wxHtmlParser::~wxHtmlParser()
     while (RestoreState()) {}
     DestroyDOMTree();
 
+    WX_CLEAR_ARRAY(m_HandlersStack);
+    WX_CLEAR_HASH_SET(wxHtmlTagHandlersSet, m_HandlersSet);
     delete m_entitiesParser;
     delete m_Source;
 }
@@ -123,7 +125,7 @@ void wxHtmlParser::SetSource(const wxString& src)
     delete m_Source;
     m_Source = new wxString(src);
     CreateDOMTree();
-    m_CurTag = nullptr;
+    m_CurTag = NULL;
     m_CurTextPiece = 0;
 }
 
@@ -131,7 +133,7 @@ void wxHtmlParser::CreateDOMTree()
 {
     wxHtmlTagsCache cache(*m_Source);
     m_TextPieces = new wxHtmlTextPieces;
-    CreateDOMSubTree(nullptr, m_Source->begin(), m_Source->end(), &cache);
+    CreateDOMSubTree(NULL, m_Source->begin(), m_Source->end(), &cache);
     m_CurTextPiece = 0;
 }
 
@@ -152,7 +154,7 @@ void wxHtmlParser::CreateDOMSubTree(wxHtmlTag *cur,
     // and ending tag verbosely. Setting i=end_pos will skip to the very
     // end of this function where text piece is added, bypassing any child
     // tags parsing (CDATA element can't have child elements by definition):
-    if (cur != nullptr && wxIsCDATAElement(cur->GetName()))
+    if (cur != NULL && wxIsCDATAElement(cur->GetName()))
     {
         i = end_pos;
     }
@@ -183,7 +185,7 @@ void wxHtmlParser::CreateDOMSubTree(wxHtmlTag *cur,
                                         i, end_pos, cache, m_entitiesParser);
                 else
                 {
-                    chd = new wxHtmlTag(nullptr, m_Source,
+                    chd = new wxHtmlTag(NULL, m_Source,
                                         i, end_pos, cache, m_entitiesParser);
                     if (!m_Tags)
                     {
@@ -238,7 +240,7 @@ void wxHtmlParser::DestroyDOMTree()
         delete t1;
         t1 = t2;
     }
-    m_Tags = m_CurTag = nullptr;
+    m_Tags = m_CurTag = NULL;
 
     wxDELETE(m_TextPieces);
 }
@@ -329,7 +331,7 @@ void wxHtmlParser::AddTagHandler(wxHtmlTagHandler *handler)
     while (tokenizer.HasMoreTokens())
         m_HandlersHash[tokenizer.GetNextToken()] = handler;
 
-    m_HandlersSet.insert(std::unique_ptr<wxHtmlTagHandler>(handler));
+    m_HandlersSet.insert(handler);
 
     handler->SetParser(this);
 }
@@ -339,9 +341,7 @@ void wxHtmlParser::PushTagHandler(wxHtmlTagHandler *handler, const wxString& tag
     wxStringTokenizer tokenizer(tags, wxT(", "));
     wxString key;
 
-    m_HandlersStack.push(std::unique_ptr<wxHtmlTagHandlersHash>(
-        new wxHtmlTagHandlersHash(m_HandlersHash))
-    );
+    m_HandlersStack.push_back(new wxHtmlTagHandlersHash(m_HandlersHash));
 
     while (tokenizer.HasMoreTokens())
     {
@@ -355,8 +355,10 @@ void wxHtmlParser::PopTagHandler()
     wxCHECK_RET( !m_HandlersStack.empty(),
                  "attempt to remove HTML tag handler from empty stack" );
 
-    m_HandlersHash = *m_HandlersStack.top();
-    m_HandlersStack.pop();
+    wxHtmlTagHandlersHash *prev = m_HandlersStack.back();
+    m_HandlersStack.pop_back();
+    m_HandlersHash = *prev;
+    delete prev;
 }
 
 void wxHtmlParser::SetSourceAndSaveState(const wxString& src)
@@ -372,11 +374,11 @@ void wxHtmlParser::SetSourceAndSaveState(const wxString& src)
     s->m_nextState = m_SavedStates;
     m_SavedStates = s;
 
-    m_CurTag = nullptr;
-    m_Tags = nullptr;
-    m_TextPieces = nullptr;
+    m_CurTag = NULL;
+    m_Tags = NULL;
+    m_TextPieces = NULL;
     m_CurTextPiece = 0;
-    m_Source = nullptr;
+    m_Source = NULL;
 
     SetSource(src);
 }
@@ -429,12 +431,34 @@ void wxHtmlTagHandler::ParseInnerSource(const wxString& source)
 wxIMPLEMENT_DYNAMIC_CLASS(wxHtmlEntitiesParser, wxObject);
 
 wxHtmlEntitiesParser::wxHtmlEntitiesParser()
+#if !wxUSE_UNICODE
+    : m_conv(NULL), m_encoding(wxFONTENCODING_SYSTEM)
+#endif
 {
 }
 
 wxHtmlEntitiesParser::~wxHtmlEntitiesParser()
 {
+#if !wxUSE_UNICODE
+    delete m_conv;
+#endif
 }
+
+#if !wxUSE_UNICODE
+void wxHtmlEntitiesParser::SetEncoding(wxFontEncoding encoding)
+{
+    if (encoding == m_encoding)
+        return;
+
+    delete m_conv;
+
+    m_encoding = encoding;
+    if (m_encoding == wxFONTENCODING_SYSTEM)
+        m_conv = NULL;
+    else
+        m_conv = new wxCSConv(wxFontMapper::GetEncodingName(m_encoding));
+}
+#endif // !wxUSE_UNICODE
 
 wxString wxHtmlEntitiesParser::Parse(const wxString& input) const
 {
@@ -491,6 +515,20 @@ wxString wxHtmlEntitiesParser::Parse(const wxString& input) const
         output.append(last, end);
     return output;
 }
+
+#if !wxUSE_UNICODE
+wxChar wxHtmlEntitiesParser::GetCharForCode(unsigned code) const
+{
+    char buf[2];
+    wchar_t wbuf[2];
+    wbuf[0] = (wchar_t)code;
+    wbuf[1] = 0;
+    wxMBConv *conv = m_conv ? m_conv : &wxConvLocal;
+    if (conv->WC2MB(buf, wbuf, 2) == (size_t)-1)
+        return '?';
+    return buf[0];
+}
+#endif
 
 struct wxHtmlEntityInfo
 {
@@ -795,7 +833,7 @@ wxChar wxHtmlEntitiesParser::GetEntityChar(const wxString& entity) const
             ENTITY("zeta", 950),
             ENTITY("zwj", 8205),
             ENTITY("zwnj", 8204),
-            {nullptr, 0}};
+            {NULL, 0}};
         #undef ENTITY
         static size_t substitutions_cnt = 0;
 
@@ -825,7 +863,7 @@ wxFSFile *wxHtmlParser::OpenURL(wxHtmlURLType type,
     if (type == wxHTML_URL_IMAGE)
         flags |= wxFS_SEEKABLE;
 
-    return m_FS ? m_FS->OpenFile(url, flags) : nullptr;
+    return m_FS ? m_FS->OpenFile(url, flags) : NULL;
 
 }
 
@@ -839,10 +877,10 @@ class wxMetaTagParser : public wxHtmlParser
 public:
     wxMetaTagParser() { }
 
-    wxObject* GetProduct() override { return nullptr; }
+    wxObject* GetProduct() wxOVERRIDE { return NULL; }
 
 protected:
-    virtual void AddText(const wxString& WXUNUSED(txt)) override {}
+    virtual void AddText(const wxString& WXUNUSED(txt)) wxOVERRIDE {}
 
     wxDECLARE_NO_COPY_CLASS(wxMetaTagParser);
 };
@@ -851,8 +889,8 @@ class wxMetaTagHandler : public wxHtmlTagHandler
 {
 public:
     wxMetaTagHandler(wxString *retval) : wxHtmlTagHandler(), m_retval(retval) {}
-    wxString GetSupportedTags() override { return wxT("META,BODY"); }
-    bool HandleTag(const wxHtmlTag& tag) override;
+    wxString GetSupportedTags() wxOVERRIDE { return wxT("META,BODY"); }
+    bool HandleTag(const wxHtmlTag& tag) wxOVERRIDE;
 
 private:
     wxString *m_retval;

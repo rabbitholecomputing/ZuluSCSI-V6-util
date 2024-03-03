@@ -36,11 +36,11 @@ class WXDLLIMPEXP_GL wxGLContext : public wxGLContextBase
 {
 public:
     wxGLContext(wxGLCanvas *win,
-                const wxGLContext *other = nullptr,
-                const wxGLContextAttrs *ctxAttrs = nullptr);
+                const wxGLContext *other = NULL,
+                const wxGLContextAttrs *ctxAttrs = NULL);
     virtual ~wxGLContext();
 
-    virtual bool SetCurrent(const wxGLCanvas& win) const override;
+    virtual bool SetCurrent(const wxGLCanvas& win) const wxOVERRIDE;
 
 private:
     EGLContext m_glContext;
@@ -69,16 +69,10 @@ public:
 
     virtual ~wxGLCanvasEGL();
 
-    // Wayland-specific callbacks
-    // --------------------------
-
-    void CreateWaylandSubsurface();
-    void DestroyWaylandSubsurface();
-
     // implement wxGLCanvasBase methods
     // --------------------------------
 
-    virtual bool SwapBuffers() override;
+    virtual bool SwapBuffers() wxOVERRIDE;
 
 
     // X11-specific methods
@@ -93,7 +87,7 @@ public:
 
     // return true only if the window is realized: OpenGL context can't be
     // created until we are
-    virtual bool IsShownOnScreen() const override;
+    virtual bool IsShownOnScreen() const wxOVERRIDE;
 
 
     // implementation only from now on
@@ -110,7 +104,7 @@ public:
     // not found
     static bool InitDefaultConfig(const int *attribList);
 
-    // get the default EGL Config (may be null, shouldn't be freed by caller)
+    // get the default EGL Config (may be NULL, shouldn't be freed by caller)
     static EGLConfig *GetDefaultConfig() { return ms_glEGLConfig; }
 
     // free the global GL visual, called by wxGLApp
@@ -118,13 +112,19 @@ public:
 
     // initializes EGLConfig
     //
-    // returns nullptr if EGLConfig couldn't be initialized, otherwise caller
+    // returns NULL if EGLConfig couldn't be initialized, otherwise caller
     // is responsible for freeing the pointer
     static EGLConfig *InitConfig(const wxGLAttributes& dispAttrs);
 
-    // Only called when using Wayland to indicate that we should be redrawn.
-    void OnWLFrameCallback();
+    // private Wayland-specific callbacks
+#if wxABI_VERSION >= 30203
+    void CreateWaylandSubsurface();
+    void DestroyWaylandSubsurface();
 
+    void OnWLFrameCallback();
+#endif // wxABI_VERSION >= 3.2.3
+
+    bool m_readyToDraw;
     wl_compositor *m_wlCompositor;
     wl_subcompositor *m_wlSubcompositor;
     wl_callback *m_wlFrameCallbackHandler;
@@ -140,9 +140,6 @@ private:
     wl_surface *m_wlSurface;
     wl_region *m_wlRegion;
     wl_subsurface *m_wlSubsurface;
-
-    bool m_readyToDraw;
-    bool m_swapIntervalSet = false;
 
     // the global/default versions of the above
     static EGLConfig *ms_glEGLConfig;
@@ -163,7 +160,7 @@ public:
     wxGLApp() : wxGLAppBase() { }
 
     // implement wxGLAppBase method
-    virtual bool InitGLVisual(const int *attribList) override
+    virtual bool InitGLVisual(const int *attribList) wxOVERRIDE
     {
         return wxGLCanvasEGL::InitDefaultConfig(attribList);
     }
@@ -171,13 +168,13 @@ public:
     // This method is not currently used by the library itself, but remains for
     // backwards compatibility and also because wxGTK has it we could start
     // using it for the same purpose in wxX11 too some day.
-    virtual void* GetXVisualInfo() override
+    virtual void* GetXVisualInfo() wxOVERRIDE
     {
         return wxGLCanvasEGL::GetDefaultConfig();
     }
 
     // and override this wxApp method to clean up
-    virtual int OnExit() override
+    virtual int OnExit() wxOVERRIDE
     {
         wxGLCanvasEGL::FreeDefaultConfig();
 

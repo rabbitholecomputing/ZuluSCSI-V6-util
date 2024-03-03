@@ -27,7 +27,6 @@
     #include "wx/app.h"
     #include "wx/log.h"
     #include "wx/radiobox.h"
-    #include "wx/statbox.h"
     #include "wx/textctrl.h"
 #endif
 
@@ -64,11 +63,11 @@ class DirPickerWidgetsPage : public WidgetsPage
 public:
     DirPickerWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxWindow *GetWidget() const override { return m_dirPicker; }
-    virtual void RecreateWidget() override { RecreatePicker(); }
+    virtual wxWindow *GetWidget() const wxOVERRIDE { return m_dirPicker; }
+    virtual void RecreateWidget() wxOVERRIDE { RecreatePicker(); }
 
     // lazy creation of the content
-    virtual void CreateContent() override;
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
 
@@ -125,7 +124,7 @@ wxEND_EVENT_TABLE()
 // implementation
 // ============================================================================
 
-#if defined(__WXGTK__)
+#if defined(__WXGTK20__)
     #define FAMILY_CTRLS NATIVE_CTRLS
 #else
     #define FAMILY_CTRLS GENERIC_CTRLS
@@ -143,18 +142,16 @@ DirPickerWidgetsPage::DirPickerWidgetsPage(WidgetsBookCtrl *book,
 void DirPickerWidgetsPage::CreateContent()
 {
     // left pane
-    wxSizer *sizerLeft = new wxBoxSizer(wxVERTICAL);
+    wxSizer *boxleft = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticBoxSizer *sizerStyle = new wxStaticBoxSizer(wxVERTICAL, this, "&DirPicker style");
-    wxStaticBox* const sizerStyleBox = sizerStyle->GetStaticBox();
+    wxStaticBoxSizer *dirbox = new wxStaticBoxSizer(wxVERTICAL, this, "&DirPicker style");
+    m_chkDirTextCtrl = CreateCheckBoxAndAddToSizer(dirbox, "With textctrl");
+    m_chkDirMustExist = CreateCheckBoxAndAddToSizer(dirbox, "Dir must exist");
+    m_chkDirChangeDir = CreateCheckBoxAndAddToSizer(dirbox, "Change working dir");
+    m_chkSmall = CreateCheckBoxAndAddToSizer(dirbox, "&Small version");
+    boxleft->Add(dirbox, 0, wxALL|wxGROW, 5);
 
-    m_chkDirTextCtrl = CreateCheckBoxAndAddToSizer(sizerStyle, "With textctrl", wxID_ANY, sizerStyleBox);
-    m_chkDirMustExist = CreateCheckBoxAndAddToSizer(sizerStyle, "Dir must exist", wxID_ANY, sizerStyleBox);
-    m_chkDirChangeDir = CreateCheckBoxAndAddToSizer(sizerStyle, "Change working dir", wxID_ANY, sizerStyleBox);
-    m_chkSmall = CreateCheckBoxAndAddToSizer(sizerStyle, "&Small version", wxID_ANY, sizerStyleBox);
-    sizerLeft->Add(sizerStyle, 0, wxALL|wxGROW, 5);
-
-    sizerLeft->Add(CreateSizerWithTextAndButton
+    boxleft->Add(CreateSizerWithTextAndButton
                  (
                     PickerPage_SetDir,
                     "&Initial directory",
@@ -162,15 +159,15 @@ void DirPickerWidgetsPage::CreateContent()
                     &m_textInitialDir
                  ), wxSizerFlags().Expand().Border());
 
-    sizerLeft->AddSpacer(10);
+    boxleft->AddSpacer(10);
 
-    sizerLeft->Add(new wxButton(this, PickerPage_Reset, "&Reset"),
+    boxleft->Add(new wxButton(this, PickerPage_Reset, "&Reset"),
                  0, wxALIGN_CENTRE_HORIZONTAL | wxALL, 15);
 
     Reset();    // set checkboxes state
 
     // create pickers
-    m_dirPicker = nullptr;
+    m_dirPicker = NULL;
     CreatePicker();
 
     // right pane
@@ -181,7 +178,7 @@ void DirPickerWidgetsPage::CreateContent()
 
     // global pane
     wxSizer *sz = new wxBoxSizer(wxHORIZONTAL);
-    sz->Add(sizerLeft, 0, wxGROW|wxALL, 5);
+    sz->Add(boxleft, 0, wxGROW|wxALL, 5);
     sz->Add(m_sizer, 1, wxGROW|wxALL, 5);
 
     SetSizer(sz);
@@ -209,8 +206,6 @@ void DirPickerWidgetsPage::CreatePicker()
                                       wxGetHomeDir(), "Hello!",
                                       wxDefaultPosition, wxDefaultSize,
                                       style);
-
-    NotifyWidgetRecreation(m_dirPicker);
 }
 
 void DirPickerWidgetsPage::RecreatePicker()

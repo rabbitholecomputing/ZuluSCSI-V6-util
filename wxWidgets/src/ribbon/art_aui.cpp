@@ -2,6 +2,7 @@
 // Name:        src/ribbon/art_aui.cpp
 // Purpose:     AUI style art provider for ribbon interface
 // Author:      Peter Cawley
+// Modified by:
 // Created:     2009-08-04
 // Copyright:   (C) Peter Cawley
 // Licence:     wxWindows licence
@@ -26,14 +27,14 @@
 
 #ifdef __WXMSW__
 #include "wx/msw/private.h"
-#elif defined(__WXOSX__)
+#elif defined(__WXMAC__)
 #include "wx/osx/private.h"
 #endif
 
 wxRibbonAUIArtProvider::wxRibbonAUIArtProvider()
     : wxRibbonMSWArtProvider(false)
 {
-#ifdef __WXOSX__
+#if defined( __WXMAC__ ) && wxOSX_USE_COCOA_OR_CARBON
     wxColor base_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 #else
     wxColor base_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE);
@@ -233,23 +234,19 @@ void wxRibbonAUIArtProvider::SetColourScheme(
     // TODO: Remove next line once this provider stops piggybacking MSW
     wxRibbonMSWArtProvider::SetColourScheme(primary, secondary, tertiary);
 
-    const auto LikePrimary = [primary_hsl](double luminance)
-        {
-            return wxRibbonShiftLuminance(primary_hsl, luminance).ToRGB();
-        };
-    const auto LikeSecondary = [secondary_hsl](double luminance)
-        {
-            return wxRibbonShiftLuminance(secondary_hsl, luminance).ToRGB();
-        };
+#define LikePrimary(luminance) \
+    wxRibbonShiftLuminance(primary_hsl, luminance ## f).ToRGB()
+#define LikeSecondary(luminance) \
+    wxRibbonShiftLuminance(secondary_hsl, luminance ## f).ToRGB()
 
     m_tab_ctrl_background_colour = LikePrimary(0.9);
-#ifdef __WXOSX__
+#ifdef __WXMAC__
     m_tab_ctrl_background_gradient_colour = m_tab_ctrl_background_colour;
 #else
     m_tab_ctrl_background_gradient_colour = LikePrimary(1.7);
 #endif
     m_tab_border_pen = LikePrimary(0.75);
-#ifdef __WXOSX__
+#ifdef __WXMAC__
     m_tab_label_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_CAPTIONTEXT);
 #else
     m_tab_label_colour = LikePrimary(0.1);
@@ -257,14 +254,14 @@ void wxRibbonAUIArtProvider::SetColourScheme(
     m_tab_active_label_colour = m_tab_label_colour;
     m_tab_hover_label_colour = m_tab_label_colour;
     m_tab_hover_background_top_colour =  primary_hsl.ToRGB();
-#ifdef __WXOSX__
+#ifdef __WXMAC__
     m_tab_hover_background_top_gradient_colour = m_tab_hover_background_top_colour;
 #else
     m_tab_hover_background_top_gradient_colour = LikePrimary(1.6);
 #endif
     m_tab_hover_background_brush = m_tab_hover_background_top_colour;
     m_tab_active_background_colour = m_tab_ctrl_background_gradient_colour;
-#ifdef __WXOSX__
+#ifdef __WXMAC__
     m_tab_active_background_gradient_colour = m_tab_active_background_colour;
 #else
     m_tab_active_background_gradient_colour = primary_hsl.ToRGB();
@@ -286,7 +283,7 @@ void wxRibbonAUIArtProvider::SetColourScheme(
     m_button_bar_hover_background_brush = LikeSecondary(1.7);
     m_button_bar_active_background_brush = LikeSecondary(1.4);
     m_button_bar_label_colour = m_tab_label_colour;
-#ifdef __WXOSX__
+#ifdef __WXMAC__
     m_button_bar_label_disabled_colour = wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTIONTEXT);
 #else
     m_button_bar_label_disabled_colour = m_tab_label_colour;
@@ -325,6 +322,9 @@ void wxRibbonAUIArtProvider::SetColourScheme(
 
     m_tab_highlight_colour = top_colour1;
     m_tab_highlight_gradient_colour = bottom_colour1;
+
+#undef LikeSecondary
+#undef LikePrimary
 }
 
 void wxRibbonAUIArtProvider::DrawTabCtrlBackground(
@@ -358,7 +358,7 @@ int wxRibbonAUIArtProvider::GetTabCtrlHeight(
     if(m_flags & wxRIBBON_BAR_SHOW_PAGE_LABELS)
     {
         dc.SetFont(m_tab_active_label_font);
-        text_height = dc.GetTextExtent("ABCDEFXj").GetHeight();
+        text_height = dc.GetTextExtent(wxT("ABCDEFXj")).GetHeight();
     }
     if(m_flags & wxRIBBON_BAR_SHOW_PAGE_ICONS)
     {
@@ -464,7 +464,7 @@ void wxRibbonAUIArtProvider::DrawTab(wxDC& dc,
     if(m_flags & wxRIBBON_BAR_SHOW_PAGE_LABELS)
     {
         wxString label = tab.page->GetLabel();
-        if(!label.empty())
+        if(!label.IsEmpty())
         {
             if (tab.active)
             {
@@ -531,7 +531,7 @@ void wxRibbonAUIArtProvider::GetBarTabWidth(
 {
     int width = 0;
     int min = 0;
-    if((m_flags & wxRIBBON_BAR_SHOW_PAGE_LABELS) && !label.empty())
+    if((m_flags & wxRIBBON_BAR_SHOW_PAGE_LABELS) && !label.IsEmpty())
     {
         dc.SetFont(m_tab_active_label_font);
         width += dc.GetTextExtent(label).GetWidth();
@@ -549,19 +549,19 @@ void wxRibbonAUIArtProvider::GetBarTabWidth(
         min += bitmap.GetLogicalWidth();
     }
 
-    if(ideal != nullptr)
+    if(ideal != NULL)
     {
         *ideal = width + 16;
     }
-    if(small_begin_need_separator != nullptr)
+    if(small_begin_need_separator != NULL)
     {
         *small_begin_need_separator = min;
     }
-    if(small_must_have_separator != nullptr)
+    if(small_must_have_separator != NULL)
     {
         *small_must_have_separator = min;
     }
-    if(minimum != nullptr)
+    if(minimum != NULL)
     {
         *minimum = min;
     }
@@ -665,8 +665,9 @@ void wxRibbonAUIArtProvider::DrawScrollButton(
     }
 
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(m_tab_label_colour));
-    dc.DrawPolygon(WXSIZEOF(arrow_points), arrow_points, x, y);
+    wxBrush B(m_tab_label_colour);
+    dc.SetBrush(B);
+    dc.DrawPolygon(sizeof(arrow_points)/sizeof(wxPoint), arrow_points, x, y);
 }
 
 wxSize wxRibbonAUIArtProvider::GetPanelSize(
@@ -781,7 +782,7 @@ void wxRibbonAUIArtProvider::DrawPanelBackground(
         dc.SetTextForeground(m_panel_label_colour);
     }
     dc.GradientFillLinear(label_rect,
-#ifdef __WXOSX__
+#ifdef __WXMAC__
         label_bg_grad_colour, label_bg_colour, wxSOUTH);
 #else
         label_bg_colour, label_bg_grad_colour, wxSOUTH);
@@ -794,7 +795,7 @@ void wxRibbonAUIArtProvider::DrawPanelBackground(
         wxRect gradient_rect(true_rect);
         gradient_rect.y += label_rect.height + 1;
         gradient_rect.height = true_rect.height - label_rect.height - 3;
-#ifdef __WXOSX__
+#ifdef __WXMAC__
         wxColour colour = m_page_hover_background_gradient_colour;
         wxColour gradient = m_page_hover_background_colour;
 #else
@@ -840,7 +841,7 @@ void wxRibbonAUIArtProvider::DrawMinimisedPanel(
     {
         wxColour colour = m_page_hover_background_colour;
         wxColour gradient = m_page_hover_background_gradient_colour;
-#ifdef __WXOSX__
+#ifdef __WXMAC__
         if(!wnd->GetExpandedPanel())
 #else
         if(wnd->GetExpandedPanel())
@@ -864,7 +865,7 @@ void wxRibbonAUIArtProvider::DrawMinimisedPanel(
     preview_caption_rect.height = 7;
     preview.y += preview_caption_rect.height;
     preview.height -= preview_caption_rect.height;
-#ifdef __WXOSX__
+#ifdef __WXMAC__
     dc.GradientFillLinear(preview_caption_rect,
         m_panel_hover_label_background_gradient_colour,
         m_panel_hover_label_background_colour, wxSOUTH);
@@ -896,12 +897,12 @@ void wxRibbonAUIArtProvider::DrawPartialPanelBackground(wxDC& dc,
 
     wxPoint offset(wnd->GetPosition());
     wxWindow* parent = wnd->GetParent();
-    wxRibbonPanel* panel = nullptr;
+    wxRibbonPanel* panel = NULL;
 
     for(; parent; parent = parent->GetParent())
     {
         panel = wxDynamicCast(parent, wxRibbonPanel);
-        if(panel != nullptr)
+        if(panel != NULL)
         {
             if(!panel->IsHovered())
                 return;
@@ -909,7 +910,7 @@ void wxRibbonAUIArtProvider::DrawPartialPanelBackground(wxDC& dc,
         }
         offset += parent->GetPosition();
     }
-    if(panel == nullptr)
+    if(panel == NULL)
         return;
 
     wxRect background(panel->GetSize());
@@ -926,7 +927,7 @@ void wxRibbonAUIArtProvider::DrawPartialPanelBackground(wxDC& dc,
     paint_rect.y += offset.y;
 
     wxColour bg_clr, bg_grad_clr;
-#ifdef __WXOSX__
+#ifdef __WXMAC__
     bg_grad_clr = m_page_hover_background_colour;
     bg_clr = m_page_hover_background_gradient_colour;
 #else

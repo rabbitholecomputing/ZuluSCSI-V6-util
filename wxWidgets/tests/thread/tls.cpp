@@ -35,8 +35,11 @@ struct PerThreadData
     int number;
 };
 
-wxTHREAD_SPECIFIC_DECL PerThreadData gs_threadData;
-wxTHREAD_SPECIFIC_DECL int gs_threadInt;
+wxTLS_TYPE(PerThreadData) gs_threadDataVar;
+#define gs_threadData wxTLS_VALUE(gs_threadDataVar)
+
+wxTLS_TYPE(int) gs_threadIntVar;
+#define gs_threadInt wxTLS_VALUE(gs_threadIntVar)
 
 // ----------------------------------------------------------------------------
 // test thread
@@ -50,7 +53,7 @@ public:
     // ctor both creates and starts the thread
     TLSTestThread() : wxThread(wxTHREAD_JOINABLE) { Create(); Run(); }
 
-    virtual void *Entry() override
+    virtual void *Entry() wxOVERRIDE
     {
         gs_threadInt = 17;
 
@@ -62,7 +65,7 @@ public:
         wxASSERT( gs_threadData.name == std::string("worker") );
         wxASSERT( gs_threadData.number == 2 );
 
-        return nullptr;
+        return NULL;
     }
 };
 
@@ -109,7 +112,7 @@ void TLSTestCase::TestInt()
 
 void TLSTestCase::TestStruct()
 {
-    CPPUNIT_ASSERT_EQUAL( nullptr, gs_threadData.name );
+    CPPUNIT_ASSERT_EQUAL( NULL, gs_threadData.name );
     CPPUNIT_ASSERT_EQUAL( 0, gs_threadData.number );
 
     gs_threadData.name = "main";

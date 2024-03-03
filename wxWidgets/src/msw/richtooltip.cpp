@@ -73,7 +73,7 @@ public:
     }
 
     virtual void SetBackgroundColour(const wxColour& col,
-                                     const wxColour& colEnd) override
+                                     const wxColour& colEnd) wxOVERRIDE
     {
         // Setting background colour is not supported either.
         m_canUseNative = false;
@@ -81,7 +81,7 @@ public:
         wxRichToolTipGenericImpl::SetBackgroundColour(col, colEnd);
     }
 
-    virtual void SetCustomIcon(const wxBitmapBundle& icon) override
+    virtual void SetCustomIcon(const wxBitmapBundle& icon) wxOVERRIDE
     {
         // Custom icons are not supported by EM_SHOWBALLOONTIP.
         m_canUseNative = false;
@@ -89,7 +89,7 @@ public:
         wxRichToolTipGenericImpl::SetCustomIcon(icon);
     }
 
-    virtual void SetStandardIcon(int icon) override
+    virtual void SetStandardIcon(int icon) wxOVERRIDE
     {
         wxRichToolTipGenericImpl::SetStandardIcon(icon);
         if ( !m_canUseNative )
@@ -120,7 +120,7 @@ public:
     }
 
     virtual void SetTimeout(unsigned millisecondsTimeout,
-                            unsigned millisecondsDelay) override
+                            unsigned millisecondsDelay) wxOVERRIDE
     {
         // We don't support changing the timeout or the delay
         // (maybe TTM_SETDELAYTIME could be used for this?).
@@ -130,7 +130,7 @@ public:
                                              millisecondsDelay);
     }
 
-    virtual void SetTipKind(wxTipKind tipKind) override
+    virtual void SetTipKind(wxTipKind tipKind) wxOVERRIDE
     {
         // Setting non-default tip is not supported.
         if ( tipKind != wxTipKind_Auto )
@@ -139,7 +139,7 @@ public:
         wxRichToolTipGenericImpl::SetTipKind(tipKind);
     }
 
-    virtual void SetTitleFont(const wxFont& font) override
+    virtual void SetTitleFont(const wxFont& font) wxOVERRIDE
     {
         // Setting non-default font is not supported.
         m_canUseNative = false;
@@ -147,7 +147,7 @@ public:
         wxRichToolTipGenericImpl::SetTitleFont(font);
     }
 
-    virtual void ShowFor(wxWindow* win, const wxRect* rect) override
+    virtual void ShowFor(wxWindow* win, const wxRect* rect) wxOVERRIDE
     {
         // TODO: We could use native tooltip control to show native balloon
         //       tooltips for any window but right now we use the simple

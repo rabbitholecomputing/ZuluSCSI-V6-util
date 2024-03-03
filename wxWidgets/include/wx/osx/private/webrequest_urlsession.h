@@ -35,13 +35,13 @@ public:
 
     ~wxWebAuthChallengeURLSession();
 
-    void SetCredentials(const wxWebCredentials& cred) override;
+    void SetCredentials(const wxWebCredentials& cred) wxOVERRIDE;
 
     WX_NSURLCredential GetURLCredential() const { return m_cred; }
 
 private:
     wxWebRequestURLSession& m_request;
-    WX_NSURLCredential m_cred = nullptr;
+    WX_NSURLCredential m_cred = NULL;
 
     wxDECLARE_NO_COPY_CLASS(wxWebAuthChallengeURLSession);
 };
@@ -53,17 +53,17 @@ public:
 
     ~wxWebResponseURLSession();
 
-    wxFileOffset GetContentLength() const override;
+    wxFileOffset GetContentLength() const wxOVERRIDE;
 
-    wxString GetURL() const override;
+    wxString GetURL() const wxOVERRIDE;
 
-    wxString GetHeader(const wxString& name) const override;
+    wxString GetHeader(const wxString& name) const wxOVERRIDE;
 
-    int GetStatus() const override;
+    int GetStatus() const wxOVERRIDE;
 
-    wxString GetStatusText() const override;
+    wxString GetStatusText() const wxOVERRIDE;
 
-    wxString GetSuggestedFileName() const override;
+    wxString GetSuggestedFileName() const wxOVERRIDE;
 
     void HandleData(WX_NSData data);
 
@@ -84,23 +84,23 @@ public:
 
     ~wxWebRequestURLSession();
 
-    void Start() override;
+    void Start() wxOVERRIDE;
 
-    wxWebResponseImplPtr GetResponse() const override
+    wxWebResponseImplPtr GetResponse() const wxOVERRIDE
         { return m_response; }
 
-    wxWebAuthChallengeImplPtr GetAuthChallenge() const override
+    wxWebAuthChallengeImplPtr GetAuthChallenge() const wxOVERRIDE
         { return m_authChallenge; }
 
-    wxFileOffset GetBytesSent() const override;
+    wxFileOffset GetBytesSent() const wxOVERRIDE;
 
-    wxFileOffset GetBytesExpectedToSend() const override;
+    wxFileOffset GetBytesExpectedToSend() const wxOVERRIDE;
 
-    wxFileOffset GetBytesReceived() const override;
+    wxFileOffset GetBytesReceived() const wxOVERRIDE;
 
-    wxFileOffset GetBytesExpectedToReceive() const override;
+    wxFileOffset GetBytesExpectedToReceive() const wxOVERRIDE;
 
-    wxWebRequestHandle GetNativeHandle() const override
+    wxWebRequestHandle GetNativeHandle() const wxOVERRIDE
     {
         return (wxWebRequestHandle)m_task;
     }
@@ -118,7 +118,7 @@ public:
         { return m_authChallenge.get(); }
 
 private:
-    void DoCancel() override;
+    void DoCancel() wxOVERRIDE;
 
     wxWebSessionURLSession& m_sessionImpl;
     wxString m_url;
@@ -140,11 +140,11 @@ public:
     CreateRequest(wxWebSession& session,
                   wxEvtHandler* handler,
                   const wxString& url,
-                  int winid = wxID_ANY) override;
+                  int winid = wxID_ANY) wxOVERRIDE;
 
-    wxVersionInfo GetLibraryVersionInfo() override;
+    wxVersionInfo GetLibraryVersionInfo() wxOVERRIDE;
 
-    wxWebSessionHandle GetNativeHandle() const override
+    wxWebSessionHandle GetNativeHandle() const wxOVERRIDE
     {
         return (wxWebSessionHandle)m_session;
     }
@@ -163,7 +163,7 @@ private:
 class wxWebSessionFactoryURLSession : public wxWebSessionFactory
 {
 public:
-    wxWebSessionImpl* Create() override
+    wxWebSessionImpl* Create() wxOVERRIDE
     { return new wxWebSessionURLSession(); }
 };
 

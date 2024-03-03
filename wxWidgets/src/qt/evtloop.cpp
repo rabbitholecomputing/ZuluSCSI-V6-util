@@ -27,7 +27,7 @@ class wxQtIdleTimer : public QTimer, public wxRefCounter
 public:
     wxQtIdleTimer();
     ~wxQtIdleTimer();
-    virtual bool eventFilter( QObject * watched, QEvent * event  ) override;
+    virtual bool eventFilter( QObject * watched, QEvent * event  ) wxOVERRIDE;
 
 private:
     void idle();
@@ -105,7 +105,7 @@ wxQtEventLoopBase::~wxQtEventLoopBase()
 {
     //Clear the shared timer if this is the only external reference to it
     if ( gs_idleTimer->GetRefCount() <= 2 )
-        gs_idleTimer.reset(nullptr);
+        gs_idleTimer.reset(NULL);
 
     delete m_qtEventLoop;
 }
@@ -208,19 +208,19 @@ public:
             m_reader = new wxQtSocketNotifier<&wxEventLoopSourceHandler::OnReadWaiting>
                 (fd, QSocketNotifier::Read, handler);
         else
-            m_reader = nullptr;
+            m_reader = NULL;
 
         if ( flags & wxEVENT_SOURCE_OUTPUT )
             m_writer = new wxQtSocketNotifier<&wxEventLoopSourceHandler::OnWriteWaiting>
                 (fd, QSocketNotifier::Write, handler);
         else
-            m_writer = nullptr;
+            m_writer = NULL;
 
         if ( flags & wxEVENT_SOURCE_EXCEPTION )
             m_exception = new wxQtSocketNotifier<&wxEventLoopSourceHandler::OnExceptionWaiting>
                 (fd, QSocketNotifier::Exception, handler);
         else
-            m_exception = nullptr;
+            m_exception = NULL;
     }
 
     virtual ~wxQtEventLoopSource()
@@ -239,7 +239,7 @@ class wxQtEventLoopSourcesManager : public wxEventLoopSourcesManagerBase
 {
 public:
     wxEventLoopSource*
-    AddSourceForFD(int fd, wxEventLoopSourceHandler* handler, int flags) override
+    AddSourceForFD(int fd, wxEventLoopSourceHandler* handler, int flags) wxOVERRIDE
     {
         return new wxQtEventLoopSource(fd, handler, flags);
     }

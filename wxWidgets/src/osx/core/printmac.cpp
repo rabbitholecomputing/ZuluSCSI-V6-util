@@ -2,6 +2,7 @@
 // Name:        src/osx/core/printmac.cpp
 // Purpose:     wxMacPrinter framework
 // Author:      Julian Smart, Stefan Csomor
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart, Stefan Csomor
 // Licence:     wxWindows licence
@@ -64,7 +65,7 @@ static int ResolutionSorter(const void *e1, const void *e2)
 
 static PMResolution *GetSupportedResolutions(PMPrinter printer, UInt32 *count)
 {
-    PMResolution res, *resolutions = nullptr;
+    PMResolution res, *resolutions = NULL;
     OSStatus status = PMPrinterGetPrinterResolutionCount(printer, count);
     if (status == noErr)
     {
@@ -82,7 +83,7 @@ static PMResolution *GetSupportedResolutions(PMPrinter printer, UInt32 *count)
     if ((*count == 0) && (resolutions))
     {
         free(resolutions);
-        resolutions = nullptr;
+        resolutions = NULL;
     }
     return resolutions;
 }
@@ -123,7 +124,7 @@ void wxOSXPrintData::TransferPrinterNameFrom( const wxPrintData &data )
     if (PMServerCreatePrinterList(kPMServerLocal, &printerList) == noErr)
     {
         CFIndex index, count;
-        PMPrinter printer = nullptr;
+        PMPrinter printer = NULL;
         count = CFArrayGetCount(printerList);
         for (index = 0; index < count; index++)
         {
@@ -174,7 +175,7 @@ void wxOSXPrintData::TransferPaperInfoFrom( const wxPrintData &data )
             fabs( height - papersize.y ) >= 5 )
         {
             // we have to change the current paper
-            CFArrayRef paperlist = nullptr ;
+            CFArrayRef paperlist = 0 ;
             if ( PMPrinterGetPaperList( printer, &paperlist ) == noErr )
             {
                 PMPaper bestPaper = kPMNoData ;
@@ -202,8 +203,8 @@ void wxOSXPrintData::TransferPaperInfoFrom( const wxPrintData &data )
                     if ( PMPaperCreateCustom
                          (
                             printer,
-                            wxCFStringRef(id),
-                            wxCFStringRef(name),
+                            wxCFStringRef(id, wxFont::GetDefaultEncoding()),
+                            wxCFStringRef(name, wxFont::GetDefaultEncoding()),
                             papersize.x, papersize.y,
                             &margins,
                             &paper
@@ -522,7 +523,7 @@ wxPrintNativeDataBase* wxOSXCreatePrintData()
 #if wxOSX_USE_COCOA
     return new wxOSXCocoaPrintData();
 #else
-    return nullptr;
+    return NULL;
 #endif
 }
 
@@ -544,7 +545,7 @@ wxMacPrinter::~wxMacPrinter()
 bool wxMacPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt)
 {
     sm_abortIt = false;
-    sm_abortWindow = nullptr;
+    sm_abortWindow = NULL;
 
     if (!printout)
     {
@@ -558,7 +559,7 @@ bool wxMacPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt)
         m_printDialogData.SetMaxPage(9999);
 
     // Create a suitable device context
-    wxPrinterDC *dc = nullptr;
+    wxPrinterDC *dc = NULL;
     if (prompt)
     {
         wxMacPrintDialog dialog(parent, & m_printDialogData);
@@ -680,7 +681,7 @@ bool wxMacPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt)
 
 wxDC* wxMacPrinter::PrintDialog(wxWindow *parent)
 {
-    wxDC* dc = nullptr;
+    wxDC* dc = NULL;
 
     wxPrintDialog dialog(parent, & m_printDialogData);
     int ret = dialog.ShowModal();

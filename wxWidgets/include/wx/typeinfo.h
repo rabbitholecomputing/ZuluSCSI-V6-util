@@ -31,7 +31,7 @@
 // RTTI well enough, so we can use it and work around harmless memory
 // leaks reported by the static run-time libraries.
 //
-#ifdef __VISUALC__
+#if wxCHECK_VISUALC_VERSION(9)
     #define wxTRUST_CPP_RTTI    1
 #else
     #define wxTRUST_CPP_RTTI    0
@@ -106,7 +106,7 @@ typedef void (*wxTypeIdentifier)();
 // WX_DECLARE_TYPEINFO() or WX_DECLARE_TYPEINFO_INLINE() however.
 #define _WX_DECLARE_TYPEINFO_CUSTOM(CLS, IDENTFUNC) \
 public: \
-    virtual wxTypeIdentifier GetWxTypeId() const override \
+    virtual wxTypeIdentifier GetWxTypeId() const wxOVERRIDE \
     { \
         return reinterpret_cast<wxTypeIdentifier> \
             (&IDENTFUNC); \

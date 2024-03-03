@@ -43,10 +43,10 @@ class MyFrame : public wxFrame
 {
 public:
     MyFrame()
-        : wxFrame(nullptr, wxID_ANY, "wxWidgets Power Management Sample",
+        : wxFrame(NULL, wxID_ANY, "wxWidgets Power Management Sample",
                   wxDefaultPosition, wxSize(500, 200))
     {
-        m_powerResourceBlocker = nullptr;
+        m_powerResourceBlocker = NULL;
 
         wxMenu *fileMenu = new wxMenu;
         fileMenu->Append(wxID_NEW, "Start long running task\tCtrl-S");
@@ -263,7 +263,7 @@ wxEND_EVENT_TABLE()
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override
+    virtual bool OnInit() wxOVERRIDE
     {
         new MyFrame;
 

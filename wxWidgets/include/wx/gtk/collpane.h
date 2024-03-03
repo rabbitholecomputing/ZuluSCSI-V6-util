@@ -2,6 +2,7 @@
 // Name:        wx/gtk/collpane.h
 // Purpose:     wxCollapsiblePane
 // Author:      Francesco Montorsi
+// Modified by:
 // Created:     8/10/2006
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
@@ -42,15 +43,15 @@ public:
                 const wxValidator& val = wxDefaultValidator,
                 const wxString& name = wxASCII_STR(wxCollapsiblePaneNameStr));
 
-    virtual void Collapse(bool collapse = true) override;
-    virtual bool IsCollapsed() const override;
-    virtual void SetLabel(const wxString& str) override;
+    virtual void Collapse(bool collapse = true) wxOVERRIDE;
+    virtual bool IsCollapsed() const wxOVERRIDE;
+    virtual void SetLabel(const wxString& str) wxOVERRIDE;
 
-    virtual wxWindow *GetPane() const override { return m_pPane; }
-    virtual wxString GetLabel() const override { return m_strLabel; }
+    virtual wxWindow *GetPane() const wxOVERRIDE { return m_pPane; }
+    virtual wxString GetLabel() const wxOVERRIDE { return m_strLabel; }
 
 protected:
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
 public:     // used by GTK callbacks
     bool m_bIgnoreNextChange;
@@ -68,8 +69,8 @@ private:
     }
 
     void OnSize(wxSizeEvent&);
-    virtual void AddChildGTK(wxWindowGTK* child) override;
-    GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const override;
+    virtual void AddChildGTK(wxWindowGTK* child) wxOVERRIDE;
+    GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
     wxDECLARE_DYNAMIC_CLASS(wxCollapsiblePane);
     wxDECLARE_EVENT_TABLE();

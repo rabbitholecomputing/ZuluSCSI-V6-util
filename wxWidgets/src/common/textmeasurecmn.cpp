@@ -31,7 +31,7 @@
 
 wxTextMeasureBase::wxTextMeasureBase(const wxDC *dc, const wxFont *theFont)
     : m_dc(dc),
-      m_win(nullptr),
+      m_win(NULL),
       m_font(theFont)
 {
     wxASSERT_MSG( dc, wxS("wxTextMeasure needs a valid wxDC") );
@@ -42,7 +42,7 @@ wxTextMeasureBase::wxTextMeasureBase(const wxDC *dc, const wxFont *theFont)
 }
 
 wxTextMeasureBase::wxTextMeasureBase(const wxWindow *win, const wxFont *theFont)
-    : m_dc(nullptr),
+    : m_dc(NULL),
       m_win(win),
       m_font(theFont)
 {
@@ -238,7 +238,7 @@ bool wxTextMeasureBase::GetPartialTextExtents(const wxString& text,
 class FontWidthCache
 {
 public:
-    FontWidthCache() : m_scaleX(1), m_widths(nullptr) { }
+    FontWidthCache() : m_scaleX(1), m_widths(NULL) { }
     ~FontWidthCache() { delete []m_widths; }
 
     void Reset()

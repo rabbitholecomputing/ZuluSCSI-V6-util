@@ -182,9 +182,6 @@
     <ClCompile Include="events\propagation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="controls\propgridtest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="controls\radioboxtest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -294,9 +291,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="xml\xrctest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="graphics\clipper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="graphics\clippingbox.cpp">

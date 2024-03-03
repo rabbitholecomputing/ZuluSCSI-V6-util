@@ -2,6 +2,7 @@
 // Name:        src/common/popupcmn.cpp
 // Purpose:     implementation of wxPopupTransientWindow
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     06.01.01
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -37,8 +38,11 @@
     #include "wx/scrolbar.h"
 #endif // __WXUNIVERSAL__
 
-#ifdef __WXGTK__
+#ifdef __WXGTK20__
     #include "wx/gtk/private/wrapgtk.h"
+#elif defined(__WXGTK__)
+    #include <gtk/gtk.h>
+    #define gtk_widget_get_window(x) x->window
 #elif defined(__WXX11__)
     #include "wx/x11/private.h"
 #endif
@@ -230,10 +234,10 @@ bool wxPopupTransientWindowBase::Destroy()
 void wxPopupTransientWindow::Init()
 {
     m_child =
-    m_focus = nullptr;
+    m_focus = NULL;
 
-    m_handlerFocus = nullptr;
-    m_handlerPopup = nullptr;
+    m_handlerFocus = NULL;
+    m_handlerPopup = NULL;
 }
 
 wxPopupTransientWindow::wxPopupTransientWindow(wxWindow *parent, int style)
@@ -263,13 +267,13 @@ void wxPopupTransientWindow::PopHandlers()
         {
             // something is very wrong and someone else probably deleted our
             // handler - so don't risk deleting it second time
-            m_handlerPopup = nullptr;
+            m_handlerPopup = NULL;
         }
         if (m_child->HasCapture())
         {
             m_child->ReleaseMouse();
         }
-        m_child = nullptr;
+        m_child = NULL;
     }
 
     if ( m_focus )
@@ -277,10 +281,10 @@ void wxPopupTransientWindow::PopHandlers()
         if ( !m_focus->RemoveEventHandler(m_handlerFocus) )
         {
             // see above
-            m_handlerFocus = nullptr;
+            m_handlerFocus = NULL;
         }
     }
-    m_focus = nullptr;
+    m_focus = NULL;
 }
 
 void wxPopupTransientWindow::Popup(wxWindow *winFocus)
@@ -337,17 +341,20 @@ bool wxPopupTransientWindow::Show( bool show )
 #ifdef __WXGTK__
     if (!show)
     {
+#ifdef __WXGTK3__
         GdkDisplay* display = gtk_widget_get_display(m_widget);
-#if GTK_CHECK_VERSION(3,20,0)
-        if (gtk_check_version(3,20,0) == nullptr)
-            gdk_seat_ungrab(gdk_display_get_default_seat(display));
-        else
+#ifdef __WXGTK4__
+        gdk_seat_ungrab(gdk_display_get_default_seat(display));
+#else
+        wxGCC_WARNING_SUPPRESS(deprecated-declarations)
+        GdkDeviceManager* manager = gdk_display_get_device_manager(display);
+        GdkDevice* device = gdk_device_manager_get_client_pointer(manager);
+        gdk_device_ungrab(device, unsigned(GDK_CURRENT_TIME));
+        wxGCC_WARNING_RESTORE()
 #endif
-        {
-            wxGCC_WARNING_SUPPRESS(deprecated-declarations)
-            gdk_display_pointer_ungrab(display, (guint32)GDK_CURRENT_TIME);
-            wxGCC_WARNING_RESTORE()
-        }
+#else
+        gdk_pointer_ungrab( (guint32)GDK_CURRENT_TIME );
+#endif
 
         gtk_grab_remove( m_widget );
     }
@@ -375,30 +382,32 @@ bool wxPopupTransientWindow::Show( bool show )
         gtk_grab_add( m_widget );
 
         GdkWindow* window = gtk_widget_get_window(m_widget);
-#if GTK_CHECK_VERSION(3,20,0)
-        if (gtk_check_version(3,20,0) == nullptr)
-        {
-            GdkDisplay* display = gdk_window_get_display(window);
-            GdkSeat* seat = gdk_display_get_default_seat(display);
-            gdk_seat_grab(seat, window, GDK_SEAT_CAPABILITY_ALL_POINTING, true,
-                nullptr, nullptr, nullptr, nullptr);
-        }
-        else
+#ifdef __WXGTK4__
+        GdkDisplay* display = gdk_window_get_display(window);
+        GdkSeat* seat = gdk_display_get_default_seat(display);
+        gdk_seat_grab(seat, window, GDK_SEAT_CAPABILITY_POINTER, false, NULL, NULL, NULL, 0);
+#else
+        const GdkEventMask mask = GdkEventMask(
+            GDK_BUTTON_PRESS_MASK |
+            GDK_BUTTON_RELEASE_MASK |
+            GDK_POINTER_MOTION_HINT_MASK |
+            GDK_POINTER_MOTION_MASK);
+#ifdef __WXGTK3__
+        GdkDisplay* display = gdk_window_get_display(window);
+        wxGCC_WARNING_SUPPRESS(deprecated-declarations)
+        GdkDeviceManager* manager = gdk_display_get_device_manager(display);
+        GdkDevice* device = gdk_device_manager_get_client_pointer(manager);
+        gdk_device_grab(device, window,
+            GDK_OWNERSHIP_NONE, true, mask, NULL, unsigned(GDK_CURRENT_TIME));
+        wxGCC_WARNING_RESTORE()
+#else
+        gdk_pointer_grab( window, true,
+                          mask,
+                          NULL,
+                          NULL,
+                          (guint32)GDK_CURRENT_TIME );
 #endif
-        {
-            const GdkEventMask mask = GdkEventMask(
-                GDK_BUTTON_PRESS_MASK |
-                GDK_BUTTON_RELEASE_MASK |
-                GDK_POINTER_MOTION_HINT_MASK |
-                GDK_POINTER_MOTION_MASK);
-            wxGCC_WARNING_SUPPRESS(deprecated-declarations)
-            gdk_pointer_grab( window, true,
-                              mask,
-                              nullptr,
-                              nullptr,
-                              (guint32)GDK_CURRENT_TIME );
-            wxGCC_WARNING_RESTORE()
-        }
+#endif // !__WXGTK4__
     }
 #endif
 
@@ -431,8 +440,8 @@ bool wxPopupTransientWindow::Show( bool show )
 
 void wxPopupTransientWindow::Dismiss()
 {
-    PopHandlers();
     Hide();
+    PopHandlers();
 }
 
 #if defined(__WXMAC__) && wxOSX_USE_COCOA_OR_CARBON
@@ -549,7 +558,7 @@ void wxPopupWindowHandler::OnLeftDown(wxMouseEvent& event)
     // in non-Univ ports the system manages scrollbars for us
 #if defined(__WXUNIVERSAL__) && wxUSE_SCROLLBAR
     // scrollbar on which the click occurred
-    wxWindow *sbar = nullptr;
+    wxWindow *sbar = NULL;
 #endif // __WXUNIVERSAL__ && wxUSE_SCROLLBAR
 
     wxWindow *win = (wxWindow *)event.GetEventObject();

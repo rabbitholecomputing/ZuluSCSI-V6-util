@@ -1,7 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/x11/utilsx.cpp
-// Purpose:     Private functions for X11
+// Purpose:     Private functions common to X11 and Motif ports
 // Author:      Mattia Barbon
+// Modified by:
 // Created:     05/04/03
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
@@ -142,8 +143,8 @@ static void wxCalcPrecAndShift( unsigned long mask, int *shift, int *prec )
 
 wxXVisualInfo::wxXVisualInfo()
 {
-    m_visualColormap = nullptr;
-    m_colorCube = nullptr;
+    m_visualColormap = NULL;
+    m_colorCube = NULL;
 }
 
 wxXVisualInfo::~wxXVisualInfo()

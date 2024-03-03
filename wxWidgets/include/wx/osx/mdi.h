@@ -43,29 +43,29 @@ public:
 
     static bool IsTDI() { return false; }
 
-    virtual void AddChild(wxWindowBase *child) override;
-    virtual void RemoveChild(wxWindowBase *child) override;
+    virtual void AddChild(wxWindowBase *child) wxOVERRIDE;
+    virtual void RemoveChild(wxWindowBase *child) wxOVERRIDE;
 
-    virtual void ActivateNext() override { /* TODO */ }
-    virtual void ActivatePrevious() override { /* TODO */ }
+    virtual void ActivateNext() wxOVERRIDE { /* TODO */ }
+    virtual void ActivatePrevious() wxOVERRIDE { /* TODO */ }
 
-    virtual bool Show(bool show = true) override;
+    virtual bool Show(bool show = true) wxOVERRIDE;
 
 
     // Mac-specific implementation from now on
     // ---------------------------------------
 
     // Mac OS activate event
-    virtual void MacActivate(long timestamp, bool activating) override;
+    virtual void MacActivate(long timestamp, bool activating) wxOVERRIDE;
 
     // wxWidgets activate event
     void OnActivate(wxActivateEvent& event);
     void OnSysColourChanged(wxSysColourChangedEvent& event);
 
-    void SetMenuBar(wxMenuBar *menu_bar) override;
+    void SetMenuBar(wxMenuBar *menu_bar) wxOVERRIDE;
 
     // Get rect to be used to center top-level children
-    virtual void GetRectForTopLevelChildren(int *x, int *y, int *w, int *h) override;
+    virtual void GetRectForTopLevelChildren(int *x, int *y, int *w, int *h) wxOVERRIDE;
 
 protected:
     // common part of all ctors
@@ -119,14 +119,14 @@ public:
     virtual ~wxMDIChildFrame();
 
     // un-override the base class override
-    virtual bool IsTopLevel() const override { return true; }
+    virtual bool IsTopLevel() const wxOVERRIDE { return true; }
 
     // implement MDI operations
-    virtual void Activate() override;
+    virtual void Activate() wxOVERRIDE;
 
 
     // Mac OS activate event
-    virtual void MacActivate(long timestamp, bool activating) override;
+    virtual void MacActivate(long timestamp, bool activating) wxOVERRIDE;
 
 protected:
     // common part of all ctors
@@ -138,14 +138,14 @@ protected:
 class WXDLLIMPEXP_CORE wxMDIClientWindow : public wxMDIClientWindowBase
 {
 public:
-    wxMDIClientWindow() = default;
+    wxMDIClientWindow() { }
     virtual ~wxMDIClientWindow();
 
     virtual bool CreateClient(wxMDIParentFrame *parent,
-                              long style = wxVSCROLL | wxHSCROLL) override;
+                              long style = wxVSCROLL | wxHSCROLL) wxOVERRIDE;
 
 protected:
-    virtual void DoGetClientSize(int *width, int *height) const override;
+    virtual void DoGetClientSize(int *width, int *height) const wxOVERRIDE;
 
     wxDECLARE_DYNAMIC_CLASS(wxMDIClientWindow);
 };

@@ -193,17 +193,17 @@ bool HeightCache::GetLineInfo(unsigned int row, int &start, int &height)
 {
     int y = 0;
     bool found = false;
-
-    for ( const auto& kv : m_heightToRowRange )
+    HeightToRowRangesMap::iterator it;
+    for (it = m_heightToRowRange.begin(); it != m_heightToRowRange.end(); ++it)
     {
-        int rowHeight = kv.first;
-        const RowRanges& rowRanges = kv.second;
-        if (rowRanges.Has(row))
+        int rowHeight = it->first;
+        RowRanges* rowRanges = it->second;
+        if (rowRanges->Has(row))
         {
             height = rowHeight;
             found = true;
         }
-        y += rowHeight * (rowRanges.CountTo(row));
+        y += rowHeight * (rowRanges->CountTo(row));
     }
     if (found)
     {
@@ -220,11 +220,12 @@ bool HeightCache::GetLineStart(unsigned int row, int &start)
 
 bool HeightCache::GetLineHeight(unsigned int row, int &height)
 {
-    for ( const auto& kv : m_heightToRowRange )
+    HeightToRowRangesMap::iterator it;
+    for (it = m_heightToRowRange.begin(); it != m_heightToRowRange.end(); ++it)
     {
-        int rowHeight = kv.first;
-        const RowRanges& rowRanges = kv.second;
-        if (rowRanges.Has(row))
+        int rowHeight = it->first;
+        RowRanges* rowRanges = it->second;
+        if (rowRanges->Has(row))
         {
             height = rowHeight;
             return true;
@@ -236,11 +237,11 @@ bool HeightCache::GetLineHeight(unsigned int row, int &height)
 bool HeightCache::GetLineAt(int y, unsigned int &row)
 {
     unsigned int total = 0;
-
-    for ( const auto& kv : m_heightToRowRange )
+    HeightToRowRangesMap::iterator it;
+    for (it = m_heightToRowRange.begin(); it != m_heightToRowRange.end(); ++it)
     {
-        const RowRanges& rowRanges = kv.second;
-        total += rowRanges.CountAll();
+        RowRanges* rowRanges = it->second;
+        total += rowRanges->CountAll();
     }
 
     if (total == 0)
@@ -291,20 +292,33 @@ bool HeightCache::GetLineAt(int y, unsigned int &row)
 
 void HeightCache::Put(unsigned int row, int height)
 {
-    m_heightToRowRange[height].Add(row);
+    RowRanges *rowRanges = m_heightToRowRange[height];
+    if (rowRanges == NULL)
+    {
+        rowRanges = new RowRanges();
+        m_heightToRowRange[height] = rowRanges;
+    }
+    rowRanges->Add(row);
 }
 
 void HeightCache::Remove(unsigned int row)
 {
-    for ( auto& kv : m_heightToRowRange )
+    HeightToRowRangesMap::iterator it;
+    for (it = m_heightToRowRange.begin(); it != m_heightToRowRange.end(); ++it)
     {
-        RowRanges& rowRanges = kv.second;
-        rowRanges.Remove(row);
+        RowRanges* rowRanges = it->second;
+        rowRanges->Remove(row);
     }
 }
 
 void HeightCache::Clear()
 {
+    HeightToRowRangesMap::iterator it;
+    for (it = m_heightToRowRange.begin(); it != m_heightToRowRange.end(); ++it)
+    {
+        RowRanges* rowRanges = it->second;
+        delete rowRanges;
+    }
     m_heightToRowRange.clear();
 }
 

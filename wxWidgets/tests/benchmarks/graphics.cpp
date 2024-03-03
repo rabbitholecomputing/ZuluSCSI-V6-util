@@ -121,17 +121,17 @@ class GraphicsBenchmarkFrame : public wxFrame
 {
 public:
     GraphicsBenchmarkFrame()
-        : wxFrame(nullptr, wxID_ANY, "wxWidgets Graphics Benchmark")
+        : wxFrame(NULL, wxID_ANY, "wxWidgets Graphics Benchmark")
     {
         SetClientSize(opts.width, opts.height);
 
 #if wxUSE_GLCANVAS
-        m_glCanvas = nullptr;
-        m_glContext = nullptr;
+        m_glCanvas = NULL;
+        m_glContext = NULL;
 
         if ( opts.useGL )
         {
-            m_glCanvas = new wxGLCanvas(this, wxID_ANY, nullptr,
+            m_glCanvas = new wxGLCanvas(this, wxID_ANY, NULL,
                                         wxPoint(0, 0),
                                         wxSize(opts.width, opts.height));
             m_glContext = new wxGLContext(m_glCanvas);
@@ -149,7 +149,7 @@ public:
             m_glCanvas->Connect(
                 wxEVT_PAINT,
                 wxPaintEventHandler(GraphicsBenchmarkFrame::OnGLRender),
-                nullptr,
+                NULL,
                 this
             );
         }
@@ -183,7 +183,7 @@ public:
         m_bitmapRGBwithMask.Create(64, 64, 24);
         m_bitmapRGBwithMask.SetMask(new wxMask(bmpMask));
 
-        m_renderer = nullptr;
+        m_renderer = NULL;
         if ( opts.useGC )
         {
 #ifdef __WXMSW__
@@ -202,7 +202,7 @@ public:
                 if ( !gc )
                 {
                     wxPrintf("Couldn't initialize '%s' graphics renderer.\n", m_renderer->GetName().c_str());
-                    m_renderer = nullptr;
+                    m_renderer = NULL;
                 }
                 delete gc;
             }

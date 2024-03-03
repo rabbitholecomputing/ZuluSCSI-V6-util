@@ -62,7 +62,7 @@ FormatTiffMessage(const char *module, const char *fmt, va_list ap)
         // than nothing
         strcpy(buf, "Incorrectly formatted TIFF message");
     }
-    buf[WXSIZEOF(buf)-1] = 0; // make sure it is always NUL-terminated
+    buf[WXSIZEOF(buf)-1] = 0; // make sure it is always NULL-terminated
 
     wxString msg(buf);
     if ( module )
@@ -180,12 +180,6 @@ static toff_t TIFFLINKAGEMODE
 wxTIFFSeekOProc(thandle_t handle, toff_t off, int whence)
 {
     wxOutputStream *stream = (wxOutputStream*) handle;
-
-    // For weird reasons of compatibility with Solaris libc, libtiff calls
-    // Seek(0, SEEK_END) before every write, but we really don't need to do
-    // anything in this case.
-    if ( off == 0 && whence == SEEK_END )
-        return wxFileOffsetToTIFF( stream->TellO() );
 
     toff_t offset = wxFileOffsetToTIFF(
         stream->SeekO((wxFileOffset)off, wxSeekModeFromTIFF(whence)) );
@@ -727,32 +721,7 @@ bool wxTIFFHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
     const tsize_t linebytes =
         (tsize_t)((imageWidth * (spp + extraSamples) * bps + 7) / 8);
 
-    unsigned char* buf = nullptr;
-
-    // Ensure that everything is cleaned up on scope exit.
-    class CleanUp
-    {
-    public:
-        CleanUp(TIFF* tif, unsigned char* buf)
-            : m_tif(tif), m_buf(buf)
-        {
-        }
-
-        ~CleanUp()
-        {
-            TIFFClose(m_tif);
-
-            if (m_buf)
-                _TIFFfree(m_buf);
-        }
-
-        CleanUp(const CleanUp&) = delete;
-        CleanUp& operator=(const CleanUp&) = delete;
-
-    private:
-        TIFF* const m_tif;
-        unsigned char* const m_buf;
-    } cleanUp(tif, buf);
+    unsigned char *buf;
 
     const bool isColouredImage = (spp > 1)
         && (photometric != PHOTOMETRIC_MINISWHITE)
@@ -769,8 +738,14 @@ bool wxTIFFHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
                 wxLogError( _("TIFF: Couldn't allocate memory.") );
             }
 
+            TIFFClose( tif );
+
             return false;
         }
+    }
+    else
+    {
+        buf = NULL;
     }
 
     TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP,TIFFDefaultStripSize(tif, (wxUint32) -1));
@@ -868,21 +843,20 @@ bool wxTIFFHandler::SaveFile( wxImage *image, wxOutputStream& stream, bool verbo
                 wxLogError( _("TIFF: Error writing image.") );
             }
 
+            TIFFClose( tif );
+            if (buf)
+                _TIFFfree(buf);
+
             return false;
         }
 
         ptr += imageWidth * 3;
     }
 
-    if (!TIFFFlush(tif))
-    {
-        if (verbose)
-        {
-            wxLogError( _("TIFF: Error flushing data.") );
-        }
+    (void) TIFFClose(tif);
 
-        return false;
-    }
+    if (buf)
+        _TIFFfree(buf);
 
     return true;
 }

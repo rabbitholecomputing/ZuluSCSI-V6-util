@@ -2,6 +2,7 @@
 // Name:        dragimag.cpp
 // Purpose:     wxDragImage sample
 // Author:      Julian Smart
+// Modified by:
 // Created:     28/2/2000
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -59,9 +60,9 @@ MyCanvas::MyCanvas( wxWindow *parent, wxWindowID id,
     SetCursor(wxCursor(wxCURSOR_ARROW));
 
     m_dragMode = TEST_DRAG_NONE;
-    m_draggedShape = nullptr;
-    m_dragImage = nullptr;
-    m_currentlyHighlighted = nullptr;
+    m_draggedShape = (DragShape*) NULL;
+    m_dragImage = (wxDragImage*) NULL;
+    m_currentlyHighlighted = (DragShape*) NULL;
 }
 
 MyCanvas::~MyCanvas()
@@ -134,9 +135,9 @@ void MyCanvas::OnMouseEvent(wxMouseEvent& event)
 
         m_draggedShape->SetShow(true);
 
-        m_currentlyHighlighted = nullptr;
+        m_currentlyHighlighted = (DragShape*) NULL;
 
-        m_draggedShape = nullptr;
+        m_draggedShape = (DragShape*) NULL;
 
         Refresh(true);
     }
@@ -216,7 +217,7 @@ void MyCanvas::OnMouseEvent(wxMouseEvent& event)
 
             if (m_currentlyHighlighted)
             {
-                if ((onShape == nullptr) || (m_currentlyHighlighted != onShape))
+                if ((onShape == (DragShape*) NULL) || (m_currentlyHighlighted != onShape))
                     mustUnhighlightOld = true;
             }
 
@@ -228,7 +229,7 @@ void MyCanvas::OnMouseEvent(wxMouseEvent& event)
 
             // Now with the drag image switched off, we can change the window contents.
             if (mustUnhighlightOld)
-                m_currentlyHighlighted = nullptr;
+                m_currentlyHighlighted = (DragShape*) NULL;
 
             if (mustHighlightNew)
                 m_currentlyHighlighted = onShape;
@@ -297,7 +298,7 @@ DragShape* MyCanvas::FindShape(const wxPoint& pt) const
             return shape;
         node = node->GetNext();
     }
-    return nullptr;
+    return (DragShape*) NULL;
 }
 
 // MyFrame
@@ -309,7 +310,7 @@ wxBEGIN_EVENT_TABLE(MyFrame,wxFrame)
 wxEND_EVENT_TABLE()
 
 MyFrame::MyFrame()
-: wxFrame(nullptr, wxID_ANY, "wxDragImage sample",
+: wxFrame( (wxFrame *)NULL, wxID_ANY, "wxDragImage sample",
           wxPoint(20,20), wxSize(470,360) )
 {
     wxMenu *file_menu = new wxMenu();
@@ -399,7 +400,7 @@ bool MyApp::OnInit()
     }
 
 #if 0
-    // Under GTK, this demonstrates that
+    // Under Motif or GTK, this demonstrates that
     // wxScreenDC only gets the root window content.
     // We need to be able to copy the overall content
     // for full-screen dragging to work.

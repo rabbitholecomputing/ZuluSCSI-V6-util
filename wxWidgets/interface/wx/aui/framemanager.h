@@ -45,14 +45,12 @@ enum wxAuiManagerOption
     wxAUI_MGR_NO_VENETIAN_BLINDS_FADE  = 1 << 7,
     /// When a docked pane is resized, its content is refreshed in live (instead of moving
     /// the border alone and refreshing the content at the end).
-    /// Since wxWidgets 3.3.0 this flag is included in the default flags.
     wxAUI_MGR_LIVE_RESIZE              = 1 << 8,
     /// Default behaviour.
     wxAUI_MGR_DEFAULT = wxAUI_MGR_ALLOW_FLOATING |
                         wxAUI_MGR_TRANSPARENT_HINT |
                         wxAUI_MGR_HINT_FADE |
-                        wxAUI_MGR_NO_VENETIAN_BLINDS_FADE |
-                        wxAUI_MGR_LIVE_RESIZE
+                        wxAUI_MGR_NO_VENETIAN_BLINDS_FADE
 };
 
 /**
@@ -136,9 +134,7 @@ enum wxAuiManagerOption
            appearing partially transparent hint.
     @style{wxAUI_MGR_RECTANGLE_HINT}
            The possible location for docking is indicated by a rectangular
-           outline. Note that this flag doesn't work, i.e. doesn't show any
-           hint in wxGTK and wxOSX, please use one of the hint flags above
-           instead.
+           outline.
     @style{wxAUI_MGR_HINT_FADE}
            The translucent area where the pane could be docked appears gradually.
     @style{wxAUI_MGR_NO_VENETIAN_BLINDS_FADE}
@@ -146,11 +142,7 @@ enum wxAuiManagerOption
            docking hint immediately.
     @style{wxAUI_MGR_LIVE_RESIZE}
            When a docked pane is resized, its content is refreshed in live (instead of moving
-           the border alone and refreshing the content at the end). Note that
-           this flag is included in wxAUI_MGR_DEFAULT and so needs to be
-           explicitly turned off if you don't need. Also note that it is
-           always enabled in wxGTK3 and wxOSX ports as non-live resizing is not
-           implemented in them.
+           the border alone and refreshing the content at the end).
     @style{wxAUI_MGR_DEFAULT}
            Default behaviour, combines: wxAUI_MGR_ALLOW_FLOATING | wxAUI_MGR_TRANSPARENT_HINT |
            wxAUI_MGR_HINT_FADE | wxAUI_MGR_NO_VENETIAN_BLINDS_FADE.
@@ -190,7 +182,7 @@ public:
             Specifies the frame management behaviour and visual effects
             with the ::wxAuiManagerOption's style flags.
     */
-    wxAuiManager(wxWindow* managed_wnd = nullptr,
+    wxAuiManager(wxWindow* managed_wnd = NULL,
                  unsigned int flags = wxAUI_MGR_DEFAULT);
 
     /**
@@ -221,18 +213,12 @@ public:
         If this function returns true, ::wxAUI_MGR_LIVE_RESIZE flag is ignored
         and live resize is always used, whether it's specified or not.
 
-        Currently this is the case for wxOSX and wxGTK3 when using Wayland, as
-        live resizing is the only implemented method there. See
-        wxClientDC::CanBeUsedForDrawing() for more details.
-
-        @param window The associated window, may be null (this parameter was
-            added in wxWidgets 3.3.0)
-
-        @note As of wxWidgets 3.3.0 this function always returns false.
+        Currently this is the case for wxOSX and wxGTK3 ports, as live resizing
+        is the only implemented method there.
 
         @since 3.1.4
      */
-    static bool AlwaysUsesLiveResize(const wxWindow* window);
+    static bool AlwaysUsesLiveResize();
 
     /**
         This function is used by controls to calculate the drop hint rectangle.
@@ -380,9 +366,9 @@ public:
 
         @note This operation also changes the name in the pane information!
 
-        @see LoadPerspective
-        @see SavePaneInfo()
-        @see SavePerspective
+        @sa LoadPerspective
+        @sa SavePaneInfo().
+        @sa SavePerspective
     */
     void LoadPaneInfo(wxString pane_part, wxAuiPaneInfo& pane);
 
@@ -400,9 +386,9 @@ public:
         @param update      If update is @true, wxAuiManager::Update() is automatically invoked,
                            thus realizing the specified perspective on screen.
 
-        @see LoadPaneInfo
-        @see LoadPerspective
-        @see SavePerspective
+        @sa LoadPaneInfo
+        @sa LoadPerspective
+        @sa SavePerspective
     */
     bool LoadPerspective(const wxString& perspective,
                          bool update = true);
@@ -431,9 +417,9 @@ public:
                     the string. Information about the pointers to UI elements stored
                     in the pane are not serialized.
 
-        @see LoadPaneInfo
-        @see LoadPerspective
-        @see SavePerspective
+        @sa LoadPaneInfo
+        @sa LoadPerspective
+        @sa SavePerspective
     */
     wxString SavePaneInfo(const wxAuiPaneInfo& pane);
 
@@ -441,9 +427,9 @@ public:
         Saves the entire user interface layout into an encoded wxString, which
         can then be stored by the application (probably using wxConfig).
 
-        @see LoadPerspective
-        @see LoadPaneInfo
-        @see SavePaneInfo
+        @sa LoadPerspective
+        @sa LoadPaneInfo
+        @sa SavePaneInfo
     */
     wxString SavePerspective();
 

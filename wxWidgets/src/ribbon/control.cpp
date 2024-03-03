@@ -2,6 +2,7 @@
 // Name:        src/ribbon/control.cpp
 // Purpose:     Extension of wxControl with common ribbon methods
 // Author:      Peter Cawley
+// Modified by:
 // Created:     2009-06-05
 // Copyright:   (C) Peter Cawley
 // Licence:     wxWindows licence
@@ -114,7 +115,7 @@ wxRibbonBar* wxRibbonControl::GetAncestorRibbonBar()const
             return bar;
     }
 
-    return nullptr;
+    return NULL;
 }
 
 #endif // wxUSE_RIBBON

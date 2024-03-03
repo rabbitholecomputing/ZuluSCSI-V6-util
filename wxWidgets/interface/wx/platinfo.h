@@ -63,8 +63,8 @@ enum wxPortId
     wxPORT_BASE     = 1 << 0,       //!< wxBase, no native toolkit used
 
     wxPORT_MSW      = 1 << 1,       //!< wxMSW, native toolkit is Windows API
-    wxPORT_MOTIF    = 1 << 2,       //!< wxMotif, not supported any longer.
-    wxPORT_GTK      = 1 << 3,       //!< wxGTK, using GTK
+    wxPORT_MOTIF    = 1 << 2,       //!< wxMotif, using [Open]Motif or Lesstif
+    wxPORT_GTK      = 1 << 3,       //!< wxGTK, using GTK+ 1.x, 2.x, 3.x, GPE
     wxPORT_DFB      = 1 << 4,       //!< wxDFB, using wxUniversal
     wxPORT_X11      = 1 << 5,       //!< wxX11, using wxUniversal
     wxPORT_MAC      = 1 << 7,       //!< wxMac, using Carbon or Classic Mac API
@@ -642,17 +642,12 @@ public:
 /**
     Returns @true only for MSW programs running under Wine.
 
-    Return @true if the program is running under [Wine](https://www.winehq.org/)
-    and not a "native" MSW system.
-
-    @param ver If non-null and the program is executing under Wine, it is
-        filled with Wine version information (this output parameter is only
-        available in wxWidgets 3.3.0 and later).
-    @return @true if running under Wine, @false otherwise.
+    This function can be used to check for some functionality not implemented
+    when using Wine.
 
     @since 3.1.6
 
     @library{wxbase}
     @category{cfg}
 */
-bool wxIsRunningUnderWine(wxVersionInfo* ver = nullptr);
+bool wxIsRunningUnderWine();

@@ -26,7 +26,7 @@
 class MyApp : public wxApp
 {
 public:
-    bool OnInit() override;
+    bool OnInit() wxOVERRIDE;
 };
 
 wxDECLARE_APP(MyApp);

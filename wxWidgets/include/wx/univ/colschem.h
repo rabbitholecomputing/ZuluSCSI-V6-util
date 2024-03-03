@@ -2,6 +2,7 @@
 // Name:        wx/univ/colschem.h
 // Purpose:     wxColourScheme class provides the colours to use for drawing
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     19.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -79,7 +80,7 @@ public:
     virtual wxColour GetBackground(wxWindow *win) const = 0;
 
     // virtual dtor for any base class
-    virtual ~wxColourScheme() = default;
+    virtual ~wxColourScheme() {}
 };
 
 // some people just can't spell it correctly :-)

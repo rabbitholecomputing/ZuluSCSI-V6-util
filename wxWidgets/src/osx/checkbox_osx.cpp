@@ -2,6 +2,7 @@
 // Name:        src/osx/checkbox_osx.cpp
 // Purpose:     wxCheckBox
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence

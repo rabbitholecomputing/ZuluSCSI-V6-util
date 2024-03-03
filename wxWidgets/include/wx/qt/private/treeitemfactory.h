@@ -80,7 +80,7 @@ class wxQtTreeItemEditorFactory : public QItemEditorFactory
 public:
     explicit wxQtTreeItemEditorFactory(wxWindow* parent)
         : m_parent(parent),
-          m_textCtrl(nullptr)
+          m_textCtrl(NULL)
     {
     }
 
@@ -91,9 +91,9 @@ public:
         qItemDelegate->setItemEditorFactory(this);
     }
 
-    QWidget* createEditor(int WXUNUSED(userType), QWidget* parent) const override
+    QWidget* createEditor(int WXUNUSED(userType), QWidget* parent) const wxOVERRIDE
     {
-        if (m_textCtrl != nullptr)
+        if (m_textCtrl != NULL)
             ClearEditor();
 
         m_textCtrl = new wxQtListTextCtrl(m_parent, parent);
@@ -109,7 +109,7 @@ public:
     void ClearEditor() const
     {
         delete m_textCtrl;
-        m_textCtrl = nullptr;
+        m_textCtrl = NULL;
     }
 
 private:

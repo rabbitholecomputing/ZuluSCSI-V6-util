@@ -2,6 +2,7 @@
 // Name:        src/common/prntbase.cpp
 // Purpose:     Printing framework base class implementation
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -79,7 +80,7 @@ static const int DEFAULT_MAX_PAGES = 32000;
 // wxPrintFactory
 //----------------------------------------------------------------------------
 
-wxPrintFactory *wxPrintFactory::m_factory = nullptr;
+wxPrintFactory *wxPrintFactory::m_factory = NULL;
 
 void wxPrintFactory::SetPrintFactory( wxPrintFactory *factory )
 {
@@ -204,15 +205,15 @@ wxDialog *wxNativePrintFactory::CreatePrintSetupDialog( wxWindow *parent,
 #if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
     wxUnusedVar(parent);
     wxUnusedVar(data);
-    return nullptr;
+    return NULL;
 #elif defined(__WXMAC__)
     wxUnusedVar(parent);
     wxUnusedVar(data);
-    return nullptr;
+    return NULL;
 #elif defined(__WXQT__)
     wxUnusedVar(parent);
     wxUnusedVar(data);
-    return nullptr;
+    return NULL;
 #else
     // Only here do we need to provide the print setup
     // dialog ourselves, the other platforms either have
@@ -224,7 +225,7 @@ wxDialog *wxNativePrintFactory::CreatePrintSetupDialog( wxWindow *parent,
 
 wxDCImpl* wxNativePrintFactory::CreatePrinterDCImpl( wxPrinterDC *owner, const wxPrintData& data )
 {
-#if defined(__WXGTK__) || ( defined(__WXUNIVERSAL__) && !defined(__WXMAC__) )
+#if defined(__WXGTK__) || defined(__WXMOTIF__) || ( defined(__WXUNIVERSAL__) && !defined(__WXMAC__) )
     return new wxPostScriptDCImpl( owner, data );
 #else
     return new wxPrinterDCImpl( owner, data );
@@ -287,7 +288,10 @@ wxPrintNativeDataBase *wxNativePrintFactory::CreatePrintNativeData()
 
 wxIMPLEMENT_ABSTRACT_CLASS(wxPrintNativeDataBase, wxObject);
 
-wxPrintNativeDataBase::~wxPrintNativeDataBase() = default;
+wxPrintNativeDataBase::wxPrintNativeDataBase()
+{
+    m_ref = 1;
+}
 
 //----------------------------------------------------------------------------
 // wxPrintFactoryModule
@@ -297,8 +301,8 @@ class wxPrintFactoryModule: public wxModule
 {
 public:
     wxPrintFactoryModule() {}
-    bool OnInit() override { return true; }
-    void OnExit() override { wxPrintFactory::SetPrintFactory( nullptr ); }
+    bool OnInit() wxOVERRIDE { return true; }
+    void OnExit() wxOVERRIDE { wxPrintFactory::SetPrintFactory( NULL ); }
 
 private:
     wxDECLARE_DYNAMIC_CLASS(wxPrintFactoryModule);
@@ -314,15 +318,15 @@ wxIMPLEMENT_CLASS(wxPrinterBase, wxObject);
 
 wxPrinterBase::wxPrinterBase(wxPrintDialogData *data)
 {
-    m_currentPrintout = nullptr;
-    sm_abortWindow = nullptr;
+    m_currentPrintout = NULL;
+    sm_abortWindow = NULL;
     sm_abortIt = false;
     if (data)
         m_printDialogData = (*data);
     sm_lastError = wxPRINTER_NO_ERROR;
 }
 
-wxWindow *wxPrinterBase::sm_abortWindow = nullptr;
+wxWindow *wxPrinterBase::sm_abortWindow = NULL;
 bool wxPrinterBase::sm_abortIt = false;
 wxPrinterError wxPrinterBase::sm_lastError = wxPRINTER_NO_ERROR;
 
@@ -569,10 +573,10 @@ void wxPrintAbortDialog::SetProgress(int currentPage, int totalPages,
 
 void wxPrintAbortDialog::OnCancel(wxCommandEvent& WXUNUSED(event))
 {
-    wxCHECK_RET( wxPrinterBase::sm_abortWindow != nullptr, "OnCancel called twice" );
+    wxCHECK_RET( wxPrinterBase::sm_abortWindow != NULL, "OnCancel called twice" );
     wxPrinterBase::sm_abortIt = true;
     wxPrinterBase::sm_abortWindow->Destroy();
-    wxPrinterBase::sm_abortWindow = nullptr;
+    wxPrinterBase::sm_abortWindow = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -584,7 +588,7 @@ wxIMPLEMENT_ABSTRACT_CLASS(wxPrintout, wxObject);
 wxPrintout::wxPrintout(const wxString& title)
     : m_printoutTitle(title)
 {
-    m_printoutDC = nullptr;
+    m_printoutDC = NULL;
     m_pageWidthMM = 0;
     m_pageHeightMM = 0;
     m_pageWidthPixels = 0;
@@ -593,7 +597,7 @@ wxPrintout::wxPrintout(const wxString& title)
     m_PPIScreenY = 0;
     m_PPIPrinterX = 0;
     m_PPIPrinterY = 0;
-    m_preview = nullptr;
+    m_preview = NULL;
 }
 
 wxPrintout::~wxPrintout()
@@ -629,11 +633,6 @@ void wxPrintout::GetPageInfo(int *minPage, int *maxPage, int *fromPage, int *toP
     *maxPage = DEFAULT_MAX_PAGES;
     *fromPage = 1;
     *toPage = 1;
-}
-
-bool wxPrintout::IsPageSelected(int WXUNUSED(page))
-{
-    return false;
 }
 
 bool wxPrintout::SetUp(wxDC& dc)
@@ -1302,10 +1301,10 @@ wxPreviewControlBar::wxPreviewControlBar(wxPrintPreviewBase *preview, long butto
 wxPanel(parent, wxID_ANY, pos, size, style, name)
 {
     m_printPreview = preview;
-    m_closeButton = nullptr;
-    m_zoomControl = nullptr;
-    m_currentPageText = nullptr;
-    m_maxPageText = nullptr;
+    m_closeButton = NULL;
+    m_zoomControl = NULL;
+    m_currentPageText = NULL;
+    m_maxPageText = NULL;
     m_buttonFlags = buttons;
 }
 
@@ -1707,9 +1706,9 @@ wxFrame(parent, wxID_ANY, title, pos, size, style, name),
     m_initialSize(size)
 {
     m_printPreview = preview;
-    m_controlBar = nullptr;
-    m_previewCanvas = nullptr;
-    m_windowDisabler = nullptr;
+    m_controlBar = NULL;
+    m_previewCanvas = NULL;
+    m_windowDisabler = NULL;
     m_modalityKind = wxPreviewFrame_NonModal;
 
     // Give the application icon
@@ -1726,12 +1725,12 @@ wxPreviewFrame::~wxPreviewFrame()
     if (printout)
     {
         delete printout;
-        m_printPreview->SetPrintout(nullptr);
-        m_printPreview->SetCanvas(nullptr);
-        m_printPreview->SetFrame(nullptr);
+        m_printPreview->SetPrintout(NULL);
+        m_printPreview->SetCanvas(NULL);
+        m_printPreview->SetFrame(NULL);
     }
 
-    m_previewCanvas->SetPreview(nullptr);
+    m_previewCanvas->SetPreview(NULL);
     delete m_printPreview;
 }
 
@@ -1743,7 +1742,7 @@ void wxPreviewFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
     {
         case wxPreviewFrame_AppModal:
             delete m_windowDisabler;
-            m_windowDisabler = nullptr;
+            m_windowDisabler = NULL;
             break;
 
         case wxPreviewFrame_WindowModal:
@@ -1875,9 +1874,9 @@ void wxPrintPreviewBase::Init(wxPrintout *printout,
 
     m_printPrintout = printoutForPrinting;
 
-    m_previewCanvas = nullptr;
-    m_previewFrame = nullptr;
-    m_previewBitmap = nullptr;
+    m_previewCanvas = NULL;
+    m_previewFrame = NULL;
+    m_previewBitmap = NULL;
     m_previewFailed = false;
     m_currentPage = 1;
     m_currentZoom = 70;
@@ -2066,7 +2065,7 @@ bool wxPrintPreviewBase::RenderPageIntoDC(wxDC& dc, int pageNum)
     m_previewPrintout->OnEndDocument();
     m_previewPrintout->OnEndPrinting();
 
-    m_previewPrintout->SetDC(nullptr);
+    m_previewPrintout->SetDC(NULL);
 
     return true;
 }
@@ -2216,9 +2215,9 @@ wxPrintPreview::~wxPrintPreview()
     delete m_pimpl;
 
     // don't delete twice
-    m_printPrintout = nullptr;
-    m_previewPrintout = nullptr;
-    m_previewBitmap = nullptr;
+    m_printPrintout = NULL;
+    m_previewPrintout = NULL;
+    m_previewBitmap = NULL;
 }
 
 bool wxPrintPreview::SetCurrentPage(int pageNum)

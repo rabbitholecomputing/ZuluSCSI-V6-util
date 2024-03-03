@@ -2,6 +2,7 @@
 // Name:        src/common/rendcmn.cpp
 // Purpose:     wxRendererNative common functions
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     28.07.03
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -17,7 +18,6 @@
 
 #include "wx/wxprec.h"
 
-#include <memory>
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"
@@ -28,6 +28,8 @@
 #include "wx/apptrait.h"
 #include "wx/renderer.h"
 
+#include "wx/scopedptr.h"
+
 #if wxUSE_DYNLIB_CLASS
     #include "wx/dynlib.h"
 #endif // wxUSE_DYNLIB_CLASS
@@ -36,7 +38,7 @@
 // wxRendererPtr: auto pointer holding the global renderer
 // ----------------------------------------------------------------------------
 
-using wxRendererPtrBase = std::unique_ptr<wxRendererNative>;
+typedef wxScopedPtr<wxRendererNative> wxRendererPtrBase;
 
 class wxRendererPtr : public wxRendererPtrBase
 {
@@ -52,14 +54,14 @@ public:
             DoInit();
         }
 
-        return get() != nullptr;
+        return get() != NULL;
     }
 
     // return the global and unique wxRendererPtr
     static wxRendererPtr& Get();
 
 private:
-    wxRendererPtr() : wxRendererPtrBase(nullptr) { m_initialized = false; }
+    wxRendererPtr() : wxRendererPtrBase(NULL) { m_initialized = false; }
 
     void DoInit()
     {
@@ -166,7 +168,7 @@ wxRendererNative *wxRendererNative::Load(const wxString& name)
 
     wxDynamicLibrary dll(fullname);
     if ( !dll.IsLoaded() )
-        return nullptr;
+        return NULL;
 
     // each theme DLL must export a wxCreateRenderer() function with this
     // signature
@@ -174,12 +176,12 @@ wxRendererNative *wxRendererNative::Load(const wxString& name)
 
     wxDYNLIB_FUNCTION(wxCreateRenderer_t, wxCreateRenderer, dll);
     if ( !pfnwxCreateRenderer )
-        return nullptr;
+        return NULL;
 
     // create a renderer object
     wxRendererNative *renderer = (*pfnwxCreateRenderer)();
     if ( !renderer )
-        return nullptr;
+        return NULL;
 
     // check that its version is compatible with ours
     wxRendererVersion ver = renderer->GetVersion();
@@ -189,7 +191,7 @@ wxRendererNative *wxRendererNative::Load(const wxString& name)
                    name.c_str(), ver.version, ver.age);
         delete renderer;
 
-        return nullptr;
+        return NULL;
     }
 
     // finally wrap the renderer in an object which will delete it and unload

@@ -2,6 +2,7 @@
 // Name:        src/common/scrolbarcmn.cpp
 // Purpose:     wxScrollBar common code
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -46,6 +47,7 @@ wxBEGIN_FLAGS( wxScrollBarStyle )
     // standard window styles
     wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
     wxFLAGS_MEMBER(wxCLIP_CHILDREN)
+    wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
     wxFLAGS_MEMBER(wxWANTS_CHARS)
     wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
     wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )

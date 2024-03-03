@@ -2,6 +2,7 @@
 // Name:        src/osx/iphone/slider.mm
 // Purpose:     wxSlider
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence

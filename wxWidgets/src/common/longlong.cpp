@@ -4,6 +4,7 @@
 // Author:      Jeffrey C. Ollie <jeff@ollie.clive.ia.us>, Vadim Zeitlin
 // Remarks:     this class is not public in wxWidgets 2.0! It is intentionally
 //              not documented and is for private use only.
+// Modified by:
 // Created:     10.02.99
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -1223,13 +1224,13 @@ void *wxULongLongWx::asArray() const
 
 // input/output
 WXDLLIMPEXP_BASE
-std::ostream& operator<< (std::ostream& o, const wxLongLong& ll)
+wxSTD ostream& operator<< (wxSTD ostream& o, const wxLongLong& ll)
 {
     return o << ll.ToString();
 }
 
 WXDLLIMPEXP_BASE
-std::ostream& operator<< (std::ostream& o, const wxULongLong& ll)
+wxSTD ostream& operator<< (wxSTD ostream& o, const wxULongLong& ll)
 {
     return o << ll.ToString();
 }

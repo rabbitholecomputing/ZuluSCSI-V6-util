@@ -11,10 +11,8 @@
 
 @tableofcontents
 
-The archive classes handle archive formats such as zip.
-Currently zip and tar support is bundled with wxWidgets and
-when external liblzma library is available (see @ref page_build_liblzma),
-XZ format using LZMA2 algorithm is supported as well.
+The archive classes handle archive formats such as zip, tar, rar and cab.
+Currently wxZip, wxTar and wxZlib classes are included.
 
 For each archive type, there are the following classes (using zip here as an
 example):
@@ -42,16 +40,16 @@ archive, then write the entry's data. Another call to PutNextEntry() closes the
 current entry and begins the next. For example:
 
 @code
-wxFFileOutputStream out("test.zip");
+wxFFileOutputStream out(wxT("test.zip"));
 wxZipOutputStream zip(out);
 wxTextOutputStream txt(zip);
 wxString sep(wxFileName::GetPathSeparator());
 
-zip.PutNextEntry("entry1.txt");
-txt << "Some text for entry1.txt\n";
+zip.PutNextEntry(wxT("entry1.txt"));
+txt << wxT("Some text for entry1.txt\n");
 
-zip.PutNextEntry("subdir" + sep + "entry2.txt");
-txt << "Some text for subdir/entry2.txt\n";
+zip.PutNextEntry(wxT("subdir") + sep + wxT("entry2.txt"));
+txt << wxT("Some text for subdir/entry2.txt\n");
 @endcode
 
 The name of each entry can be a full path, which makes it possible to store
@@ -70,12 +68,12 @@ Reading from the input stream then returns the entry's data. Eof() becomes
 When there are no more entries, GetNextEntry() returns @NULL and sets Eof().
 
 @code
-std::unique_ptr<wxZipEntry> entry;
+auto_ptr<wxZipEntry> entry;
 
-wxFFileInputStream in("test.zip");
+wxFFileInputStream in(wxT("test.zip"));
 wxZipInputStream zip(in);
 
-while (entry.reset(zip.GetNextEntry()), entry.get() != nullptr)
+while (entry.reset(zip.GetNextEntry()), entry.get() != NULL)
 {
     // access meta-data
     wxString name = entry->GetName();
@@ -103,21 +101,21 @@ archive. wxTempFileOutputStream can be helpful to do this.
 For example to delete all entries matching the pattern "*.txt":
 
 @code
-std::unique_ptr<wxFFileInputStream> in(new wxFFileInputStream("test.zip"));
-wxTempFileOutputStream out("test.zip");
+auto_ptr<wxFFileInputStream> in(new wxFFileInputStream(wxT("test.zip")));
+wxTempFileOutputStream out(wxT("test.zip"));
 
 wxZipInputStream inzip(*in);
 wxZipOutputStream outzip(out);
 
-std::unique_ptr<wxZipEntry> entry;
+auto_ptr<wxZipEntry> entry;
 
 // transfer any meta-data for the archive as a whole (the zip comment
 // in the case of zip)
 outzip.CopyArchiveMetaData(inzip);
 
 // call CopyEntry for each entry except those matching the pattern
-while (entry.reset(inzip.GetNextEntry()), entry.get() != nullptr)
-    if (!entry->GetName().Matches("*.txt"))
+while (entry.reset(inzip.GetNextEntry()), entry.get() != NULL)
+    if (!entry->GetName().Matches(wxT("*.txt")))
         if (!outzip.CopyEntry(entry.release(), inzip))
             break;
 
@@ -153,13 +151,13 @@ better to convert the local name to the archive's internal format and search
 for that:
 
 @code
-std::unique_ptr<wxZipEntry> entry;
+auto_ptr<wxZipEntry> entry;
 
 // convert the local name we are looking for into the internal format
-wxString name = wxZipEntry::GetInternalName(localName);
+wxString name = wxZipEntry::GetInternalName(localname);
 
 // open the zip
-wxFFileInputStream in("test.zip");
+wxFFileInputStream in(wxT("test.zip"));
 wxZipInputStream zip(in);
 
 // call GetNextEntry() until the required internal name is found
@@ -167,9 +165,9 @@ do
 {
     entry.reset(zip.GetNextEntry());
 }
-while (entry.get() != nullptr && entry->GetInternalName() != name);
+while (entry.get() != NULL && entry->GetInternalName() != name);
 
-if (entry.get() != nullptr)
+if (entry.get() != NULL)
 {
     // read the entry's data...
 }
@@ -181,22 +179,27 @@ entries looked up by name can be opened using the
 wxArchiveInputStream::OpenEntry() method.
 
 @code
-using ZipEntryPtr = std::unique_ptr<wxZipEntry>;
-using ZipCatalog = std::map<wxString, ZipEntryPtr>;
-ZipEntryPtr entry;
+WX_DECLARE_STRING_HASH_MAP(wxZipEntry*, ZipCatalog);
+ZipCatalog::iterator it;
+wxZipEntry *entry;
 ZipCatalog cat;
 
 // open the zip
-wxFFileInputStream in("test.zip");
+wxFFileInputStream in(wxT("test.zip"));
 wxZipInputStream zip(in);
 
 // load the zip catalog
-while (entry.reset(zip.GetNextEntry()), entry.get() != nullptr)
-    cat[entry->GetInternalName()] = std::move(entry);
+while ((entry = zip.GetNextEntry()) != NULL)
+{
+    wxZipEntry*& current = cat[entry->GetInternalName()];
+    // some archive formats can have multiple entries with the same name
+    // (e.g. tar) though it is an error in the case of zip
+    delete current;
+    current = entry;
+}
 
 // open an entry by name
-auto it = cat.find(wxZipEntry::GetInternalName(localName));
-if (it != cat.end())
+if ((it = cat.find(wxZipEntry::GetInternalName(localname))) != cat.end())
 {
     zip.OpenEntry(*it->second);
     // ... now read entry's data
@@ -209,7 +212,7 @@ stream on the same archive:
 @code
 // opening another entry without closing the first requires another
 // input stream for the same file
-wxFFileInputStream in2("test.zip");
+wxFFileInputStream in2(wxT("test.zip"));
 wxZipInputStream zip2(in2);
 if ((it = cat.find(wxZipEntry::GetInternalName(local2))) != cat.end())
     zip2.OpenEntry(*it->second);
@@ -241,11 +244,11 @@ created like this:
 
 @code
 // create streams without knowing their type
-std::unique_ptr<wxArchiveInputStream> inarc(factory->NewStream(in));
-std::unique_ptr<wxArchiveOutputStream> outarc(factory->NewStream(out));
+auto_ptr<wxArchiveInputStream> inarc(factory->NewStream(in));
+auto_ptr<wxArchiveOutputStream> outarc(factory->NewStream(out));
 
 // create an empty entry object
-std::unique_ptr<wxArchiveEntry> entry(factory->NewEntry());
+auto_ptr<wxArchiveEntry> entry(factory->NewEntry());
 @endcode
 
 For the factory itself, the static member wxArchiveClassFactory::Find() can be
@@ -270,7 +273,7 @@ These can be found using wxFilterClassFactory::Find().
 For example, to list the contents of archive @e filename:
 
 @code
-std::unique_ptr<wxInputStream> in(new wxFFileInputStream(filename));
+auto_ptr<wxInputStream> in(new wxFFileInputStream(filename));
 
 if (in->IsOk())
 {
@@ -289,16 +292,16 @@ if (in->IsOk())
     acf = wxArchiveClassFactory::Find(filename, wxSTREAM_FILEEXT);
     if (acf)
     {
-        std::unique_ptr<wxArchiveInputStream> arc(acf->NewStream(in.release()));
-        std::unique_ptr<wxArchiveEntry> entry;
+        auto_ptr<wxArchiveInputStream> arc(acf->NewStream(in.release()));
+        auto_ptr<wxArchiveEntry> entry;
 
         // list the contents of the archive
-        while ((entry.reset(arc->GetNextEntry())), entry.get() != nullptr)
+        while ((entry.reset(arc->GetNextEntry())), entry.get() != NULL)
             std::wcout << entry->GetName() << "\n";
     }
     else
     {
-        wxLogError("can't handle '%s'", filename);
+        wxLogError(wxT("can't handle '%s'"), filename);
     }
 }
 @endcode
@@ -372,13 +375,13 @@ usual way to modify an entry's meta-data, simply set the required field before
 writing it with wxArchiveOutputStream::CopyEntry():
 
 @code
-std::unique_ptr<wxArchiveInputStream> arc(factory->NewStream(in));
-std::unique_ptr<wxArchiveOutputStream> outarc(factory->NewStream(out));
-std::unique_ptr<wxArchiveEntry> entry;
+auto_ptr<wxArchiveInputStream> arc(factory->NewStream(in));
+auto_ptr<wxArchiveOutputStream> outarc(factory->NewStream(out));
+auto_ptr<wxArchiveEntry> entry;
 
 outarc->CopyArchiveMetaData(*arc);
 
-while (entry.reset(arc->GetNextEntry()), entry.get() != nullptr)
+while (entry.reset(arc->GetNextEntry()), entry.get() != NULL)
 {
     if (entry->GetName() == from)
         entry->SetName(to);
@@ -408,14 +411,14 @@ wxArchiveNotifier::OnEntryUpdated() method, then wxArchiveEntry::SetNotifier()
 is called before CopyEntry():
 
 @code
-std::unique_ptr<wxArchiveInputStream> arc(factory->NewStream(in));
-std::unique_ptr<wxArchiveOutputStream> outarc(factory->NewStream(out));
-std::unique_ptr<wxArchiveEntry> entry;
+auto_ptr<wxArchiveInputStream> arc(factory->NewStream(in));
+auto_ptr<wxArchiveOutputStream> outarc(factory->NewStream(out));
+auto_ptr<wxArchiveEntry> entry;
 MyNotifier notifier;
 
 outarc->CopyArchiveMetaData(*arc);
 
-while (entry.reset(arc->GetNextEntry()), entry.get() != nullptr)
+while (entry.reset(arc->GetNextEntry()), entry.get() != NULL)
 {
     entry->SetNotifier(notifier);
     if (!outarc->CopyEntry(entry.release(), *arc))

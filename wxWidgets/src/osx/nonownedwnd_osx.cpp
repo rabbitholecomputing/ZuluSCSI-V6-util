@@ -16,6 +16,7 @@
     #include "wx/log.h"
 #endif // WX_PRECOMP
 
+#include "wx/hashmap.h"
 #include "wx/evtloop.h"
 #include "wx/tooltip.h"
 #include "wx/nonownedwnd.h"
@@ -27,8 +28,6 @@
 #if wxUSE_SYSTEM_OPTIONS
     #include "wx/sysopt.h"
 #endif
-
-#include <unordered_map>
 
 // ----------------------------------------------------------------------------
 // constants
@@ -46,27 +45,22 @@ clock_t wxNonOwnedWindow::s_lastFlush = 0;
 // wxWindowMac utility functions
 // ---------------------------------------------------------------------------
 
-namespace
-{
-
-using MacWindowMap = std::unordered_map<WXWindow, wxNonOwnedWindowImpl*>;
+WX_DECLARE_HASH_MAP(WXWindow, wxNonOwnedWindowImpl*, wxPointerHash, wxPointerEqual, MacWindowMap);
 
 static MacWindowMap wxWinMacWindowList;
-
-} // anonymous namespace
 
 wxNonOwnedWindow* wxNonOwnedWindow::GetFromWXWindow( WXWindow win )
 {
     wxNonOwnedWindowImpl* impl = wxNonOwnedWindowImpl::FindFromWXWindow(win);
 
-    return ( impl != nullptr ? impl->GetWXPeer() : nullptr ) ;
+    return ( impl != NULL ? impl->GetWXPeer() : NULL ) ;
 }
 
 wxNonOwnedWindowImpl* wxNonOwnedWindowImpl::FindFromWXWindow (WXWindow window)
 {
     MacWindowMap::iterator node = wxWinMacWindowList.find(window);
 
-    return (node == wxWinMacWindowList.end()) ? nullptr : node->second;
+    return (node == wxWinMacWindowList.end()) ? NULL : node->second;
 }
 
 void wxNonOwnedWindowImpl::RemoveAssociations( wxNonOwnedWindowImpl* impl)
@@ -84,9 +78,9 @@ void wxNonOwnedWindowImpl::RemoveAssociations( wxNonOwnedWindowImpl* impl)
 
 void wxNonOwnedWindowImpl::Associate( WXWindow window, wxNonOwnedWindowImpl *impl )
 {
-    // adding null WindowRef is (first) surely a result of an error and
+    // adding NULL WindowRef is (first) surely a result of an error and
     // nothing else :-)
-    wxCHECK_RET( window != (WXWindow) nullptr, wxT("attempt to add a null WindowRef to window list") );
+    wxCHECK_RET( window != (WXWindow) NULL, wxT("attempt to add a NULL WindowRef to window list") );
 
     wxWinMacWindowList[window] = impl;
 }
@@ -97,11 +91,11 @@ void wxNonOwnedWindowImpl::Associate( WXWindow window, wxNonOwnedWindowImpl *imp
 
 wxIMPLEMENT_ABSTRACT_CLASS(wxNonOwnedWindowImpl, wxObject);
 
-wxNonOwnedWindow *wxNonOwnedWindow::s_macDeactivateWindow = nullptr;
+wxNonOwnedWindow *wxNonOwnedWindow::s_macDeactivateWindow = NULL;
 
 void wxNonOwnedWindow::Init()
 {
-    m_nowpeer = nullptr;
+    m_nowpeer = NULL;
     m_isNativeWindowWrapper = false;
     m_ignoreResizing = false;
 }
@@ -177,7 +171,7 @@ bool wxNonOwnedWindow::Create(wxWindow *parent, WXWindow nativeWindow)
 void wxNonOwnedWindow::SubclassWin(WXWindow nativeWindow)
 {
     wxASSERT_MSG( !m_isNativeWindowWrapper, wxT("subclassing window twice?") );
-    wxASSERT_MSG( m_nowpeer == nullptr, wxT("window already was created") );
+    wxASSERT_MSG( m_nowpeer == NULL, wxT("window already was created") );
 
     m_nowpeer = wxNonOwnedWindowImpl::CreateNonOwnedWindow(this, GetParent(), nativeWindow );
     m_isNativeWindowWrapper = true;
@@ -194,7 +188,7 @@ void wxNonOwnedWindow::UnsubclassWin()
 
     wxNonOwnedWindowImpl::RemoveAssociations(m_nowpeer) ;
     wxDELETE(m_nowpeer);
-    SetPeer(nullptr);
+    SetPeer(NULL);
     m_isNativeWindowWrapper = false;
 }
 
@@ -211,7 +205,7 @@ wxNonOwnedWindow::~wxNonOwnedWindow()
 
     // avoid dangling refs
     if ( s_macDeactivateWindow == this )
-        s_macDeactivateWindow = nullptr;
+        s_macDeactivateWindow = NULL;
 }
 
 bool wxNonOwnedWindow::Destroy()
@@ -366,7 +360,7 @@ void wxNonOwnedWindow::MacActivate( long timestamp , bool WXUNUSED(inIsActivatin
     wxLogTrace(TRACE_ACTIVATE, wxT("TopLevel=%p::MacActivate"), this);
 
     if (s_macDeactivateWindow == this)
-        s_macDeactivateWindow = nullptr;
+        s_macDeactivateWindow = NULL;
 
     MacDelayedDeactivation(timestamp);
 }
@@ -421,7 +415,7 @@ bool wxNonOwnedWindow::SetBackgroundStyle(wxBackgroundStyle style)
 
 void wxNonOwnedWindow::DoMoveWindow(int x, int y, int width, int height)
 {
-    if ( m_nowpeer == nullptr )
+    if ( m_nowpeer == NULL )
         return;
 
     m_cachedClippedRectValid = false ;
@@ -432,7 +426,7 @@ void wxNonOwnedWindow::DoMoveWindow(int x, int y, int width, int height)
 
 void wxNonOwnedWindow::DoGetPosition( int *x, int *y ) const
 {
-    if ( m_nowpeer == nullptr )
+    if ( m_nowpeer == NULL )
         return;
 
     int x1,y1 ;
@@ -446,7 +440,7 @@ void wxNonOwnedWindow::DoGetPosition( int *x, int *y ) const
 
 void wxNonOwnedWindow::DoGetSize( int *width, int *height ) const
 {
-    if ( m_nowpeer == nullptr )
+    if ( m_nowpeer == NULL )
         return;
 
     int w,h;
@@ -461,7 +455,7 @@ void wxNonOwnedWindow::DoGetSize( int *width, int *height ) const
 
 void wxNonOwnedWindow::DoGetClientSize( int *width, int *height ) const
 {
-    if ( m_nowpeer == nullptr )
+    if ( m_nowpeer == NULL )
         return;
 
     int left, top, w, h;
@@ -487,7 +481,7 @@ void wxNonOwnedWindow::WindowWasPainted()
 
 void wxNonOwnedWindow::Update()
 {
-    if ( m_nowpeer == nullptr )
+    if ( m_nowpeer == NULL )
         return;
 
     if ( clock() - s_lastFlush > CLOCKS_PER_SEC / 30 )
@@ -499,7 +493,7 @@ void wxNonOwnedWindow::Update()
 
 WXWindow wxNonOwnedWindow::GetWXWindow() const
 {
-    return m_nowpeer ? m_nowpeer->GetWXWindow() : nullptr;
+    return m_nowpeer ? m_nowpeer->GetWXWindow() : NULL;
 }
 
 #if wxOSX_USE_COCOA_OR_IPHONE
@@ -539,7 +533,7 @@ bool wxNonOwnedWindow::DoSetRegionShape(const wxRegion& region)
 
 #if wxUSE_GRAPHICS_CONTEXT
 
-#include <memory>
+#include "wx/scopedptr.h"
 
 bool wxNonOwnedWindow::DoSetPathShape(const wxGraphicsPath& path)
 {
@@ -553,7 +547,7 @@ bool wxNonOwnedWindow::DoSetPathShape(const wxGraphicsPath& path)
         dc.SetBackground(*wxBLACK_BRUSH);
         dc.Clear();
 
-        std::unique_ptr<wxGraphicsContext> context(wxGraphicsContext::Create(dc));
+        wxScopedPtr<wxGraphicsContext> context(wxGraphicsContext::Create(dc));
         context->SetBrush(*wxWHITE_BRUSH);
         context->SetAntialiasMode(wxANTIALIAS_NONE);
         context->FillPath(path);

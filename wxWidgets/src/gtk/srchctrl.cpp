@@ -20,7 +20,6 @@
 
 #include "wx/utils.h"
 #include "wx/gtk/private.h"
-#include "wx/gtk/private/event.h"
 #include "wx/gtk/private/gtk3-compat.h"
 
 
@@ -94,28 +93,6 @@ wx_gtk_icon_press(GtkEntry* WXUNUSED(entry),
     }
 }
 
-static gboolean
-wx_gtk_entry_event(GtkEntry* WXUNUSED(entry),
-                   GdkEvent* event,
-                   wxSearchCtrl* ctrl)
-{
-    if ( event->type == GDK_MOTION_NOTIFY )
-    {
-        // GtkEntry "event" signal handler ignores motion events happening over
-        // inactive icons, but we want to notify the window about the mouse
-        // entering it when they happen.
-        if ( wxGTKImpl::SetWindowUnderMouse(ctrl) )
-        {
-            wxMouseEvent mouseEvent(wxEVT_ENTER_WINDOW);
-            wxGTKImpl::InitMouseEvent(ctrl, mouseEvent, (GdkEventMotion*)event);
-
-            ctrl->GTKProcessEvent(mouseEvent);
-        }
-    }
-
-    return FALSE;
-}
-
 }
 
 // ============================================================================
@@ -147,10 +124,10 @@ wxSearchCtrl::~wxSearchCtrl()
 
 void wxSearchCtrl::Init()
 {
-    m_entry = nullptr;
+    m_entry = NULL;
 
 #if wxUSE_MENUS
-    m_menu = nullptr;
+    m_menu = NULL;
 #endif // wxUSE_MENUS
 
     m_cancelButtonVisible = false;
@@ -176,7 +153,7 @@ bool wxSearchCtrl::Create(wxWindow *parent, wxWindowID id,
 
     if ( HasFlag(wxBORDER_NONE) )
     {
-        g_object_set (m_widget, "has-frame", FALSE, nullptr);
+        g_object_set (m_widget, "has-frame", FALSE, NULL);
     }
 
     GtkEntry * const entry = GetEntry();
@@ -200,7 +177,7 @@ bool wxSearchCtrl::Create(wxWindow *parent, wxWindowID id,
 
     PostCreation(size);
 
-    gtk_entry_set_text(entry, value.utf8_str());
+    gtk_entry_set_text(entry, wxGTK_CONV(value));
 
     SetHint(_("Search"));
 
@@ -232,8 +209,6 @@ void wxSearchCtrl::GTKCreateSearchEntryWidget()
     }
 
     g_signal_connect(m_entry, "icon-press", G_CALLBACK(wx_gtk_icon_press), this);
-
-    g_signal_connect(m_entry, "event", G_CALLBACK(wx_gtk_entry_event), this);
 }
 
 GtkEditable *wxSearchCtrl::GetEditable() const
@@ -262,7 +237,7 @@ void wxSearchCtrl::SetMenu( wxMenu* menu )
     delete m_menu;
     m_menu = menu;
 
-    const bool hasMenu = m_menu != nullptr;
+    const bool hasMenu = m_menu != NULL;
 
     gtk_entry_set_icon_sensitive(m_entry, GTK_ENTRY_ICON_PRIMARY, hasMenu);
     gtk_entry_set_icon_activatable(m_entry, GTK_ENTRY_ICON_PRIMARY, hasMenu);
@@ -300,7 +275,7 @@ void wxSearchCtrl::ShowCancelButton(bool show)
 
     gtk_entry_set_icon_from_icon_name(m_entry,
                                       GTK_ENTRY_ICON_SECONDARY,
-                                      show ? "edit-clear-symbolic" : nullptr);
+                                      show ? "edit-clear-symbolic" : NULL);
 
     m_cancelButtonVisible = show;
 }
@@ -330,7 +305,7 @@ wxString wxSearchCtrl::GetDescriptiveText() const
 
 void wxSearchCtrl::OnChar(wxKeyEvent& key_event)
 {
-    wxCHECK_RET( m_entry != nullptr, "invalid search ctrl" );
+    wxCHECK_RET( m_entry != NULL, "invalid search ctrl" );
 
     if ( key_event.GetKeyCode() == WXK_RETURN )
     {
@@ -384,14 +359,4 @@ void wxSearchCtrl::PopupSearchMenu()
 
 #endif // wxUSE_MENUS
 
-GdkWindow* wxSearchCtrl::GTKGetWindow(wxArrayGdkWindows& windows) const
-{
-#ifdef __WXGTK3__
-    GTKFindWindow(m_widget, windows);
-    return nullptr;
-#else
-    wxUnusedVar(windows);
-    return gtk_entry_get_text_window(GTK_ENTRY(m_widget));
-#endif
-}
 #endif // wxUSE_SEARCHCTRL

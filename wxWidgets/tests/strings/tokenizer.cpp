@@ -251,7 +251,11 @@ void TokenizerTestCase::StrtokCompat()
         if ( ttd.mode != wxTOKEN_STRTOK )
             continue;
 
+#if wxUSE_UNICODE
         wxWCharBuffer
+#else
+        wxCharBuffer
+#endif
             buf(ttd.str);
         wxChar *last;
         wxChar *s = wxStrtok(buf.data(), ttd.delims, &last);
@@ -260,7 +264,7 @@ void TokenizerTestCase::StrtokCompat()
         while ( tkz.HasMoreTokens() )
         {
             CPPUNIT_ASSERT_EQUAL( wxString(s), tkz.GetNextToken() );
-            s = wxStrtok(nullptr, ttd.delims, &last);
+            s = wxStrtok(NULL, ttd.delims, &last);
         }
     }
 }

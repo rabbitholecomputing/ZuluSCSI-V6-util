@@ -2,6 +2,7 @@
 // Name:        src/osx/iphone/glcanvas.mm
 // Purpose:     wxGLCanvas, for using OpenGL with wxWidgets under iPhone
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -134,8 +135,8 @@ bool wxGLCanvas::DoCreate(wxWindow *parent,
 
     // We need a context, otherwise the view will not get an initial
     // Paint Event, making our own samples fail ...
-    WXGLPixelFormat pf = WXGLChoosePixelFormat(nullptr, 0, nullptr, 0);
-    WXGLContext context = WXGLCreateContext(pf, nullptr);
+    WXGLPixelFormat pf = WXGLChoosePixelFormat(NULL, 0, NULL, 0);
+    WXGLContext context = WXGLCreateContext(pf, NULL);
 
     wxUICustomOpenGLView* v = [[wxUICustomOpenGLView alloc] initWithFrame:r context: context ];
 

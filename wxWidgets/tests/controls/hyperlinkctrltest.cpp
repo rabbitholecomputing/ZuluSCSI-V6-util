@@ -20,72 +20,76 @@
 #include "testableframe.h"
 #include "asserthelper.h"
 
-class HyperlinkCtrlTestCase
+class HyperlinkCtrlTestCase : public CppUnit::TestCase
 {
 public:
-    HyperlinkCtrlTestCase()
-    {
-        m_hyperlink = new wxHyperlinkCtrl(wxTheApp->GetTopWindow(), wxID_ANY,
-                                         "wxWidgets", "http://wxwidgets.org");
-    }
+    HyperlinkCtrlTestCase() { }
 
-    ~HyperlinkCtrlTestCase()
-    {
-        delete m_hyperlink;
-    }
+    void setUp() wxOVERRIDE;
+    void tearDown() wxOVERRIDE;
 
-protected:
+private:
+    CPPUNIT_TEST_SUITE( HyperlinkCtrlTestCase );
+        CPPUNIT_TEST( Colour );
+        CPPUNIT_TEST( Url );
+        WXUISIM_TEST( Click );
+    CPPUNIT_TEST_SUITE_END();
+
+    void Colour();
+    void Url();
+    void Click();
+
     wxHyperlinkCtrl* m_hyperlink;
 
     wxDECLARE_NO_COPY_CLASS(HyperlinkCtrlTestCase);
 };
 
-TEST_CASE_METHOD(HyperlinkCtrlTestCase, "wxHyperlinkCtrl::Colour",
-                 "[hyperlinkctrl]")
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( HyperlinkCtrlTestCase );
+
+// also include in its own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( HyperlinkCtrlTestCase, "HyperlinkCtrlTestCase" );
+
+void HyperlinkCtrlTestCase::setUp()
+{
+    m_hyperlink = new wxHyperlinkCtrl(wxTheApp->GetTopWindow(), wxID_ANY,
+                                     "wxWidgets", "http://wxwidgets.org");
+}
+
+void HyperlinkCtrlTestCase::tearDown()
+{
+    wxDELETE(m_hyperlink);
+}
+
+void HyperlinkCtrlTestCase::Colour()
 {
 #ifndef __WXGTK__
-    CHECK(m_hyperlink->GetHoverColour().IsOk());
-    CHECK(m_hyperlink->GetNormalColour().IsOk());
-    CHECK(m_hyperlink->GetVisitedColour().IsOk());
+    CPPUNIT_ASSERT(m_hyperlink->GetHoverColour().IsOk());
+    CPPUNIT_ASSERT(m_hyperlink->GetNormalColour().IsOk());
+    CPPUNIT_ASSERT(m_hyperlink->GetVisitedColour().IsOk());
 
-    // Changing hover colour doesn't work in wxMSW and Wine doesn't seem to
-    // implement either LM_SETITEM or LM_GETITEM correctly, so skip this there.
-#ifdef __WXMSW__
-    if ( wxIsRunningUnderWine() )
-    {
-        WARN("Skipping testing wxHyperlinkCtrl colours under Wine.");
-        return;
-    }
-#else // __WXMSW__
     m_hyperlink->SetHoverColour(*wxGREEN);
-    CHECK( m_hyperlink->GetHoverColour() == *wxGREEN );
-#endif // __WXMSW__/!__WXMSW__
-
     m_hyperlink->SetNormalColour(*wxRED);
-    CHECK( m_hyperlink->GetNormalColour() == *wxRED );
-
     m_hyperlink->SetVisitedColour(*wxBLUE);
-    CHECK( m_hyperlink->GetVisitedColour() == *wxBLUE );
+
+    CPPUNIT_ASSERT_EQUAL(*wxGREEN, m_hyperlink->GetHoverColour());
+    CPPUNIT_ASSERT_EQUAL(*wxRED, m_hyperlink->GetNormalColour());
+    CPPUNIT_ASSERT_EQUAL(*wxBLUE, m_hyperlink->GetVisitedColour());
 #endif
 }
 
-TEST_CASE_METHOD(HyperlinkCtrlTestCase, "wxHyperlinkCtrl::Url",
-                 "[hyperlinkctrl]")
+void HyperlinkCtrlTestCase::Url()
 {
-    CHECK( m_hyperlink->GetURL() == "http://wxwidgets.org" );
+    CPPUNIT_ASSERT_EQUAL("http://wxwidgets.org", m_hyperlink->GetURL());
 
     m_hyperlink->SetURL("http://google.com");
 
-    CHECK( m_hyperlink->GetURL() == "http://google.com" );
+    CPPUNIT_ASSERT_EQUAL("http://google.com", m_hyperlink->GetURL());
 }
 
-TEST_CASE_METHOD(HyperlinkCtrlTestCase, "wxHyperlinkCtrl::Click",
-                 "[hyperlinkctrl]")
+void HyperlinkCtrlTestCase::Click()
 {
 #if wxUSE_UIACTIONSIMULATOR
-    if ( !EnableUITests() )
-        return;
-
     EventCounter hyperlink(m_hyperlink, wxEVT_HYPERLINK);
 
     wxUIActionSimulator sim;
@@ -96,7 +100,7 @@ TEST_CASE_METHOD(HyperlinkCtrlTestCase, "wxHyperlinkCtrl::Click",
     sim.MouseClick();
     wxYield();
 
-    CHECK( hyperlink.GetCount() == 1 );
+    CPPUNIT_ASSERT_EQUAL(1, hyperlink.GetCount());
 #endif
 }
 

@@ -16,22 +16,52 @@
     #include "wx/radiobox.h"
 #endif // WX_PRECOMP
 
+#include "wx/scopedptr.h"
 #include "wx/tooltip.h"
 
-#include <memory>
-
-class RadioBoxTestCase
+class RadioBoxTestCase : public CppUnit::TestCase
 {
-protected:
-    RadioBoxTestCase();
-    ~RadioBoxTestCase();
+public:
+    RadioBoxTestCase() { }
+
+    void setUp() wxOVERRIDE;
+    void tearDown() wxOVERRIDE;
+
+private:
+    CPPUNIT_TEST_SUITE( RadioBoxTestCase );
+        CPPUNIT_TEST( FindString );
+        CPPUNIT_TEST( RowColCount );
+        CPPUNIT_TEST( Enable );
+        CPPUNIT_TEST( Show );
+        CPPUNIT_TEST( HelpText );
+        CPPUNIT_TEST( ToolTip );
+        CPPUNIT_TEST( Selection );
+        CPPUNIT_TEST( Count );
+        CPPUNIT_TEST( SetString );
+    CPPUNIT_TEST_SUITE_END();
+
+    void FindString();
+    void RowColCount();
+    void Enable();
+    void Show();
+    void HelpText();
+    void ToolTip();
+    void Selection();
+    void Count();
+    void SetString();
 
     wxRadioBox* m_radio;
 
     wxDECLARE_NO_COPY_CLASS(RadioBoxTestCase);
 };
 
-RadioBoxTestCase::RadioBoxTestCase()
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( RadioBoxTestCase );
+
+// also include in its own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( RadioBoxTestCase, "RadioBoxTestCase" );
+
+void RadioBoxTestCase::setUp()
 {
     wxArrayString choices;
     choices.push_back("item 0");
@@ -42,20 +72,20 @@ RadioBoxTestCase::RadioBoxTestCase()
                              wxDefaultPosition, wxDefaultSize, choices);
 }
 
-RadioBoxTestCase::~RadioBoxTestCase()
+void RadioBoxTestCase::tearDown()
 {
     wxTheApp->GetTopWindow()->DestroyChildren();
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::FindString", "[radiobox][find]")
+void RadioBoxTestCase::FindString()
 {
-    CHECK( m_radio->FindString("not here") == wxNOT_FOUND );
-    CHECK( m_radio->FindString("item 1") == 1 );
-    CHECK( m_radio->FindString("ITEM 2") == 2 );
-    CHECK( m_radio->FindString("ITEM 2", true) == wxNOT_FOUND );
+    CPPUNIT_ASSERT_EQUAL(wxNOT_FOUND, m_radio->FindString("not here"));
+    CPPUNIT_ASSERT_EQUAL(1, m_radio->FindString("item 1"));
+    CPPUNIT_ASSERT_EQUAL(2, m_radio->FindString("ITEM 2"));
+    CPPUNIT_ASSERT_EQUAL(wxNOT_FOUND, m_radio->FindString("ITEM 2", true));
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::RowColCount", "[radiobox]")
+void RadioBoxTestCase::RowColCount()
 {
 #ifndef __WXGTK__
     wxArrayString choices;
@@ -66,140 +96,140 @@ TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::RowColCount", "[radiobox]")
     m_radio = new wxRadioBox(wxTheApp->GetTopWindow(), wxID_ANY, "RadioBox",
                              wxDefaultPosition, wxDefaultSize, choices, 2);
 
-    CHECK( m_radio->GetColumnCount() == 2 );
-    CHECK( m_radio->GetRowCount() == 2 );
+    CPPUNIT_ASSERT_EQUAL(2, m_radio->GetColumnCount());
+    CPPUNIT_ASSERT_EQUAL(2, m_radio->GetRowCount());
 
     m_radio = new wxRadioBox(wxTheApp->GetTopWindow(), wxID_ANY, "RadioBox",
                              wxDefaultPosition, wxDefaultSize, choices, 1,
                              wxRA_SPECIFY_ROWS);
 
-    CHECK( m_radio->GetColumnCount() == 3 );
-    CHECK( m_radio->GetRowCount() == 1 );
+    CPPUNIT_ASSERT_EQUAL(3, m_radio->GetColumnCount());
+    CPPUNIT_ASSERT_EQUAL(1, m_radio->GetRowCount());
 #endif
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::Enable", "[radiobox][enable]")
+void RadioBoxTestCase::Enable()
 {
 #ifndef __WXOSX__
     m_radio->Enable(false);
 
-    CHECK(!m_radio->IsItemEnabled(0));
+    CPPUNIT_ASSERT(!m_radio->IsItemEnabled(0));
 
     m_radio->Enable(1, true);
 
-    CHECK(!m_radio->IsItemEnabled(0));
-    CHECK(m_radio->IsItemEnabled(1));
-    CHECK(!m_radio->IsItemEnabled(2));
+    CPPUNIT_ASSERT(!m_radio->IsItemEnabled(0));
+    CPPUNIT_ASSERT(m_radio->IsItemEnabled(1));
+    CPPUNIT_ASSERT(!m_radio->IsItemEnabled(2));
 
     m_radio->Enable(true);
 
-    CHECK(m_radio->IsItemEnabled(0));
-    CHECK(m_radio->IsItemEnabled(1));
-    CHECK(m_radio->IsItemEnabled(2));
+    CPPUNIT_ASSERT(m_radio->IsItemEnabled(0));
+    CPPUNIT_ASSERT(m_radio->IsItemEnabled(1));
+    CPPUNIT_ASSERT(m_radio->IsItemEnabled(2));
 
     m_radio->Enable(0, false);
 
-    CHECK(!m_radio->IsItemEnabled(0));
-    CHECK(m_radio->IsItemEnabled(1));
-    CHECK(m_radio->IsItemEnabled(2));
+    CPPUNIT_ASSERT(!m_radio->IsItemEnabled(0));
+    CPPUNIT_ASSERT(m_radio->IsItemEnabled(1));
+    CPPUNIT_ASSERT(m_radio->IsItemEnabled(2));
 #endif
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::Show", "[radiobox][show]")
+void RadioBoxTestCase::Show()
 {
     m_radio->Show(false);
 
-    CHECK(!m_radio->IsItemShown(0));
+    CPPUNIT_ASSERT(!m_radio->IsItemShown(0));
 
     m_radio->Show(1, true);
 
-    CHECK(!m_radio->IsItemShown(0));
-    CHECK(m_radio->IsItemShown(1));
-    CHECK(!m_radio->IsItemShown(2));
+    CPPUNIT_ASSERT(!m_radio->IsItemShown(0));
+    CPPUNIT_ASSERT(m_radio->IsItemShown(1));
+    CPPUNIT_ASSERT(!m_radio->IsItemShown(2));
 
     m_radio->Show(true);
 
-    CHECK(m_radio->IsItemShown(0));
-    CHECK(m_radio->IsItemShown(1));
-    CHECK(m_radio->IsItemShown(2));
+    CPPUNIT_ASSERT(m_radio->IsItemShown(0));
+    CPPUNIT_ASSERT(m_radio->IsItemShown(1));
+    CPPUNIT_ASSERT(m_radio->IsItemShown(2));
 
     m_radio->Show(0, false);
 
-    CHECK(!m_radio->IsItemShown(0));
-    CHECK(m_radio->IsItemShown(1));
-    CHECK(m_radio->IsItemShown(2));
+    CPPUNIT_ASSERT(!m_radio->IsItemShown(0));
+    CPPUNIT_ASSERT(m_radio->IsItemShown(1));
+    CPPUNIT_ASSERT(m_radio->IsItemShown(2));
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::HelpText", "[radiobox][help]")
+void RadioBoxTestCase::HelpText()
 {
-    CHECK( m_radio->GetItemHelpText(0) == wxEmptyString );
+    CPPUNIT_ASSERT_EQUAL(wxEmptyString, m_radio->GetItemHelpText(0));
 
     m_radio->SetItemHelpText(1, "Item 1 help");
 
-    CHECK( m_radio->GetItemHelpText(1) == "Item 1 help" );
+    CPPUNIT_ASSERT_EQUAL("Item 1 help", m_radio->GetItemHelpText(1));
 
     m_radio->SetItemHelpText(1, "");
 
-    CHECK( m_radio->GetItemHelpText(1) == wxEmptyString );
+    CPPUNIT_ASSERT_EQUAL(wxEmptyString, m_radio->GetItemHelpText(1));
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::ToolTip", "[radiobox][tooltip]")
+void RadioBoxTestCase::ToolTip()
 {
-#if defined (__WXMSW__) || defined(__WXGTK__) || defined(__WXQT__)
+#if defined (__WXMSW__) || defined(__WXGTK__)
     //GetItemToolTip returns null if there is no tooltip set
-    CHECK(!m_radio->GetItemToolTip(0));
+    CPPUNIT_ASSERT(!m_radio->GetItemToolTip(0));
 
     m_radio->SetItemToolTip(1, "Item 1 help");
 
-    CHECK( m_radio->GetItemToolTip(1)->GetTip() == "Item 1 help" );
+    CPPUNIT_ASSERT_EQUAL("Item 1 help", m_radio->GetItemToolTip(1)->GetTip());
 
     m_radio->SetItemToolTip(1, "");
 
     //However if we set a blank tip this does count as a tooltip
-    CHECK(!m_radio->GetItemToolTip(1));
+    CPPUNIT_ASSERT(!m_radio->GetItemToolTip(1));
 #endif
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::Selection", "[radiobox][selection]")
+void RadioBoxTestCase::Selection()
 {
     //Until other item containers the first item is selected by default
-    CHECK( m_radio->GetSelection() == 0 );
-    CHECK( m_radio->GetStringSelection() == "item 0" );
+    CPPUNIT_ASSERT_EQUAL(0, m_radio->GetSelection());
+    CPPUNIT_ASSERT_EQUAL("item 0", m_radio->GetStringSelection());
 
     m_radio->SetSelection(1);
 
-    CHECK( m_radio->GetSelection() == 1 );
-    CHECK( m_radio->GetStringSelection() == "item 1" );
+    CPPUNIT_ASSERT_EQUAL(1, m_radio->GetSelection());
+    CPPUNIT_ASSERT_EQUAL("item 1", m_radio->GetStringSelection());
 
     m_radio->SetStringSelection("item 2");
 
-    CHECK( m_radio->GetSelection() == 2 );
-    CHECK( m_radio->GetStringSelection() == "item 2" );
+    CPPUNIT_ASSERT_EQUAL(2, m_radio->GetSelection());
+    CPPUNIT_ASSERT_EQUAL("item 2", m_radio->GetStringSelection());
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::Count", "[radiobox]")
+void RadioBoxTestCase::Count()
 {
     //A trivial test for the item count as items can neither
     //be added or removed
-    CHECK( m_radio->GetCount() == 3 );
-    CHECK(!m_radio->IsEmpty());
+    CPPUNIT_ASSERT_EQUAL(3, m_radio->GetCount());
+    CPPUNIT_ASSERT(!m_radio->IsEmpty());
 }
 
-TEST_CASE_METHOD(RadioBoxTestCase, "RadioBox::SetString", "[radiobox]")
+void RadioBoxTestCase::SetString()
 {
     m_radio->SetString(0, "new item 0");
     m_radio->SetString(2, "");
 
-    CHECK( m_radio->GetString(0) == "new item 0" );
-    CHECK( m_radio->GetString(2) == "" );
+    CPPUNIT_ASSERT_EQUAL("new item 0", m_radio->GetString(0));
+    CPPUNIT_ASSERT_EQUAL("", m_radio->GetString(2));
 }
 
 TEST_CASE("RadioBox::NoItems", "[radiobox]")
 {
-    std::unique_ptr<wxRadioBox>
+    wxScopedPtr<wxRadioBox>
         radio(new wxRadioBox(wxTheApp->GetTopWindow(), wxID_ANY, "Empty",
                              wxDefaultPosition, wxDefaultSize,
-                             0, nullptr,
+                             0, NULL,
                              1, wxRA_SPECIFY_COLS));
 
     CHECK( radio->GetCount() == 0 );

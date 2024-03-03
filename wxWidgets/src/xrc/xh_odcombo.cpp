@@ -49,7 +49,7 @@ wxObject *wxOwnerDrawnComboBoxXmlHandler::DoCreateResource()
 
         // need to build the list of strings from children
         m_insideBox = true;
-        CreateChildrenPrivately(nullptr, GetParamNode(wxT("content")));
+        CreateChildrenPrivately(NULL, GetParamNode(wxT("content")));
 
         XRC_MAKE_INSTANCE(control, wxOwnerDrawnComboBox)
 
@@ -84,7 +84,7 @@ wxObject *wxOwnerDrawnComboBoxXmlHandler::DoCreateResource()
         // add to the list
         strList.Add(GetNodeText(m_node, wxXRC_TEXT_NO_ESCAPE));
 
-        return nullptr;
+        return NULL;
     }
 }
 

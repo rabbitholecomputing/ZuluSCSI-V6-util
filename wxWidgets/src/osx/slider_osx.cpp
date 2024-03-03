@@ -2,6 +2,7 @@
 // Name:        src/osx/slider_osx.cpp
 // Purpose:     wxSlider
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
@@ -43,9 +44,9 @@ wxSlider::wxSlider()
     m_rangeMin = 0;
     m_tickFreq = 0;
 
-    m_macMinimumStatic = nullptr;
-    m_macMaximumStatic = nullptr;
-    m_macValueStatic = nullptr;
+    m_macMinimumStatic = NULL;
+    m_macMaximumStatic = NULL;
+    m_macValueStatic = NULL;
 }
 
 bool wxSlider::Create(wxWindow *parent,
@@ -58,9 +59,9 @@ bool wxSlider::Create(wxWindow *parent,
 {    
     DontCreatePeer();
     
-    m_macMinimumStatic = nullptr;
-    m_macMaximumStatic = nullptr;
-    m_macValueStatic = nullptr;
+    m_macMinimumStatic = NULL;
+    m_macMaximumStatic = NULL;
+    m_macValueStatic = NULL;
 
     m_lineSize = 1;
     m_tickFreq = 0;

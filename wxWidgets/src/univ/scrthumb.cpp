@@ -2,6 +2,7 @@
 // Name:        src/univ/scrthumb.cpp
 // Purpose:     wxScrollThumb and related classes
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     13.02.01
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -41,7 +42,7 @@ struct WXDLLEXPORT wxScrollThumbCaptureData
     {
         m_shaftPart = part;
         m_btnCapture = btn;
-        m_timerScroll = nullptr;
+        m_timerScroll = NULL;
 
         m_window = control->GetWindow();
         m_window->CaptureMouse();
@@ -134,7 +135,7 @@ wxScrollThumb::wxScrollThumb(wxControlWithThumb *control)
 {
     m_shaftPart = Shaft_None;
     m_control = control;
-    m_captureData = nullptr;
+    m_captureData = NULL;
 }
 
 wxScrollThumb::~wxScrollThumb()
@@ -142,7 +143,7 @@ wxScrollThumb::~wxScrollThumb()
     // make sure the mouse capture data will be released
     // when destroy the thumb.
     delete m_captureData;
-    wxConstCast(this, wxScrollThumb)->m_captureData = nullptr;
+    wxConstCast(this, wxScrollThumb)->m_captureData = NULL;
 }
 
 // ----------------------------------------------------------------------------
@@ -219,7 +220,7 @@ bool wxScrollThumb::HandleMouse(const wxMouseEvent& event) const
 
         // release the mouse and free capture data
         delete m_captureData;
-        wxConstCast(this, wxScrollThumb)->m_captureData = nullptr;
+        wxConstCast(this, wxScrollThumb)->m_captureData = NULL;
 
         m_control->SetShaftPartState(shaftPart, wxCONTROL_PRESSED, false);
     }

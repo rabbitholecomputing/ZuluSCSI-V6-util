@@ -38,7 +38,7 @@ bool wxSocketFDBasedManager::OnInit()
         return false;
 
     m_fdioManager = traits->GetFDIOManager();
-    return m_fdioManager != nullptr;
+    return m_fdioManager != NULL;
 }
 
 void wxSocketFDBasedManager::Install_Callback(wxSocketImpl *socket_,

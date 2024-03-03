@@ -26,6 +26,8 @@
     #include "wx/log.h"
 #endif //WX_PRECOMP
 
+#include "wx/scopedptr.h"
+
 #include "wx/gtk/private/wrapgtk.h"
 #include "wx/gtk/private/backend.h"
 #ifdef GDK_WINDOWING_WAYLAND
@@ -39,9 +41,24 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#include <memory>
+static const char* TRACE_EGL = "glegl";
 
-constexpr const char* TRACE_EGL = "glegl";
+#ifdef GDK_WINDOWING_WAYLAND
+
+#include "wx/hashset.h"
+
+namespace
+{
+
+// Define the equivalent of unordered_set<wxGLCanvasEGL*>.
+WX_DECLARE_HASH_SET(wxGLCanvasEGL*, wxPointerHash, wxPointerEqual, wxGLCanvasSet);
+
+// And use it to remember which objects already called eglSwapInterval().
+wxGLCanvasSet gs_alreadySetSwapInterval;
+
+} // anonymous namespace
+
+#endif // GDK_WINDOWING_WAYLAND
 
 // ----------------------------------------------------------------------------
 // wxGLContextAttrs: OpenGL rendering context attributes
@@ -271,6 +288,18 @@ wxGLAttributes& wxGLAttributes::PlatformDefaults()
     return *this;
 }
 
+wxGLAttributes& wxGLAttributes::Defaults()
+{
+    RGBA().DoubleBuffer().Depth(16).SampleBuffers(1).Samplers(4);
+    return *this;
+}
+
+void wxGLAttributes::AddDefaultsForWXBefore31()
+{
+    // ParseAttribList() will add EndList(), don't do it now
+    DoubleBuffer();
+}
+
 
 // ============================================================================
 // wxGLContext implementation
@@ -281,9 +310,9 @@ wxIMPLEMENT_CLASS(wxGLContext, wxObject);
 wxGLContext::wxGLContext(wxGLCanvas *win,
                          const wxGLContext *other,
                          const wxGLContextAttrs *ctxAttrs)
-    : m_glContext(nullptr)
+    : m_glContext(NULL)
 {
-    const int* contextAttribs = nullptr;
+    const int* contextAttribs = NULL;
 
     if ( ctxAttrs )
     {
@@ -341,16 +370,16 @@ bool wxGLContext::SetCurrent(const wxGLCanvas& win) const
 
 wxGLCanvasEGL::wxGLCanvasEGL()
 {
-    m_config = nullptr;
-    m_display = nullptr;
+    m_config = NULL;
+    m_display = NULL;
     m_surface = EGL_NO_SURFACE;
-    m_wlCompositor = nullptr;
-    m_wlSubcompositor = nullptr;
-    m_wlFrameCallbackHandler = nullptr;
-    m_wlEGLWindow = nullptr;
-    m_wlSurface = nullptr;
-    m_wlRegion = nullptr;
-    m_wlSubsurface = nullptr;
+    m_wlCompositor = NULL;
+    m_wlSubcompositor = NULL;
+    m_wlFrameCallbackHandler = NULL;
+    m_wlEGLWindow = NULL;
+    m_wlSurface = NULL;
+    m_wlRegion = NULL;
+    m_wlSubsurface = NULL;
     m_readyToDraw = false;
 }
 
@@ -361,7 +390,7 @@ bool wxGLCanvasEGL::InitVisual(const wxGLAttributes& dispAttrs)
     {
         wxFAIL_MSG("Failed to get an EGLConfig for the requested attributes.");
     }
-    return m_config != nullptr;
+    return m_config != NULL;
 }
 
 /* static */
@@ -372,14 +401,14 @@ EGLDisplay wxGLCanvasEGL::GetDisplay()
                                                  const EGLAttrib* attrib_list);
 
     // Try loading the appropriate EGL function on first use.
-    static GetPlatformDisplayFunc s_eglGetPlatformDisplay = nullptr;
+    static GetPlatformDisplayFunc s_eglGetPlatformDisplay = NULL;
     static bool s_eglGetPlatformDisplayInitialized = false;
     if ( !s_eglGetPlatformDisplayInitialized )
     {
         s_eglGetPlatformDisplayInitialized = true;
 
         if ( wxGLCanvasBase::IsExtensionInList(
-                eglQueryString(nullptr, EGL_EXTENSIONS),
+                eglQueryString(NULL, EGL_EXTENSIONS),
                 "EGL_EXT_platform_base") )
         {
             s_eglGetPlatformDisplay = reinterpret_cast<GetPlatformDisplayFunc>(
@@ -416,7 +445,7 @@ EGLDisplay wxGLCanvasEGL::GetDisplay()
 
     wxCHECK_MSG( platform, EGL_NO_DISPLAY, "unknown display type" );
 
-    return s_eglGetPlatformDisplay(platform, info.dpy, nullptr);
+    return s_eglGetPlatformDisplay(platform, info.dpy, NULL);
 }
 
 void wxGLCanvasEGL::OnWLFrameCallback()
@@ -535,7 +564,7 @@ bool wxGLCanvasEGL::CreateSurface()
 
         m_xwindow = GDK_WINDOW_XID(window);
         m_surface = eglCreatePlatformWindowSurface(m_display, *m_config,
-                                                   &m_xwindow, nullptr);
+                                                   &m_xwindow, NULL);
     }
 #endif
 #ifdef GDK_WINDOWING_WAYLAND
@@ -567,11 +596,11 @@ bool wxGLCanvasEGL::CreateSurface()
         m_wlEGLWindow = wl_egl_window_create(m_wlSurface, w * scale,
                                              h * scale);
         m_surface = eglCreatePlatformWindowSurface(m_display, *m_config,
-                                                   m_wlEGLWindow, nullptr);
+                                                   m_wlEGLWindow, NULL);
 
         // We need to use "map-event" instead of "map" to ensure that the
         // widget's underlying Wayland surface has been created.
-        // Otherwise, gdk_wayland_window_get_wl_surface may return nullptr,
+        // Otherwise, gdk_wayland_window_get_wl_surface may return NULL,
         // for example when hiding then showing a window containing a canvas.
         gtk_widget_add_events(m_widget, GDK_STRUCTURE_MASK);
         g_signal_connect(m_widget, "map-event",
@@ -604,6 +633,8 @@ wxGLCanvasEGL::~wxGLCanvasEGL()
     DestroyWaylandSubsurface();
     g_clear_pointer(&m_wlEGLWindow, wl_egl_window_destroy);
     g_clear_pointer(&m_wlSurface, wl_surface_destroy);
+
+    gs_alreadySetSwapInterval.erase(this);
 #endif
 }
 
@@ -631,13 +662,17 @@ void wxGLCanvasEGL::CreateWaylandSubsurface()
     m_wlSubsurface = wl_subcompositor_get_subsurface(m_wlSubcompositor,
                                                      m_wlSurface,
                                                      surface);
-    wxCHECK_RET( m_wlSubsurface, "Unable to get EGL subsurface" );
-
     wl_subsurface_set_desync(m_wlSubsurface);
     wxEGLUpdatePosition(this);
     m_wlFrameCallbackHandler = wl_surface_frame(surface);
     wl_callback_add_listener(m_wlFrameCallbackHandler,
                              &wl_frame_listener, this);
+
+    if ( m_surface == EGL_NO_SURFACE )
+    {
+        wxFAIL_MSG("Unable to create EGL surface");
+        return;
+    }
 #endif
 }
 
@@ -670,13 +705,13 @@ EGLConfig *wxGLCanvasEGL::InitConfig(const wxGLAttributes& dispAttrs)
     if ( !attrsList )
     {
         wxFAIL_MSG("wxGLAttributes object is empty.");
-        return nullptr;
+        return NULL;
     }
 
     EGLDisplay dpy = GetDisplay();
     if ( dpy == EGL_NO_DISPLAY ) {
         wxFAIL_MSG("Unable to get EGL Display");
-        return nullptr;
+        return NULL;
     }
 
     EGLint eglMajor = 0;
@@ -684,7 +719,7 @@ EGLConfig *wxGLCanvasEGL::InitConfig(const wxGLAttributes& dispAttrs)
     if ( !eglInitialize(dpy, &eglMajor, &eglMinor) )
     {
         wxFAIL_MSG("eglInitialize failed");
-        return nullptr;
+        return NULL;
     }
 
     // The runtime EGL version cannot be known until EGL has been initialized.
@@ -695,12 +730,12 @@ EGLConfig *wxGLCanvasEGL::InitConfig(const wxGLAttributes& dispAttrs)
         wxLogError(wxString::Format(
             "EGL version is %d.%d. EGL version 1.5 or greater is required.",
             eglMajor, eglMinor));
-        return nullptr;
+        return NULL;
     }
 
     if ( !eglBindAPI(EGL_OPENGL_API) ) {
         wxFAIL_MSG("eglBindAPI failed");
-        return nullptr;
+        return NULL;
     }
 
     EGLConfig *config = new EGLConfig;
@@ -713,15 +748,15 @@ EGLConfig *wxGLCanvasEGL::InitConfig(const wxGLAttributes& dispAttrs)
     else
     {
         delete config;
-        return nullptr;
+        return NULL;
     }
 }
 
 /* static */
 bool wxGLCanvasBase::IsDisplaySupported(const wxGLAttributes& dispAttrs)
 {
-    std::unique_ptr<EGLConfig> config(wxGLCanvasEGL::InitConfig(dispAttrs));
-    return config != nullptr;
+    wxScopedPtr<EGLConfig> config(wxGLCanvasEGL::InitConfig(dispAttrs));
+    return config != NULL;
 }
 
 /* static */
@@ -737,7 +772,7 @@ bool wxGLCanvasBase::IsDisplaySupported(const int *attribList)
 // default visual management
 // ----------------------------------------------------------------------------
 
-EGLConfig *wxGLCanvasEGL::ms_glEGLConfig = nullptr;
+EGLConfig *wxGLCanvasEGL::ms_glEGLConfig = NULL;
 
 /* static */
 bool wxGLCanvasEGL::InitDefaultConfig(const int *attribList)
@@ -747,7 +782,7 @@ bool wxGLCanvasEGL::InitDefaultConfig(const int *attribList)
     ParseAttribList(attribList, dispAttrs);
 
     ms_glEGLConfig = InitConfig(dispAttrs);
-    return ms_glEGLConfig != nullptr;
+    return ms_glEGLConfig != NULL;
 }
 
 /* static */
@@ -756,7 +791,7 @@ void wxGLCanvasEGL::FreeDefaultConfig()
     if ( ms_glEGLConfig )
     {
         delete ms_glEGLConfig;
-        ms_glEGLConfig = nullptr;
+        ms_glEGLConfig = NULL;
     }
 }
 
@@ -775,7 +810,7 @@ bool wxGLCanvasEGL::SwapBuffers()
     // entire application completely unusable just because one of its windows
     // using wxGLCanvas got occluded or unmapped (e.g. due to a move to another
     // workspace).
-    if ( !m_swapIntervalSet )
+    if ( !gs_alreadySetSwapInterval.count(this) )
     {
         // Ensure that eglSwapBuffers() doesn't block, as we use the surface
         // callback to know when we should draw ourselves already.
@@ -784,7 +819,7 @@ bool wxGLCanvasEGL::SwapBuffers()
             wxLogTrace(TRACE_EGL, "Set EGL swap interval to 0 for %p", this);
 
             // It shouldn't be necessary to set it again.
-            m_swapIntervalSet = true;
+            gs_alreadySetSwapInterval.insert(this);
         }
         else
         {
@@ -797,8 +832,6 @@ bool wxGLCanvasEGL::SwapBuffers()
 #ifdef GDK_WINDOWING_X11
     if (wxGTKImpl::IsX11(window))
     {
-        // TODO: We need to check if it's really shown on screen, i.e. if it's
-        // not completely occluded even if it hadn't been explicitly hidden.
         if ( !IsShownOnScreen() )
         {
             // Trying to draw on a hidden window is useless.

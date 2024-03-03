@@ -26,7 +26,7 @@
 wxIMPLEMENT_DYNAMIC_CLASS(wxListbookXmlHandler, wxXmlResourceHandler);
 
 wxListbookXmlHandler::wxListbookXmlHandler()
-                    : m_listbook(nullptr)
+                    : m_listbook(NULL)
 {
     XRC_ADD_STYLE(wxBK_DEFAULT);
     XRC_ADD_STYLE(wxBK_LEFT);

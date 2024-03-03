@@ -569,6 +569,7 @@ public:
             One of the ::wxFontWeight enumeration values.
         @param underline
             The value can be @true or @false.
+            At present this has an effect on Windows and Motif 2.x only.
         @param faceName
             An optional string specifying the face name to be used.
             If it is an empty string, a default face name will be chosen based on the family.
@@ -606,6 +607,7 @@ public:
             One of the ::wxFontWeight enumeration values.
         @param underline
             The value can be @true or @false.
+            At present this has an effect on Windows and Motif 2.x only.
         @param faceName
             An optional string specifying the face name to be used.
             If it is an empty string, a default face name will be chosen based on the family.
@@ -636,6 +638,20 @@ public:
        Construct font from a native font info structure.
     */
     wxFont(const wxNativeFontInfo& nativeInfo);
+
+    /**
+        Destructor.
+
+        See @ref overview_refcount_destruct "reference-counted object destruction"
+        for more info.
+
+        @remarks Although all remaining fonts are deleted when the application
+                 exits, the application should try to clean up all fonts
+                 itself. This is because wxWidgets cannot know if a
+                 pointer to the font object is stored in an application
+                 data structure, and there is a risk of double deletion.
+    */
+    virtual ~wxFont();
 
 
     /**
@@ -724,11 +740,11 @@ public:
         the given file even if it is not globally installed on the system.
 
         Under macOS this method actually doesn't do anything other than check
-        for the existence of the file and that it is located inside the "Fonts"
-        subdirectory of the application bundle "Resources" directory. You are
-        responsible for actually making the font file available in this
-        directory and setting @c ATSApplicationFontsPath to @c Fonts value in
-        your @c Info.plist file. See also wxStandardPaths::GetResourcesDir().
+        for the existence of the file in the "Fonts" subdirectory of the
+        application bundle "Resources" directory. You are responsible for
+        actually making the font file available in this directory and setting
+        @c ATSApplicationFontsPath to @c Fonts value in your @c Info.plist
+        file. See also wxStandardPaths::GetResourcesDir().
 
         Under MSW this method must be called before any wxGraphicsContext
         objects have been created, otherwise the private font won't be usable
@@ -743,7 +759,6 @@ public:
         @c wxUSE_PRIVATE_FONTS is always set to 0 under the other platforms,
         making this function unavailable at compile-time.
 
-        @param filename Absolute path of the font file.
         @return @true if the font was added and can now be used.
 
         @since 3.1.1
@@ -1374,12 +1389,6 @@ public:
     /**
         Finds a font of the given specification, or creates one and adds it to the
         list. See the @ref wxFont "wxFont constructor" for details of the arguments.
-
-        Note that in the new code it's preferable to use FindOrCreateFont()
-        overload taking wxFontInfo, as it can be used for the fonts with
-        fractional point sizes or fonts with sizes specified in pixels, unlike
-        this overload which can only be used with the fonts using integer size
-        in points.
     */
     wxFont* FindOrCreateFont(int point_size, wxFontFamily family, wxFontStyle style,
                              wxFontWeight weight, bool underline = false,
@@ -1389,16 +1398,6 @@ public:
     /**
         Finds a font of the given specification, or creates one and adds it to the
         list. See the @ref wxFont "wxFont constructor" for details of the arguments.
-
-        Example of using this function to retrieve (creating it if necessary) a
-        bold font of size 20:
-
-        @code
-            wxFont* font = wxTheFontList->FindOrCreateFont(wxFontInfo(20).Bold());
-        @endcode
-
-        @return Font pointer which must @e not be deleted by the caller. The
-            pointer is normally always valid, i.e. non-null.
 
         @since 3.1.1
     */

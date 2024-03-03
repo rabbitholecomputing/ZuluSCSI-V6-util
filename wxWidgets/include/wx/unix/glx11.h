@@ -23,11 +23,11 @@ class WXDLLIMPEXP_GL wxGLContext : public wxGLContextBase
 {
 public:
     wxGLContext(wxGLCanvas *win,
-                const wxGLContext *other = nullptr,
-                const wxGLContextAttrs *ctxAttrs = nullptr);
+                const wxGLContext *other = NULL,
+                const wxGLContextAttrs *ctxAttrs = NULL);
     virtual ~wxGLContext();
 
-    virtual bool SetCurrent(const wxGLCanvas& win) const override;
+    virtual bool SetCurrent(const wxGLCanvas& win) const wxOVERRIDE;
 
 private:
     GLXContext m_glContext;
@@ -58,7 +58,7 @@ public:
     // implement wxGLCanvasBase methods
     // --------------------------------
 
-    virtual bool SwapBuffers() override;
+    virtual bool SwapBuffers() wxOVERRIDE;
 
 
     // X11-specific methods
@@ -82,7 +82,7 @@ public:
 
     // return true only if the window is realized: OpenGL context can't be
     // created until we are
-    virtual bool IsShownOnScreen() const override;
+    virtual bool IsShownOnScreen() const wxOVERRIDE;
 
 
     // implementation only from now on
@@ -99,8 +99,6 @@ public:
 private:
     GLXFBConfig *m_fbc;
     void* m_vi;
-
-    bool m_swapIntervalSet = false;
 };
 
 // ----------------------------------------------------------------------------
@@ -113,15 +111,15 @@ private:
 class WXDLLIMPEXP_GL wxGLApp : public wxGLAppBase
 {
 public:
-    virtual bool InitGLVisual(const int *attribList) override;
+    virtual bool InitGLVisual(const int *attribList) wxOVERRIDE;
 
     // This method is not currently used by the library itself, but remains for
     // backwards compatibility and also because wxGTK has it we could start
     // using it for the same purpose in wxX11 too some day.
-    virtual void* GetXVisualInfo() override;
+    virtual void* GetXVisualInfo() wxOVERRIDE;
 
     // and override this wxApp method to clean up
-    virtual int OnExit() override;
+    virtual int OnExit() wxOVERRIDE;
 
 private:
     wxDECLARE_DYNAMIC_CLASS(wxGLApp);

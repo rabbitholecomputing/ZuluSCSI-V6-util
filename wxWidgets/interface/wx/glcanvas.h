@@ -511,8 +511,8 @@ public:
             driver defaults will be used.
     */
     wxGLContext(wxGLCanvas* win,
-                const wxGLContext* other = nullptr,
-                const wxGLContextAttrs* ctxAttrs = nullptr);
+                const wxGLContext* other = NULL,
+                const wxGLContextAttrs* ctxAttrs = NULL);
 
     /**
         Checks if the underlying OpenGL rendering context was correctly created
@@ -774,8 +774,8 @@ enum
         libraries are found.
         On Windows, OpenGL support is enabled by default (@c wxUSE_GLCANVAS set
         to @c 1 in the @c setup.h file). If your program links with wxWidgets
-        statically, you need to add @c opengl32.lib to the list of libraries
-        your program is linked with.
+        statically, you need to add @c opengl32.lib (and @c glu32.lib for old
+        OpenGL versions) to the list of the libraries your program is linked with.
 
     @library{wxgl}
     @category{gl}
@@ -785,15 +785,6 @@ enum
 class wxGLCanvas : public wxWindow
 {
 public:
-    /**
-        Default constructor not creating the window.
-
-        Create() must be used to actually create it later.
-
-        @since 3.3.0
-     */
-    wxGLCanvas();
-
     /**
         Creates a window with the given parameters. Notice that you need to
         create and use a wxGLContext to output to this window.
@@ -880,7 +871,7 @@ public:
             under most platforms.
     */
     wxGLCanvas(wxWindow* parent, wxWindowID id = wxID_ANY,
-               const int* attribList = nullptr,
+               const int* attribList = NULL,
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize,
                long style = 0,

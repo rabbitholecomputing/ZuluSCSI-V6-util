@@ -2,6 +2,7 @@
 // Name:        src/gtk/msgdlg.cpp
 // Purpose:     wxMessageDialog for GTK+2
 // Author:      Vaclav Slavik
+// Modified by:
 // Created:     2003/02/28
 // Copyright:   (c) Vaclav Slavik, 2003
 // Licence:     wxWindows licence
@@ -11,7 +12,7 @@
 #include "wx/wxprec.h"
 
 
-#if wxUSE_MSGDLG
+#if wxUSE_MSGDLG && !defined(__WXGPE__)
 
 #include "wx/msgdlg.h"
 
@@ -110,10 +111,10 @@ void wxMessageDialog::DoSetCustomLabel(wxString& var, const ButtonLabel& label)
 void wxMessageDialog::GTKCreateMsgDialog()
 {
     // Avoid crash if wxMessageBox() is called before GTK is initialized
-    if (g_type_class_peek(GDK_TYPE_DISPLAY) == nullptr)
+    if (g_type_class_peek(GDK_TYPE_DISPLAY) == NULL)
         return;
 
-    GtkWindow * const parent = m_parent ? GTK_WINDOW(m_parent->m_widget) : nullptr;
+    GtkWindow * const parent = m_parent ? GTK_WINDOW(m_parent->m_widget) : NULL;
 
     GtkMessageType type = GTK_MESSAGE_ERROR;
     GtkButtonsType buttons = GTK_BUTTONS_NONE;
@@ -163,7 +164,7 @@ void wxMessageDialog::GTKCreateMsgDialog()
                                       type,
                                       buttons,
                                       "%s",
-                                      (const char*)message.utf8_str());
+                                      (const char*)wxGTK_CONV(message));
 
     if ( needsExtMessage )
     {
@@ -171,14 +172,14 @@ void wxMessageDialog::GTKCreateMsgDialog()
         (
             (GtkMessageDialog *)m_widget,
             "%s",
-            (const char *)m_extendedMessage.utf8_str()
+            (const char *)wxGTK_CONV(m_extendedMessage)
         );
     }
 
     g_object_ref(m_widget);
 
     if (m_caption != wxMessageBoxCaptionStr)
-        gtk_window_set_title(GTK_WINDOW(m_widget), m_caption.utf8_str());
+        gtk_window_set_title(GTK_WINDOW(m_widget), wxGTK_CONV(m_caption));
 
     GtkDialog * const dlg = GTK_DIALOG(m_widget);
 
@@ -216,7 +217,7 @@ void wxMessageDialog::GTKCreateMsgDialog()
     {
         if ( m_dialogStyle & wxHELP )
         {
-            gtk_dialog_add_button(dlg, GetHelpLabel().utf8_str(),
+            gtk_dialog_add_button(dlg, wxGTK_CONV(GetHelpLabel()),
                                   GTK_RESPONSE_HELP);
         }
 
@@ -228,24 +229,24 @@ void wxMessageDialog::GTKCreateMsgDialog()
             //
             // [Help]                  [Alternative] [Cancel] [Affirmative]
 
-            gtk_dialog_add_button(dlg, GetNoLabel().utf8_str(),
+            gtk_dialog_add_button(dlg, wxGTK_CONV(GetNoLabel()),
                                   GTK_RESPONSE_NO);
 
             if ( m_dialogStyle & wxCANCEL )
             {
-                gtk_dialog_add_button(dlg, GetCancelLabel().utf8_str(),
+                gtk_dialog_add_button(dlg, wxGTK_CONV(GetCancelLabel()),
                                       GTK_RESPONSE_CANCEL);
             }
 
-            gtk_dialog_add_button(dlg, GetYesLabel().utf8_str(),
+            gtk_dialog_add_button(dlg, wxGTK_CONV(GetYesLabel()),
                                   GTK_RESPONSE_YES);
         }
         else // Ok or Ok/Cancel dialog
         {
-            gtk_dialog_add_button(dlg, GetOKLabel().utf8_str(), GTK_RESPONSE_OK);
+            gtk_dialog_add_button(dlg, wxGTK_CONV(GetOKLabel()), GTK_RESPONSE_OK);
             if ( m_dialogStyle & wxCANCEL )
             {
-                gtk_dialog_add_button(dlg, GetCancelLabel().utf8_str(),
+                gtk_dialog_add_button(dlg, wxGTK_CONV(GetCancelLabel()),
                                       GTK_RESPONSE_CANCEL);
             }
         }
@@ -293,7 +294,7 @@ int wxMessageDialog::ShowModal()
     GTKDisconnect(m_widget);
     gtk_widget_destroy(m_widget);
     g_object_unref(m_widget);
-    m_widget = nullptr;
+    m_widget = NULL;
 
     switch (result)
     {
@@ -317,4 +318,4 @@ int wxMessageDialog::ShowModal()
 }
 
 
-#endif // wxUSE_MSGDLG
+#endif // wxUSE_MSGDLG && !defined(__WXGPE__)

@@ -62,7 +62,7 @@ enum
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 #if wxUSE_UIACTIONSIMULATOR
@@ -133,7 +133,7 @@ bool MyApp::OnInit()
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title)
-       : wxFrame(nullptr, wxID_ANY, title)
+       : wxFrame(NULL, wxID_ANY, title)
 {
     SetIcon(wxICON(sample));
 

@@ -20,7 +20,7 @@ class WXDLLIMPEXP_CORE wxStaticLine : public wxStaticLineBase
 {
 public:
     // constructors and pseudo-constructors
-    wxStaticLine() : m_statbox(nullptr) { }
+    wxStaticLine() : m_statbox(NULL) { }
 
     wxStaticLine( wxWindow *parent,
                   wxWindowID id = wxID_ANY,
@@ -28,7 +28,7 @@ public:
                   const wxSize &size = wxDefaultSize,
                   long style = wxLI_HORIZONTAL,
                   const wxString &name = wxASCII_STR(wxStaticLineNameStr) )
-        : m_statbox(nullptr)
+        : m_statbox(NULL)
     {
         Create(parent, id, pos, size, style, name);
     }

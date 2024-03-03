@@ -7,42 +7,42 @@
 
 
 
-prefix = /usr/local
+prefix = /mingw64
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
-INSTALL = /usr/local/bin/ginstall -c
-EXEEXT = 
-LN_S = ln -s
+INSTALL = /usr/bin/install -c
+EXEEXT = .exe
+LN_S = cp -pR
 STRIP = strip
-INSTALL_PROGRAM = cp -fp
+INSTALL_PROGRAM = ${INSTALL}
 INSTALL_DIR = mkdir -p
-BK_DEPS = /Users/heron/Development/wxWidgets/bk-deps
+BK_DEPS = /home/gregc/Development/wxWidgets/bk-deps
 srcdir = .
 top_srcdir = ../..
 bindir = ${exec_prefix}/bin
-LIBS = -lz -framework Security -lpthread -liconv -lcurl
-CXX = g++ -std=gnu++11 -mmacosx-version-min=10.10
+LIBS = -lz -lrpcrt4 -loleaut32 -lole32 -luuid -lcurl -luxtheme -lwinspool -lwinmm -lshell32 -lshlwapi -lcomctl32 -lcomdlg32 -ladvapi32 -lversion -lws2_32 -lgdi32 -loleacc -lwinhttp
+CXX = g++
 CXXFLAGS = 
 CPPFLAGS = 
 LDFLAGS = 
 WX_FLAVOUR = 
 WX_LIB_FLAVOUR = 
-TOOLKIT = OSX_COCOA
-TOOLKIT_LOWERCASE = osx_cocoa
+TOOLKIT = MSW
+TOOLKIT_LOWERCASE = msw
 TOOLKIT_VERSION = 
-EXTRALIBS =   -framework IOKit -framework Carbon -framework Cocoa -framework QuartzCore -framework AudioToolbox -framework System -framework OpenGL  -lz -framework Security -lpthread -liconv -lcurl -L/usr/local/Cellar/pcre2/10.42/lib -lpcre2-32 
+EXTRALIBS =    -lz -lrpcrt4 -loleaut32 -lole32 -luuid -lcurl -luxtheme -lwinspool -lwinmm -lshell32 -lshlwapi -lcomctl32 -lcomdlg32 -ladvapi32 -lversion -lws2_32 -lgdi32 -loleacc -lwinhttp -lpcre2-16 
 EXTRALIBS_XML =  -lexpat
-EXTRALIBS_GUI = -lpng -lz -ljpeg -L/usr/local/Cellar/libtiff/4.6.0/lib -ltiff -framework WebKit
-WX_CPPFLAGS = -I${wx_top_builddir}/lib/wx/include/osx_cocoa-unicode-3.3 -I${top_srcdir}/include -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE= 
-WX_CXXFLAGS = -Wall -Wundef -Wunused-parameter -Wno-ctor-dtor-privacy -Woverloaded-virtual -Wno-deprecated-declarations -O2 -I/usr/local/Cellar/libtiff/4.6.0/include -I/usr/local/Cellar/zstd/1.5.5/include -I/usr/local/Cellar/xz/5.4.5/include -I/usr/local/Cellar/jpeg-turbo/3.0.1/include -I/usr/local/Cellar/pcre2/10.42/include -fno-common  -fvisibility=hidden -fvisibility-inlines-hidden
-WX_LDFLAGS = -framework IOKit -framework Carbon -framework Cocoa -framework QuartzCore -framework AudioToolbox -framework System -framework OpenGL 
+EXTRALIBS_GUI = -lpng -lz -ljpeg
+WX_CPPFLAGS = -I${wx_top_builddir}/lib/wx/include/msw-unicode-static-3.2 -I${top_srcdir}/include -D_FILE_OFFSET_BITS=64 
+WX_CXXFLAGS = -Wall -Wundef -Wunused-parameter -Wno-ctor-dtor-privacy -Woverloaded-virtual -O2  
+WX_LDFLAGS = 
 HOST_SUFFIX = 
-wx_top_builddir = /Users/heron/Development/wxWidgets
+wx_top_builddir = C:/tools/msys64/home/gregc/Development/wxWidgets
 
 ### Variables: ###
 
 DESTDIR = 
-WX_RELEASE = 3.3
+WX_RELEASE = 3.2
 LIBDIRNAME = $(wx_top_builddir)/lib
 WXRC_CXXFLAGS = $(WX_CPPFLAGS) -D__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) \
 	$(__DEBUG_DEFINE_p) $(__EXCEPTIONS_DEFINE_p) $(__RTTI_DEFINE_p) \
@@ -59,36 +59,38 @@ CXXC = $(BK_DEPS) $(CXX)
 PORTNAME = $(TOOLKIT_LOWERCASE)$(TOOLKIT_VERSION)
 #WXBASEPORT = _carbon
 #WXDEBUGFLAG = d
+WXUNICODEFLAG = u
 #WXUNIVNAME = univ
-EXTRALIBS_FOR_BASE = $(EXTRALIBS)
-#EXTRALIBS_FOR_BASE = $(EXTRALIBS) \
-#	$(EXTRALIBS_XML) $(EXTRALIBS_GUI)
+#EXTRALIBS_FOR_BASE = $(EXTRALIBS)
+EXTRALIBS_FOR_BASE = $(EXTRALIBS) \
+	$(EXTRALIBS_XML) $(EXTRALIBS_GUI)
 __wxrc___depname = wxrc$(EXEEXT)
 #__WXUNIV_DEFINE_p = -D__WXUNIVERSAL__
 #__DEBUG_DEFINE_p = -DwxDEBUG_LEVEL=0
 #__EXCEPTIONS_DEFINE_p = -DwxNO_EXCEPTIONS
 #__RTTI_DEFINE_p = -DwxNO_RTTI
 #__THREAD_DEFINE_p = -DwxNO_THREADS
-__DLLFLAG_p = -DWXUSINGDLL
+#__DLLFLAG_p = -DWXUSINGDLL
 COND_MONOLITHIC_0___WXLIB_XML_p = \
-	-lwx_base$(WXBASEPORT)u$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_xml-$(WX_RELEASE)$(HOST_SUFFIX)
-__WXLIB_XML_p = $(COND_MONOLITHIC_0___WXLIB_XML_p)
+	-lwx_base$(WXBASEPORT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)_xml-$(WX_RELEASE)$(HOST_SUFFIX)
+#__WXLIB_XML_p = $(COND_MONOLITHIC_0___WXLIB_XML_p)
 COND_MONOLITHIC_0___WXLIB_BASE_p = \
-	-lwx_base$(WXBASEPORT)u$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
-__WXLIB_BASE_p = $(COND_MONOLITHIC_0___WXLIB_BASE_p)
+	-lwx_base$(WXBASEPORT)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+#__WXLIB_BASE_p = $(COND_MONOLITHIC_0___WXLIB_BASE_p)
 __install_wxrc___depname = install_wxrc
 __uninstall_wxrc___depname = uninstall_wxrc
 COND_MONOLITHIC_1___WXLIB_MONO_p = \
-	-lwx_$(PORTNAME)$(WXUNIVNAME)u$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
-#__WXLIB_MONO_p = $(COND_MONOLITHIC_1___WXLIB_MONO_p)
-#__LIB_PNG_IF_MONO_p = $(__LIB_PNG_p)
+	-lwx_$(PORTNAME)$(WXUNIVNAME)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+__WXLIB_MONO_p = $(COND_MONOLITHIC_1___WXLIB_MONO_p)
+__LIB_PNG_IF_MONO_p = $(__LIB_PNG_p)
 #__LIB_PNG_p \
 #	= \
 #	-lwxpng$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
 #__LIB_ZLIB_p = \
 #	-lwxzlib$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
-#__LIB_REGEX_p = \
-#	-lwxregexu$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+COND_wxUSE_REGEX_builtin___LIB_REGEX_p = \
+	-lwxregex$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
+#__LIB_REGEX_p = $(COND_wxUSE_REGEX_builtin___LIB_REGEX_p)
 #__LIB_EXPAT_p = \
 #	-lwxexpat$(WXDEBUGFLAG)$(WX_LIB_FLAVOUR)-$(WX_RELEASE)$(HOST_SUFFIX)
 
@@ -112,7 +114,7 @@ distclean: clean
 	rm -f config.cache config.log config.status bk-deps bk-make-pch Makefile
 
 wxrc$(EXEEXT): $(WXRC_OBJECTS)
-	$(CXX) -o $@ $(WXRC_OBJECTS)    -L$(LIBDIRNAME)    $(LDFLAGS)  $(WX_LDFLAGS) $(__WXLIB_XML_p) $(EXTRALIBS_XML) $(__WXLIB_BASE_p)  $(__WXLIB_MONO_p) $(__LIB_PNG_IF_MONO_p) $(__LIB_ZLIB_p) $(__LIB_REGEX_p) $(__LIB_EXPAT_p) $(EXTRALIBS_FOR_BASE) $(LIBS)
+	$(CXX) -o $@ $(WXRC_OBJECTS)    -L$(LIBDIRNAME)  $(LDFLAGS)  $(WX_LDFLAGS) $(__WXLIB_XML_p) $(EXTRALIBS_XML) $(__WXLIB_BASE_p)  $(__WXLIB_MONO_p) $(__LIB_PNG_IF_MONO_p) $(__LIB_ZLIB_p) $(__LIB_REGEX_p) $(__LIB_EXPAT_p) $(EXTRALIBS_FOR_BASE) $(LIBS)
 
 install_wxrc: $(__wxrc___depname)
 	$(INSTALL_DIR) $(DESTDIR)$(bindir)

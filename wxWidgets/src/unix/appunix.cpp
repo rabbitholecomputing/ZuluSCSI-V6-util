@@ -16,14 +16,13 @@
 #endif
 
 #include "wx/evtloop.h"
+#include "wx/scopedptr.h"
 #include "wx/unix/private/wakeuppipe.h"
 #include "wx/private/fdiodispatcher.h"
 #include "wx/private/fdioeventloopsourcehandler.h"
 
 #include <signal.h>
 #include <unistd.h>
-
-#include <memory>
 
 #ifndef SA_RESTART
     // don't use for systems which don't define it (at least VMS and QNX)
@@ -51,7 +50,7 @@ public:
                                     );
     }
 
-    virtual void OnReadWaiting() override
+    virtual void OnReadWaiting() wxOVERRIDE
     {
         // The base class wxWakeUpPipe::OnReadWaiting() needs to be called in order
         // to read the data out of the wake up pipe and clear it for next time.
@@ -74,7 +73,7 @@ private:
 
 wxAppConsole::wxAppConsole()
 {
-    m_signalWakeUpPipe = nullptr;
+    m_signalWakeUpPipe = NULL;
 }
 
 wxAppConsole::~wxAppConsole()
@@ -115,25 +114,27 @@ void wxAppConsole::HandleSignal(int signal)
 
 void wxAppConsole::CheckSignal()
 {
-    for ( const auto& kv : m_signalHandlerHash )
+    for ( SignalHandlerHash::iterator it = m_signalHandlerHash.begin();
+          it != m_signalHandlerHash.end();
+          ++it )
     {
-        int sig = kv.first;
+        int sig = it->first;
         if ( sigismember(&m_signalsCaught, sig) )
         {
             sigdelset(&m_signalsCaught, sig);
-            (kv.second)(sig);
+            (it->second)(sig);
         }
     }
 }
 
 wxFDIOHandler* wxAppConsole::RegisterSignalWakeUpPipe(wxFDIODispatcher& dispatcher)
 {
-    wxCHECK_MSG( m_signalWakeUpPipe, nullptr, "Should be allocated" );
+    wxCHECK_MSG( m_signalWakeUpPipe, NULL, "Should be allocated" );
 
     // we need a bridge to wxFDIODispatcher
     //
     // TODO: refactor the code so that only wxEventLoopSourceHandler is used
-    std::unique_ptr<wxFDIOHandler>
+    wxScopedPtr<wxFDIOHandler>
         fdioHandler(new wxFDIOEventLoopSourceHandler(m_signalWakeUpPipe));
 
     if ( !dispatcher.RegisterFD
@@ -142,7 +143,7 @@ wxFDIOHandler* wxAppConsole::RegisterSignalWakeUpPipe(wxFDIODispatcher& dispatch
                       fdioHandler.get(),
                       wxFDIO_INPUT
                      ) )
-        return nullptr;
+        return NULL;
 
     return fdioHandler.release();
 }
@@ -172,7 +173,7 @@ bool wxAppConsole::SetSignalHandler(int signal, SignalHandler handler)
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = (SignalHandler_t)&wxAppConsole::HandleSignal;
     sa.sa_flags = SA_RESTART;
-    int res = sigaction(signal, &sa, nullptr);
+    int res = sigaction(signal, &sa, 0);
     if ( res != 0 )
     {
         wxLogSysError(_("Failed to install signal handler"));

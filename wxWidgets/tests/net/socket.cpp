@@ -23,13 +23,12 @@
 
 #include "wx/socket.h"
 #include "wx/url.h"
+#include "wx/scopedptr.h"
 #include "wx/sstream.h"
 #include "wx/evtloop.h"
 
-#include <memory>
-
-typedef std::unique_ptr<wxSockAddress> wxSockAddressPtr;
-typedef std::unique_ptr<wxSocketClient> wxSocketClientPtr;
+typedef wxScopedPtr<wxSockAddress> wxSockAddressPtr;
+typedef wxScopedPtr<wxSocketClient> wxSocketClientPtr;
 
 static wxString gs_serverHost(wxGetenv("WX_TEST_SERVER"));
 
@@ -38,11 +37,11 @@ class SocketTestCase : public CppUnit::TestCase
 public:
     SocketTestCase() { }
 
-    // get the address to connect to, if nullptr is returned it means that the
+    // get the address to connect to, if NULL is returned it means that the
     // test is disabled and shouldn't run at all
     static wxSockAddress* GetServer();
 
-    // get the socket to read HTTP reply from, returns nullptr if the test is
+    // get the socket to read HTTP reply from, returns NULL if the test is
     // disabled
     static wxSocketClient* GetHTTPSocket(int flags = wxSOCKET_NONE);
 
@@ -118,7 +117,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( SocketTestCase, "SocketTestCase" );
 wxSockAddress* SocketTestCase::GetServer()
 {
     if ( gs_serverHost.empty() )
-        return nullptr;
+        return NULL;
 
     wxIPV4address *addr = new wxIPV4address;
     addr->Hostname(gs_serverHost);
@@ -131,7 +130,7 @@ wxSocketClient* SocketTestCase::GetHTTPSocket(int flags)
 {
     wxSockAddress *addr = GetServer();
     if ( !addr )
-        return nullptr;
+        return NULL;
 
     wxSocketClient *sock = new wxSocketClient(flags);
     sock->SetTimeout(1);
@@ -258,11 +257,11 @@ void SocketTestCase::ReadAnotherThread()
         {
         }
 
-        virtual void* Entry() override
+        virtual void* Entry() wxOVERRIDE
         {
             wxSocketClientPtr sock(SocketTestCase::GetHTTPSocket(wxSOCKET_BLOCK));
             if ( !sock )
-                return nullptr;
+                return NULL;
 
             char bufSmall[128];
             sock->Read(bufSmall, WXSIZEOF(bufSmall));
@@ -273,7 +272,7 @@ void SocketTestCase::ReadAnotherThread()
 
             REQUIRE_NOTHROW( sock.reset() );
 
-            return nullptr;
+            return NULL;
         }
     };
 
@@ -283,7 +282,7 @@ void SocketTestCase::ReadAnotherThread()
 
     thr.Run();
 
-    CHECK( thr.Wait() == nullptr );
+    CHECK( thr.Wait() == NULL );
 }
 
 void SocketTestCase::UrlTest()
@@ -295,7 +294,7 @@ void SocketTestCase::UrlTest()
 
     wxURL url("http://" + gs_serverHost);
 
-    const std::unique_ptr<wxInputStream> in(url.GetInputStream());
+    const wxScopedPtr<wxInputStream> in(url.GetInputStream());
     CPPUNIT_ASSERT( in.get() );
 
     wxStringOutputStream out;

@@ -72,7 +72,7 @@ public:
     }
 
     // As we don't use sizers, we also need to compute our best size ourselves.
-    virtual wxSize GetBestClientSize() const override
+    virtual wxSize GetBestClientSize() const wxOVERRIDE
     {
         wxSize size = m_ctrlItems->GetBestSize();
 

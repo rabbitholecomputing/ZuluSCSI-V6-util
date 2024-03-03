@@ -15,7 +15,6 @@
 #include "wx/app.h"
 
 #include "wx/gtk/private/wrapgtk.h"
-#include "wx/gtk/private/threads.h"
 
 // ----------------------------------------------------------------------------
 // wxTimerImpl
@@ -34,11 +33,12 @@ static gboolean timeout_callback(gpointer data)
     // When getting called from GDK's timer handler we
     // are no longer within GDK's grab on the GUI
     // thread so we must lock it here ourselves.
-    {
-        wxGDKThreadsLock threadsLock;
+    gdk_threads_enter();
 
-        timer->Notify();
-    } // Release lock again.
+    timer->Notify();
+
+    // Release lock again.
+    gdk_threads_leave();
 
     wxApp* app = wxTheApp;
     if (app)

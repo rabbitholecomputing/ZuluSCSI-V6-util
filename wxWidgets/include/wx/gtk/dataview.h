@@ -9,8 +9,7 @@
 #ifndef _WX_GTKDATAVIEWCTRL_H_
 #define _WX_GTKDATAVIEWCTRL_H_
 
-#include <memory>
-#include <vector>
+#include "wx/list.h"
 
 class WXDLLIMPEXP_FWD_CORE wxDataViewCtrlInternal;
 
@@ -35,45 +34,45 @@ public:
 
     // setters:
 
-    virtual void SetTitle( const wxString &title ) override;
-    virtual void SetBitmap( const wxBitmapBundle &bitmap ) override;
+    virtual void SetTitle( const wxString &title ) wxOVERRIDE;
+    virtual void SetBitmap( const wxBitmapBundle &bitmap ) wxOVERRIDE;
 
-    virtual void SetOwner( wxDataViewCtrl *owner ) override;
+    virtual void SetOwner( wxDataViewCtrl *owner ) wxOVERRIDE;
 
-    virtual void SetAlignment( wxAlignment align ) override;
+    virtual void SetAlignment( wxAlignment align ) wxOVERRIDE;
 
-    virtual void SetSortable( bool sortable ) override;
-    virtual void SetSortOrder( bool ascending ) override;
-    virtual void UnsetAsSortKey() override;
+    virtual void SetSortable( bool sortable ) wxOVERRIDE;
+    virtual void SetSortOrder( bool ascending ) wxOVERRIDE;
+    virtual void UnsetAsSortKey() wxOVERRIDE;
 
-    virtual void SetResizeable( bool resizable ) override;
-    virtual void SetHidden( bool hidden ) override;
+    virtual void SetResizeable( bool resizable ) wxOVERRIDE;
+    virtual void SetHidden( bool hidden ) wxOVERRIDE;
 
-    virtual void SetMinWidth( int minWidth ) override;
-    virtual void SetWidth( int width ) override;
+    virtual void SetMinWidth( int minWidth ) wxOVERRIDE;
+    virtual void SetWidth( int width ) wxOVERRIDE;
 
-    virtual void SetReorderable( bool reorderable ) override;
+    virtual void SetReorderable( bool reorderable ) wxOVERRIDE;
 
-    virtual void SetFlags(int flags) override { SetIndividualFlags(flags); }
+    virtual void SetFlags(int flags) wxOVERRIDE { SetIndividualFlags(flags); }
 
     // getters:
 
-    virtual wxString GetTitle() const override;
-    virtual wxAlignment GetAlignment() const override;
+    virtual wxString GetTitle() const wxOVERRIDE;
+    virtual wxAlignment GetAlignment() const wxOVERRIDE;
 
-    virtual bool IsSortable() const override;
-    virtual bool IsSortOrderAscending() const override;
-    virtual bool IsSortKey() const override;
+    virtual bool IsSortable() const wxOVERRIDE;
+    virtual bool IsSortOrderAscending() const wxOVERRIDE;
+    virtual bool IsSortKey() const wxOVERRIDE;
 
-    virtual bool IsResizeable() const override;
-    virtual bool IsHidden() const override;
+    virtual bool IsResizeable() const wxOVERRIDE;
+    virtual bool IsHidden() const wxOVERRIDE;
 
-    virtual int GetWidth() const override;
-    virtual int GetMinWidth() const override;
+    virtual int GetWidth() const wxOVERRIDE;
+    virtual int GetMinWidth() const wxOVERRIDE;
 
-    virtual bool IsReorderable() const override;
+    virtual bool IsReorderable() const wxOVERRIDE;
 
-    virtual int GetFlags() const override { return GetFromIndividualFlags(); }
+    virtual int GetFlags() const wxOVERRIDE { return GetFromIndividualFlags(); }
 
     // implementation
     GtkWidget* GetGtkHandle() const { return m_column; }
@@ -93,6 +92,9 @@ private:
 
     void Init(wxAlignment align, int flags, int width);
 };
+
+WX_DECLARE_LIST_WITH_DECL(wxDataViewColumn, wxDataViewColumnList,
+                          class WXDLLIMPEXP_CORE);
 
 // ---------------------------------------------------------
 // wxDataViewCtrl
@@ -125,51 +127,51 @@ public:
 
     virtual ~wxDataViewCtrl();
 
-    virtual bool AssociateModel( wxDataViewModel *model ) override;
+    virtual bool AssociateModel( wxDataViewModel *model ) wxOVERRIDE;
 
-    virtual bool PrependColumn( wxDataViewColumn *col ) override;
-    virtual bool AppendColumn( wxDataViewColumn *col ) override;
-    virtual bool InsertColumn( unsigned int pos, wxDataViewColumn *col ) override;
+    virtual bool PrependColumn( wxDataViewColumn *col ) wxOVERRIDE;
+    virtual bool AppendColumn( wxDataViewColumn *col ) wxOVERRIDE;
+    virtual bool InsertColumn( unsigned int pos, wxDataViewColumn *col ) wxOVERRIDE;
 
-    virtual unsigned int GetColumnCount() const override;
-    virtual wxDataViewColumn* GetColumn( unsigned int pos ) const override;
-    virtual bool DeleteColumn( wxDataViewColumn *column ) override;
-    virtual bool ClearColumns() override;
-    virtual int GetColumnPosition( const wxDataViewColumn *column ) const override;
+    virtual unsigned int GetColumnCount() const wxOVERRIDE;
+    virtual wxDataViewColumn* GetColumn( unsigned int pos ) const wxOVERRIDE;
+    virtual bool DeleteColumn( wxDataViewColumn *column ) wxOVERRIDE;
+    virtual bool ClearColumns() wxOVERRIDE;
+    virtual int GetColumnPosition( const wxDataViewColumn *column ) const wxOVERRIDE;
 
-    virtual wxDataViewColumn *GetSortingColumn() const override;
+    virtual wxDataViewColumn *GetSortingColumn() const wxOVERRIDE;
 
-    virtual int GetSelectedItemsCount() const override;
-    virtual int GetSelections( wxDataViewItemArray & sel ) const override;
-    virtual void SetSelections( const wxDataViewItemArray & sel ) override;
-    virtual void Select( const wxDataViewItem & item ) override;
-    virtual void Unselect( const wxDataViewItem & item ) override;
-    virtual bool IsSelected( const wxDataViewItem & item ) const override;
-    virtual void SelectAll() override;
-    virtual void UnselectAll() override;
+    virtual int GetSelectedItemsCount() const wxOVERRIDE;
+    virtual int GetSelections( wxDataViewItemArray & sel ) const wxOVERRIDE;
+    virtual void SetSelections( const wxDataViewItemArray & sel ) wxOVERRIDE;
+    virtual void Select( const wxDataViewItem & item ) wxOVERRIDE;
+    virtual void Unselect( const wxDataViewItem & item ) wxOVERRIDE;
+    virtual bool IsSelected( const wxDataViewItem & item ) const wxOVERRIDE;
+    virtual void SelectAll() wxOVERRIDE;
+    virtual void UnselectAll() wxOVERRIDE;
 
     virtual void EnsureVisible( const wxDataViewItem& item,
-                                const wxDataViewColumn *column = nullptr ) override;
+                                const wxDataViewColumn *column = NULL ) wxOVERRIDE;
     virtual void HitTest( const wxPoint &point,
                           wxDataViewItem &item,
-                          wxDataViewColumn *&column ) const override;
+                          wxDataViewColumn *&column ) const wxOVERRIDE;
     virtual wxRect GetItemRect( const wxDataViewItem &item,
-                                const wxDataViewColumn *column = nullptr ) const override;
+                                const wxDataViewColumn *column = NULL ) const wxOVERRIDE;
 
-    virtual bool SetRowHeight( int rowHeight ) override;
+    virtual bool SetRowHeight( int rowHeight ) wxOVERRIDE;
 
-    virtual void EditItem(const wxDataViewItem& item, const wxDataViewColumn *column) override;
+    virtual void EditItem(const wxDataViewItem& item, const wxDataViewColumn *column) wxOVERRIDE;
 
-    virtual void Collapse( const wxDataViewItem & item ) override;
-    virtual bool IsExpanded( const wxDataViewItem & item ) const override;
+    virtual void Collapse( const wxDataViewItem & item ) wxOVERRIDE;
+    virtual bool IsExpanded( const wxDataViewItem & item ) const wxOVERRIDE;
 
-    virtual bool EnableDragSource( const wxDataFormat &format ) override;
-    virtual bool DoEnableDropTarget( const wxVector<wxDataFormat>& formats ) override;
+    virtual bool EnableDragSource( const wxDataFormat &format ) wxOVERRIDE;
+    virtual bool DoEnableDropTarget( const wxVector<wxDataFormat>& formats ) wxOVERRIDE;
 
-    virtual wxDataViewColumn *GetCurrentColumn() const override;
+    virtual wxDataViewColumn *GetCurrentColumn() const wxOVERRIDE;
 
-    virtual wxDataViewItem GetTopItem() const override;
-    virtual int GetCountPerPage() const override;
+    virtual wxDataViewItem GetTopItem() const wxOVERRIDE;
+    virtual int GetCountPerPage() const wxOVERRIDE;
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
@@ -185,11 +187,11 @@ public:
 
     // Return wxDataViewColumn matching the given GtkTreeViewColumn.
     //
-    // If the input argument is null, return nullptr too. Otherwise we must find
+    // If the input argument is NULL, return NULL too. Otherwise we must find
     // the matching column and assert if we didn't.
     wxDataViewColumn* GTKColumnToWX(GtkTreeViewColumn *gtk_col) const;
 
-    virtual void OnInternalIdle() override;
+    virtual void OnInternalIdle() wxOVERRIDE;
 
     int GTKGetUniformRowHeight() const { return m_uniformRowHeight; }
 
@@ -213,19 +215,19 @@ public:
     };
 
 protected:
-    virtual void DoSetExpanderColumn() override;
-    virtual void DoSetIndent() override;
+    virtual void DoSetExpanderColumn() wxOVERRIDE;
+    virtual void DoSetIndent() wxOVERRIDE;
 
-    virtual void DoExpand(const wxDataViewItem& item, bool expandChildren) override;
+    virtual void DoExpand(const wxDataViewItem& item, bool expandChildren) wxOVERRIDE;
 
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style) override;
-    virtual GdkWindow* GTKGetWindow(wxArrayGdkWindows& windows) const override;
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) wxOVERRIDE;
+    virtual GdkWindow* GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
 private:
     void Init();
 
-    virtual wxDataViewItem DoGetCurrentItem() const override;
-    virtual void DoSetCurrentItem(const wxDataViewItem& item) override;
+    virtual wxDataViewItem DoGetCurrentItem() const wxOVERRIDE;
+    virtual void DoSetCurrentItem(const wxDataViewItem& item) wxOVERRIDE;
 
     friend class wxDataViewCtrlDCImpl;
     friend class wxDataViewColumn;
@@ -233,10 +235,7 @@ private:
 
     GtkWidget               *m_treeview;
     wxDataViewCtrlInternal  *m_internal;
-
-    using wxDataViewColumnPtr = std::unique_ptr<wxDataViewColumn>;
-    std::vector<wxDataViewColumnPtr> m_cols;
-
+    wxDataViewColumnList     m_cols;
     wxDataViewItem           m_ensureVisibleDefered;
 
     // By default this is set to -1 and the height of the rows is determined by
@@ -244,7 +243,7 @@ private:
     // value to force the height of all rows to the given value.
     int m_uniformRowHeight;
 
-    virtual void AddChildGTK(wxWindowGTK* child) override;
+    virtual void AddChildGTK(wxWindowGTK* child) wxOVERRIDE;
     void GtkEnableSelectionEvents();
     void GtkDisableSelectionEvents();
 

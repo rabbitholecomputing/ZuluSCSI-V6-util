@@ -2,6 +2,7 @@
 // Name:        src/univ/themes/metal.cpp
 // Purpose:     wxUniversal theme implementing Win32-like LNF
 // Author:      Vadim Zeitlin, Robert Roebling
+// Modified by:
 // Created:     06.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -141,7 +142,7 @@ private:
 class wxMetalTheme : public wxDelegateTheme
 {
 public:
-    wxMetalTheme() : wxDelegateTheme(wxT("win32")), m_renderer(nullptr) {}
+    wxMetalTheme() : wxDelegateTheme(wxT("win32")), m_renderer(NULL) {}
     ~wxMetalTheme() { delete m_renderer; }
 
 protected:

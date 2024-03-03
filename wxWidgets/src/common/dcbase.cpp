@@ -2,6 +2,7 @@
 // Name:        src/common/dcbase.cpp
 // Purpose:     generic methods of the wxDC Class
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     05/25/99
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -45,20 +46,28 @@
     #include "wx/msw/dcscreen.h"
 #endif
 
-#ifdef __WXGTK__
-    #ifdef __WXGTK3__
-        #include "wx/gtk/dc.h"
-    #else
-        #include "wx/gtk/dcclient.h"
-        #include "wx/gtk/dcmemory.h"
-        #include "wx/gtk/dcscreen.h"
-    #endif
+#ifdef __WXGTK3__
+    #include "wx/gtk/dc.h"
+#elif defined __WXGTK20__
+    #include "wx/gtk/dcclient.h"
+    #include "wx/gtk/dcmemory.h"
+    #include "wx/gtk/dcscreen.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/dcclient.h"
+    #include "wx/gtk1/dcmemory.h"
+    #include "wx/gtk1/dcscreen.h"
 #endif
 
 #ifdef __WXMAC__
     #include "wx/osx/dcclient.h"
     #include "wx/osx/dcmemory.h"
     #include "wx/osx/dcscreen.h"
+#endif
+
+#ifdef __WXMOTIF__
+    #include "wx/motif/dcclient.h"
+    #include "wx/motif/dcmemory.h"
+    #include "wx/motif/dcscreen.h"
 #endif
 
 #ifdef __WXX11__
@@ -82,7 +91,7 @@
 // wxDCFactory
 //----------------------------------------------------------------------------
 
-wxDCFactory *wxDCFactory::m_factory = nullptr;
+wxDCFactory *wxDCFactory::m_factory = NULL;
 
 void wxDCFactory::Set(wxDCFactory *factory)
 {
@@ -102,8 +111,8 @@ wxDCFactory *wxDCFactory::Get()
 class wxDCFactoryCleanupModule : public wxModule
 {
 public:
-    virtual bool OnInit() override { return true; }
-    virtual void OnExit() override { wxDCFactory::Set(nullptr); }
+    virtual bool OnInit() wxOVERRIDE { return true; }
+    virtual void OnExit() wxOVERRIDE { wxDCFactory::Set(NULL); }
 
 private:
     wxDECLARE_DYNAMIC_CLASS(wxDCFactoryCleanupModule);
@@ -174,11 +183,6 @@ wxDCImpl *wxNativeDCFactory::CreatePrinterDC( wxPrinterDC *owner, const wxPrintD
 }
 #endif
 
-bool wxNativeDCFactory::CanDrawUsingClientDC(const wxWindow* window) const
-{
-    return wxClientDCImpl::CanBeUsedForDrawing(window);
-}
-
 //-----------------------------------------------------------------------------
 // wxWindowDC
 //-----------------------------------------------------------------------------
@@ -199,12 +203,6 @@ wxIMPLEMENT_ABSTRACT_CLASS(wxClientDC, wxWindowDC);
 wxClientDC::wxClientDC(wxWindow *win)
           : wxWindowDC(wxDCFactory::Get()->CreateClientDC(this, win))
 {
-}
-
-/* static */
-bool wxClientDC::CanBeUsedForDrawing(const wxWindow* window)
-{
-    return wxDCFactory::Get()->CanDrawUsingClientDC(window);
 }
 
 //-----------------------------------------------------------------------------
@@ -320,7 +318,7 @@ int wxPrinterDC::GetResolution() const
 wxIMPLEMENT_ABSTRACT_CLASS(wxDCImpl, wxObject);
 
 wxDCImpl::wxDCImpl( wxDC *owner )
-        : m_window(nullptr)
+        : m_window(NULL)
         , m_colour(true)
         , m_ok(true)
         , m_clipping(false)
@@ -929,7 +927,7 @@ static void wx_spline_draw_point_array(wxDC *dc)
 void wxDCImpl::DoDrawSpline( const wxPointList *points )
 {
     wxCHECK_RET( IsOk(), wxT("invalid window dc") );
-    wxCHECK_RET(points, "null pointer to spline points?");
+    wxCHECK_RET(points, "NULL pointer to spline points?");
     wxCHECK_RET(points->size() >= 2, "incomplete list of spline points?");
 
     const wxPoint *p;
@@ -1145,7 +1143,7 @@ void wxDCImpl::DoGradientFillConcentric(const wxRect& rect,
 
 void wxDCImpl::InheritAttributes(wxWindow *win)
 {
-    wxCHECK_RET( win, "window can't be null" );
+    wxCHECK_RET( win, "window can't be NULL" );
 
     SetFont(win->GetFont());
     SetTextForeground(win->GetForegroundColour());
@@ -1281,7 +1279,7 @@ void wxDC::DrawLabel(const wxString& text,
                 if ( alignment & (wxALIGN_RIGHT | wxALIGN_CENTRE_HORIZONTAL) )
                 {
                     wxCoord widthLine;
-                    GetTextExtent(curLine, &widthLine, nullptr);
+                    GetTextExtent(curLine, &widthLine, NULL);
 
                     if ( alignment & wxALIGN_RIGHT )
                     {
@@ -1318,9 +1316,9 @@ void wxDC::DrawLabel(const wxString& text,
             if ( pc - text.begin() == indexAccel )
             {
                 // remember to draw underscore here
-                GetTextExtent(curLine, &startUnderscore, nullptr);
+                GetTextExtent(curLine, &startUnderscore, NULL);
                 curLine += *pc;
-                GetTextExtent(curLine, &endUnderscore, nullptr);
+                GetTextExtent(curLine, &endUnderscore, NULL);
 
                 yUnderscore = y + heightLine;
             }
@@ -1357,6 +1355,67 @@ void wxDC::DrawLabel(const wxString& text,
 
     m_pimpl->CalcBoundingBox(wxPoint(x0, y0), wxSize(width0, height));
 }
+
+#if WXWIN_COMPATIBILITY_2_8
+    // for compatibility with the old code when wxCoord was long everywhere
+void wxDC::GetTextExtent(const wxString& string,
+                       long *x, long *y,
+                       long *descent,
+                       long *externalLeading,
+                       const wxFont *theFont) const
+    {
+        wxCoord x2, y2, descent2, externalLeading2;
+        m_pimpl->DoGetTextExtent(string, &x2, &y2,
+                        &descent2, &externalLeading2,
+                        theFont);
+        if ( x )
+            *x = x2;
+        if ( y )
+            *y = y2;
+        if ( descent )
+            *descent = descent2;
+        if ( externalLeading )
+            *externalLeading = externalLeading2;
+    }
+
+void wxDC::GetLogicalOrigin(long *x, long *y) const
+    {
+        wxCoord x2, y2;
+        m_pimpl->DoGetLogicalOrigin(&x2, &y2);
+        if ( x )
+            *x = x2;
+        if ( y )
+            *y = y2;
+    }
+
+void wxDC::GetDeviceOrigin(long *x, long *y) const
+    {
+        wxCoord x2, y2;
+        m_pimpl->DoGetDeviceOrigin(&x2, &y2);
+        if ( x )
+            *x = x2;
+        if ( y )
+            *y = y2;
+    }
+
+void wxDC::GetClippingBox(long *x, long *y, long *w, long *h) const
+    {
+        wxRect r;
+        m_pimpl->DoGetClippingRect(r);
+        if (x) *x = r.x;
+        if (y) *y = r.y;
+        if (w) *w = r.width;
+        if (h) *h = r.height;
+    }
+
+void wxDC::DrawObject(wxDrawObject* drawobject)
+{
+    drawobject->Draw(*this);
+    m_pimpl->CalcBoundingBox(drawobject->MinX(),drawobject->MinY(),
+                             drawobject->MaxX(),drawobject->MaxY());
+}
+
+#endif  // WXWIN_COMPATIBILITY_2_8
 
 /*
 Notes for wxWidgets DrawEllipticArcRot(...)
@@ -1408,17 +1467,13 @@ float wxDCImpl::GetFontPointSizeAdjustment(float dpi)
     return float(wxDisplay::GetStdPPIValue()) / dpi;
 }
 
-static void mmToPx(wxWindow* win, double& x, double& y)
-{
-    const wxSize ppi(win ? wxDisplay(win).GetPPI() : wxGetDisplayPPI());
-    x = ppi.x * mm2inches;
-    y = ppi.y * mm2inches;
-}
-
 double wxDCImpl::GetMMToPXx() const
 {
     if ( wxIsNullDouble(m_mm_to_pix_x) )
-        mmToPx(m_window, m_mm_to_pix_x, m_mm_to_pix_y);
+    {
+        m_mm_to_pix_x = (double)wxGetDisplaySize().GetWidth() /
+                        (double)wxGetDisplaySizeMM().GetWidth();
+    }
 
     return m_mm_to_pix_x;
 }
@@ -1426,7 +1481,10 @@ double wxDCImpl::GetMMToPXx() const
 double wxDCImpl::GetMMToPXy() const
 {
     if ( wxIsNullDouble(m_mm_to_pix_y) )
-        mmToPx(m_window, m_mm_to_pix_x, m_mm_to_pix_y);
+    {
+        m_mm_to_pix_y = (double)wxGetDisplaySize().GetHeight() /
+                        (double)wxGetDisplaySizeMM().GetHeight();
+    }
 
     return m_mm_to_pix_y;
 }

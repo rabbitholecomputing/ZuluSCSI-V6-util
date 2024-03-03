@@ -16,10 +16,9 @@
     #include "wx/app.h"
 #endif // WX_PRECOMP
 
+#include "wx/hashmap.h"
 #include "wx/evtloop.h"
 #include "wx/dfb/private.h"
-
-#include <unordered_map>
 
 #define TRACE_EVENTS "events"
 #define TRACE_PAINT  "paint"
@@ -29,7 +28,9 @@
 // ============================================================================
 
 // mapping of DirectFB windows to wxTLWs:
-using wxDfbWindowsMap = std::unordered_map<DFBWindowID, wxNonOwnedWindow*>;
+WX_DECLARE_HASH_MAP(DFBWindowID, wxNonOwnedWindow*,
+                    wxIntegerHash, wxIntegerEqual,
+                    wxDfbWindowsMap);
 static wxDfbWindowsMap gs_dfbWindowsMap;
 
 // ============================================================================
@@ -131,7 +132,7 @@ bool wxNonOwnedWindow::Create(wxWindow *parent,
     if ( !m_dfbwin->SetOpacity(wxALPHA_TRANSPARENT) )
         return false;
 
-    if ( !wxWindow::Create(nullptr, id, pos, size, style, name) )
+    if ( !wxWindow::Create(NULL, id, pos, size, style, name) )
         return false;
 
     SetParent(parent);
@@ -345,7 +346,7 @@ void wxNonOwnedWindow::HandleQueuedPaintRequests()
 
     DFBRegion r = {paintedRect.GetLeft(), paintedRect.GetTop(),
                    paintedRect.GetRight(), paintedRect.GetBottom()};
-    DFBRegion *rptr = (winRect == paintedRect) ? nullptr : &r;
+    DFBRegion *rptr = (winRect == paintedRect) ? NULL : &r;
 
     GetDfbSurface()->FlipToFront(rptr);
 
@@ -386,18 +387,18 @@ void wxNonOwnedWindow::Update()
 namespace
 {
 
-static wxNonOwnedWindow *gs_insideDFBFocusHandlerOf = nullptr;
+static wxNonOwnedWindow *gs_insideDFBFocusHandlerOf = NULL;
 
 struct InsideDFBFocusHandlerSetter
 {
     InsideDFBFocusHandlerSetter(wxNonOwnedWindow *win)
     {
-        wxASSERT( gs_insideDFBFocusHandlerOf == nullptr );
+        wxASSERT( gs_insideDFBFocusHandlerOf == NULL );
         gs_insideDFBFocusHandlerOf = win;
     }
     ~InsideDFBFocusHandlerSetter()
     {
-        gs_insideDFBFocusHandlerOf = nullptr;
+        gs_insideDFBFocusHandlerOf = NULL;
     }
 };
 

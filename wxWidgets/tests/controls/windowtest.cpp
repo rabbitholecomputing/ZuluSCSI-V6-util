@@ -19,16 +19,14 @@
 #include "asserthelper.h"
 #include "testableframe.h"
 #include "testwindow.h"
-#include "waitfor.h"
 
 #include "wx/uiaction.h"
 #include "wx/caret.h"
 #include "wx/cshelp.h"
-#include "wx/dcclient.h"
+#include "wx/scopedptr.h"
+#include "wx/stopwatch.h"
 #include "wx/tooltip.h"
 #include "wx/wupdlock.h"
-
-#include <memory>
 
 class WindowTestCase
 {
@@ -40,7 +38,8 @@ public:
         // Without this, when running this test suite solo it succeeds,
         // but not when running it together with the other tests !!
         // Not needed when run under Xvfb display.
-        YieldForAWhile();
+        for ( wxStopWatch sw; sw.Time() < 50; )
+            wxYield();
     #endif
     }
 
@@ -133,8 +132,8 @@ TEST_CASE_METHOD(WindowTestCase, "Window::FocusEvent", "[window]")
 
     wxButton* button = new wxButton(wxTheApp->GetTopWindow(), wxID_ANY);
 
-    button->SetFocus();
     wxYield();
+    button->SetFocus();
 
     CHECK( killfocus.GetCount() == 1 );
     CHECK(!m_window->HasFocus());
@@ -143,7 +142,7 @@ TEST_CASE_METHOD(WindowTestCase, "Window::FocusEvent", "[window]")
 
 TEST_CASE_METHOD(WindowTestCase, "Window::Mouse", "[window]")
 {
-    wxCursor cursor(wxCURSOR_HAND);
+    wxCursor cursor(wxCURSOR_CHAR);
     m_window->SetCursor(cursor);
 
     CHECK(m_window->GetCursor().IsOk());
@@ -151,7 +150,7 @@ TEST_CASE_METHOD(WindowTestCase, "Window::Mouse", "[window]")
 #if wxUSE_CARET
     CHECK(!m_window->GetCaret());
 
-    wxCaret* caret = nullptr;
+    wxCaret* caret = NULL;
 
     // Try creating the caret in two different, but normally equivalent, ways.
     SECTION("Caret 1-step")
@@ -236,21 +235,21 @@ TEST_CASE_METHOD(WindowTestCase, "Window::Help", "[window]")
 
 TEST_CASE_METHOD(WindowTestCase, "Window::Parent", "[window]")
 {
-    CHECK( m_window->GetGrandParent() == static_cast<wxWindow*>(nullptr) );
+    CHECK( m_window->GetGrandParent() == static_cast<wxWindow*>(NULL) );
     CHECK( m_window->GetParent() == wxTheApp->GetTopWindow() );
 }
 
 TEST_CASE_METHOD(WindowTestCase, "Window::Siblings", "[window]")
 {
-    CHECK( m_window->GetNextSibling() == static_cast<wxWindow*>(nullptr) );
-    CHECK( m_window->GetPrevSibling() == static_cast<wxWindow*>(nullptr) );
+    CHECK( m_window->GetNextSibling() == static_cast<wxWindow*>(NULL) );
+    CHECK( m_window->GetPrevSibling() == static_cast<wxWindow*>(NULL) );
 
     wxWindow* newwin = new wxWindow(wxTheApp->GetTopWindow(), wxID_ANY);
 
     CHECK( m_window->GetNextSibling() == newwin );
-    CHECK( m_window->GetPrevSibling() == static_cast<wxWindow*>(nullptr) );
+    CHECK( m_window->GetPrevSibling() == static_cast<wxWindow*>(NULL) );
 
-    CHECK( newwin->GetNextSibling() == static_cast<wxWindow*>(nullptr) );
+    CHECK( newwin->GetNextSibling() == static_cast<wxWindow*>(NULL) );
     CHECK( newwin->GetPrevSibling() == m_window );
 
     wxDELETE(newwin);
@@ -435,16 +434,16 @@ TEST_CASE_METHOD(WindowTestCase, "Window::FindWindowBy", "[window]")
     CHECK( wxWindow::FindWindowByName("name") == m_window );
     CHECK( wxWindow::FindWindowByLabel("label") == m_window );
 
-    CHECK( wxWindow::FindWindowById(wxID_HIGHEST + 3) == nullptr );
-    CHECK( wxWindow::FindWindowByName("noname") == nullptr );
-    CHECK( wxWindow::FindWindowByLabel("nolabel") == nullptr );
+    CHECK( wxWindow::FindWindowById(wxID_HIGHEST + 3) == NULL );
+    CHECK( wxWindow::FindWindowByName("noname") == NULL );
+    CHECK( wxWindow::FindWindowByLabel("nolabel") == NULL );
 }
 
 TEST_CASE_METHOD(WindowTestCase, "Window::SizerErrors", "[window][sizer][error]")
 {
     wxWindow* const child = new wxWindow(m_window, wxID_ANY);
-    std::unique_ptr<wxSizer> const sizer1(new wxBoxSizer(wxHORIZONTAL));
-    std::unique_ptr<wxSizer> const sizer2(new wxBoxSizer(wxHORIZONTAL));
+    wxScopedPtr<wxSizer> const sizer1(new wxBoxSizer(wxHORIZONTAL));
+    wxScopedPtr<wxSizer> const sizer2(new wxBoxSizer(wxHORIZONTAL));
 
     REQUIRE_NOTHROW( sizer1->Add(child) );
 #ifdef __WXDEBUG__
@@ -459,62 +458,4 @@ TEST_CASE_METHOD(WindowTestCase, "Window::SizerErrors", "[window][sizer][error]"
     CHECK_NOTHROW( sizer2->Add(child) );
 
     REQUIRE_NOTHROW( delete child );
-}
-
-TEST_CASE_METHOD(WindowTestCase, "Window::Refresh", "[window]")
-{
-    wxWindow* const parent = m_window;
-    wxWindow* const child1 = new wxWindow(parent, wxID_ANY, wxPoint(10, 20), wxSize(80, 50));
-    wxWindow* const child2 = new wxWindow(parent, wxID_ANY, wxPoint(110, 20), wxSize(80, 50));
-    wxWindow* const child3 = new wxWindow(parent, wxID_ANY, wxPoint(210, 20), wxSize(80, 50));
-
-    m_window->SetSize(300, 100);
-
-    // to help see the windows when debugging
-    parent->SetBackgroundColour(*wxBLACK);
-    child1->SetBackgroundColour(*wxBLUE);
-    child2->SetBackgroundColour(*wxRED);
-    child3->SetBackgroundColour(*wxGREEN);
-
-    // Notice that using EventCounter here will give incorrect results,
-    // so we have to bind each window to a distinct event handler instead.
-
-    bool isParentPainted;
-    bool isChild1Painted;
-    bool isChild2Painted;
-    bool isChild3Painted;
-
-    const auto setFlagOnPaint = [](wxWindow* win, bool* flag)
-    {
-        win->Bind(wxEVT_PAINT, [=](wxPaintEvent&)
-        {
-            wxPaintDC dc(win);
-            *flag = true;
-        });
-    };
-
-    setFlagOnPaint(parent, &isParentPainted);
-    setFlagOnPaint(child1, &isChild1Painted);
-    setFlagOnPaint(child2, &isChild2Painted);
-    setFlagOnPaint(child3, &isChild3Painted);
-
-    // Prepare for the RefreshRect() call below
-    wxYield();
-
-    // Now initialize/reset the flags before calling RefreshRect()
-    isParentPainted =
-    isChild1Painted =
-    isChild2Painted =
-    isChild3Painted = false;
-
-    parent->RefreshRect(wxRect(150, 10, 300, 80));
-
-    WaitFor("parent repaint", [&]() { return isParentPainted; }, 100);
-
-    // child1 should be the only window not to receive the wxEVT_PAINT event
-    // because it does not intersect with the refreshed rectangle.
-    CHECK(isParentPainted == true);
-    CHECK(isChild1Painted == false);
-    CHECK(isChild2Painted == true);
-    CHECK(isChild3Painted == true);
 }

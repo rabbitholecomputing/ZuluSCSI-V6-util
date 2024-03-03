@@ -2,6 +2,7 @@
 // Name:        src/msw/colordlg.cpp
 // Purpose:     wxColourDialog class
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -51,7 +52,7 @@
 static wxRect gs_rectDialog(0, 0, 222, 324);
 
 // The dialog currently being shown or null.
-static wxColourDialog* gs_activeDialog = nullptr;
+static wxColourDialog* gs_activeDialog = NULL;
 
 // ----------------------------------------------------------------------------
 // wxWin macros
@@ -177,7 +178,7 @@ int wxColourDialog::ShowModal()
     WX_HOOK_MODAL_DIALOG();
 
     wxWindow* const parent = GetParentForModalDialog(m_parent, GetWindowStyle());
-    WXHWND hWndParent = parent ? GetHwndOf(parent) : nullptr;
+    WXHWND hWndParent = parent ? GetHwndOf(parent) : NULL;
 
     wxWindowDisabler disableOthers(this, parent);
 

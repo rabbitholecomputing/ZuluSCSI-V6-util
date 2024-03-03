@@ -8,7 +8,9 @@
 #ifndef AUTOCOMPLETE_H
 #define AUTOCOMPLETE_H
 
+#ifdef SCI_NAMESPACE
 namespace Scintilla {
+#endif
 
 /**
  */
@@ -17,7 +19,7 @@ class AutoComplete {
 	std::string stopChars;
 	std::string fillUpChars;
 	char separator;
-	char typesep; // Type separator
+	char typesep; // Type seperator
 	enum { maxItemLen=1000 };
 	std::vector<int> sortMatrix;
 
@@ -25,10 +27,10 @@ public:
 
 	bool ignoreCase;
 	bool chooseSingle;
-	std::unique_ptr<ListBox> lb;
-	Sci::Position posStart;
-	Sci::Position startLen;
-	/// Should autocompletion be cancelled if editor's currentPos <= startPos?
+	ListBox *lb;
+	int posStart;
+	int startLen;
+	/// Should autocompletion be canceled if editor's currentPos <= startPos?
 	bool cancelAtStartPos;
 	bool autoHide;
 	bool dropRestOfWord;
@@ -45,27 +47,27 @@ public:
 	~AutoComplete();
 
 	/// Is the auto completion list displayed?
-	bool Active() const noexcept;
+	bool Active() const;
 
 	/// Display the auto completion list positioned to be near a character position
-	void Start(Window &parent, int ctrlID, Sci::Position position, Point location,
-		Sci::Position startLen_, int lineHeight, bool unicodeMode, int technology);
+	void Start(Window &parent, int ctrlID, int position, Point location,
+		int startLen_, int lineHeight, bool unicodeMode, int technology);
 
 	/// The stop chars are characters which, when typed, cause the auto completion list to disappear
 	void SetStopChars(const char *stopChars_);
-	bool IsStopChar(char ch) const noexcept;
+	bool IsStopChar(char ch);
 
 	/// The fillup chars are characters which, when typed, fill up the selected word
 	void SetFillUpChars(const char *fillUpChars_);
-	bool IsFillUpChar(char ch) const noexcept;
+	bool IsFillUpChar(char ch);
 
 	/// The separator character is used when interpreting the list in SetList
 	void SetSeparator(char separator_);
-	char GetSeparator() const noexcept;
+	char GetSeparator() const;
 
 	/// The typesep character is used for separating the word from the type
 	void SetTypesep(char separator_);
-	char GetTypesep() const noexcept;
+	char GetTypesep() const;
 
 	/// The list string contains a sequence of words separated by the separator character
 	void SetList(const char *list);
@@ -86,6 +88,8 @@ public:
 	void Select(const char *word);
 };
 
+#ifdef SCI_NAMESPACE
 }
+#endif
 
 #endif

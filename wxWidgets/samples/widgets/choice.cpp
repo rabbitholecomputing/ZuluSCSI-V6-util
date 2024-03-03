@@ -74,12 +74,12 @@ class ChoiceWidgetsPage : public ItemContainerWidgetsPage
 public:
     ChoiceWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxWindow *GetWidget() const override { return m_choice; }
-    virtual wxItemContainer* GetContainer() const override { return m_choice; }
-    virtual void RecreateWidget() override { CreateChoice(); }
+    virtual wxWindow *GetWidget() const wxOVERRIDE { return m_choice; }
+    virtual wxItemContainer* GetContainer() const wxOVERRIDE { return m_choice; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateChoice(); }
 
     // lazy creation of the content
-    virtual void CreateContent() override;
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -185,10 +185,10 @@ ChoiceWidgetsPage::ChoiceWidgetsPage(WidgetsBookCtrl *book,
 {
     // init everything
 
-    m_chkSort = nullptr;
+    m_chkSort = (wxCheckBox *)NULL;
 
-    m_choice = nullptr;
-    m_sizerChoice = nullptr;
+    m_choice = NULL;
+    m_sizerChoice = (wxSizer *)NULL;
 
 }
 
@@ -203,52 +203,54 @@ void ChoiceWidgetsPage::CreateContent()
     wxSizer *sizerTop = new wxBoxSizer(wxHORIZONTAL);
 
     // left pane
-    wxStaticBoxSizer *sizerLeft = new wxStaticBoxSizer(wxVERTICAL, this, "&Set choice parameters");
-    wxStaticBox* const sizerLeftBox = sizerLeft->GetStaticBox();
+    wxStaticBox *box = new wxStaticBox(this, wxID_ANY,
+        "&Set choice parameters");
+    wxSizer *sizerLeft = new wxStaticBoxSizer(box, wxVERTICAL);
 
-    m_chkSort = CreateCheckBoxAndAddToSizer(sizerLeft, "&Sort items", wxID_ANY, sizerLeftBox);
+    m_chkSort = CreateCheckBoxAndAddToSizer(sizerLeft, "&Sort items");
 
-    wxButton *btn = new wxButton(sizerLeftBox, ChoicePage_Reset, "&Reset");
+    wxButton *btn = new wxButton(this, ChoicePage_Reset, "&Reset");
     sizerLeft->Add(btn, 0, wxALIGN_CENTRE_HORIZONTAL | wxALL, 15);
 
     // middle pane
-    wxStaticBoxSizer *sizerMiddle = new wxStaticBoxSizer(wxVERTICAL, this, "&Change choice contents");
-    wxStaticBox* const sizerMiddleBox = sizerMiddle->GetStaticBox();
+    wxStaticBox *box2 = new wxStaticBox(this, wxID_ANY,
+        "&Change choice contents");
+    wxSizer *sizerMiddle = new wxStaticBoxSizer(box2, wxVERTICAL);
 
     wxSizer *sizerRow = new wxBoxSizer(wxHORIZONTAL);
-    btn = new wxButton(sizerMiddleBox, ChoicePage_Add, "&Add this string");
-    m_textAdd = new wxTextCtrl(sizerMiddleBox, ChoicePage_AddText, "test item 0");
+    btn = new wxButton(this, ChoicePage_Add, "&Add this string");
+    m_textAdd = new wxTextCtrl(this, ChoicePage_AddText, "test item 0");
     sizerRow->Add(btn, 0, wxRIGHT, 5);
     sizerRow->Add(m_textAdd, 1, wxLEFT, 5);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
-    btn = new wxButton(sizerMiddleBox, ChoicePage_AddSeveral, "&Insert a few strings");
+    btn = new wxButton(this, ChoicePage_AddSeveral, "&Insert a few strings");
     sizerMiddle->Add(btn, 0, wxALL | wxGROW, 5);
 
-    btn = new wxButton(sizerMiddleBox, ChoicePage_AddMany, "Add &many strings");
+    btn = new wxButton(this, ChoicePage_AddMany, "Add &many strings");
     sizerMiddle->Add(btn, 0, wxALL | wxGROW, 5);
 
     sizerRow = new wxBoxSizer(wxHORIZONTAL);
-    btn = new wxButton(sizerMiddleBox, ChoicePage_Change, "C&hange current");
-    m_textChange = new wxTextCtrl(sizerMiddleBox, ChoicePage_ChangeText, wxEmptyString);
+    btn = new wxButton(this, ChoicePage_Change, "C&hange current");
+    m_textChange = new wxTextCtrl(this, ChoicePage_ChangeText, wxEmptyString);
     sizerRow->Add(btn, 0, wxRIGHT, 5);
     sizerRow->Add(m_textChange, 1, wxLEFT, 5);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
     sizerRow = new wxBoxSizer(wxHORIZONTAL);
-    btn = new wxButton(sizerMiddleBox, ChoicePage_Delete, "&Delete this item");
-    m_textDelete = new wxTextCtrl(sizerMiddleBox, ChoicePage_DeleteText, wxEmptyString);
+    btn = new wxButton(this, ChoicePage_Delete, "&Delete this item");
+    m_textDelete = new wxTextCtrl(this, ChoicePage_DeleteText, wxEmptyString);
     sizerRow->Add(btn, 0, wxRIGHT, 5);
     sizerRow->Add(m_textDelete, 1, wxLEFT, 5);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
-    btn = new wxButton(sizerMiddleBox, ChoicePage_DeleteSel, "Delete &selection");
+    btn = new wxButton(this, ChoicePage_DeleteSel, "Delete &selection");
     sizerMiddle->Add(btn, 0, wxALL | wxGROW, 5);
 
-    btn = new wxButton(sizerMiddleBox, ChoicePage_Clear, "&Clear");
+    btn = new wxButton(this, ChoicePage_Clear, "&Clear");
     sizerMiddle->Add(btn, 0, wxALL | wxGROW, 5);
 
-    btn = new wxButton(sizerMiddleBox, ChoicePage_ContainerTests, "Run &tests");
+    btn = new wxButton(this, ChoicePage_ContainerTests, "Run &tests");
     sizerMiddle->Add(btn, 0, wxALL | wxGROW, 5);
 
     // right pane
@@ -300,10 +302,8 @@ void ChoiceWidgetsPage::CreateChoice()
 
     m_choice = new wxChoice(this, ChoicePage_Choice,
                             wxDefaultPosition, wxDefaultSize,
-                            0, nullptr,
+                            0, NULL,
                             flags);
-
-    NotifyWidgetRecreation(m_choice);
 
     m_choice->Set(items);
     m_sizerChoice->Add(m_choice, 0, wxGROW | wxALL, 5);

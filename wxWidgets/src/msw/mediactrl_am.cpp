@@ -2,6 +2,7 @@
 // Name:        src/msw/mediactrl_am.cpp
 // Purpose:     ActiveMovie/WMP6/PocketPC 2000 Media Backend for Windows
 // Author:      Ryan Norton <wxprojects@comcast.net>
+// Modified by:
 // Created:     01/29/05
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
@@ -820,44 +821,44 @@ public:
                                      const wxSize& size,
                                      long style,
                                      const wxValidator& validator,
-                                     const wxString& name) override;
+                                     const wxString& name) wxOVERRIDE;
 
-    virtual bool Play() override;
-    virtual bool Pause() override;
-    virtual bool Stop() override;
+    virtual bool Play() wxOVERRIDE;
+    virtual bool Pause() wxOVERRIDE;
+    virtual bool Stop() wxOVERRIDE;
 
-    virtual bool Load(const wxString& fileName) override;
-    virtual bool Load(const wxURI& location) override;
-    virtual bool Load(const wxURI& location, const wxURI& proxy) override;
+    virtual bool Load(const wxString& fileName) wxOVERRIDE;
+    virtual bool Load(const wxURI& location) wxOVERRIDE;
+    virtual bool Load(const wxURI& location, const wxURI& proxy) wxOVERRIDE;
 
     bool DoLoad(const wxString& location);
     void FinishLoad();
 
-    virtual wxMediaState GetState() override;
+    virtual wxMediaState GetState() wxOVERRIDE;
 
-    virtual bool SetPosition(wxLongLong where) override;
-    virtual wxLongLong GetPosition() override;
-    virtual wxLongLong GetDuration() override;
+    virtual bool SetPosition(wxLongLong where) wxOVERRIDE;
+    virtual wxLongLong GetPosition() wxOVERRIDE;
+    virtual wxLongLong GetDuration() wxOVERRIDE;
 
-    virtual void Move(int x, int y, int w, int h) override;
-    wxSize GetVideoSize() const override;
+    virtual void Move(int x, int y, int w, int h) wxOVERRIDE;
+    wxSize GetVideoSize() const wxOVERRIDE;
 
-    virtual double GetPlaybackRate() override;
-    virtual bool SetPlaybackRate(double) override;
+    virtual double GetPlaybackRate() wxOVERRIDE;
+    virtual bool SetPlaybackRate(double) wxOVERRIDE;
 
-    virtual double GetVolume() override;
-    virtual bool SetVolume(double) override;
+    virtual double GetVolume() wxOVERRIDE;
+    virtual bool SetVolume(double) wxOVERRIDE;
 
-    virtual bool ShowPlayerControls(wxMediaCtrlPlayerControls flags) override;
+    virtual bool ShowPlayerControls(wxMediaCtrlPlayerControls flags) wxOVERRIDE;
 
     void DoGetDownloadProgress(wxLongLong*, wxLongLong*);
-    virtual wxLongLong GetDownloadProgress() override
+    virtual wxLongLong GetDownloadProgress() wxOVERRIDE
     {
         wxLongLong progress, total;
         DoGetDownloadProgress(&progress, &total);
         return progress;
     }
-    virtual wxLongLong GetDownloadTotal() override
+    virtual wxLongLong GetDownloadTotal() wxOVERRIDE
     {
         wxLongLong progress, total;
         DoGetDownloadProgress(&progress, &total);
@@ -929,7 +930,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(wxAMMediaBackend, wxMediaBackend);
 wxString wxAMMediaBackend::GetErrorString(HRESULT hrdsv)
 {
     wxChar szError[MAX_ERROR_TEXT_LEN];
-    if( m_lpAMGetErrorText != nullptr &&
+    if( m_lpAMGetErrorText != NULL &&
        (*m_lpAMGetErrorText)(hrdsv, szError, MAX_ERROR_TEXT_LEN) == 0)
     {
         return wxString::Format(wxT("DirectShow error \"%s\" \n")
@@ -960,12 +961,12 @@ wxString wxAMMediaBackend::GetErrorString(HRESULT hrdsv)
 // wxAMMediaBackend Constructor
 //---------------------------------------------------------------------------
 wxAMMediaBackend::wxAMMediaBackend()
-                 :m_pAX(nullptr),
-                  m_pAM(nullptr),
-                  m_pMP(nullptr),
+                 :m_pAX(NULL),
+                  m_pAM(NULL),
+                  m_pMP(NULL),
                   m_bestSize(wxDefaultSize)
 {
-   m_evthandler = nullptr;
+   m_evthandler = NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -1015,11 +1016,11 @@ bool wxAMMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
 
     // Now determine which (if any) media player interface is
     // available - IMediaPlayer or IActiveMovie
-    if( ::CoCreateInstance(CLSID_MediaPlayer, nullptr,
+    if( ::CoCreateInstance(CLSID_MediaPlayer, NULL,
                                   CLSCTX_INPROC_SERVER,
                                   IID_IMediaPlayer, (void**)&m_pMP) != 0 )
     {
-        if( ::CoCreateInstance(CLSID_ActiveMovie, nullptr,
+        if( ::CoCreateInstance(CLSID_ActiveMovie, NULL,
                                   CLSCTX_INPROC_SERVER,
                                   IID_IActiveMovie, (void**)&m_pAM) != 0 )
             return false;
@@ -1102,7 +1103,7 @@ bool wxAMMediaBackend::Load(const wxURI& location)
 {
     //  Turn off loading from a proxy as user
     //  may have set it previously
-    INSPlay* pPlay = nullptr;
+    INSPlay* pPlay = NULL;
     GetAM()->QueryInterface(IID_INSPlay, (void**) &pPlay);
     if(pPlay)
     {
@@ -1119,7 +1120,7 @@ bool wxAMMediaBackend::Load(const wxURI& location)
 bool wxAMMediaBackend::Load(const wxURI& location, const wxURI& proxy)
 {
     // Set the proxy of the NETSHOW interface
-    INSPlay* pPlay = nullptr;
+    INSPlay* pPlay = NULL;
     GetAM()->QueryInterface(IID_INSPlay, (void**) &pPlay);
 
     if(pPlay)
@@ -1450,14 +1451,14 @@ bool wxAMMediaBackend::SetPlaybackRate(double dRate)
 void wxAMMediaBackend::DoGetDownloadProgress(wxLongLong* pLoadProgress,
                                              wxLongLong* pLoadTotal)
 {
-    IUnknown* pFG = nullptr;
+    IUnknown* pFG = NULL;
 
     HRESULT hr = m_pAM->get_FilterGraph(&pFG);
 
-    // notice that the call above may return S_FALSE and leave pFG null
+    // notice that the call above may return S_FALSE and leave pFG NULL
     if(SUCCEEDED(hr) && pFG)
     {
-        IAMOpenProgress* pOP = nullptr;
+        IAMOpenProgress* pOP = NULL;
         hr = pFG->QueryInterface(IID_IAMOpenProgress, (void**)&pOP);
         if(SUCCEEDED(hr) && pOP)
         {

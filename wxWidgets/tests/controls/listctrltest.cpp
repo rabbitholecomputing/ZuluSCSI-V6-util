@@ -36,10 +36,10 @@ class ListCtrlTestCase : public ListBaseTestCase, public CppUnit::TestCase
 public:
     ListCtrlTestCase() { }
 
-    virtual void setUp() override;
-    virtual void tearDown() override;
+    virtual void setUp() wxOVERRIDE;
+    virtual void tearDown() wxOVERRIDE;
 
-    virtual wxListCtrl *GetList() const override { return m_list; }
+    virtual wxListCtrl *GetList() const wxOVERRIDE { return m_list; }
 
 private:
     CPPUNIT_TEST_SUITE( ListCtrlTestCase );
@@ -79,31 +79,21 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( ListCtrlTestCase, "ListCtrlTestCase" );
 void ListCtrlTestCase::setUp()
 {
     m_list = new wxListCtrl(wxTheApp->GetTopWindow());
-    m_list->SetWindowStyle(wxLC_REPORT | wxLC_EDIT_LABELS);
+    m_list->SetWindowStyle(wxLC_REPORT);
     m_list->SetSize(400, 200);
-
-    wxTheApp->GetTopWindow()->Raise();
 }
 
 void ListCtrlTestCase::tearDown()
 {
     DeleteTestWindow(m_list);
-    m_list = nullptr;
+    m_list = NULL;
 }
 
 void ListCtrlTestCase::EditLabel()
 {
-    EventCounter editItem(m_list, wxEVT_LIST_BEGIN_LABEL_EDIT);
-    EventCounter endEditItem(m_list, wxEVT_LIST_END_LABEL_EDIT);
-
     m_list->InsertColumn(0, "Column 0");
     m_list->InsertItem(0, "foo");
     m_list->EditLabel(0);
-
-    m_list->EndEditLabel(true);
-
-    CHECK(editItem.GetCount() == 1);
-    CHECK(endEditItem.GetCount() == 1);
 }
 
 void ListCtrlTestCase::SubitemRect()
@@ -181,6 +171,9 @@ void ListCtrlTestCase::ColumnCount()
 #if wxUSE_UIACTIONSIMULATOR
 void ListCtrlTestCase::ColumnDrag()
 {
+#if defined(__WXMSW__) && !wxUSE_UNICODE
+    WARN("Skipping test broken in non-Unicode wxMSW build.");
+#else
     EventCounter begindrag(m_list, wxEVT_LIST_COL_BEGIN_DRAG);
     EventCounter dragging(m_list, wxEVT_LIST_COL_DRAGGING);
     EventCounter enddrag(m_list, wxEVT_LIST_COL_END_DRAG);
@@ -212,6 +205,7 @@ void ListCtrlTestCase::ColumnDrag()
     CPPUNIT_ASSERT_EQUAL(1, enddrag.GetCount());
 
     m_list->ClearAll();
+#endif
 }
 
 void ListCtrlTestCase::ColumnClick()

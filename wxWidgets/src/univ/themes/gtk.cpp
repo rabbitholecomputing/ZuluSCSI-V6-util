@@ -2,6 +2,7 @@
 // Name:        src/univ/themes/gtk.cpp
 // Purpose:     wxUniversal theme implementing GTK-like LNF
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     06.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -83,7 +84,7 @@ public:
                                 wxBorder border,
                                 const wxRect& rect,
                                 int flags = 0,
-                                wxRect *rectIn = nullptr);
+                                wxRect *rectIn = NULL);
     virtual void DrawButtonLabel(wxDC& dc,
                                  const wxString& label,
                                  const wxBitmap& image,
@@ -95,7 +96,7 @@ public:
     virtual void DrawButtonBorder(wxDC& dc,
                                   const wxRect& rect,
                                   int flags = 0,
-                                  wxRect *rectIn = nullptr);
+                                  wxRect *rectIn = NULL);
     virtual void DrawArrow(wxDC& dc,
                            wxDirection dir,
                            const wxRect& rect,
@@ -144,7 +145,7 @@ public:
                                  wxOrientation orient,
                                  int flags = 0,
                                  long style = 0,
-                                 wxRect *rectShaft = nullptr);
+                                 wxRect *rectShaft = NULL);
     virtual void DrawSliderThumb(wxDC& dc,
                                  const wxRect& rect,
                                  wxOrientation orient,
@@ -331,7 +332,7 @@ protected:
                         int indexAccel,
                         const wxString& accel = wxEmptyString,
                         const wxBitmap& bitmap = wxNullBitmap,
-                        const wxGTKMenuGeometryInfo *geometryInfo = nullptr);
+                        const wxGTKMenuGeometryInfo *geometryInfo = NULL);
 
     // initialize the combo bitmaps
     void InitComboBitmaps();
@@ -526,9 +527,9 @@ WX_IMPLEMENT_THEME(wxGTKTheme, gtk, wxTRANSLATE("GTK+ theme"));
 
 wxGTKTheme::wxGTKTheme()
 {
-    m_scheme = nullptr;
-    m_renderer = nullptr;
-    m_artProvider = nullptr;
+    m_scheme = NULL;
+    m_renderer = NULL;
+    m_artProvider = NULL;
 }
 
 wxGTKTheme::~wxGTKTheme()
@@ -570,7 +571,7 @@ wxColourScheme *wxGTKTheme::GetColourScheme()
 wxInputHandler *wxGTKTheme::GetInputHandler(const wxString& control,
                                             wxInputConsumer *consumer)
 {
-    wxInputHandler *handler = nullptr;
+    wxInputHandler *handler = NULL;
     int n = m_handlerNames.Index(control);
     if ( n == wxNOT_FOUND )
     {
@@ -1769,14 +1770,14 @@ wxMenuGeometryInfo *wxGTKRenderer::GetMenuGeometry(wxWindow *win,
             h = heightText;
 
             wxCoord widthLabel;
-            dc.GetTextExtent(item->GetItemLabelText(), &widthLabel, nullptr);
+            dc.GetTextExtent(item->GetItemLabelText(), &widthLabel, NULL);
             if ( widthLabel > widthLabelMax )
             {
                 widthLabelMax = widthLabel;
             }
 
             wxCoord widthAccel;
-            dc.GetTextExtent(item->GetAccelString(), &widthAccel, nullptr);
+            dc.GetTextExtent(item->GetAccelString(), &widthAccel, NULL);
             if ( widthAccel > widthAccelMax )
             {
                 widthAccelMax = widthAccel;
@@ -2587,11 +2588,11 @@ bool wxGTKInputHandler::HandleMouseMove(wxInputConsumer *control,
 {
     if ( event.Entering() )
     {
-        control->GetInputWindow()->WXMakeCurrent(true);
+        control->GetInputWindow()->SetCurrent(true);
     }
     else if ( event.Leaving() )
     {
-        control->GetInputWindow()->WXMakeCurrent(false);
+        control->GetInputWindow()->SetCurrent(false);
     }
     else
     {

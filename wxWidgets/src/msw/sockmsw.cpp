@@ -65,22 +65,22 @@ static int firstAvailable;
 class wxSocketMSWManager : public wxSocketManager
 {
 public:
-    virtual bool OnInit() override;
-    virtual void OnExit() override;
+    virtual bool OnInit() wxOVERRIDE;
+    virtual void OnExit() wxOVERRIDE;
 
-    virtual wxSocketImpl *CreateSocket(wxSocketBase& wxsocket) override
+    virtual wxSocketImpl *CreateSocket(wxSocketBase& wxsocket) wxOVERRIDE
     {
         return new wxSocketImplMSW(wxsocket);
     }
     virtual void Install_Callback(wxSocketImpl *socket,
-                                  wxSocketNotify event = wxSOCKET_LOST) override;
+                                  wxSocketNotify event = wxSOCKET_LOST) wxOVERRIDE;
     virtual void Uninstall_Callback(wxSocketImpl *socket,
-                                    wxSocketNotify event = wxSOCKET_LOST) override;
+                                    wxSocketNotify event = wxSOCKET_LOST) wxOVERRIDE;
 };
 
 bool wxSocketMSWManager::OnInit()
 {
-  LPCTSTR pclassname = nullptr;
+  LPCTSTR pclassname = NULL;
   int i;
 
   /* Create internal window for event notifications */
@@ -91,7 +91,7 @@ bool wxSocketMSWManager::OnInit()
   /* Initialize socket list */
   for (i = 0; i < MAXSOCKETS; i++)
   {
-    socketList[i] = nullptr;
+    socketList[i] = NULL;
   }
   firstAvailable = 0;
 
@@ -118,7 +118,7 @@ wxSocketImplMSW::wxSocketImplMSW(wxSocketBase& wxsocket)
   wxCRIT_SECT_LOCKER(lock, gs_critical);
 
   int i = firstAvailable;
-  while (socketList[i] != nullptr)
+  while (socketList[i] != NULL)
   {
     i = (i + 1) % MAXSOCKETS;
 
@@ -147,7 +147,7 @@ wxSocketImplMSW::~wxSocketImplMSW()
       while ( ::PeekMessage(&msg, hWin, m_msgnumber, m_msgnumber, PM_REMOVE) )
           ;
 
-      socketList[m_msgnumber - WM_USER] = nullptr;
+      socketList[m_msgnumber - WM_USER] = NULL;
   }
   //else: the socket has never been created successfully
 }
@@ -194,7 +194,7 @@ LRESULT CALLBACK wxSocket_Internal_WinProc(HWND hWnd,
                     wxFD_ZERO(&fds);
                     wxFD_SET(socket->m_fd, &fds);
 
-                    if ( select(socket->m_fd + 1, &fds, nullptr, nullptr, &tv) != 1 )
+                    if ( select(socket->m_fd + 1, &fds, NULL, NULL, &tv) != 1 )
                         return 0;
                 }
 

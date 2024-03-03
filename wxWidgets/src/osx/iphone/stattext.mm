@@ -2,6 +2,7 @@
 // Name:        src/osx/iphone/stattext.mm
 // Purpose:     wxStaticText
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -51,10 +52,10 @@ public:
     {
     }
 
-    virtual void SetLabel(const wxString& title)
+    virtual void SetLabel(const wxString& title, wxFontEncoding encoding)
     {
         wxUILabel* v = (wxUILabel*)GetWXWidget();
-        wxCFStringRef text( title );
+        wxCFStringRef text( title , encoding );
         
         [v setText:text.AsNSString()];
     }

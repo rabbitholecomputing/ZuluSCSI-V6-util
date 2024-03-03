@@ -84,27 +84,27 @@ bool wxDirDialog::Create(wxWindow* parent,
         return false;
     }
 
-    GtkWindow* gtk_parent = nullptr;
+    GtkWindow* gtk_parent = NULL;
     if (parent)
         gtk_parent = GTK_WINDOW( gtk_widget_get_toplevel(parent->m_widget) );
 
     m_widget = gtk_file_chooser_dialog_new(
-                   m_message.utf8_str(),
+                   wxGTK_CONV(m_message),
                    gtk_parent,
                    GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
 #ifdef __WXGTK4__
-                   static_cast<const char*>(wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_CANCEL)).utf8_str()),
+                   static_cast<const char*>(wxGTK_CONV(wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_CANCEL)))),
 #else
                    "gtk-cancel",
 #endif
                    GTK_RESPONSE_CANCEL,
 #ifdef __WXGTK4__
-                   static_cast<const char*>(wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_OPEN)).utf8_str()),
+                   static_cast<const char*>(wxGTK_CONV(wxConvertMnemonicsToGTK(wxGetStockLabel(wxID_OPEN)))),
 #else
                    "gtk-open",
 #endif
                    GTK_RESPONSE_ACCEPT,
-                   nullptr);
+                   NULL);
 
     g_object_ref(m_widget);
 

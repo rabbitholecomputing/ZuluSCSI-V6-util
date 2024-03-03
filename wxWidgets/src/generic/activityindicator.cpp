@@ -25,13 +25,11 @@
 
 #ifndef WX_PRECOMP
     #include "wx/dcclient.h"
-    #include "wx/settings.h"
     #include "wx/timer.h"
 #endif // WX_PRECOMP
 
 #include "wx/graphics.h"
-
-#include <memory>
+#include "wx/scopedptr.h"
 
 // ----------------------------------------------------------------------------
 // constants
@@ -107,7 +105,7 @@ private:
         {
         }
 
-        virtual void Notify() override
+        virtual void Notify() wxOVERRIDE
         {
             m_owner->Advance();
         }
@@ -122,7 +120,7 @@ private:
     {
         wxPaintDC pdc(m_win);
 
-        std::unique_ptr<wxGraphicsContext> const
+        wxScopedPtr<wxGraphicsContext> const
             gc(wxGraphicsRenderer::GetDefaultRenderer()->CreateContext(pdc));
 
         const wxSize size = m_win->GetClientSize();
@@ -149,9 +147,6 @@ private:
         // the next position every time.
         gc->Rotate(m_frame*angle);
 
-        // Choose a contrasting background colour.
-        wxColour colBg = wxSystemSettings::SelectLightDark(*wxBLACK, *wxWHITE);
-
         const bool isEnabled = m_win->IsThisEnabled();
         for ( int n = 0; n < NUM_DOTS; n++ )
         {
@@ -164,8 +159,7 @@ private:
             // it in 0..wxALPHA_OPAQUE range.
             const int opacity = opacityIndex*(wxALPHA_OPAQUE + 1)/NUM_DOTS - 1;
 
-            colBg.Set(colBg.Red(), colBg.Green(), colBg.Blue(), opacity);
-            gc->SetBrush(colBg);
+            gc->SetBrush(wxBrush(wxColour(0, 0, 0, opacity)));
 
             gc->FillPath(path);
             gc->Rotate(angle);

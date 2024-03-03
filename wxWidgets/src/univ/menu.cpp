@@ -2,6 +2,7 @@
 // Name:        src/univ/menu.cpp
 // Purpose:     wxMenuItem, wxMenu and wxMenuBar implementation
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     25.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -48,7 +49,7 @@ typedef wxMenuItemList::compatibility_iterator wxMenuItemIter;
 // wxMenuInfo contains all extra information about top level menus we need
 // ----------------------------------------------------------------------------
 
-class wxMenuInfo
+class WXDLLEXPORT wxMenuInfo
 {
 public:
     // ctor
@@ -109,6 +110,10 @@ private:
     bool m_isEnabled;
 };
 
+#include "wx/arrimpl.cpp"
+
+WX_DEFINE_OBJARRAY(wxMenuInfoArray);
+
 // ----------------------------------------------------------------------------
 // wxPopupMenuWindow: a popup window showing a menu
 // ----------------------------------------------------------------------------
@@ -121,7 +126,7 @@ public:
     virtual ~wxPopupMenuWindow();
 
     // override the base class version to select the first item initially
-    virtual void Popup(wxWindow *focus = nullptr);
+    virtual void Popup(wxWindow *focus = NULL);
 
     // override the base class version to dismiss any open submenus
     virtual void Dismiss();
@@ -136,10 +141,10 @@ public:
     void OnIdle(wxIdleEvent& WXUNUSED(event)) { }
 #endif
 
-    // get the currently selected item (may be null)
+    // get the currently selected item (may be NULL)
     wxMenuItem *GetCurrentItem() const
     {
-        return m_nodeCurrent ? m_nodeCurrent->GetData() : nullptr;
+        return m_nodeCurrent ? m_nodeCurrent->GetData() : NULL;
     }
 
     // find the menu item at given position
@@ -321,9 +326,9 @@ wxPopupMenuWindow::~wxPopupMenuWindow()
     // When m_popupMenu in wxMenu is deleted because it
     // is a child of an old menu bar being deleted (note: it does
     // not get destroyed by the wxMenu destructor, but
-    // by DestroyChildren()), m_popupMenu should be reset to nullptr.
+    // by DestroyChildren()), m_popupMenu should be reset to NULL.
 
-    m_menu->m_popupMenu = nullptr;
+    m_menu->m_popupMenu = NULL;
 }
 
 // ----------------------------------------------------------------------------
@@ -542,7 +547,7 @@ wxPopupMenuWindow::GetMenuItemFromPoint(const wxPoint& pt) const
 
 void wxPopupMenuWindow::RefreshItem(wxMenuItem *item)
 {
-    wxCHECK_RET( item, wxT("can't refresh null item") );
+    wxCHECK_RET( item, wxT("can't refresh NULL item") );
 
     wxASSERT_MSG( IsShown(), wxT("can't refresh menu which is not shown") );
 
@@ -637,7 +642,7 @@ void wxPopupMenuWindow::DoDraw(wxControlRenderer *renderer)
 
 void wxPopupMenuWindow::ClickItem(wxMenuItem *item)
 {
-    wxCHECK_RET( item, wxT("can't click null item") );
+    wxCHECK_RET( item, wxT("can't click NULL item") );
 
     wxASSERT_MSG( !item->IsSeparator() && !item->IsSubMenu(),
                   wxT("can't click this item") );
@@ -652,7 +657,7 @@ void wxPopupMenuWindow::ClickItem(wxMenuItem *item)
 
 void wxPopupMenuWindow::OpenSubmenu(wxMenuItem *item, InputMethod how)
 {
-    wxCHECK_RET( item, wxT("can't open null submenu") );
+    wxCHECK_RET( item, wxT("can't open NULL submenu") );
 
     wxMenu *submenu = item->GetSubMenu();
     wxCHECK_RET( submenu, wxT("can only open submenus!") );
@@ -786,7 +791,7 @@ void wxPopupMenuWindow::ProcessMouseMove(const wxPoint& pt)
 {
     wxMenuItemIter node = GetMenuItemFromPoint(pt);
 
-    // don't reset current to nullptr here, we only do it when the mouse leaves
+    // don't reset current to NULL here, we only do it when the mouse leaves
     // the window (see below)
     if ( node )
     {
@@ -1083,9 +1088,9 @@ void wxPopupMenuWindow::OnCaptureLost(wxMouseCaptureLostEvent& WXUNUSED(event))
 
 void wxMenu::Init()
 {
-    m_geometry = nullptr;
+    m_geometry = NULL;
 
-    m_popupMenu = nullptr;
+    m_popupMenu = NULL;
 
     m_startRadioGroup = -1;
 }
@@ -1162,7 +1167,7 @@ wxMenuItem* wxMenu::DoAppend(wxMenuItem *item)
             item->SetRadioGroupEnd(m_startRadioGroup);
 
             if ( !wxMenuBase::DoAppend(item) )
-                return nullptr;
+                return NULL;
 
             item->Check(true);
         }
@@ -1182,7 +1187,7 @@ wxMenuItem* wxMenu::DoAppend(wxMenuItem *item)
             }
 
             if ( !wxMenuBase::DoAppend(item) )
-                return nullptr;
+                return NULL;
         }
     }
     else // not a radio item
@@ -1190,7 +1195,7 @@ wxMenuItem* wxMenu::DoAppend(wxMenuItem *item)
         EndRadioGroup();
 
         if ( !wxMenuBase::DoAppend(item) )
-            return nullptr;
+            return NULL;
     }
 
     OnItemAdded(item);
@@ -1215,7 +1220,7 @@ wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
             item->SetRadioGroupEnd(m_startRadioGroup);
 
             if ( !wxMenuBase::DoInsert(pos, item) )
-                return nullptr;
+                return NULL;
 
             item->Check(true);
         }
@@ -1255,13 +1260,13 @@ wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
             }
 
             if ( !wxMenuBase::DoInsert(pos, item) )
-                return nullptr;
+                return NULL;
         }
     }
     else
     {
         if ( !wxMenuBase::DoInsert(pos, item) )
-            return nullptr;
+            return NULL;
     }
 
     OnItemAdded(item);
@@ -1293,7 +1298,7 @@ void wxMenu::Attach(wxMenuBarBase *menubar)
 {
     wxMenuBase::Attach(menubar);
 
-    wxCHECK_RET( m_menuBar, wxT("menubar can't be null after attaching") );
+    wxCHECK_RET( m_menuBar, wxT("menubar can't be NULL after attaching") );
 
     // unfortunately, we can't use m_menuBar->GetEventHandler() here because,
     // if the menubar is currently showing a menu, its event handler is a
@@ -1310,7 +1315,7 @@ void wxMenu::Detach()
 {
     // After the menu is detached from the menu bar, it shouldn't send its
     // events to it.
-    SetNextHandler(nullptr);
+    SetNextHandler(NULL);
 
     wxMenuBase::Detach();
 }
@@ -1327,7 +1332,7 @@ wxWindow *wxMenu::GetRootWindow() const
 wxRenderer *wxMenu::GetRenderer() const
 {
     // we're going to crash without renderer!
-    wxCHECK_MSG( m_popupMenu, nullptr, wxT("neither popup nor menubar menu?") );
+    wxCHECK_MSG( m_popupMenu, NULL, wxT("neither popup nor menubar menu?") );
 
     return m_popupMenu->GetRenderer();
 }
@@ -1720,18 +1725,13 @@ int wxMenuItem::GetRadioGroupEnd()
 
 void wxMenuBar::Init()
 {
-    m_frameLast = nullptr;
+    m_frameLast = NULL;
 
     m_current = -1;
 
-    m_menuShown = nullptr;
+    m_menuShown = NULL;
 
     m_shouldShowMenu = false;
-}
-
-wxMenuBar::wxMenuBar(long WXUNUSED(style))
-{
-    Init();
 }
 
 wxMenuBar::wxMenuBar(size_t n, wxMenu *menus[], const wxString titles[], long WXUNUSED(style))
@@ -1745,7 +1745,7 @@ wxMenuBar::wxMenuBar(size_t n, wxMenu *menus[], const wxString titles[], long WX
 void wxMenuBar::Attach(wxFrame *frame)
 {
     // maybe you really wanted to call Detach()?
-    wxCHECK_RET( frame, wxT("wxMenuBar::Attach(nullptr) called") );
+    wxCHECK_RET( frame, wxT("wxMenuBar::Attach(NULL) called") );
 
     wxMenuBarBase::Attach(frame);
 
@@ -1809,7 +1809,8 @@ bool wxMenuBar::Insert(size_t pos, wxMenu *menu, const wxString& title)
 
     menu->SetTitle( title );
 
-    m_menuInfos.insert(m_menuInfos.begin() + pos, wxMenuInfo(title));
+    wxMenuInfo *info = new wxMenuInfo(title);
+    m_menuInfos.Insert(info, pos);
 
     RefreshAllItemsAfter(pos);
 
@@ -1843,7 +1844,7 @@ wxMenu *wxMenuBar::Remove(size_t pos)
 
     if ( menuOld )
     {
-        m_menuInfos.erase(m_menuInfos.begin() + pos);
+        m_menuInfos.RemoveAt(pos);
 
         // this doesn't happen too often, so don't try to be too smart - just
         // refresh everything
@@ -1856,11 +1857,6 @@ wxMenu *wxMenuBar::Remove(size_t pos)
 // ----------------------------------------------------------------------------
 // wxMenuBar top level menus access
 // ----------------------------------------------------------------------------
-
-size_t wxMenuBar::GetCount() const
-{
-    return m_menuInfos.size();
-}
 
 wxCoord wxMenuBar::GetItemWidth(size_t pos) const
 {
@@ -2528,7 +2524,7 @@ void wxMenuBar::PopupCurrentMenu(bool selectFirst)
         else
         {
             // reset it back as no menu is shown
-            m_menuShown = nullptr;
+            m_menuShown = NULL;
         }
     }
     //else: don't show disabled menu
@@ -2545,7 +2541,7 @@ void wxMenuBar::DismissMenu()
 void wxMenuBar::OnDismissMenu(bool dismissMenuBar)
 {
     m_shouldShowMenu = false;
-    m_menuShown = nullptr;
+    m_menuShown = NULL;
     if ( dismissMenuBar )
     {
         OnDismiss();
@@ -2616,7 +2612,7 @@ void wxMenuBar::GiveAwayFocus()
 // popup menu support
 // ----------------------------------------------------------------------------
 
-wxEventLoop *wxWindow::ms_evtLoopPopup = nullptr;
+wxEventLoop *wxWindow::ms_evtLoopPopup = NULL;
 
 bool wxWindow::DoPopupMenu(wxMenu *menu, int x, int y)
 {

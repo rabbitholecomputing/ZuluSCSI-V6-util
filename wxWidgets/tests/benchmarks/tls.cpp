@@ -79,7 +79,7 @@ class PthreadKey
 public:
     PthreadKey()
     {
-        pthread_key_create(&m_key, nullptr);
+        pthread_key_create(&m_key, NULL);
     }
 
     ~PthreadKey()
@@ -175,7 +175,8 @@ BENCHMARK_FUNC(BoostTLS)
 
 BENCHMARK_FUNC(wxTLS)
 {
-    static wxTHREAD_SPECIFIC_DECL int s_global;
+    static wxTLS_TYPE(int) s_globalVar;
+    #define s_global wxTLS_VALUE(s_globalVar)
 
     for ( int n = 0; n < NUM_ITER; n++ )
     {

@@ -67,10 +67,10 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index,
     switch (index)
     {
         case wxSYS_SCREEN_X:
-            wxDisplaySize(&val, nullptr);
+            wxDisplaySize(&val, NULL);
             return val;
         case wxSYS_SCREEN_Y:
-            wxDisplaySize(nullptr, &val);
+            wxDisplaySize(NULL, &val);
             return val;
 
         default:

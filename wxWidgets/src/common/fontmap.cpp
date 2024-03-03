@@ -2,6 +2,7 @@
 // Name:        src/common/fontmap.cpp
 // Purpose:     wxFontMapper class
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     04.11.99
 // Copyright:   (c) 1999-2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -151,7 +152,7 @@ private:
 
 wxFontMapper::wxFontMapper()
 {
-    m_windowParent = nullptr;
+    m_windowParent = NULL;
 }
 
 wxFontMapper::~wxFontMapper()
@@ -167,7 +168,7 @@ wxFontMapper *wxFontMapper::Get()
 
     // Now return it anyway because there's a chance the GUI code might just
     // only want to call wxFontMapperBase functions and it's better than
-    // crashing by returning nullptr
+    // crashing by returning NULL
     return (wxFontMapper *)fontmapper;
 }
 
@@ -492,7 +493,7 @@ bool wxFontMapper::GetAltForEncoding(wxFontEncoding encoding,
                                      bool interactive)
 {
     wxCHECK_MSG( encodingAlt, false,
-                    wxT("wxFontEncoding::GetAltForEncoding(): null pointer") );
+                    wxT("wxFontEncoding::GetAltForEncoding(): NULL pointer") );
 
     wxNativeEncodingInfo info;
     if ( !GetAltForEncoding(encoding, &info, facename, interactive) )

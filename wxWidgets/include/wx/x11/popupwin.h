@@ -21,7 +21,7 @@
 class WXDLLIMPEXP_CORE wxPopupWindow: public wxPopupWindowBase
 {
 public:
-    wxPopupWindow() = default;
+    wxPopupWindow() { }
     virtual ~wxPopupWindow() ;
 
     wxPopupWindow(wxWindow *parent, int flags = wxBORDER_NONE)

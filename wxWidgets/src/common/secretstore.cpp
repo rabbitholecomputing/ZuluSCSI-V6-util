@@ -99,7 +99,7 @@ size_t wxSecretValue::GetSize() const
 
 const void *wxSecretValue::GetData() const
 {
-    return m_impl ? m_impl->GetData() : nullptr;
+    return m_impl ? m_impl->GetData() : NULL;
 }
 
 wxString wxSecretValue::GetAsString(const wxMBConv& conv) const
@@ -197,7 +197,7 @@ wxSecretStore::Load(const wxString& service,
         return false;
 
     wxString err;
-    wxSecretValueImpl* secretImpl = nullptr;
+    wxSecretValueImpl* secretImpl = NULL;
     if ( !m_impl->Load(service, &user, &secretImpl, err) )
     {
         if ( !err.empty() )

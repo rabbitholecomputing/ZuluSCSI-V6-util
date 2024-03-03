@@ -2,6 +2,7 @@
 // Name:        wx/graphics.h
 // Purpose:     graphics context header
 // Author:      Stefan Csomor
+// Modified by:
 // Created:
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -128,15 +129,16 @@ class WXDLLIMPEXP_CORE wxGraphicsObject : public wxObject
 public:
     wxGraphicsObject();
     wxGraphicsObject( wxGraphicsRenderer* renderer );
+    virtual ~wxGraphicsObject();
 
     bool IsNull() const;
 
-    // returns the renderer that was used to create this instance, or nullptr if it has not been initialized yet
+    // returns the renderer that was used to create this instance, or NULL if it has not been initialized yet
     wxGraphicsRenderer* GetRenderer() const;
     wxGraphicsObjectRefData* GetGraphicsData() const;
 protected:
-    virtual wxObjectRefData* CreateRefData() const override;
-    virtual wxObjectRefData* CloneRefData(const wxObjectRefData* data) const override;
+    virtual wxObjectRefData* CreateRefData() const wxOVERRIDE;
+    virtual wxObjectRefData* CloneRefData(const wxObjectRefData* data) const wxOVERRIDE;
 
     wxDECLARE_DYNAMIC_CLASS(wxGraphicsObject);
 };
@@ -146,8 +148,8 @@ protected:
 class WXDLLIMPEXP_CORE wxGraphicsPen : public wxGraphicsObject
 {
 public:
-    wxGraphicsPen() = default;
-    virtual ~wxGraphicsPen() = default;
+    wxGraphicsPen() {}
+    virtual ~wxGraphicsPen() {}
 private:
     wxDECLARE_DYNAMIC_CLASS(wxGraphicsPen);
 };
@@ -157,8 +159,8 @@ extern WXDLLIMPEXP_DATA_CORE(wxGraphicsPen) wxNullGraphicsPen;
 class WXDLLIMPEXP_CORE wxGraphicsBrush : public wxGraphicsObject
 {
 public:
-    wxGraphicsBrush() = default;
-    virtual ~wxGraphicsBrush() = default;
+    wxGraphicsBrush() {}
+    virtual ~wxGraphicsBrush() {}
 private:
     wxDECLARE_DYNAMIC_CLASS(wxGraphicsBrush);
 };
@@ -168,8 +170,8 @@ extern WXDLLIMPEXP_DATA_CORE(wxGraphicsBrush) wxNullGraphicsBrush;
 class WXDLLIMPEXP_CORE wxGraphicsFont : public wxGraphicsObject
 {
 public:
-    wxGraphicsFont() = default;
-    virtual ~wxGraphicsFont() = default;
+    wxGraphicsFont() {}
+    virtual ~wxGraphicsFont() {}
 private:
     wxDECLARE_DYNAMIC_CLASS(wxGraphicsFont);
 };
@@ -179,8 +181,8 @@ extern WXDLLIMPEXP_DATA_CORE(wxGraphicsFont) wxNullGraphicsFont;
 class WXDLLIMPEXP_CORE wxGraphicsBitmap : public wxGraphicsObject
 {
 public:
-    wxGraphicsBitmap() = default;
-    virtual ~wxGraphicsBitmap() = default;
+    wxGraphicsBitmap() {}
+    virtual ~wxGraphicsBitmap() {}
 
     // Convert bitmap to wxImage: this is more efficient than converting to
     // wxBitmap first and then to wxImage and also works without X server
@@ -205,9 +207,9 @@ extern WXDLLIMPEXP_DATA_CORE(wxGraphicsBitmap) wxNullGraphicsBitmap;
 class WXDLLIMPEXP_CORE wxGraphicsMatrix : public wxGraphicsObject
 {
 public:
-    wxGraphicsMatrix() = default;
+    wxGraphicsMatrix() {}
 
-    virtual ~wxGraphicsMatrix() = default;
+    virtual ~wxGraphicsMatrix() {}
 
     // concatenates the matrix
     virtual void Concat( const wxGraphicsMatrix *t );
@@ -218,8 +220,8 @@ public:
         wxDouble tx=0.0, wxDouble ty=0.0);
 
     // gets the component values of the matrix
-    virtual void Get(wxDouble* a=nullptr, wxDouble* b=nullptr,  wxDouble* c=nullptr,
-                     wxDouble* d=nullptr, wxDouble* tx=nullptr, wxDouble* ty=nullptr) const;
+    virtual void Get(wxDouble* a=NULL, wxDouble* b=NULL,  wxDouble* c=NULL,
+                     wxDouble* d=NULL, wxDouble* tx=NULL, wxDouble* ty=NULL) const;
 
     // makes this the inverse matrix
     virtual void Invert();
@@ -476,8 +478,8 @@ private:
 class WXDLLIMPEXP_CORE wxGraphicsPath : public wxGraphicsObject
 {
 public:
-    wxGraphicsPath()  = default;
-    virtual ~wxGraphicsPath() = default;
+    wxGraphicsPath()  {}
+    virtual ~wxGraphicsPath() {}
 
     //
     // These are the path primitives from which everything else can be constructed
@@ -563,7 +565,7 @@ extern WXDLLIMPEXP_DATA_CORE(wxGraphicsPath) wxNullGraphicsPath;
 class WXDLLIMPEXP_CORE wxGraphicsContext : public wxGraphicsObject
 {
 public:
-    wxGraphicsContext(wxGraphicsRenderer* renderer, wxWindow* window = nullptr);
+    wxGraphicsContext(wxGraphicsRenderer* renderer, wxWindow* window = NULL);
 
     virtual ~wxGraphicsContext();
 
@@ -578,7 +580,7 @@ public:
 #endif
 #endif
 
-    // Create a context from a DC of unknown type, if supported, returns nullptr otherwise
+    // Create a context from a DC of unknown type, if supported, returns NULL otherwise
     static wxGraphicsContext* CreateFromUnknownDC(const wxDC& dc);
 
     static wxGraphicsContext* CreateFromNative( void * context );
@@ -848,7 +850,7 @@ public:
 
 
     virtual void GetTextExtent( const wxString &text, wxDouble *width, wxDouble *height,
-        wxDouble *descent = nullptr, wxDouble *externalLeading = nullptr ) const  = 0;
+        wxDouble *descent = NULL, wxDouble *externalLeading = NULL ) const  = 0;
 
     virtual void GetPartialTextExtents(const wxString& text, wxArrayDouble& widths) const = 0;
 
@@ -991,9 +993,9 @@ private:
 class WXDLLIMPEXP_CORE wxGraphicsRenderer : public wxObject
 {
 public:
-    wxGraphicsRenderer() = default;
+    wxGraphicsRenderer() {}
 
-    virtual ~wxGraphicsRenderer() = default;
+    virtual ~wxGraphicsRenderer() {}
 
     static wxGraphicsRenderer* GetDefaultRenderer();
 
@@ -1097,7 +1099,7 @@ public:
 
     virtual wxString GetName() const = 0;
     virtual void
-    GetVersion(int* major, int* minor = nullptr, int* micro = nullptr) const = 0;
+    GetVersion(int* major, int* minor = NULL, int* micro = NULL) const = 0;
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxGraphicsRenderer);

@@ -2,6 +2,7 @@
 // Name:        wx/dnd.h
 // Purpose:     Drag and drop classes declarations
 // Author:      Vadim Zeitlin, Robert Roebling
+// Modified by:
 // Created:     26.05.99
 // Copyright:   (c) wxWidgets Team
 // Licence:     wxWindows licence
@@ -61,8 +62,8 @@ public:
         : m_cursorCopy(cursorCopy),
           m_cursorMove(cursorMove),
           m_cursorStop(cursorStop)
-        { m_data = nullptr; }
-    virtual ~wxDropSourceBase() = default;
+        { m_data = NULL; }
+    virtual ~wxDropSourceBase() { }
 
     // set the data which is transferred by drag and drop
     void SetData(wxDataObject& data)
@@ -133,7 +134,7 @@ public:
     // ctor takes a pointer to heap-allocated wxDataObject which will be owned
     // by wxDropTarget and deleted by it automatically. If you don't give it
     // here, you can use SetDataObject() later.
-    wxDropTargetBase(wxDataObject *dataObject = nullptr)
+    wxDropTargetBase(wxDataObject *dataObject = NULL)
         { m_dataObject = dataObject; m_defaultAction = wxDragNone; }
     // dtor deletes our data object
     virtual ~wxDropTargetBase()
@@ -211,10 +212,14 @@ protected:
 #if defined(__WXMSW__)
     #include "wx/msw/ole/dropsrc.h"
     #include "wx/msw/ole/droptgt.h"
+#elif defined(__WXMOTIF__)
+    #include "wx/motif/dnd.h"
 #elif defined(__WXX11__)
     #include "wx/x11/dnd.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/dnd.h"
+#elif defined(__WXGTK__)
+    #include "wx/gtk1/dnd.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/dnd.h"
 #elif defined(__WXQT__)
@@ -234,7 +239,7 @@ public:
 
     virtual bool OnDropText(wxCoord x, wxCoord y, const wxString& text) = 0;
 
-    virtual wxDragResult OnData(wxCoord x, wxCoord y, wxDragResult def) override;
+    virtual wxDragResult OnData(wxCoord x, wxCoord y, wxDragResult def) wxOVERRIDE;
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxTextDropTarget);
@@ -250,7 +255,7 @@ public:
     virtual bool OnDropFiles(wxCoord x, wxCoord y,
                              const wxArrayString& filenames) = 0;
 
-    virtual wxDragResult OnData(wxCoord x, wxCoord y, wxDragResult def) override;
+    virtual wxDragResult OnData(wxCoord x, wxCoord y, wxDragResult def) wxOVERRIDE;
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxFileDropTarget);

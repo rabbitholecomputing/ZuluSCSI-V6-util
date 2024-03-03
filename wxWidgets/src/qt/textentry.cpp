@@ -9,9 +9,6 @@
 #include "wx/wxprec.h"
 
 #include "wx/textentry.h"
-#include "wx/window.h"
-
-#include <QtWidgets/QWidget>
 
 wxTextEntry::wxTextEntry()
 {
@@ -105,20 +102,12 @@ wxString wxTextEntry::DoGetValue() const
     return wxString();
 }
 
-void wxTextEntry::DoSetValue(const wxString& value, int flags)
+void wxTextEntry::DoSetValue(const wxString &WXUNUSED(value), int WXUNUSED(flags))
 {
-    wxTextEntryBase::DoSetValue(value, flags);
 }
 
 wxWindow *wxTextEntry::GetEditableWindow()
 {
-    return nullptr;
+    return NULL;
 }
 
-void wxTextEntry::EnableTextChangedEvents(bool enable)
-{
-    wxWindow* const win = GetEditableWindow();
-
-    if ( win )
-        win->GetHandle()->blockSignals(!enable);
-}

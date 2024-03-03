@@ -2,6 +2,7 @@
 // Name:        src/unix/displayx11.cpp
 // Purpose:     Unix/X11 implementation of wxDisplay class
 // Author:      Brian Victor, Vadim Zeitlin
+// Modified by:
 // Created:     12/05/02
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -54,7 +55,7 @@ inline wxSize wxGetMainScreenSizeMM()
 class wxDisplayImplSingleX11 : public wxDisplayImplSingle
 {
 public:
-    virtual wxRect GetGeometry() const override
+    virtual wxRect GetGeometry() const wxOVERRIDE
     {
         Display* const dpy = wxGetX11Display();
 
@@ -63,12 +64,12 @@ public:
                       DisplayHeight(dpy, DefaultScreen (dpy)));
     }
 
-    virtual wxRect GetClientArea() const override
+    virtual wxRect GetClientArea() const wxOVERRIDE
     {
         return wxGetMainScreenWorkArea();
     }
 
-    virtual int GetDepth() const override
+    virtual int GetDepth() const wxOVERRIDE
     {
         return wxGetMainScreenDepth();
     }
@@ -134,15 +135,15 @@ public:
     {
     }
 
-    virtual wxRect GetGeometry() const override { return m_rect; }
-    virtual wxRect GetClientArea() const override
+    virtual wxRect GetGeometry() const wxOVERRIDE { return m_rect; }
+    virtual wxRect GetClientArea() const wxOVERRIDE
     {
         // we intentionally don't cache the result here because the client
         // display area may change (e.g. the user resized or hid a panel) and
         // we don't currently react to its changes
         return IsPrimary() ? wxGetMainScreenWorkArea() : m_rect;
     }
-    virtual int GetDepth() const override
+    virtual int GetDepth() const wxOVERRIDE
     {
         const wxVideoMode& mode = GetCurrentMode();
         if ( mode.bpp )
@@ -151,9 +152,9 @@ public:
         return wxGetMainScreenDepth();
     }
 
-    virtual wxArrayVideoModes GetModes(const wxVideoMode& mode) const override;
-    virtual wxVideoMode GetCurrentMode() const override;
-    virtual bool ChangeMode(const wxVideoMode& mode) override;
+    virtual wxArrayVideoModes GetModes(const wxVideoMode& mode) const wxOVERRIDE;
+    virtual wxVideoMode GetCurrentMode() const wxOVERRIDE;
+    virtual bool ChangeMode(const wxVideoMode& mode) wxOVERRIDE;
 
 private:
     wxRect m_rect;
@@ -166,9 +167,9 @@ class wxDisplayFactoryX11 : public wxDisplayFactory
 public:
     wxDisplayFactoryX11() { }
 
-    virtual wxDisplayImpl *CreateDisplay(unsigned n) override;
-    virtual unsigned GetCount() override;
-    virtual int GetFromPoint(const wxPoint& pt) override;
+    virtual wxDisplayImpl *CreateDisplay(unsigned n) wxOVERRIDE;
+    virtual unsigned GetCount() wxOVERRIDE;
+    virtual int GetFromPoint(const wxPoint& pt) wxOVERRIDE;
 
 protected:
     wxDECLARE_NO_COPY_CLASS(wxDisplayFactoryX11);
@@ -205,7 +206,7 @@ wxDisplayImpl *wxDisplayFactoryX11::CreateDisplay(unsigned n)
 {
     ScreensInfo screens;
 
-    return n < screens.GetCount() ? new wxDisplayImplX11(n, screens[n]) : nullptr;
+    return n < screens.GetCount() ? new wxDisplayImplX11(n, screens[n]) : NULL;
 }
 
 // ============================================================================

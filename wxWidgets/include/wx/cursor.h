@@ -34,6 +34,9 @@ public:
              wxBitmapType type = wxCURSOR_DEFAULT_TYPE,
              int hotSpotX = 0, int hotSpotY = 0);
     wxCursor(wxStockCursor id) { InitFromStock(id); }
+#if WXWIN_COMPATIBILITY_2_8
+    wxCursor(int id) { InitFromStock((wxStockCursor)id); }
+#endif
 */
 
     virtual wxPoint GetHotSpot() const { return wxDefaultPosition; }
@@ -42,13 +45,19 @@ public:
 #if defined(__WXMSW__)
     #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_CUR_RESOURCE
     #include "wx/msw/cursor.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXMOTIF__)
+    #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_XBM
+    #include "wx/motif/cursor.h"
+#elif defined(__WXGTK20__)
     #ifdef __WINDOWS__
         #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_CUR_RESOURCE
     #else
         #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_XPM
     #endif
     #include "wx/gtk/cursor.h"
+#elif defined(__WXGTK__)
+    #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_XPM
+    #include "wx/gtk1/cursor.h"
 #elif defined(__WXX11__)
     #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_XPM
     #include "wx/x11/cursor.h"

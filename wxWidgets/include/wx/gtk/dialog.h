@@ -34,10 +34,10 @@ public:
             const wxString &name = wxASCII_STR(wxDialogNameStr) );
     virtual ~wxDialog();
 
-    virtual bool Show( bool show = true ) override;
-    virtual int ShowModal() override;
-    virtual void EndModal( int retCode ) override;
-    virtual bool IsModal() const override;
+    virtual bool Show( bool show = true ) wxOVERRIDE;
+    virtual int ShowModal() wxOVERRIDE;
+    virtual void EndModal( int retCode ) wxOVERRIDE;
+    virtual bool IsModal() const wxOVERRIDE;
 
 private:
     // common part of all ctors

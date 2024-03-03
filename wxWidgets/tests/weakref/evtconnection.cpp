@@ -34,7 +34,7 @@ class wxTestEvent : public wxEvent
 {
 public:
     wxTestEvent(wxEventType type = wxEVT_TEST) : wxEvent(0, type) { }
-    virtual wxEvent *Clone() const override { return new wxTestEvent(GetEventType()); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxTestEvent(GetEventType()); }
 };
 
 class wxTestSink : public wxEvtHandler
@@ -94,16 +94,16 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( EvtConnectionTestCase, "EvtConnectionTest
 // Helpers
 void DoConnect( wxEvtHandler& eh1, wxEvtHandler& eh2, wxTestSink& ts ){
     eh1.Connect(wxEVT_TEST, (wxObjectEventFunction)&wxTestSink::OnTestEvent,
-                nullptr, &ts);
+                NULL, &ts);
     eh2.Connect(wxEVT_TEST, (wxObjectEventFunction) &wxTestSink::OnTestEvent,
-                nullptr, &ts);
+                NULL, &ts);
 }
 
 void DoDisconnect( wxEvtHandler& eh1, wxEvtHandler& eh2, wxTestSink& ts ){
     eh1.Disconnect(wxEVT_TEST, (wxObjectEventFunction) &wxTestSink::OnTestEvent,
-                nullptr, &ts);
+                NULL, &ts);
     eh2.Disconnect(wxEVT_TEST, (wxObjectEventFunction) &wxTestSink::OnTestEvent,
-                nullptr, &ts);
+                NULL, &ts);
 }
 
 
@@ -196,7 +196,7 @@ void EvtConnectionTestCase::MultiConnectionTest()
     // One source
     wxEvtHandler eh1;
     evt.SetEventObject(&eh1);
-    gs_psrc1 = nullptr;
+    gs_psrc1 = NULL;
     gs_psrc2 = &eh1;
 
     {
@@ -204,11 +204,11 @@ void EvtConnectionTestCase::MultiConnectionTest()
         wxTestSink ts;
 
         eh1.Connect(wxEVT_TEST, (wxObjectEventFunction)&wxTestSink::OnTestEvent,
-                    nullptr, &ts);
+                    NULL, &ts);
         eh1.Connect(wxEVT_TEST1, (wxObjectEventFunction)&wxTestSink::OnTestEvent1,
-                    nullptr, &ts);
+                    NULL, &ts);
         eh1.Connect(wxEVT_TEST2, (wxObjectEventFunction)&wxTestSink::OnTestEvent2,
-                    nullptr, &ts);
+                    NULL, &ts);
 
         // Generate events
         gs_value = 0;
@@ -224,7 +224,7 @@ void EvtConnectionTestCase::MultiConnectionTest()
         // And now destroyed
 
         eh1.Disconnect(wxEVT_TEST, (wxObjectEventFunction)&wxTestSink::OnTestEvent,
-                       nullptr, &ts);
+                       NULL, &ts);
         eh1.ProcessEvent(evt);
         eh1.ProcessEvent(evt1);
         eh1.ProcessEvent(evt2);

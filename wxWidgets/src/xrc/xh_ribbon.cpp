@@ -40,7 +40,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(wxRibbonXmlHandler, wxXmlResourceHandler);
 
 wxRibbonXmlHandler::wxRibbonXmlHandler()
     : wxXmlResourceHandler(),
-      m_isInside(nullptr)
+      m_isInside(NULL)
 {
     XRC_ADD_STYLE(wxRIBBON_BAR_SHOW_PAGE_LABELS);
     XRC_ADD_STYLE(wxRIBBON_BAR_SHOW_PAGE_ICONS);
@@ -151,7 +151,7 @@ wxObject* wxRibbonXmlHandler::Handle_button()
     // FIXME: If re-enabling, don't forget to update the docs and RELAG NG schema!
 #if 0 // wxUSE_MENUS
     // check whether we have dropdown tag inside
-    wxMenu *menu = nullptr; // menu for drop down items
+    wxMenu *menu = NULL; // menu for drop down items
     wxXmlNode * const nodeDropdown = GetParamNode("dropdown");
     if ( nodeDropdown )
     {
@@ -164,7 +164,7 @@ wxObject* wxRibbonXmlHandler::Handle_button()
         wxXmlNode * const nodeMenu = nodeDropdown->GetChildren();
         if ( nodeMenu )
         {
-            wxObject *res = CreateResFromNode(nodeMenu, nullptr);
+            wxObject *res = CreateResFromNode(nodeMenu, NULL);
             menu = wxDynamicCast(res, wxMenu);
             if ( !menu )
             {
@@ -202,7 +202,7 @@ wxObject* wxRibbonXmlHandler::Handle_button()
     if ( GetBool(wxT("disabled")) )
             buttonBar->EnableButton(GetID(), false);
 
-    return nullptr; // nothing to return
+    return NULL; // nothing to return
 }
 
 wxObject* wxRibbonXmlHandler::Handle_control()
@@ -269,11 +269,11 @@ wxObject* wxRibbonXmlHandler::Handle_gallery()
 wxObject* wxRibbonXmlHandler::Handle_galleryitem()
 {
     wxRibbonGallery *gallery = wxStaticCast(m_parent, wxRibbonGallery);
-    wxCHECK (gallery, nullptr);
+    wxCHECK (gallery, NULL);
 
     gallery->Append (GetBitmap(), GetID());
 
-    return nullptr; // nothing to return
+    return NULL; // nothing to return
 }
 
 wxObject* wxRibbonXmlHandler::Handle_panel()

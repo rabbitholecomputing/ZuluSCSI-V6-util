@@ -29,8 +29,8 @@ class wxTLWGeometryBase
 public:
     typedef wxTopLevelWindow::GeometrySerializer Serializer;
 
-    wxTLWGeometryBase() = default;
-    virtual ~wxTLWGeometryBase() = default;
+    wxTLWGeometryBase() {}
+    virtual ~wxTLWGeometryBase() {}
 
     // Initialize from the given window.
     virtual bool GetFrom(const wxTopLevelWindow* tlw) = 0;
@@ -71,7 +71,7 @@ public:
         m_maximized = false;
     }
 
-    virtual bool Save(const Serializer& ser) const override
+    virtual bool Save(const Serializer& ser) const wxOVERRIDE
     {
         if ( !ser.SaveField(wxPERSIST_TLW_X, m_rectScreen.x) ||
              !ser.SaveField(wxPERSIST_TLW_Y, m_rectScreen.y) )
@@ -90,7 +90,7 @@ public:
         return true;
     }
 
-    virtual bool Restore(Serializer& ser) override
+    virtual bool Restore(Serializer& ser) wxOVERRIDE
     {
         m_hasPos = ser.RestoreField(wxPERSIST_TLW_X, &m_rectScreen.x) &&
                    ser.RestoreField(wxPERSIST_TLW_Y, &m_rectScreen.y);
@@ -109,7 +109,7 @@ public:
         return m_hasPos || m_hasSize || m_maximized || m_iconized;
     }
 
-    virtual bool GetFrom(const wxTopLevelWindow* tlw) override
+    virtual bool GetFrom(const wxTopLevelWindow* tlw) wxOVERRIDE
     {
         m_rectScreen = tlw->GetScreenRect();
         m_hasPos =
@@ -120,7 +120,7 @@ public:
         return true;
     }
 
-    virtual bool ApplyTo(wxTopLevelWindow* tlw) override
+    virtual bool ApplyTo(wxTopLevelWindow* tlw) wxOVERRIDE
     {
         if ( m_hasPos )
         {
@@ -171,7 +171,7 @@ private:
 
 #endif // !__WXMSW__
 
-#ifdef __WXGTK__
+#ifdef __WXGTK20__
     #include "wx/gtk/private/tlwgeom.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/private/tlwgeom.h"

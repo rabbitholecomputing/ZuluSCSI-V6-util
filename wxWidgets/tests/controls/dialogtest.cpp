@@ -11,6 +11,8 @@
 
 #include "wx/testing.h"
 
+#ifdef HAVE_VARIADIC_MACROS
+
 #include "wx/msgdlg.h"
 #include "wx/filedlg.h"
 
@@ -74,7 +76,7 @@ void ModalDialogsTestCase::MessageDialog()
 #if wxUSE_FILEDLG
 void ModalDialogsTestCase::FileDialog()
 {
-    wxFileDialog dlg(nullptr);
+    wxFileDialog dlg(NULL);
     int rc;
 
     wxTEST_DIALOG
@@ -116,7 +118,7 @@ public:
     wxExpectModal(int valueToSet) : m_valueToSet(valueToSet) {}
 
 protected:
-    virtual int OnInvoked(MyDialog *dlg) const override
+    virtual int OnInvoked(MyDialog *dlg) const wxOVERRIDE
     {
         // Simulate the user entering the expected number:
         dlg->m_value = m_valueToSet;
@@ -128,7 +130,7 @@ protected:
 
 void ModalDialogsTestCase::CustomDialog()
 {
-    MyDialog dlg(nullptr);
+    MyDialog dlg(NULL);
 
     wxTEST_DIALOG
     (
@@ -143,7 +145,7 @@ void ModalDialogsTestCase::CustomDialog()
 class MyModalDialog : public wxDialog
 {
 public:
-    MyModalDialog() : wxDialog (nullptr, wxID_ANY, "Modal Dialog")
+    MyModalDialog() : wxDialog (NULL, wxID_ANY, "Modal Dialog")
     {
         m_wasModal = false;
         Bind( wxEVT_INIT_DIALOG, &MyModalDialog::OnInit, this );
@@ -170,3 +172,5 @@ void ModalDialogsTestCase::InitDialog()
     dlg.ShowModal();
     CPPUNIT_ASSERT( dlg.WasModal() );
 }
+
+#endif // HAVE_VARIADIC_MACROS

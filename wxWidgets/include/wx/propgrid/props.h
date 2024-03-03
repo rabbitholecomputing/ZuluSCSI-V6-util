@@ -2,6 +2,7 @@
 // Name:        wx/propgrid/props.h
 // Purpose:     wxPropertyGrid Property Classes
 // Author:      Jaakko Salli
+// Modified by:
 // Created:     2007-03-28
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
@@ -47,7 +48,7 @@ WX_PG_IMPLEMENT_PROPERTY_CLASS_PLAIN(NAME, T, EDITOR)
 //
 // These macros help creating DoGetValidator
 #define WX_PG_DOGETVALIDATOR_ENTRY() \
-    static wxValidator* s_ptr = nullptr; \
+    static wxValidator* s_ptr = NULL; \
     if ( s_ptr ) return s_ptr;
 
 // Common function exit
@@ -64,8 +65,8 @@ class WXDLLIMPEXP_PROPGRID wxPGInDialogValidator
 {
 public:
     wxPGInDialogValidator()
-        : m_textCtrl(nullptr)
     {
+        m_textCtrl = NULL;
     }
 
     ~wxPGInDialogValidator()
@@ -87,6 +88,8 @@ private:
 // Property classes
 // -----------------------------------------------------------------------
 
+#define wxPG_PROP_PASSWORD  wxPG_PROP_CLASS_SPECIFIC_2
+
 // Basic property with string value.
 // If value "<composed>" is set, then actual value is formed (or composed)
 // from values of child properties.
@@ -96,36 +99,18 @@ class WXDLLIMPEXP_PROPGRID wxStringProperty : public wxPGProperty
 public:
     wxStringProperty( const wxString& label = wxPG_LABEL,
                       const wxString& name = wxPG_LABEL,
-                      const wxString& value = wxString() );
-    virtual ~wxStringProperty() = default;
+                      const wxString& value = wxEmptyString );
+    virtual ~wxStringProperty();
 
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
 
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue( wxVariant& variant, const wxString& text,
-                                int flags ) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-
-    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) override;
+    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) wxOVERRIDE;
 
     // This is updated so "<composed>" special value can be handled.
-    virtual void OnSetValue() override;
+    virtual void OnSetValue() wxOVERRIDE;
 
 protected:
 };
@@ -133,26 +118,17 @@ protected:
 // -----------------------------------------------------------------------
 
 // Constants used with NumericValidation<>().
-enum class wxPGNumericValidationMode
+enum wxPGNumericValidationConstants
 {
     // Instead of modifying the value, show an error message.
-    ErrorMessage,
+    wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE      = 0,
 
     // Modify value, but stick with the limitations.
-    Saturate,
+    wxPG_PROPERTY_VALIDATION_SATURATE           = 1,
 
     // Modify value, wrap around on overflow.
-    Wrap
+    wxPG_PROPERTY_VALIDATION_WRAP               = 2
 };
-
-#if WXWIN_COMPATIBILITY_3_2
-wxDEPRECATED_MSG("use wxPGNumericValidationMode::ErrorMessage instead")
-constexpr wxPGNumericValidationMode wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE { wxPGNumericValidationMode::ErrorMessage };
-wxDEPRECATED_MSG("use wxPGNumericValidationMode::Saturate instead")
-constexpr wxPGNumericValidationMode wxPG_PROPERTY_VALIDATION_SATURATE { wxPGNumericValidationMode::Saturate };
-wxDEPRECATED_MSG("use wxPGNumericValidationMode::Wrap instead")
-constexpr wxPGNumericValidationMode wxPG_PROPERTY_VALIDATION_WRAP { wxPGNumericValidationMode::Wrap };
-#endif // WXWIN_COMPATIBILITY_3_2
 
 // -----------------------------------------------------------------------
 
@@ -162,25 +138,16 @@ constexpr wxPGNumericValidationMode wxPG_PROPERTY_VALIDATION_WRAP { wxPGNumericV
 class WXDLLIMPEXP_PROPGRID wxNumericPropertyValidator : public wxTextValidator
 {
 public:
-    enum class NumericType
+    enum NumericType
     {
-        Signed,
+        Signed = 0,
         Unsigned,
         Float
     };
 
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use NumericType::Signed instead")
-    static const NumericType Signed = NumericType::Signed;
-    wxDEPRECATED_MSG("use NumericType::Unsigned instead")
-    static const NumericType Unsigned = NumericType::Unsigned;
-    wxDEPRECATED_MSG("use NumericType::Float instead")
-    static const NumericType Float = NumericType::Float;
-#endif // WXWIN_COMPATIBILITY_3_2
-
     wxNumericPropertyValidator( NumericType numericType, int base = 10 );
-    virtual ~wxNumericPropertyValidator() = default;
-    virtual bool Validate(wxWindow* parent) override;
+    virtual ~wxNumericPropertyValidator() { }
+    virtual bool Validate(wxWindow* parent) wxOVERRIDE;
 };
 
 #endif // wxUSE_VALIDATORS
@@ -191,25 +158,18 @@ class WXDLLIMPEXP_PROPGRID wxNumericProperty : public wxPGProperty
 {
     wxDECLARE_ABSTRACT_CLASS(wxNumericProperty);
 public:
-    virtual ~wxNumericProperty() = default;
+    virtual ~wxNumericProperty();
 
-    virtual bool DoSetAttribute(const wxString& name, wxVariant& value) override;
+    virtual bool DoSetAttribute(const wxString& name, wxVariant& value) wxOVERRIDE;
 
     virtual wxVariant AddSpinStepValue(long stepScale) const = 0;
 
     bool UseSpinMotion() const { return m_spinMotion; }
 
     // Common validation code - for internal use.
-#if WXWIN_COMPATIBILITY_3_2
     template<typename T>
-    wxDEPRECATED_MSG("use DoNumericValidation with 'mode' argument as wxPGNumericValidationMode")
     bool DoNumericValidation(T& value, wxPGValidationInfo* pValidationInfo,
                              int mode, T defMin, T defMax) const;
-#endif // WXWIN_COMPATIBILITY_3_2
-
-    template<typename T>
-    bool DoNumericValidation(T& value, wxPGValidationInfo* pValidationInfo,
-                             wxPGNumericValidationMode mode, T defMin, T defMax) const;
 
 protected:
     wxNumericProperty(const wxString& label, const wxString& name);
@@ -230,49 +190,25 @@ public:
     wxIntProperty( const wxString& label = wxPG_LABEL,
                    const wxString& name = wxPG_LABEL,
                    long value = 0 );
-    virtual ~wxIntProperty() = default;
+    virtual ~wxIntProperty();
 
 #if wxUSE_LONGLONG
     wxIntProperty( const wxString& label,
                    const wxString& name,
                    const wxLongLong& value );
 #endif
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
     virtual bool ValidateValue( wxVariant& value,
-                                wxPGValidationInfo& validationInfo ) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use IntToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool IntToValue(wxVariant& variant, int number, int flags) const override
-    {
-        m_oldIntToValueCalled = true;
-        return IntToValue(variant, number, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool IntToValue(wxVariant& variant, int number,
-                            wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
+                                wxPGValidationInfo& validationInfo ) const wxOVERRIDE;
+    virtual bool IntToValue( wxVariant& variant,
+                             int number,
+                             int argFlags = 0 ) const wxOVERRIDE;
     static wxValidator* GetClassValidator();
-    virtual wxValidator* DoGetValidator() const override;
-    virtual wxVariant AddSpinStepValue(long stepScale) const override;
+    virtual wxValidator* DoGetValidator() const wxOVERRIDE;
+    virtual wxVariant AddSpinStepValue(long stepScale) const wxOVERRIDE;
 
 private:
     // Validation helpers.
@@ -280,12 +216,22 @@ private:
     static bool DoValidation( const wxNumericProperty* property,
                               wxLongLong& value,
                               wxPGValidationInfo* pValidationInfo,
-                              wxPGNumericValidationMode = wxPGNumericValidationMode::ErrorMessage);
+                              int mode =
+                                wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE );
+
+#if defined(wxLongLong_t)
+    static bool DoValidation( const wxNumericProperty* property,
+                              wxLongLong_t& value,
+                              wxPGValidationInfo* pValidationInfo,
+                              int mode =
+                                wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE );
+#endif // wxLongLong_t
 #endif // wxUSE_LONGLONG
     static bool DoValidation(const wxNumericProperty* property,
                              long& value,
                              wxPGValidationInfo* pValidationInfo,
-                             wxPGNumericValidationMode mode = wxPGNumericValidationMode::ErrorMessage);
+                             int mode =
+                                wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE);
 };
 
 // -----------------------------------------------------------------------
@@ -299,49 +245,24 @@ public:
     wxUIntProperty( const wxString& label = wxPG_LABEL,
                     const wxString& name = wxPG_LABEL,
                     unsigned long value = 0 );
-    virtual ~wxUIntProperty() = default;
+    virtual ~wxUIntProperty();
 #if wxUSE_LONGLONG
     wxUIntProperty( const wxString& label,
                     const wxString& name,
                     const wxULongLong& value );
 #endif
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) override;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) wxOVERRIDE;
     virtual bool ValidateValue( wxVariant& value,
-                                wxPGValidationInfo& validationInfo ) const override;
-    virtual wxValidator* DoGetValidator () const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use IntToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool IntToValue(wxVariant& variant, int number,
-                            int flags) const override
-    {
-        m_oldIntToValueCalled = true;
-        return IntToValue(variant, number, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool IntToValue(wxVariant& variant, int number,
-                            wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-    virtual wxVariant AddSpinStepValue(long stepScale) const override;
+                                wxPGValidationInfo& validationInfo ) const wxOVERRIDE;
+    virtual wxValidator* DoGetValidator () const wxOVERRIDE;
+    virtual bool IntToValue( wxVariant& variant,
+                             int number,
+                             int argFlags = 0 ) const wxOVERRIDE;
+    virtual wxVariant AddSpinStepValue(long stepScale) const wxOVERRIDE;
 
 protected:
     wxByte      m_base;
@@ -355,12 +276,18 @@ private:
     static bool DoValidation(const wxNumericProperty* property,
                              wxULongLong& value,
                              wxPGValidationInfo* pValidationInfo,
-                             wxPGNumericValidationMode = wxPGNumericValidationMode::ErrorMessage);
+                             int mode =wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE);
+#if defined(wxULongLong_t)
+    static bool DoValidation(const wxNumericProperty* property,
+                             wxULongLong_t& value,
+                             wxPGValidationInfo* pValidationInfo,
+                             int mode =wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE);
+#endif // wxULongLong_t
 #endif // wxUSE_LONGLONG
     static bool DoValidation(const wxNumericProperty* property,
                              long& value,
                              wxPGValidationInfo* pValidationInfo,
-                             wxPGNumericValidationMode mode = wxPGNumericValidationMode::ErrorMessage);
+                             int mode = wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE);
 };
 
 // -----------------------------------------------------------------------
@@ -373,37 +300,20 @@ public:
     wxFloatProperty( const wxString& label = wxPG_LABEL,
                      const wxString& name = wxPG_LABEL,
                      double value = 0.0 );
-    virtual ~wxFloatProperty() = default;
+    virtual ~wxFloatProperty();
 
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) override;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) wxOVERRIDE;
 
     virtual bool ValidateValue( wxVariant& value,
-                                wxPGValidationInfo& validationInfo ) const override;
+                                wxPGValidationInfo& validationInfo ) const wxOVERRIDE;
 
     static wxValidator* GetClassValidator();
-    virtual wxValidator* DoGetValidator () const override;
-    virtual wxVariant AddSpinStepValue(long stepScale) const override;
+    virtual wxValidator* DoGetValidator () const wxOVERRIDE;
+    virtual wxVariant AddSpinStepValue(long stepScale) const wxOVERRIDE;
 
 protected:
     int m_precision;
@@ -413,7 +323,7 @@ private:
     static bool DoValidation(const wxNumericProperty* property,
                              double& value,
                              wxPGValidationInfo* pValidationInfo,
-                             wxPGNumericValidationMode mode = wxPGNumericValidationMode::ErrorMessage);
+                             int mode = wxPG_PROPERTY_VALIDATION_ERROR_MESSAGE);
 };
 
 // -----------------------------------------------------------------------
@@ -426,50 +336,22 @@ public:
     wxBoolProperty( const wxString& label = wxPG_LABEL,
                     const wxString& name = wxPG_LABEL,
                     bool value = false );
-    virtual ~wxBoolProperty() = default;
+    virtual ~wxBoolProperty();
 
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use IntToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool IntToValue(wxVariant& variant, int number, int flags) const override
-    {
-        m_oldIntToValueCalled = true;
-        return IntToValue(variant, number, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool IntToValue(wxVariant& variant, int number,
-                            wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) override;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool IntToValue( wxVariant& variant,
+                             int number, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) wxOVERRIDE;
 };
 
 // -----------------------------------------------------------------------
 
-#if WXWIN_COMPATIBILITY_3_2
 // If set, then selection of choices is static and should not be
-// changed (i.e. returns nullptr in GetPropertyChoices).
-wxDEPRECATED_MSG("wxPG_PROP_STATIC_CHOICES is intended for internal use.")
-constexpr wxPGPropertyFlags wxPG_PROP_STATIC_CHOICES = wxPGPropertyFlags::Reserved_1;
-#endif // WXWIN_COMPATIBILITY_3_2
+// changed (i.e. returns NULL in GetPropertyChoices).
+#define wxPG_PROP_STATIC_CHOICES    wxPG_PROP_CLASS_SPECIFIC_1
 
 // Represents a single selection from a list of choices
 // You can derive custom properties with choices from this class.
@@ -485,8 +367,8 @@ public:
 #ifndef SWIG
     wxEnumProperty( const wxString& label = wxPG_LABEL,
                     const wxString& name = wxPG_LABEL,
-                    const wxChar* const* labels = nullptr,
-                    const long* values = nullptr,
+                    const wxChar* const* labels = NULL,
+                    const long* values = NULL,
                     int value = 0 );
     wxEnumProperty( const wxString& label,
                     const wxString& name,
@@ -514,46 +396,23 @@ public:
                     int value = 0 );
 #endif
 
-    virtual ~wxEnumProperty() = default;
+    virtual ~wxEnumProperty();
 
     size_t GetItemCount() const { return m_choices.GetCount(); }
 
-    virtual void OnSetValue() override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value, wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
+    virtual void OnSetValue() wxOVERRIDE;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
     virtual bool ValidateValue( wxVariant& value,
-                                wxPGValidationInfo& validationInfo ) const override;
+                                wxPGValidationInfo& validationInfo ) const wxOVERRIDE;
 
-    // If wxPGPropValFormatFlags::FullValue is not set in flags, then the value is interpreted
+    // If wxPG_FULL_VALUE is not set in flags, then the value is interpreted
     // as index to choices list. Otherwise, it is actual value.
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use IntToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool IntToValue(wxVariant& variant, int number, int flags) const override
-    {
-        m_oldIntToValueCalled = true;
-        return IntToValue(variant, number, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool IntToValue(wxVariant& variant, int number,
-                            wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
+    virtual bool IntToValue( wxVariant& variant,
+                             int number,
+                             int argFlags = 0 ) const wxOVERRIDE;
 
     //
     // Additional virtuals
@@ -564,7 +423,7 @@ public:
     // GetChoiceSelection needs to overridden since m_index is
     // the true index, and various property classes derived from
     // this take advantage of it.
-    virtual int GetChoiceSelection() const override { return m_index; }
+    virtual int GetChoiceSelection() const wxOVERRIDE { return m_index; }
 
 protected:
 
@@ -575,38 +434,25 @@ protected:
     wxDEPRECATED_MSG("use ValueFromString_(wxVariant&, int*, const wxString&, int) function instead")
     bool ValueFromString_( wxVariant& value,
                            const wxString& text,
-                           int flags ) const
+                           int argFlags ) const
     {
-        return ValueFromString_(value, nullptr, text, static_cast<wxPGPropValFormatFlags>(flags));
+        return ValueFromString_(value, NULL, text, argFlags);
     }
     wxDEPRECATED_MSG("use ValueFromInt_(wxVariant&, int*, int, int) function instead")
-    bool ValueFromInt_( wxVariant& value, int intVal, int flags ) const
+    bool ValueFromInt_( wxVariant& value, int intVal, int argFlags ) const
     {
-        return ValueFromInt_(value, nullptr, intVal, static_cast<wxPGPropValFormatFlags>(flags));
+        return ValueFromInt_(value, NULL, intVal, argFlags);
     }
     wxDEPRECATED_MSG("don't use ResetNextIndex() function")
     static void ResetNextIndex() { }
 #endif
     // Converts text to value and returns corresponding index in the collection
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueFromString_ with 'flags' argument as wxPGPropValFormatFlags")
-    bool ValueFromString_(wxVariant& value, int* pIndex,
-                          const wxString& text, int flags) const
-    {
-        return ValueFromString_(value, pIndex, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    bool ValueFromString_(wxVariant& value, int* pIndex,
-                          const wxString& text, wxPGPropValFormatFlags flags) const;
+    bool ValueFromString_(wxVariant& value,
+                          int* pIndex,
+                          const wxString& text,
+                          int argFlags) const;
     // Converts number to value and returns corresponding index in the collection
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueFromInt_ with 'flags' argument as wxPGPropValFormatFlags")
-    bool ValueFromInt_(wxVariant& value, int* pIndex, int intVal, int flags) const
-    {
-        return ValueFromInt_(value, pIndex, intVal, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    bool ValueFromInt_(wxVariant& value, int* pIndex, int intVal, wxPGPropValFormatFlags flags) const;
+    bool ValueFromInt_(wxVariant& value, int* pIndex, int intVal, int argFlags) const;
 
 private:
     // This is private so that classes are guaranteed to use GetIndex
@@ -633,11 +479,11 @@ public:
                         const wxString& name = wxPG_LABEL,
                         const wxArrayString& labels = wxArrayString(),
                         const wxArrayInt& values = wxArrayInt(),
-                        const wxString& value = wxString() );
+                        const wxString& value = wxEmptyString );
     wxEditEnumProperty( const wxString& label,
                         const wxString& name,
                         wxPGChoices& choices,
-                        const wxString& value = wxString() );
+                        const wxString& value = wxEmptyString );
 
     // Special constructor for caching choices (used by derived class)
     wxEditEnumProperty( const wxString& label,
@@ -647,22 +493,14 @@ public:
                         wxPGChoices* choicesCache,
                         const wxString& value );
 
-    virtual ~wxEditEnumProperty() = default;
+    virtual ~wxEditEnumProperty();
 
-    void OnSetValue() override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    bool StringToValue(wxVariant& variant, const wxString& text,
-                       int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    bool StringToValue(wxVariant& variant, const wxString& text,
-                       wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
+    void OnSetValue() wxOVERRIDE;
+    bool StringToValue(wxVariant& variant,
+                       const wxString& text,
+                       int argFlags = 0) const wxOVERRIDE;
     bool ValidateValue(wxVariant& value,
-                       wxPGValidationInfo& validationInfo) const override;
+                       wxPGValidationInfo& validationInfo) const wxOVERRIDE;
 
 protected:
 };
@@ -685,7 +523,7 @@ public:
     wxFlagsProperty( const wxString& label,
                      const wxString& name,
                      const wxChar* const* labels,
-                     const long* values = nullptr,
+                     const long* values = NULL,
                      long value = 0 );
     wxFlagsProperty( const wxString& label,
                      const wxString& name,
@@ -697,39 +535,22 @@ public:
                      const wxArrayString& labels = wxArrayString(),
                      const wxArrayInt& values = wxArrayInt(),
                      int value = 0 );
-    virtual ~wxFlagsProperty () = default;
+    virtual ~wxFlagsProperty ();
 
-    virtual void OnSetValue() override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags) const override;
+    virtual void OnSetValue() wxOVERRIDE;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int flags ) const wxOVERRIDE;
     virtual wxVariant ChildChanged( wxVariant& thisValue,
                                     int childIndex,
-                                    wxVariant& childValue ) const override;
-    virtual void RefreshChildren() override;
-    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) override;
+                                    wxVariant& childValue ) const wxOVERRIDE;
+    virtual void RefreshChildren() wxOVERRIDE;
+    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) wxOVERRIDE;
 
     // GetChoiceSelection needs to overridden since m_choices is
     // used and value is integer, but it is not index.
-    virtual int GetChoiceSelection() const override { return wxNOT_FOUND; }
+    virtual int GetChoiceSelection() const wxOVERRIDE { return wxNOT_FOUND; }
 
     // helpers
     size_t GetItemCount() const { return m_choices.GetCount(); }
@@ -737,16 +558,17 @@ public:
         { return m_choices.GetLabel(static_cast<unsigned int>(ind)); }
 
 protected:
+    // Used to detect if choices have been changed
+    wxPGChoicesData*        m_oldChoicesData;
+
     // Needed to properly mark changed sub-properties
     long                    m_oldValue;
-
-    long                    m_allValueFlags;
 
     // Converts string id to a relevant bit.
     long IdToBit( const wxString& id ) const;
 
     // Creates children and sets value.
-    void Init(long value);
+    void Init();
 };
 
 // -----------------------------------------------------------------------
@@ -756,10 +578,10 @@ class WXDLLIMPEXP_PROPGRID wxEditorDialogProperty : public wxPGProperty
     wxDECLARE_ABSTRACT_CLASS(wxEditorDialogProperty);
 
 public:
-    virtual ~wxEditorDialogProperty() = default;
+    virtual ~wxEditorDialogProperty();
 
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override;
-    virtual bool DoSetAttribute(const wxString& name, wxVariant& value) override;
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const wxOVERRIDE;
+    virtual bool DoSetAttribute(const wxString& name, wxVariant& value) wxOVERRIDE;
 
 protected:
     wxEditorDialogProperty(const wxString& label, const wxString& name);
@@ -772,11 +594,8 @@ protected:
 
 // -----------------------------------------------------------------------
 
-#if WXWIN_COMPATIBILITY_3_2
 // Indicates first bit usable by derived properties.
-wxDEPRECATED_MSG("wxPG_PROP_SHOW_FULL_FILENAME is intended for internal use.")
-constexpr wxPGPropertyFlags wxPG_PROP_SHOW_FULL_FILENAME = wxPGPropertyFlags::Reserved_1;
-#endif // WXWIN_COMPATIBILITY_3_2
+#define wxPG_PROP_SHOW_FULL_FILENAME  wxPG_PROP_CLASS_SPECIFIC_1
 
 // Like wxLongStringProperty, but the button triggers file selector instead.
 class WXDLLIMPEXP_PROPGRID wxFileProperty : public wxEditorDialogProperty
@@ -786,40 +605,24 @@ public:
 
     wxFileProperty( const wxString& label = wxPG_LABEL,
                     const wxString& name = wxPG_LABEL,
-                    const wxString& value = wxString() );
-    virtual ~wxFileProperty() = default;
+                    const wxString& value = wxEmptyString );
+    virtual ~wxFileProperty ();
 
-    virtual void OnSetValue() override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value, wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) override;
+    virtual void OnSetValue() wxOVERRIDE;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) wxOVERRIDE;
 
     static wxValidator* GetClassValidator();
-    virtual wxValidator* DoGetValidator() const override;
+    virtual wxValidator* DoGetValidator() const wxOVERRIDE;
 
     // Returns filename to file represented by current value.
     wxFileName GetFileName() const;
 
 protected:
-    virtual bool DisplayEditorDialog(wxPropertyGrid* pg, wxVariant& value) override;
+    virtual bool DisplayEditorDialog(wxPropertyGrid* pg, wxVariant& value) wxOVERRIDE;
 
     wxString    m_wildcard;
     wxString    m_basePath; // If set, then show path relative to it
@@ -829,12 +632,9 @@ protected:
 
 // -----------------------------------------------------------------------
 
-#if WXWIN_COMPATIBILITY_3_2
 // Flag used in wxLongStringProperty to mark that edit button
 // should be enabled even in the read-only mode.
-wxDEPRECATED_MSG("wxPG_PROP_ACTIVE_BTN is intended for internal use.")
-constexpr wxPGPropertyFlags wxPG_PROP_ACTIVE_BTN = wxPGPropertyFlags::Reserved_3;
-#endif // WXWIN_COMPATIBILITY_3_2
+#define wxPG_PROP_ACTIVE_BTN    wxPG_PROP_CLASS_SPECIFIC_1
 
 // Like wxStringProperty, but has a button that triggers a small text
 // editor dialog.
@@ -845,33 +645,16 @@ public:
 
     wxLongStringProperty( const wxString& label = wxPG_LABEL,
                           const wxString& name = wxPG_LABEL,
-                          const wxString& value = wxString() );
-    virtual ~wxLongStringProperty() = default;
+                          const wxString& value = wxEmptyString );
+    virtual ~wxLongStringProperty();
 
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
 
 protected:
-    virtual bool DisplayEditorDialog(wxPropertyGrid* pg, wxVariant& value) override;
+    virtual bool DisplayEditorDialog(wxPropertyGrid* pg, wxVariant& value) wxOVERRIDE;
 };
 
 // -----------------------------------------------------------------------
@@ -884,38 +667,28 @@ class WXDLLIMPEXP_PROPGRID wxDirProperty : public wxEditorDialogProperty
 public:
     wxDirProperty( const wxString& label = wxPG_LABEL,
                    const wxString& name = wxPG_LABEL,
-                   const wxString& value = wxString() );
-    virtual ~wxDirProperty() = default;
+                   const wxString& value = wxEmptyString );
+    virtual ~wxDirProperty();
 
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
+    virtual wxString ValueToString(wxVariant& value, int argFlags = 0) const wxOVERRIDE;
     virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
+                               int argFlags = 0) const wxOVERRIDE;
 #if WXWIN_COMPATIBILITY_3_0
-    virtual bool DoSetAttribute(const wxString& name, wxVariant& value) override;
+    virtual bool DoSetAttribute(const wxString& name, wxVariant& value) wxOVERRIDE;
 #endif // WXWIN_COMPATIBILITY_3_0
-    virtual wxValidator* DoGetValidator() const override;
+    virtual wxValidator* DoGetValidator() const wxOVERRIDE;
 
 protected:
-    virtual bool DisplayEditorDialog(wxPropertyGrid* pg, wxVariant& value) override;
+    virtual bool DisplayEditorDialog(wxPropertyGrid* pg, wxVariant& value) wxOVERRIDE;
 };
+
+// -----------------------------------------------------------------------
+
+// wxBoolProperty, wxFlagsProperty specific flags
+#define wxPG_PROP_USE_CHECKBOX      wxPG_PROP_CLASS_SPECIFIC_1
+// DCC = Double Click Cycles
+#define wxPG_PROP_USE_DCC           wxPG_PROP_CLASS_SPECIFIC_2
+
 
 // -----------------------------------------------------------------------
 
@@ -927,31 +700,14 @@ public:
     wxArrayStringProperty( const wxString& label = wxPG_LABEL,
                            const wxString& name = wxPG_LABEL,
                            const wxArrayString& value = wxArrayString() );
-    virtual ~wxArrayStringProperty() = default;
+    virtual ~wxArrayStringProperty();
 
-    virtual void OnSetValue() override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use ValueToString with 'flags' argument as wxPGPropValFormatFlags")
-    virtual wxString ValueToString(wxVariant& value, int flags) const override
-    {
-        m_oldValueToStringCalled = true;
-        return ValueToString(value, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual wxString ValueToString(wxVariant& value,
-                                   wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-#if WXWIN_COMPATIBILITY_3_2
-    wxDEPRECATED_MSG("use StringToValue with 'flags' argument as wxPGPropValFormatFlags")
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               int flags) const override
-    {
-        m_oldStringToValueCalled = true;
-        return StringToValue(variant, text, static_cast<wxPGPropValFormatFlags>(flags));
-    }
-#endif // WXWIN_COMPATIBILITY_3_2
-    virtual bool StringToValue(wxVariant& variant, const wxString& text,
-                               wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const override;
-    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) override;
+    virtual void OnSetValue() wxOVERRIDE;
+    virtual wxString ValueToString( wxVariant& value, int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool StringToValue( wxVariant& variant,
+                                const wxString& text,
+                                int argFlags = 0 ) const wxOVERRIDE;
+    virtual bool DoSetAttribute( const wxString& name, wxVariant& value ) wxOVERRIDE;
 
     // Implement in derived class for custom array-to-string conversion.
 #if WXWIN_COMPATIBILITY_3_0
@@ -1000,7 +756,7 @@ public:
                                         wxUniChar delimiter, int flags);
 
 protected:
-    virtual bool DisplayEditorDialog(wxPropertyGrid* pg, wxVariant& value) override;
+    virtual bool DisplayEditorDialog(wxPropertyGrid* pg, wxVariant& value) wxOVERRIDE;
 
     // Previously this was to be implemented in derived class for array-to-
     // string conversion. Now you should implement ConvertValueToString()
@@ -1024,8 +780,8 @@ public: \
               const wxString& name = wxPG_LABEL, \
               const wxArrayString& value = wxArrayString() ); \
     ~PROPNAME(); \
-    virtual bool OnCustomStringEdit( wxWindow* parent, wxString& value ) override; \
-    virtual wxValidator* DoGetValidator() const override; \
+    virtual bool OnCustomStringEdit( wxWindow* parent, wxString& value ) wxOVERRIDE; \
+    virtual wxValidator* DoGetValidator() const wxOVERRIDE; \
 };
 
 #define WX_PG_DECLARE_ARRAYSTRING_PROPERTY_WITH_VALIDATOR(PROPNAM) \
@@ -1045,7 +801,7 @@ PROPNAME::PROPNAME( const wxString& label, \
     m_delimiter = DELIMCHAR; \
     m_customBtnText = CUSTBUTTXT; \
 } \
-PROPNAME::~PROPNAME() = default;
+PROPNAME::~PROPNAME() { }
 
 #define WX_PG_DECLARE_ARRAYSTRING_PROPERTY(PROPNAME) \
 WX_PG_DECLARE_ARRAYSTRING_PROPERTY_WITH_VALIDATOR(PROPNAME)
@@ -1058,7 +814,7 @@ WX_PG_IMPLEMENT_ARRAYSTRING_PROPERTY_WITH_VALIDATOR(PROPNAME, \
                                                     DELIMCHAR, \
                                                     CUSTBUTTXT) \
 wxValidator* PROPNAME::DoGetValidator () const \
-{ return nullptr; }
+{ return NULL; }
 
 
 // -----------------------------------------------------------------------
@@ -1077,7 +833,7 @@ class WXDLLIMPEXP_PROPGRID wxPGArrayEditorDialog : public wxDialog
 {
 public:
     wxPGArrayEditorDialog();
-    virtual ~wxPGArrayEditorDialog() = default;
+    virtual ~wxPGArrayEditorDialog() { }
 
     void Init();
 
@@ -1122,7 +878,7 @@ public:
     // Note: Dialog frees the validator.
     virtual wxValidator* GetTextCtrlValidator() const
     {
-        return nullptr;
+        return NULL;
     }
 
     // Returns true if array was actually modified
@@ -1183,16 +939,16 @@ class WXDLLIMPEXP_PROPGRID
 {
 public:
     wxPGArrayStringEditorDialog();
-    virtual ~wxPGArrayStringEditorDialog() = default;
+    virtual ~wxPGArrayStringEditorDialog() { }
 
     void Init();
 
-    virtual void SetDialogValue( const wxVariant& value ) override
+    virtual void SetDialogValue( const wxVariant& value ) wxOVERRIDE
     {
         m_array = value.GetArrayString();
     }
 
-    virtual wxVariant GetDialogValue() const override
+    virtual wxVariant GetDialogValue() const wxOVERRIDE
     {
         return m_array;
     }
@@ -1208,19 +964,19 @@ public:
         }
     }
 
-    virtual bool OnCustomNewAction(wxString* resString) override;
+    virtual bool OnCustomNewAction(wxString* resString) wxOVERRIDE;
 
 protected:
     wxArrayString   m_array;
 
     wxArrayStringProperty*     m_pCallingClass;
 
-    virtual wxString ArrayGet( size_t index ) override;
-    virtual size_t ArrayGetCount() override;
-    virtual bool ArrayInsert( const wxString& str, int index ) override;
-    virtual bool ArraySet( size_t index, const wxString& str ) override;
-    virtual void ArrayRemoveAt( int index ) override;
-    virtual void ArraySwap( size_t first, size_t second ) override;
+    virtual wxString ArrayGet( size_t index ) wxOVERRIDE;
+    virtual size_t ArrayGetCount() wxOVERRIDE;
+    virtual bool ArrayInsert( const wxString& str, int index ) wxOVERRIDE;
+    virtual bool ArraySet( size_t index, const wxString& str ) wxOVERRIDE;
+    virtual void ArrayRemoveAt( int index ) wxOVERRIDE;
+    virtual void ArraySwap( size_t first, size_t second ) wxOVERRIDE;
 
 private:
     wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxPGArrayStringEditorDialog);

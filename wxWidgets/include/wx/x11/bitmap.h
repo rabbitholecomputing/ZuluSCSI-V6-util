@@ -2,6 +2,7 @@
 // Name:        wx/x11/bitmap.h
 // Purpose:     wxBitmap class
 // Author:      Julian Smart, Robert Roebling
+// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
@@ -54,7 +55,7 @@ private:
 class WXDLLIMPEXP_CORE wxBitmap: public wxBitmapBase
 {
 public:
-    wxBitmap() = default;
+    wxBitmap() {}
     wxBitmap( int width, int height, int depth = -1 ) { Create( width, height, depth ); }
     wxBitmap( const wxSize& sz, int depth = -1 ) { Create( sz, depth ); }
     wxBitmap( int width, int height, const wxDC& dc ) { Create(width, height, dc); }
@@ -62,6 +63,7 @@ public:
     wxBitmap( const char bits[], int width, int height, int depth = 1 );
     wxBitmap( const char* const* bits );
     wxBitmap( const wxString &filename, wxBitmapType type = wxBITMAP_DEFAULT_TYPE );
+    virtual ~wxBitmap();
 
     static void InitStandardHandlers();
 
@@ -92,7 +94,7 @@ public:
 
     wxBitmap GetSubBitmap( const wxRect& rect ) const;
 
-    bool SaveFile( const wxString &name, wxBitmapType type, const wxPalette *palette = nullptr ) const;
+    bool SaveFile( const wxString &name, wxBitmapType type, const wxPalette *palette = NULL ) const;
     bool LoadFile( const wxString &name, wxBitmapType type = wxBITMAP_DEFAULT_TYPE );
 
     wxPalette *GetPalette() const;

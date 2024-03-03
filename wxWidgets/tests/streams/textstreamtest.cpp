@@ -24,7 +24,9 @@
     #include "wx/longlong.h"
 #endif
 
-#include "wx/mstream.h"
+#if wxUSE_UNICODE
+    #include "wx/mstream.h"
+#endif // wxUSE_UNICODE
 
 #include "testfile.h"
 
@@ -47,11 +49,13 @@ private:
         CPPUNIT_TEST( TestULongLong );
 #endif // wxUSE_LONGLONG
 
+#if wxUSE_UNICODE
         CPPUNIT_TEST( TestUTF8Input );
         CPPUNIT_TEST( TestEmbeddedZerosUTF16LEInput );
         CPPUNIT_TEST( TestEmbeddedZerosUTF16BEInput );
         CPPUNIT_TEST( TestEmbeddedZerosUTF32LEInput );
         CPPUNIT_TEST( TestEmbeddedZerosUTF32BEInput );
+#endif // wxUSE_UNICODE
     CPPUNIT_TEST_SUITE_END();
 
     void Endline();
@@ -62,6 +66,7 @@ private:
     void TestULongLong();
 #endif // wxUSE_LONGLONG
 
+#if wxUSE_UNICODE
     void TestUTF8Input();
     void TestEmbeddedZerosUTF16LEInput();
     void TestEmbeddedZerosUTF16BEInput();
@@ -70,6 +75,8 @@ private:
     void TestInput(const wxMBConv& conv,
                    const void* encodedText,
                    size_t encodedSize );
+#endif // wxUSE_UNICODE
+
 
     wxDECLARE_NO_COPY_CLASS(TextStreamTestCase);
 };
@@ -194,6 +201,8 @@ void TextStreamTestCase::TestULongLong()
 }
 
 #endif // wxUSE_LONGLONG
+
+#if wxUSE_UNICODE
 
 static const wchar_t txtWchar[4] =
 {
@@ -353,3 +362,5 @@ TEST_CASE("wxTextInputStream::GetChar", "[text][input][stream][char]")
         CHECK( tis.GetInputStream().Eof() );
     }
 }
+
+#endif // wxUSE_UNICODE

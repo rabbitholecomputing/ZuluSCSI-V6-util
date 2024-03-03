@@ -67,7 +67,7 @@ void wxMemoryDCImpl::DoSelect(const wxBitmap& bitmap)
     if ( !bitmap.IsOk() )
     {
         // select the bitmap out of the DC
-        m_surface = nullptr;
+        m_surface = NULL;
         return;
     }
 

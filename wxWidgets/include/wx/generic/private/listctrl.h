@@ -19,8 +19,6 @@
 #include "wx/timer.h"
 #include "wx/settings.h"
 
-#include <memory>
-
 // ============================================================================
 // private classes
 // ============================================================================
@@ -42,7 +40,7 @@ struct wxColWidthInfo
     }
 };
 
-using ColWidthArray = std::vector<wxColWidthInfo>;
+WX_DEFINE_ARRAY_PTR(wxColWidthInfo *, ColWidthArray);
 
 //-----------------------------------------------------------------------------
 //  wxListItemData (internal)
@@ -52,10 +50,6 @@ class wxListItemData
 {
 public:
     wxListItemData(wxListMainWindow *owner);
-    wxListItemData(const wxListItemData&) = delete;
-    wxListItemData(wxListItemData&&);
-    wxListItemData& operator=(const wxListItemData&) = delete;
-    wxListItemData& operator=(wxListItemData&&);
     ~wxListItemData();
 
     void SetItem( const wxListItem &info );
@@ -96,22 +90,25 @@ public:
 
 public:
     // the item image or -1
-    int m_image = -1;
+    int m_image;
 
     // user data associated with the item
-    wxUIntPtr m_data = 0;
+    wxUIntPtr m_data;
 
     // the item coordinates are not used in report mode; instead this pointer is
-    // null and the owner window is used to retrieve the item position and size
-    wxRect *m_rect = nullptr;
+    // NULL and the owner window is used to retrieve the item position and size
+    wxRect *m_rect;
 
     // the list ctrl we are in
     wxListMainWindow *m_owner;
 
-    // custom attributes or nullptr
-    wxItemAttr *m_attr = nullptr;
+    // custom attributes or NULL
+    wxItemAttr *m_attr;
 
 protected:
+    // common part of all ctors
+    void Init();
+
     wxString m_text;
 };
 
@@ -136,7 +133,7 @@ public:
     const wxString& GetText() const { return m_text; }
     void SetText(const wxString& text) { m_text = text; }
 
-    void GetItem( wxListItem &item ) const;
+    void GetItem( wxListItem &item );
 
     bool IsHit( int x, int y ) const;
     int GetImage() const;
@@ -163,11 +160,13 @@ private:
 //  wxListLineData (internal)
 //-----------------------------------------------------------------------------
 
+WX_DECLARE_LIST(wxListItemData, wxListItemDataList);
+
 class wxListLineData
 {
 public:
     // the list of subitems: only may have more than one item in report mode
-    std::vector<wxListItemData> m_items;
+    wxListItemDataList m_items;
 
     // this is not used in report view
     struct GeometryInfo
@@ -190,15 +189,13 @@ public:
             wxASSERT_MSG( m_rectAll.width <= w,
                             wxT("width can only be increased") );
 
-            int delta = (w - m_rectAll.width) / 2;
             m_rectAll.width = w;
-            m_rectLabel.x += delta;
-            m_rectIcon.x += delta;
-            m_rectHighlight.x += delta;
+            m_rectLabel.x += (w - m_rectLabel.width) / 2;
+            m_rectIcon.x += (w - m_rectIcon.width) / 2;
+            m_rectHighlight.x += (w - m_rectHighlight.width) / 2;
         }
-    };
-
-    std::unique_ptr<GeometryInfo> m_gi;
+    }
+    *m_gi;
 
     // is this item selected? [NB: not used in virtual mode]
     bool m_highlighted;
@@ -210,19 +207,26 @@ public:
 
 public:
     wxListLineData(wxListMainWindow *owner);
-    wxListLineData(const wxListLineData&) = delete;
-    wxListLineData(wxListLineData&& other) = default;
 
-    wxListLineData& operator=(const wxListLineData&) = delete;
-    wxListLineData& operator=(wxListLineData&&) = default;
-
-    ~wxListLineData() = default;
+    ~wxListLineData()
+    {
+        WX_CLEAR_LIST(wxListItemDataList, m_items);
+        delete m_gi;
+    }
 
     // called by the owner when it toggles report view
     void SetReportView(bool inReportView)
     {
         // we only need m_gi when we're not in report view so update as needed
-        m_gi.reset( inReportView ? nullptr : new GeometryInfo );
+        if ( inReportView )
+        {
+            delete m_gi;
+            m_gi = NULL;
+        }
+        else
+        {
+            m_gi = new GeometryInfo;
+        }
     }
 
     // are we in report mode?
@@ -310,6 +314,19 @@ private:
                            int width);
 };
 
+class wxListLineDataArray : public wxVector<wxListLineData*>
+{
+public:
+    void Clear()
+    {
+        for ( size_t n = 0; n < size(); ++n )
+            delete (*this)[n];
+        clear();
+    }
+
+    ~wxListLineDataArray() { Clear(); }
+};
+
 //-----------------------------------------------------------------------------
 //  wxListHeaderWindow (internal)
 //-----------------------------------------------------------------------------
@@ -349,7 +366,7 @@ public:
     virtual ~wxListHeaderWindow();
 
     // We never need focus as we don't have any keyboard interface.
-    virtual bool AcceptsFocus() const override { return false; }
+    virtual bool AcceptsFocus() const wxOVERRIDE { return false; }
 
     void DrawCurrent();
     void AdjustDC( wxDC& dc );
@@ -368,9 +385,9 @@ public:
     bool m_sortAsc;
     int m_sortCol;
 
-    virtual wxWindow *GetMainWindowOfCompositeControl() override { return GetParent(); }
+    virtual wxWindow *GetMainWindowOfCompositeControl() wxOVERRIDE { return GetParent(); }
 
-    virtual void OnInternalIdle() override;
+    virtual void OnInternalIdle() wxOVERRIDE;
 
 private:
     // common part of all ctors
@@ -394,7 +411,7 @@ private:
 
 public:
     wxListRenameTimer( wxListMainWindow *owner );
-    void Notify() override;
+    void Notify() wxOVERRIDE;
 };
 
 //-----------------------------------------------------------------------------
@@ -412,7 +429,7 @@ public:
     {
     }
 
-    virtual void Notify() override;
+    virtual void Notify() wxOVERRIDE;
 
 private:
     wxListMainWindow *m_owner;
@@ -469,6 +486,8 @@ private:
 //-----------------------------------------------------------------------------
 //  wxListMainWindow (internal)
 //-----------------------------------------------------------------------------
+
+WX_DECLARE_LIST(wxListHeaderData, wxListHeaderDataList);
 
 class wxListMainWindow : public wxWindow
 {
@@ -584,13 +603,13 @@ public:
 
     wxTextCtrl *GetEditControl() const
     {
-        return m_textctrlWrapper ? m_textctrlWrapper->GetText() : nullptr;
+        return m_textctrlWrapper ? m_textctrlWrapper->GetText() : NULL;
     }
 
     void ResetTextControl(wxTextCtrl *text)
     {
         delete text;
-        m_textctrlWrapper = nullptr;
+        m_textctrlWrapper = NULL;
     }
 
     void OnRenameTimer();
@@ -630,7 +649,7 @@ public:
     void SetColumnWidth( int col, int width );
     void GetColumn( int col, wxListItem &item ) const;
     int GetColumnWidth( int col ) const;
-    int GetColumnCount() const { return m_columns.size(); }
+    int GetColumnCount() const { return m_columns.GetCount(); }
 
     // returns the sum of the heights of all columns
     int GetHeaderWidth() const;
@@ -716,7 +735,7 @@ public:
                      const wxPoint& point = wxDefaultPosition );
 
     // override base class virtual to reset m_lineHeight when the font changes
-    virtual bool SetFont(const wxFont& font) override
+    virtual bool SetFont(const wxFont& font) wxOVERRIDE
     {
         if ( !wxWindow::SetFont(font) )
             return false;
@@ -752,7 +771,7 @@ public:
         return m_hasFocus ? m_highlightBrush : m_highlightUnfocusedBrush;
     }
 
-    bool HasFocus() const override
+    bool HasFocus() const wxOVERRIDE
     {
         return m_hasFocus;
     }
@@ -774,10 +793,10 @@ public:
 protected:
     // the array of all line objects for a non virtual list control (for the
     // virtual list control we only ever use m_lines[0])
-    std::vector<wxListLineData> m_lines;
+    wxListLineDataArray  m_lines;
 
     // the list of column objects
-    std::vector<wxListHeaderData> m_columns;
+    wxListHeaderDataList m_columns;
 
     // currently focused item or -1
     size_t               m_current;
@@ -828,7 +847,7 @@ protected:
     bool m_hasCheckBoxes;
 
 protected:
-    wxWindow *GetMainWindowOfCompositeControl() override { return GetParent(); }
+    wxWindow *GetMainWindowOfCompositeControl() wxOVERRIDE { return GetParent(); }
 
     // the total count of items selected in a non virtual list control with
     // multiple selections (always 0 otherwise)
@@ -847,18 +866,15 @@ protected:
     // get the line data for the given index
     wxListLineData *GetLine(size_t n) const
     {
-        wxListMainWindow *self = wxConstCast(this, wxListMainWindow);
+        wxASSERT_MSG( n != (size_t)-1, wxT("invalid line index") );
+
         if ( IsVirtual() )
         {
-            self->CacheLineData(n);
+            wxConstCast(this, wxListMainWindow)->CacheLineData(n);
             n = 0;
         }
-        else
-        {
-            wxCHECK_MSG( n < m_lines.size(), nullptr, wxT("invalid line index") );
-        }
 
-        return &self->m_lines[n];
+        return m_lines[n];
     }
 
     // get a dummy line which can be used for geometry calculations and such:
@@ -933,7 +949,7 @@ private:
             *m_highlightUnfocusedBrush;
 
     // wrapper around the text control currently used for in place editing or
-    // nullptr if no item is being edited
+    // NULL if no item is being edited
     wxListTextCtrlWrapper *m_textctrlWrapper;
 
     // tells whether or not to paint empty rows with alternate colour and draw

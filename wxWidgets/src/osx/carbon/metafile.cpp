@@ -2,6 +2,7 @@
 // Name:        src/osx/carbon/metafile.cpp
 // Purpose:     wxMetaFile, wxMetaFileDC etc. These classes are optional.
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
@@ -52,7 +53,7 @@ public:
 
     virtual ~wxMetafileRefData();
 
-    virtual bool IsOk() const override { return m_data != nullptr; }
+    virtual bool IsOk() const wxOVERRIDE { return m_data != NULL; }
 
     void Init();
 
@@ -112,11 +113,11 @@ wxMetafileRefData::wxMetafileRefData( int width, int height)
     CFMutableDataRef data = CFDataCreateMutable(kCFAllocatorDefault, 0);
     m_data.reset(data);
     CGDataConsumerRef dataConsumer = wxMacCGDataConsumerCreateWithCFData(data);
-    m_context = CGPDFContextCreate( dataConsumer, (width != 0 && height != 0) ? &r : nullptr , nullptr );
+    m_context = CGPDFContextCreate( dataConsumer, (width != 0 && height != 0) ? &r : NULL , NULL );
     CGDataConsumerRelease( dataConsumer );
     if ( m_context )
     {
-        CGPDFContextBeginPage(m_context, nullptr);
+        CGPDFContextBeginPage(m_context, NULL);
 
         CGColorSpaceRef genericColorSpace  = wxMacGetGenericRGBColorSpace();
 
@@ -134,7 +135,7 @@ wxMetafileRefData::~wxMetafileRefData()
 
 void wxMetafileRefData::Init()
 {
-    m_context = nullptr;
+    m_context = NULL;
     m_width = -1;
     m_height = -1;
 }
@@ -144,7 +145,7 @@ void wxMetafileRefData::Close()
     CGPDFContextEndPage(m_context);
 
     CGContextRelease(m_context);
-    m_context = nullptr;
+    m_context = NULL;
 
     UpdateDocumentFromData();
 }
@@ -153,7 +154,7 @@ void wxMetafileRefData::UpdateDocumentFromData()
 {
     wxCFRef<CGDataProviderRef> provider(wxMacCGDataProviderCreateWithCFData(m_data));
     m_pdfDoc.reset(CGPDFDocumentCreateWithProvider(provider));
-    if ( m_pdfDoc != nullptr )
+    if ( m_pdfDoc != NULL )
     {
         CGPDFPageRef page = CGPDFDocumentGetPage( m_pdfDoc, 1 );
         CGRect rect = CGPDFPageGetBoxRect ( page, kCGPDFMediaBox);
@@ -195,7 +196,7 @@ bool wxMetaFile::SetClipboard(int WXUNUSED(width), int WXUNUSED(height))
     bool success = true;
 
 #if wxUSE_DRAG_AND_DROP
-    if (m_refData == nullptr)
+    if (m_refData == NULL)
         return false;
 
     bool alreadyOpen = wxTheClipboard->IsOpened();
@@ -281,7 +282,7 @@ wxMetafileDCImpl::wxMetafileDCImpl(
     m_metaFile->SetRefData( metafiledata );
 
     SetGraphicsContext( wxGraphicsContext::CreateFromNative(metafiledata->GetContext()));
-    m_ok = (m_graphicContext != nullptr) ;
+    m_ok = (m_graphicContext != NULL) ;
 
     SetMapMode( wxMM_TEXT );
 }

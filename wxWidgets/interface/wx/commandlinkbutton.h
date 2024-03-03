@@ -31,8 +31,9 @@
     wxCommandLinkButton generates the same event as wxButton but doesn't
     support any of wxButton-specific styles nor adds any new styles of its own.
 
-    Currently this class uses native implementation under Windows and a generic
-    implementation for the other platforms.
+    Currently this class uses native implementation under Windows Vista and
+    later versions and a generic implementation for the other platforms and
+    earlier Windows versions.
 
     @since 2.9.2
 

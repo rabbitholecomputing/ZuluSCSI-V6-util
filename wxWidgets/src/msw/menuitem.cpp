@@ -2,6 +2,7 @@
 // Name:        src/msw/menuitem.cpp
 // Purpose:     wxMenuItem implementation
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     11.11.97
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -121,6 +122,12 @@ public:
 private:
     int m_modeOld;
 };
+
+inline bool IsGreaterThanStdSize(const wxBitmap& bmp, const wxWindow* win)
+{
+    return bmp.GetWidth() > wxGetSystemMetrics(SM_CXMENUCHECK, win) ||
+            bmp.GetHeight() > wxGetSystemMetrics(SM_CYMENUCHECK, win);
+}
 
 } // anonymous namespace
 
@@ -263,7 +270,7 @@ public:
     }
 
 
-    // get the theme engine or nullptr if themes
+    // get the theme engine or NULL if themes
     // are not available or not supported on menu
     static bool IsUxThemeActive()
     {
@@ -278,6 +285,7 @@ public:
     enum MenuLayoutType
     {
         FullTheme,      // full menu themes (Vista or new)
+        PseudoTheme,    // pseudo menu themes (on XP)
         Classic
     };
 
@@ -286,7 +294,13 @@ public:
         MenuLayoutType menu = Classic;
     #if wxUSE_UXTHEME
         if ( wxUxThemeIsActive() )
-            menu = FullTheme;
+        {
+            static wxWinVersion ver = wxGetWinVersion();
+            if ( ver >= wxWinVersion_Vista )
+                menu = FullTheme;
+            else if ( ver == wxWinVersion_XP )
+                menu = PseudoTheme;
+        }
     #endif // wxUSE_UXTHEME
         return menu;
     }
@@ -297,7 +311,7 @@ private:
     static MenuDrawData* ms_instance;
 };
 
-MenuDrawData* MenuDrawData::ms_instance = nullptr;
+MenuDrawData* MenuDrawData::ms_instance = NULL;
 
 void MenuDrawData::Init(wxWindow const* window)
 {
@@ -306,33 +320,33 @@ void MenuDrawData::Init(wxWindow const* window)
     {
         wxUxThemeHandle hTheme(window, L"MENU");
 
-        ::GetThemeMargins(hTheme, nullptr, MENU_POPUPITEM, 0,
-                               TMT_CONTENTMARGINS, nullptr,
+        ::GetThemeMargins(hTheme, NULL, MENU_POPUPITEM, 0,
+                               TMT_CONTENTMARGINS, NULL,
                                &ItemMargin);
 
-        ::GetThemeMargins(hTheme, nullptr, MENU_POPUPCHECK, 0,
-                               TMT_CONTENTMARGINS, nullptr,
+        ::GetThemeMargins(hTheme, NULL, MENU_POPUPCHECK, 0,
+                               TMT_CONTENTMARGINS, NULL,
                                &CheckMargin);
-        ::GetThemeMargins(hTheme, nullptr, MENU_POPUPCHECKBACKGROUND, 0,
-                               TMT_CONTENTMARGINS, nullptr,
+        ::GetThemeMargins(hTheme, NULL, MENU_POPUPCHECKBACKGROUND, 0,
+                               TMT_CONTENTMARGINS, NULL,
                                &CheckBgMargin);
 
-        ::GetThemeMargins(hTheme, nullptr, MENU_POPUPSUBMENU, 0,
-                               TMT_CONTENTMARGINS, nullptr,
+        ::GetThemeMargins(hTheme, NULL, MENU_POPUPSUBMENU, 0,
+                               TMT_CONTENTMARGINS, NULL,
                                &ArrowMargin);
 
-        ::GetThemeMargins(hTheme, nullptr, MENU_POPUPSEPARATOR, 0,
-                               TMT_SIZINGMARGINS, nullptr,
+        ::GetThemeMargins(hTheme, NULL, MENU_POPUPSEPARATOR, 0,
+                               TMT_SIZINGMARGINS, NULL,
                                &SeparatorMargin);
 
-        ::GetThemePartSize(hTheme, nullptr, MENU_POPUPCHECK, 0,
-                                nullptr, TS_TRUE, &CheckSize);
+        ::GetThemePartSize(hTheme, NULL, MENU_POPUPCHECK, 0,
+                                NULL, TS_TRUE, &CheckSize);
 
-        ::GetThemePartSize(hTheme, nullptr, MENU_POPUPSUBMENU, 0,
-                                nullptr, TS_TRUE, &ArrowSize);
+        ::GetThemePartSize(hTheme, NULL, MENU_POPUPSUBMENU, 0,
+                                NULL, TS_TRUE, &ArrowSize);
 
-        ::GetThemePartSize(hTheme, nullptr, MENU_POPUPSEPARATOR, 0,
-                                nullptr, TS_TRUE, &SeparatorSize);
+        ::GetThemePartSize(hTheme, NULL, MENU_POPUPSEPARATOR, 0,
+                                NULL, TS_TRUE, &SeparatorSize);
 
         ::GetThemeInt(hTheme, MENU_POPUPBACKGROUND, 0, TMT_BORDERSIZE, &TextBorder);
 
@@ -341,10 +355,10 @@ void MenuDrawData::Init(wxWindow const* window)
 
         Offset = -14;
 
-        LOGFONTW themeFont;
-        ::GetThemeSysFont(hTheme, TMT_MENUFONT, &themeFont);
-        // Use null window for wxNativeFontInfo, height it is already at the correct ppi
-        Font = wxFont(wxNativeFontInfo(themeFont, nullptr));
+        wxUxThemeFont themeFont;
+        ::GetThemeSysFont(hTheme, TMT_MENUFONT, themeFont.GetPtr());
+        // Use NULL window for wxNativeFontInfo, height it is already at the correct ppi
+        Font = wxFont(wxNativeFontInfo(themeFont.GetLOGFONT(), NULL));
 
         Theme = true;
 
@@ -424,6 +438,20 @@ wxMenuItem::wxMenuItem(wxMenu *pParentMenu,
 {
     Init();
 }
+
+#if WXWIN_COMPATIBILITY_2_8
+wxMenuItem::wxMenuItem(wxMenu *parentMenu,
+                       int id,
+                       const wxString& text,
+                       const wxString& help,
+                       bool isCheckable,
+                       wxMenu *subMenu)
+          : wxMenuItemBase(parentMenu, id, text, help,
+                           isCheckable ? wxITEM_CHECK : wxITEM_NORMAL, subMenu)
+{
+    Init();
+}
+#endif
 
 void wxMenuItem::Init()
 {
@@ -665,7 +693,7 @@ wxBitmap wxMenuItem::GetBitmap(bool bChecked) const
 {
     wxBitmap bmp = GetBitmapFromBundle(bChecked ? m_bitmap : m_bmpUnchecked);
 #if wxUSE_IMAGE
-    if ( bmp.IsOk() )
+    if ( bmp.IsOk() && wxGetWinVersion() >= wxWinVersion_Vista)
     {
         // we must use PARGB DIB for the menu bitmaps so ensure that we do
         if ( !bmp.HasAlpha() )
@@ -957,19 +985,25 @@ bool wxMenuItem::OnDrawItem(wxDC& dc, const wxRect& rc,
             if ( ::IsThemeBackgroundPartiallyTransparent(hTheme,
                     MENU_POPUPITEM, state) )
             {
-                hTheme.DrawBackground(hdc, rect, MENU_POPUPBACKGROUND);
+                ::DrawThemeBackground(hTheme, hdc,
+                                           MENU_POPUPBACKGROUND,
+                                           0, &rect, NULL);
             }
 
-            hTheme.DrawBackground(hdc, rcGutter, MENU_POPUPGUTTER);
+            ::DrawThemeBackground(hTheme, hdc, MENU_POPUPGUTTER,
+                                       0, &rcGutter, NULL);
 
             if ( IsSeparator() )
             {
                 rcSeparator.left = rcGutter.right;
-                hTheme.DrawBackground(hdc, rcSeparator, MENU_POPUPSEPARATOR);
+                ::DrawThemeBackground(hTheme, hdc, MENU_POPUPSEPARATOR,
+                                           0, &rcSeparator, NULL);
                 return true;
             }
 
-            hTheme.DrawBackground(hdc, rcSelection, MENU_POPUPITEM, state);
+            ::DrawThemeBackground(hTheme, hdc, MENU_POPUPITEM,
+                                       state, &rcSelection, NULL);
+
         }
         else
 #endif // wxUSE_UXTHEME
@@ -1017,7 +1051,7 @@ bool wxMenuItem::OnDrawItem(wxDC& dc, const wxRect& rc,
         int x = rcText.left;
         int y = rcText.top + (rcText.bottom - rcText.top - textSize.cy) / 2;
 
-        ::DrawState(hdc, nullptr, nullptr, wxMSW_CONV_LPARAM(text),
+        ::DrawState(hdc, NULL, NULL, wxMSW_CONV_LPARAM(text),
                     text.length(), x, y, 0, 0, flags);
 
         // ::SetTextAlign(hdc, TA_RIGHT) doesn't work with DSS_DISABLED or DSS_MONO
@@ -1047,7 +1081,7 @@ bool wxMenuItem::OnDrawItem(wxDC& dc, const wxRect& rc,
 
             y = rcText.top + (rcText.bottom - rcText.top - accelSize.cy) / 2;
 
-            ::DrawState(hdc, nullptr, nullptr, wxMSW_CONV_LPARAM(accel),
+            ::DrawState(hdc, NULL, NULL, wxMSW_CONV_LPARAM(accel),
                         accel.length(), x, y, 0, 0, flags);
         }
     }
@@ -1185,7 +1219,8 @@ void wxMenuItem::DrawStdCheckMark(WXHDC hdc_, const RECT* rc, wxODStatus stat)
                                                     ? MCB_DISABLED
                                                     : MCB_NORMAL;
 
-        hTheme.DrawBackground(hdc, rcBg, MENU_POPUPCHECKBACKGROUND, stateCheckBg);
+        ::DrawThemeBackground(hTheme, hdc, MENU_POPUPCHECKBACKGROUND,
+                                   stateCheckBg, &rcBg, NULL);
 
         POPUPCHECKSTATES stateCheck;
         if ( GetKind() == wxITEM_CHECK )
@@ -1199,7 +1234,8 @@ void wxMenuItem::DrawStdCheckMark(WXHDC hdc_, const RECT* rc, wxODStatus stat)
                                                : MC_BULLETNORMAL;
         }
 
-        hTheme.DrawBackground(hdc, *rc, MENU_POPUPCHECK, stateCheck);
+        ::DrawThemeBackground(hTheme, hdc, MENU_POPUPCHECK,
+                                   stateCheck, rc, NULL);
     }
     else
 #endif // wxUSE_UXTHEME
@@ -1283,9 +1319,33 @@ void wxMenuItem::GetColourToUse(wxODStatus stat, wxColour& colText, wxColour& co
 bool wxMenuItem::MSWMustUseOwnerDrawn()
 {
     // we have to use owner drawn item if it has custom colours or font
-    return GetTextColour().IsOk() ||
-           GetBackgroundColour().IsOk() ||
-           GetFont().IsOk();
+    bool mustUseOwnerDrawn = GetTextColour().IsOk() ||
+                             GetBackgroundColour().IsOk() ||
+                             GetFont().IsOk();
+
+    // Windows XP or earlier don't display menu bitmaps bigger than
+    // standard size correctly (they're truncated) nor can
+    // checked bitmaps use HBMMENU_CALLBACK, so we must use
+    // owner-drawn items to show them correctly there. OTOH Win7
+    // doesn't seem to have any problems with even very large bitmaps
+    // so don't use owner-drawn items unnecessarily there (Vista wasn't
+    // actually tested but I assume it works as 7 rather than as XP).
+    static const wxWinVersion winver = wxGetWinVersion();
+    if ( !mustUseOwnerDrawn && winver < wxWinVersion_Vista )
+    {
+        const wxBitmap& bmpUnchecked = GetBitmap(false),
+                        bmpChecked   = GetBitmap(true);
+
+        const wxWindow* win = m_parentMenu ? m_parentMenu->GetWindow() : NULL;
+        if ( (bmpUnchecked.IsOk() && IsGreaterThanStdSize(bmpUnchecked, win)) ||
+                (bmpChecked.IsOk()   && IsGreaterThanStdSize(bmpChecked, win)) ||
+                (bmpChecked.IsOk() && IsCheckable()) )
+        {
+            mustUseOwnerDrawn = true;
+        }
+    }
+
+    return mustUseOwnerDrawn;
 }
 
 #endif // wxUSE_OWNER_DRAWN
@@ -1293,18 +1353,40 @@ bool wxMenuItem::MSWMustUseOwnerDrawn()
 // returns the HBITMAP to use in MENUITEMINFO
 HBITMAP wxMenuItem::GetHBitmapForMenu(BitmapKind kind) const
 {
-    // We need to store the returned bitmap, so that its HBITMAP remains
-    // valid for as long as it's used.
-    bool checked = (kind != Unchecked);
-    wxBitmap& bmp = const_cast<wxBitmap&>(checked ? m_bmpCheckedCurrent
-                                                  : m_bmpUncheckedCurrent);
-    bmp = GetBitmap(checked);
-    if ( bmp.IsOk() )
+    // Under versions of Windows older than Vista we can't pass HBITMAP
+    // directly as hbmpItem for 2 reasons:
+    //  1. We can't draw it with transparency then (this is not
+    //     very important now but would be with themed menu bg)
+    //  2. Worse, Windows inverts the bitmap for the selected
+    //     item and this looks downright ugly
+    //
+    // So we prefer to instead draw it ourselves in MSWOnDrawItem() by using
+    // HBMMENU_CALLBACK for normal menu items when inserting it. And use
+    // NULL for checkable menu items as hbmpChecked/hBmpUnchecked does not
+    // support HBMMENU_CALLBACK.
+    //
+    // However under Vista using HBMMENU_CALLBACK causes the entire menu to be
+    // drawn using the classic theme instead of the current one and it does
+    // handle transparency just fine so do use the real bitmap there
+#if wxUSE_IMAGE
+    if ( wxGetWinVersion() >= wxWinVersion_Vista )
     {
-        return GetHbitmapOf(bmp);
+        // We need to store the returned bitmap, so that its HBITMAP remains
+        // valid for as long as it's used.
+        bool checked = (kind != Unchecked);
+        wxBitmap& bmp = const_cast<wxBitmap&>(checked ? m_bmpCheckedCurrent
+                                                      : m_bmpUncheckedCurrent);
+        bmp = GetBitmap(checked);
+        if ( bmp.IsOk() )
+        {
+            return GetHbitmapOf(bmp);
+        }
+        //else: bitmap is not set
+        return NULL;
     }
-    //else: bitmap is not set
-    return nullptr;
+#endif // wxUSE_IMAGE
+
+    return (kind == Normal) ? HBMMENU_CALLBACK : NULL;
 }
 
 int wxMenuItem::MSGetMenuItemPos() const

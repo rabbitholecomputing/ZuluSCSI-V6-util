@@ -2,6 +2,7 @@
 // Name:        src/univ/themes/win32.cpp
 // Purpose:     wxUniversal theme implementing Win32-like LNF
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     06.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -95,7 +96,7 @@ public:
                            int flags = 0,
                            int alignment = wxALIGN_LEFT | wxALIGN_TOP,
                            int indexAccel = -1,
-                           wxRect *rectBounds = nullptr);
+                           wxRect *rectBounds = NULL);
     virtual void DrawButtonLabel(wxDC& dc,
                                  const wxString& label,
                                  const wxBitmap& image,
@@ -103,11 +104,11 @@ public:
                                  int flags = 0,
                                  int alignment = wxALIGN_LEFT | wxALIGN_TOP,
                                  int indexAccel = -1,
-                                 wxRect *rectBounds = nullptr);
+                                 wxRect *rectBounds = NULL);
     virtual void DrawButtonBorder(wxDC& dc,
                                   const wxRect& rect,
                                   int flags = 0,
-                                  wxRect *rectIn = nullptr);
+                                  wxRect *rectIn = NULL);
 
     virtual void DrawArrow(wxDC& dc,
                            wxDirection dir,
@@ -149,7 +150,7 @@ public:
                                  wxOrientation orient,
                                  int flags = 0,
                                  long style = 0,
-                                 wxRect *rectShaft = nullptr);
+                                 wxRect *rectShaft = NULL);
     virtual void DrawSliderThumb(wxDC& dc,
                                  const wxRect& rect,
                                  wxOrientation orient,
@@ -1060,28 +1061,28 @@ const char **wxWin32Renderer::ms_xpmIndicators[IndicatorType_Max]
     // radio
     {
         // normal state
-        { checked_radio_xpm, unchecked_radio_xpm, nullptr },
+        { checked_radio_xpm, unchecked_radio_xpm, NULL },
 
         // pressed state
-        { pressed_checked_radio_xpm, pressed_unchecked_radio_xpm, nullptr },
+        { pressed_checked_radio_xpm, pressed_unchecked_radio_xpm, NULL },
 
         // disabled state
-        { pressed_disabled_checked_radio_xpm, pressed_unchecked_radio_xpm, nullptr },
+        { pressed_disabled_checked_radio_xpm, pressed_unchecked_radio_xpm, NULL },
     },
 
     // menu
     {
         // normal state
-        { checked_menu_xpm, nullptr, nullptr },
+        { checked_menu_xpm, NULL, NULL },
 
         // selected state
-        { selected_checked_menu_xpm, nullptr, nullptr },
+        { selected_checked_menu_xpm, NULL, NULL },
 
         // disabled state
-        { disabled_checked_menu_xpm, nullptr, nullptr },
+        { disabled_checked_menu_xpm, NULL, NULL },
 
         // disabled selected state
-        { selected_disabled_checked_menu_xpm, nullptr, nullptr },
+        { selected_disabled_checked_menu_xpm, NULL, NULL },
     }
 };
 
@@ -1103,9 +1104,9 @@ WX_IMPLEMENT_THEME(wxWin32Theme, win32, wxTRANSLATE("Win32 theme"));
 
 wxWin32Theme::wxWin32Theme()
 {
-    m_scheme = nullptr;
-    m_renderer = nullptr;
-    m_artProvider = nullptr;
+    m_scheme = NULL;
+    m_renderer = NULL;
+    m_artProvider = NULL;
 }
 
 wxWin32Theme::~wxWin32Theme()
@@ -1139,7 +1140,7 @@ wxInputHandler *
 wxWin32Theme::GetInputHandler(const wxString& control,
                               wxInputConsumer *consumer)
 {
-    wxInputHandler *handler = nullptr;
+    wxInputHandler *handler = NULL;
     int n = m_handlerNames.Index(control);
     if ( n == wxNOT_FOUND )
     {
@@ -1762,7 +1763,7 @@ void wxWin32Renderer::DrawToolBarButton(wxDC& dc,
         {
             int xpoint = (rect.GetLeft() + rect.GetRight() + 1 - bitmap.GetWidth()) / 2;
             int ypoint = (rect.GetTop() + rect.GetBottom() + 1 - bitmap.GetHeight()) / 2;
-            dc.DrawBitmap(bitmap, xpoint, ypoint, bitmap.GetMask() != nullptr);
+            dc.DrawBitmap(bitmap, xpoint, ypoint, bitmap.GetMask() != NULL);
         }
     }
     else if (style == wxTOOL_STYLE_SEPARATOR)
@@ -2086,7 +2087,7 @@ void wxWin32Renderer::DrawSliderShaft(wxDC& dc,
     */
 
     if (flags & wxCONTROL_FOCUSED)
-        DrawFocusRect(nullptr, dc, rectOrig);
+        DrawFocusRect(NULL, dc, rectOrig);
 
     wxRect rect = GetSliderShaftRect(rectOrig, lenThumb, orient, style);
 
@@ -2517,14 +2518,14 @@ wxMenuGeometryInfo *wxWin32Renderer::GetMenuGeometry(wxWindow *win,
             h = heightText;
 
             wxCoord widthLabel;
-            dc.GetTextExtent(item->GetItemLabelText(), &widthLabel, nullptr);
+            dc.GetTextExtent(item->GetItemLabelText(), &widthLabel, NULL);
             if ( widthLabel > widthLabelMax )
             {
                 widthLabelMax = widthLabel;
             }
 
             wxCoord widthAccel;
-            dc.GetTextExtent(item->GetAccelString(), &widthAccel, nullptr);
+            dc.GetTextExtent(item->GetAccelString(), &widthAccel, NULL);
             if ( widthAccel > widthAccelMax )
             {
                 widthAccelMax = widthAccel;
@@ -3615,12 +3616,12 @@ wxWin32SystemMenuEvtHandler::
 wxWin32SystemMenuEvtHandler(wxWin32FrameInputHandler *handler)
 {
     m_inputHnd = handler;
-    m_wnd = nullptr;
+    m_wnd = NULL;
 }
 
 void wxWin32SystemMenuEvtHandler::Attach(wxInputConsumer *consumer)
 {
-    wxASSERT_MSG( m_wnd == nullptr, wxT("can't attach the handler twice!") );
+    wxASSERT_MSG( m_wnd == NULL, wxT("can't attach the handler twice!") );
 
     m_wnd = wxStaticCast(consumer->GetInputWindow(), wxTopLevelWindow);
     m_wnd->PushEventHandler(this);
@@ -3644,7 +3645,7 @@ void wxWin32SystemMenuEvtHandler::Detach()
         m_wnd->SetAcceleratorTable(m_oldAccelTable);
 #endif
         m_wnd->RemoveEventHandler(this);
-        m_wnd = nullptr;
+        m_wnd = NULL;
     }
 }
 
@@ -3678,7 +3679,7 @@ void wxWin32SystemMenuEvtHandler::OnCloseFrame(wxCommandEvent &WXUNUSED(event))
 
 void wxWin32SystemMenuEvtHandler::OnClose(wxCloseEvent &event)
 {
-    m_wnd = nullptr;
+    m_wnd = NULL;
     event.Skip();
 }
 

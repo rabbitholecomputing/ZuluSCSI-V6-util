@@ -2,6 +2,7 @@
 // Name:        src/msw/helpbest.cpp
 // Purpose:     Tries to load MS HTML Help, falls back to wxHTML upon failure
 // Author:      Mattia Barbon
+// Modified by:
 // Created:     02/04/2001
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
@@ -37,7 +38,7 @@ bool wxBestHelpController::Initialize( const wxString& filename )
     if( chm->Initialize( GetValidFilename( filename ) ) )
     {
         m_helpController = chm;
-        m_parentWindow = nullptr;
+        m_parentWindow = NULL;
         return true;
     }
 
@@ -52,7 +53,7 @@ bool wxBestHelpController::Initialize( const wxString& filename )
     if( html->Initialize( GetValidFilename( filename ) ) )
     {
         m_helpController = html;
-        m_parentWindow = nullptr;
+        m_parentWindow = NULL;
         return true;
     }
 

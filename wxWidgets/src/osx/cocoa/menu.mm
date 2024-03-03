@@ -2,6 +2,7 @@
 // Name:        src/osx/cocoa/menu.mm
 // Purpose:     wxMenu, wxMenuBar, wxMenuItem
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -39,7 +40,7 @@
 {
     if ( self = [super initWithTitle:title] )
     {
-        impl = nullptr;
+        impl = NULL;
     }
     return self;
 }
@@ -156,8 +157,8 @@ class wxMenuCocoaImpl : public wxMenuImpl
 public :
     wxMenuCocoaImpl( wxMenu* peer , wxNSMenu* menu) : wxMenuImpl(peer), m_osxMenu(menu)
     {
-        static wxNSMenuController* controller = nullptr;
-        if ( controller == nullptr )
+        static wxNSMenuController* controller = NULL;
+        if ( controller == NULL )
         {
             controller = [[wxNSMenuController alloc] init];
         }
@@ -171,7 +172,7 @@ public :
 
     virtual ~wxMenuCocoaImpl();
 
-    virtual void InsertOrAppend(wxMenuItem *pItem, size_t pos) override
+    virtual void InsertOrAppend(wxMenuItem *pItem, size_t pos) wxOVERRIDE
     {
         NSMenuItem* nsmenuitem = (NSMenuItem*) pItem->GetPeer()->GetHMenuItem();
         // make sure a call of SetSubMenu is also reflected (occurring after Create)
@@ -194,7 +195,7 @@ public :
             [m_osxMenu insertItem:nsmenuitem atIndex:pos];
     }
 
-    virtual void Remove( wxMenuItem *pItem ) override
+    virtual void Remove( wxMenuItem *pItem ) wxOVERRIDE
     {
         [m_osxMenu removeItem:(NSMenuItem*) pItem->GetPeer()->GetHMenuItem()];
     }
@@ -239,14 +240,14 @@ public :
     virtual NSMenu* MacCreateOrFindWindowMenu()
     {
         NSString* nsWindowMenuTitle = wxNSStringWithWxString(wxStripMenuCodes(wxApp::s_macWindowMenuTitleName, wxStrip_Menu));
-        NSString* nsTranslatedWindowMenuTitle = wxNSStringWithWxString(wxGETTEXT_IN_CONTEXT("macOS menu name", "Window"));
+        NSString* nsAlternateWindowMenuTitle = wxNSStringWithWxString(wxStripMenuCodes(_("&Window"), wxStrip_Menu));
 
         NSMenu* windowMenu = nil;
 
         for (NSMenuItem* topmenu in [m_osxMenu itemArray])
         {
             if ([[topmenu title] isEqualToString:nsWindowMenuTitle] ||
-                [[topmenu title] isEqualToString:nsTranslatedWindowMenuTitle])
+                [[topmenu title] isEqualToString:nsAlternateWindowMenuTitle])
             {
                 windowMenu = [topmenu submenu];
                 break;
@@ -256,7 +257,7 @@ public :
         if ( windowMenu == nil )
         {
             NSString* nsHelpMenuTitle = wxNSStringWithWxString(wxStripMenuCodes(wxApp::s_macHelpMenuTitleName, wxStrip_Menu));
-            NSString* nsTranslatedHelpTitle = wxNSStringWithWxString(wxGETTEXT_IN_CONTEXT("macOS menu name", "Help"));
+            NSString* nsAlternateHelpTitle = wxNSStringWithWxString(wxStripMenuCodes(_("&Help"), wxStrip_Menu));
 
             NSMenuItem* helpMenu = nil;
             NSInteger numberOfMenus = [m_osxMenu numberOfItems];
@@ -264,13 +265,13 @@ public :
             {
                 NSMenuItem* lastMenu = [m_osxMenu itemAtIndex:numberOfMenus-1];
                 if ([[lastMenu title] isEqualToString:nsHelpMenuTitle] ||
-                    [[lastMenu title] isEqualToString:nsTranslatedHelpTitle])
+                    [[lastMenu title] isEqualToString:nsAlternateHelpTitle])
                 {
                     helpMenu = lastMenu;
                 }
             }
 
-            windowMenu = [[NSMenu alloc] initWithTitle:nsTranslatedWindowMenuTitle];
+            windowMenu = [[NSMenu alloc] initWithTitle:nsAlternateWindowMenuTitle];
             NSMenuItem* windowMenuItem = [[NSMenuItem alloc] initWithTitle:nsWindowMenuTitle action:nil keyEquivalent:@""];
             [windowMenuItem setSubmenu:windowMenu];
             [windowMenu release];
@@ -295,18 +296,18 @@ public :
             // already exists or not
             [windowMenu removeAllItems];
 
-            item = [[NSMenuItem alloc] initWithTitle:wxNSStringWithWxString(wxGETTEXT_IN_CONTEXT("macOS menu item", "Minimize")) action:@selector(performMiniaturize:) keyEquivalent:@"m"];
+            item = [[NSMenuItem alloc] initWithTitle:wxNSStringWithWxString(_("Minimize")) action:@selector(performMiniaturize:) keyEquivalent:@"m"];
             [windowMenu insertItem:item atIndex:0];
             [item setEnabled:YES];
             [item release];
 
-            item = [[NSMenuItem alloc] initWithTitle:wxNSStringWithWxString(wxGETTEXT_IN_CONTEXT("macOS menu item", "Zoom")) action:@selector(performZoom:) keyEquivalent:@""];
+            item = [[NSMenuItem alloc] initWithTitle:wxNSStringWithWxString(_("Zoom")) action:@selector(performZoom:) keyEquivalent:@""];
             [windowMenu insertItem:item atIndex:1];
             [item release];
 
             [windowMenu insertItem:[NSMenuItem separatorItem] atIndex:2];
 
-            item = [[NSMenuItem alloc] initWithTitle:wxNSStringWithWxString(wxGETTEXT_IN_CONTEXT("macOS menu item", "Bring All to Front")) action:@selector(arrangeInFront:) keyEquivalent:@""];
+            item = [[NSMenuItem alloc] initWithTitle:wxNSStringWithWxString(_("Bring All to Front")) action:@selector(arrangeInFront:) keyEquivalent:@""];
             [windowMenu insertItem:item atIndex:3];
             [item release];
 
@@ -314,7 +315,7 @@ public :
         }
     }
 
-    virtual void MakeRoot() override
+    virtual void MakeRoot() wxOVERRIDE
     {
         [NSApp setMainMenu:m_osxMenu];
 
@@ -328,13 +329,13 @@ public :
     {
     }
 
-    virtual void SetTitle( const wxString& text ) override
+    virtual void SetTitle( const wxString& text ) wxOVERRIDE
     {
         wxCFStringRef cfText(text);
         [m_osxMenu setTitle:cfText.AsNSString()];
     }
 
-    virtual void PopUp( wxWindow *win, int x, int y ) override
+    virtual void PopUp( wxWindow *win, int x, int y ) wxOVERRIDE
     {
         NSView *view = win->GetPeer()->GetWXWidget();
 
@@ -351,7 +352,7 @@ public :
             wxTopLevelWindow* tlw = static_cast<wxTopLevelWindow*>(wxGetTopLevelParent(win));
             NSWindow* nsWindow = tlw->GetWXWindow();
             NSRect nsrect = NSZeroRect;
-            nsrect.origin = wxToNSPoint( nullptr, screenPoint );
+            nsrect.origin = wxToNSPoint( NULL, screenPoint );
             nsrect = [nsWindow convertRectFromScreen:nsrect];
 
             NSEvent* rightClick = [NSEvent mouseEventWithType:NSRightMouseDown
@@ -372,7 +373,7 @@ public :
         }
     }
     
-    virtual void GetMenuBarDimensions(int &x, int &y, int &width, int &height) const override
+    virtual void GetMenuBarDimensions(int &x, int &y, int &width, int &height) const wxOVERRIDE
     {
         NSRect r = [(NSScreen*)[[NSScreen screens] objectAtIndex:0] frame];
         height = [m_osxMenu menuBarHeight];
@@ -401,7 +402,7 @@ public :
 
     }
     
-    WXHMENU GetHMenu() override { return m_osxMenu; }
+    WXHMENU GetHMenu() wxOVERRIDE { return m_osxMenu; }
 
     static wxMenuImpl* Create( wxMenu* peer, const wxString& title );
     static wxMenuImpl* CreateRootMenu( wxMenu* peer );

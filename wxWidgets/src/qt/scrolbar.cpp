@@ -28,7 +28,7 @@ class wxQtScrollBar : public wxQtEventSignalHandler< QScrollBar, wxScrollBar >
 
 
 wxScrollBar::wxScrollBar() :
-    m_qtScrollBar(nullptr)
+    m_qtScrollBar(NULL)
 {
 }
 
@@ -52,7 +52,7 @@ bool wxScrollBar::Create( wxWindow *parent, wxWindowID id,
     m_qtScrollBar = new wxQtScrollBar( parent, this );
     m_qtScrollBar->setOrientation( wxQtConvertOrientation( style, wxSB_HORIZONTAL ));
 
-    return wxScrollBarBase::Create( parent, id, pos, size, style, validator, name );
+    return QtCreateControl( parent, id, pos, size, style, validator, name );
 }
 
 int wxScrollBar::GetThumbPosition() const
@@ -101,10 +101,9 @@ void wxScrollBar::SetScrollbar(int position, int WXUNUSED(thumbSize),
     {
         m_qtScrollBar->setRange( 0, range - pageSize );
         m_qtScrollBar->setPageStep( pageSize );
-        {
-            wxQtEnsureSignalsBlocked blocker(m_qtScrollBar);
-            m_qtScrollBar->setValue( position );
-        }
+        m_qtScrollBar->blockSignals(true);
+        m_qtScrollBar->setValue( position );
+        m_qtScrollBar->blockSignals(false);
         m_qtScrollBar->show();
     }
     else

@@ -28,7 +28,7 @@
 wxIMPLEMENT_DYNAMIC_CLASS(wxPropertySheetDialogXmlHandler, wxXmlResourceHandler);
 
 wxPropertySheetDialogXmlHandler::wxPropertySheetDialogXmlHandler()
-                               : m_dialog(nullptr)
+                               : m_dialog(NULL)
 {
     XRC_ADD_STYLE(wxSTAY_ON_TOP);
     XRC_ADD_STYLE(wxCAPTION);

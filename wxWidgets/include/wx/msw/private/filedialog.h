@@ -15,10 +15,13 @@
 
 // We want to use IFileDialog if either wxDirDialog or wxFileDialog are used.
 //
-// Using IFileOpenDialog requires a compiler providing declarations and
-// definitions of interfaces available in Windows Vista.
+// IFileOpenDialog implementation needs wxDynamicLibrary for
+// run-time linking SHCreateItemFromParsingName(), available
+// only under Windows Vista and newer.
+// It also needs a compiler providing declarations and definitions
+// of interfaces available in Windows Vista.
 // And it needs OLE support to actually use these interfaces.
-#if (wxUSE_DIRDLG || wxUSE_FILEDLG) && wxUSE_OLE && \
+#if (wxUSE_DIRDLG || wxUSE_FILEDLG) && wxUSE_DYNLIB_CLASS && wxUSE_OLE && \
     defined(__IFileOpenDialog_INTERFACE_DEFINED__)
     #define wxUSE_IFILEOPENDIALOG 1
 #else
@@ -36,11 +39,6 @@ namespace wxMSWImpl
 class wxIFileDialog
 {
 public:
-    // Return true if we can use IFileDialog with an owner: this is
-    // unfortunately not always the case, as IFileDialog requires using
-    // apartment threading model in this case.
-    static bool CanBeUsedWithAnOwner();
-
     // Create the dialog of the specified type.
     //
     // CLSID must be either CLSID_FileOpenDialog or CLSID_FileSaveDialog.
@@ -49,7 +47,7 @@ public:
     explicit wxIFileDialog(const CLSID& clsid);
 
     // If this returns false, the dialog can't be used at all.
-    bool IsOk() const { return m_fileDialog.Get() != nullptr; }
+    bool IsOk() const { return m_fileDialog.Get() != NULL; }
 
     // Set the dialog title.
     void SetTitle(const wxString& title);

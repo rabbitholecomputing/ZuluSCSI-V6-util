@@ -2,6 +2,7 @@
 // Name:        src/msw/button.cpp
 // Purpose:     wxButton
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -163,19 +164,30 @@ wxSize wxButtonBase::GetDefaultSize(wxWindow* win)
 
     if ( s_sizeBtn.HasChanged(win) )
     {
-        // The "Recommended sizing and spacing" section of MSDN layout article
-        // documents the default button size as being 50*14 dialog units or
-        // 75*23 relative pixels (what we call DIPs). But dialog units don't
-        // work well in high DPI (and not just because of rounding errors, i.e.
-        // the values differ from the actual default button size used by
-        // Windows itself in high DPI by too much), so just use DIPs directly.
+        wxSize base;
+        if ( win )
+        {
+            wxClientDC dc(win);
+            dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+            base = wxPrivate::GetAverageASCIILetterSize(dc);
+        }
+        else
+        {
+            wxScreenDC dc;
+            dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+            base = wxPrivate::GetAverageASCIILetterSize(dc);
+        }
+
+        // The size of a standard button in the dialog units is 50x14,
+        // translate this to pixels.
         //
-        // Moreover, it looks like the extra 2px borders around the visible
-        // part of the button are not scaled correctly in higher than normal
-        // DPI, so add them without scaling.
-        s_sizeBtn.SetAtNewDPI(
-            wxWindow::FromDIP(wxSize(73, 21), win) + wxSize(2, 2)
-        );
+        // Windows' computes dialog units using average character width over
+        // upper- and lower-case ASCII alphabet and not using the average
+        // character width metadata stored in the font; see
+        // http://support.microsoft.com/default.aspx/kb/145994 for detailed
+        // discussion.
+
+        s_sizeBtn.SetAtNewDPI(wxRescaleCoord(50, 14).From(4, 8).To(base));
     }
 
     return s_sizeBtn.Get();
@@ -220,7 +232,7 @@ wxSize wxButtonBase::GetDefaultSize(wxWindow* win)
    one.
 
    We handle this by maintaining a permanent and a temporary default items in
-   wxControlContainer (both may be null). When a button becomes the current
+   wxControlContainer (both may be NULL). When a button becomes the current
    control (i.e. gets focus) it sets itself as the temporary default which
    ensures that it has the right appearance and that Enter will be redirected
    to it. When the button loses focus, it unsets the temporary default and so
@@ -242,7 +254,7 @@ wxWindow *wxButton::SetDefault()
 }
 
 // return the top level parent window if it's not being deleted yet, otherwise
-// return nullptr
+// return NULL
 static wxTopLevelWindow *GetTLWParentIfNotBeingDeleted(wxWindow *win)
 {
     for ( ;; )
@@ -253,7 +265,7 @@ static wxTopLevelWindow *GetTLWParentIfNotBeingDeleted(wxWindow *win)
         if ( !parent || win->IsTopLevel() )
         {
             if ( win->IsBeingDeleted() )
-                return nullptr;
+                return NULL;
 
             break;
         }
@@ -297,7 +309,7 @@ void wxButton::UnsetTmpDefault()
     if ( !tlw )
         return;
 
-    tlw->SetTmpDefaultItem(nullptr);
+    tlw->SetTmpDefaultItem(NULL);
 
     wxWindow *winOldDefault = tlw->GetDefaultItem();
 
@@ -313,7 +325,7 @@ void wxButton::UnsetTmpDefault()
 void
 wxButton::SetDefaultStyle(wxButton *btn, bool on)
 {
-    // we may be called with null pointer -- simpler to do the check here than
+    // we may be called with NULL pointer -- simpler to do the check here than
     // in the caller which does wxDynamicCast()
     if ( !btn )
         return;
@@ -449,9 +461,13 @@ bool wxButton::DoGetAuthNeeded() const
 
 void wxButton::DoSetAuthNeeded(bool show)
 {
-    m_authNeeded = show;
-    ::SendMessage(GetHwnd(), BCM_SETSHIELD, 0, show);
-    InvalidateBestSize();
+    // show/hide UAC symbol on Windows Vista and later
+    if ( wxGetWinVersion() >= wxWinVersion_6 )
+    {
+        m_authNeeded = show;
+        ::SendMessage(GetHwnd(), BCM_SETSHIELD, 0, show);
+        InvalidateBestSize();
+    }
 }
 
 #endif // wxUSE_BUTTON

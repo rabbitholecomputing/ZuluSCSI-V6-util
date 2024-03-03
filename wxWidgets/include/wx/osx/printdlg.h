@@ -4,6 +4,7 @@
 //              Use generic, PostScript version if no
 //              platform-specific implementation.
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -27,16 +28,16 @@ class WXDLLIMPEXP_CORE wxMacPrintDialog: public wxPrintDialogBase
 {
 public:
     wxMacPrintDialog();
-    wxMacPrintDialog(wxWindow *parent, wxPrintDialogData* data = nullptr);
+    wxMacPrintDialog(wxWindow *parent, wxPrintDialogData* data = NULL);
     wxMacPrintDialog(wxWindow *parent, wxPrintData* data );
     virtual ~wxMacPrintDialog();
 
-    bool Create(wxWindow *parent, wxPrintDialogData* data = nullptr);
-    virtual int ShowModal() override;
+    bool Create(wxWindow *parent, wxPrintDialogData* data = NULL);
+    virtual int ShowModal() wxOVERRIDE;
 
-    virtual wxPrintDialogData& GetPrintDialogData() override { return m_printDialogData; }
-    virtual wxPrintData& GetPrintData() override { return m_printDialogData.GetPrintData(); }
-    virtual wxDC *GetPrintDC() override;
+    virtual wxPrintDialogData& GetPrintDialogData() wxOVERRIDE { return m_printDialogData; }
+    virtual wxPrintData& GetPrintData() wxOVERRIDE { return m_printDialogData.GetPrintData(); }
+    virtual wxDC *GetPrintDC() wxOVERRIDE;
 
 private:
     wxPrintDialogData   m_printDialogData;
@@ -56,13 +57,13 @@ private:
 class WXDLLIMPEXP_CORE wxMacPageSetupDialog: public wxPageSetupDialogBase
 {
 public:
-    wxMacPageSetupDialog(wxWindow *parent, wxPageSetupDialogData *data = nullptr);
+    wxMacPageSetupDialog(wxWindow *parent, wxPageSetupDialogData *data = NULL);
     virtual ~wxMacPageSetupDialog();
 
-    virtual wxPageSetupDialogData& GetPageSetupDialogData() override;
+    virtual wxPageSetupDialogData& GetPageSetupDialogData() wxOVERRIDE;
 
-    bool Create(wxWindow *parent, wxPageSetupDialogData *data = nullptr);
-    virtual int ShowModal() override;
+    bool Create(wxWindow *parent, wxPageSetupDialogData *data = NULL);
+    virtual int ShowModal() wxOVERRIDE;
 
 private:
     wxPageSetupDialogData   m_pageSetupData;
@@ -85,7 +86,7 @@ class WXDLLIMPEXP_CORE wxMacPageMarginsDialog : public wxDialog
 public:
     wxMacPageMarginsDialog(wxFrame* parent, wxPageSetupDialogData* data);
     bool TransferToWindow();
-    bool TransferDataFromWindow() override;
+    bool TransferDataFromWindow() wxOVERRIDE;
 
     virtual wxPageSetupDialogData& GetPageSetupDialogData() { return *m_pageSetupDialogData; }
 

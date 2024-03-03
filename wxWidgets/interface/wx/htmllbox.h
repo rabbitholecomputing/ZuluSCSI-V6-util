@@ -211,7 +211,7 @@ public:
         Constructor, creating and showing the HTML list box.
 
         @param parent
-            Parent window. Must not be @NULL.
+            Parent window. Must not be NULL.
         @param id
             Window identifier. A value of -1 indicates a default value.
         @param pos
@@ -235,7 +235,7 @@ public:
                         const wxPoint& pos = wxDefaultPosition,
                         const wxSize& size = wxDefaultSize,
                         int n = 0,
-                        const wxString choices[] = nullptr,
+                        const wxString choices[] = NULL,
                         long style = wxHLB_DEFAULT_STYLE,
                         const wxValidator& validator = wxDefaultValidator,
                         const wxString& name = wxSimpleHtmlListBoxNameStr);
@@ -244,7 +244,7 @@ public:
         Constructor, creating and showing the HTML list box.
 
         @param parent
-            Parent window. Must not be @NULL.
+            Parent window. Must not be NULL.
         @param id
             Window identifier. A value of -1 indicates a default value.
         @param pos
@@ -286,7 +286,7 @@ public:
     bool Create(wxWindow *parent, wxWindowID id,
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
-                int n = 0, const wxString choices[] = nullptr,
+                int n = 0, const wxString choices[] = NULL,
                 long style = wxHLB_DEFAULT_STYLE,
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxSimpleHtmlListBoxNameStr);

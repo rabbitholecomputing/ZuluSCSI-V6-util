@@ -2,6 +2,7 @@
 // Name:        src/osx/iphone/msgdlg.mm
 // Purpose:     wxMessageDialog
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -59,13 +60,13 @@ int wxMessageDialog::ShowModal()
         msgtext  = m_extendedMessage;
     }
 
-    wxCFStringRef cfNoString( GetNoLabel() );
-    wxCFStringRef cfYesString( GetYesLabel() );
-    wxCFStringRef cfOKString( GetOKLabel() );
-    wxCFStringRef cfCancelString( GetCancelLabel() );
+    wxCFStringRef cfNoString( GetNoLabel(), GetFont().GetEncoding() );
+    wxCFStringRef cfYesString( GetYesLabel(), GetFont().GetEncoding() );
+    wxCFStringRef cfOKString( GetOKLabel(), GetFont().GetEncoding() );
+    wxCFStringRef cfCancelString( GetCancelLabel(), GetFont().GetEncoding() );
 
-    wxCFStringRef cfTitle( msgtitle );
-    wxCFStringRef cfText( msgtext );
+    wxCFStringRef cfTitle( msgtitle, GetFont().GetEncoding() );
+    wxCFStringRef cfText( msgtext, GetFont().GetEncoding() );
 
     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:cfTitle.AsNSString() message:cfText.AsNSString() delegate:nil cancelButtonTitle:nil otherButtonTitles:nil];
 
@@ -108,7 +109,7 @@ int wxMessageDialog::ShowModal()
     }
 
 
-    wxNonOwnedWindow* parentWindow = nullptr;
+    wxNonOwnedWindow* parentWindow = NULL;
     int button = -1;
 
     if (GetParent())

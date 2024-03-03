@@ -107,7 +107,7 @@ public:
     */
     bool AttachUnknownControl(const wxString& name,
                               wxWindow* control,
-                              wxWindow* parent = nullptr);
+                              wxWindow* parent = NULL);
 
     /**
         Removes all handlers and deletes them (this means that any handlers
@@ -130,24 +130,6 @@ public:
         +1 if greater, and 0 if they are equal.
     */
     int CompareVersion(int major, int minor, int release, int revision) const;
-
-    /**
-        Add a feature considered to be enabled.
-
-        Objects in XRC documents may have a "feature" attribute, as explained
-        in the @ref overview_xrcformat_features. By default, none of the
-        features is enabled and so all objects with this attribute are
-        discarded. Calling this function marks the given feature as being
-        enabled and affects the subsequent calls to LoadDocument() and related
-        functions, which will keep, rather than discard, any nodes using the
-        given @a feature string in their "feature" attribute.
-
-        This function can be called multiple times to enable more than one
-        feature.
-
-        @since 3.3.0
-     */
-    void EnableFeature(const wxString& feature);
 
     /**
         Returns a string ID corresponding to the given numeric ID.
@@ -281,7 +263,7 @@ public:
 
         @param doc A valid, i.e. non-null, document pointer ownership of which
             is passed to wxXmlResource, i.e. this pointer can't be used after
-            this function returns.
+            this function rteturns.
         @param name The name argument is optional, but may be provided if you
             plan to call Unload() later. It doesn't need to be an existing file
             or even conform to the usual form of file names as it is not
@@ -545,7 +527,7 @@ public:
         (usually window, dialog or panel) that is often necessary to
         create the resource.
 
-        If @b instance is non-null it should not create a new instance via
+        If @b instance is non-@NULL it should not create a new instance via
         'new' but should rather use this one, and call its Create method.
     */
     wxObject* CreateResource(wxXmlNode* node, wxObject* parent,
@@ -596,13 +578,13 @@ protected:
         Helper function.
     */
     void CreateChildrenPrivately(wxObject* parent,
-                                 wxXmlNode* rootnode = nullptr);
+                                 wxXmlNode* rootnode = NULL);
 
     /**
         Creates a resource from a node.
     */
     wxObject* CreateResFromNode(wxXmlNode* node, wxObject* parent,
-                                wxObject* instance = nullptr);
+                                wxObject* instance = NULL);
 
     /**
         Creates an animation (see wxAnimation) from the filename specified in @a param.
@@ -614,7 +596,7 @@ protected:
         implementation is created.
     */
     wxAnimation* GetAnimation(const wxString& param = "animation",
-                              wxAnimationCtrlBase* ctrl = nullptr);
+                              wxAnimationCtrlBase* ctrl = NULL);
 
     /**
         Gets a bitmap.
@@ -654,16 +636,10 @@ protected:
     bool GetBool(const wxString& param, bool defaultv = false);
 
     /**
-        Gets colour from the given parameter.
-
-        If the colour is not specified, returns @a defaultLight or @a
-        defaultDark if the application is using dark mode.
-
-        Parameter @a defaultDark is only available since wxWidgets 3.3.0.
+        Gets colour in HTML syntax (\#RRGGBB).
     */
     wxColour GetColour(const wxString& param,
-                       const wxColour& defaultLight = wxNullColour,
-                       const wxColour& defaultDark = wxNullColour);
+                       const wxColour& defaultColour = wxNullColour);
 
     /**
         Returns the current file system.
@@ -674,7 +650,7 @@ protected:
         Gets a dimension (may be in dialog units).
     */
     wxCoord GetDimension(const wxString& param, wxCoord defaultv = 0,
-                         wxWindow* windowToUse = nullptr);
+                         wxWindow* windowToUse = 0);
 
     /**
         Gets a direction.
@@ -760,31 +736,10 @@ protected:
         @since 3.1.0
     */
     bool IsObjectNode(const wxXmlNode *node) const;
-
-    /**
-        Returns the node name.
-
-        Returns empty string if @a node is @NULL.
-
-        @since 3.3.0
-    */
-    wxString GetNodeName(wxXmlNode* node) const;
-
-    /**
-        Gets the node attribute value.
-
-        If @a node is @NULL or the attribute is not present, returns @a defaultValue.
-
-        @since 3.3.0
-    */
-    wxString GetNodeAttribute(const wxXmlNode *node,
-                              const wxString& attrName,
-                              const wxString& defaultValue = {}) const;
-
     /**
         Gets node content from wxXML_ENTITY_NODE.
     */
-    wxString GetNodeContent(wxXmlNode* node) const;
+    wxString GetNodeContent(wxXmlNode* node);
 
     /**
         Gets the parent of the node given.
@@ -836,15 +791,13 @@ protected:
 
     /**
         Gets the position (may be in dialog units).
-
-        The @a windowToUse argument is only available since wxWidgets 3.3.0.
     */
-    wxPoint GetPosition(const wxString& param = "pos", wxWindow* windowToUse = nullptr);
+    wxPoint GetPosition(const wxString& param = "pos");
 
     /**
         Gets the size (may be in dialog units).
     */
-    wxSize GetSize(const wxString& param = "size", wxWindow* windowToUse = nullptr);
+    wxSize GetSize(const wxString& param = "size", wxWindow* windowToUse = 0);
 
     /**
         Gets style flags from text in form "flag | flag2| flag3 |..."

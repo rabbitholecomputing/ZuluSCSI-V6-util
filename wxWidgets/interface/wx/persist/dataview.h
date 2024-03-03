@@ -39,4 +39,4 @@ public:
 };
 
 /// Overload allowing persistence adapter creation for wxDataViewCtrl objects.
-wxPersistentObject *wxCreatePersistentObject(wxDataViewCtrl *control);
+wxPersistentObject *wxCreatePersistentObject(wxDataViewCtrl *book);

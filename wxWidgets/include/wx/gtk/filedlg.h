@@ -18,7 +18,7 @@
 class WXDLLIMPEXP_CORE wxFileDialog: public wxFileDialogBase
 {
 public:
-    wxFileDialog() = default;
+    wxFileDialog() { }
 
     wxFileDialog(wxWindow *parent,
                  const wxString& message = wxASCII_STR(wxFileSelectorPromptStr),
@@ -40,23 +40,25 @@ public:
                  const wxString& name = wxASCII_STR(wxFileDialogNameStr));
     virtual ~wxFileDialog();
 
-    virtual wxString GetPath() const override;
-    virtual void GetPaths(wxArrayString& paths) const override;
-    virtual wxString GetFilename() const override;
-    virtual void GetFilenames(wxArrayString& files) const override;
-    virtual int GetFilterIndex() const override;
+    virtual wxString GetPath() const wxOVERRIDE;
+    virtual void GetPaths(wxArrayString& paths) const wxOVERRIDE;
+    virtual wxString GetFilename() const wxOVERRIDE;
+    virtual void GetFilenames(wxArrayString& files) const wxOVERRIDE;
+    virtual int GetFilterIndex() const wxOVERRIDE;
 
-    virtual void SetMessage(const wxString& message) override;
-    virtual void SetPath(const wxString& path) override;
-    virtual void SetDirectory(const wxString& dir) override;
-    virtual void SetFilename(const wxString& name) override;
-    virtual void SetWildcard(const wxString& wildCard) override;
-    virtual void SetFilterIndex(int filterIndex) override;
+    virtual void SetMessage(const wxString& message) wxOVERRIDE;
+    virtual void SetPath(const wxString& path) wxOVERRIDE;
+    virtual void SetDirectory(const wxString& dir) wxOVERRIDE;
+    virtual void SetFilename(const wxString& name) wxOVERRIDE;
+    virtual void SetWildcard(const wxString& wildCard) wxOVERRIDE;
+    virtual void SetFilterIndex(int filterIndex) wxOVERRIDE;
 
-    virtual int ShowModal() override;
+    virtual int ShowModal() wxOVERRIDE;
 
-    virtual bool AddShortcut(const wxString& directory, int flags = 0) override;
-    virtual bool SupportsExtraControl() const override { return true; }
+#if wxABI_VERSION >= 30201
+    bool AddShortcut(const wxString& directory, int flags = 0);
+#endif // wxABI_VERSION >= 3.2.1
+    virtual bool SupportsExtraControl() const wxOVERRIDE { return true; }
 
     // Implementation only.
     void GTKSelectionChanged(const wxString& filename);
@@ -67,13 +69,13 @@ protected:
     // form doesn't have any m_wxwindow
     virtual void DoSetSize(int x, int y,
                            int width, int height,
-                           int sizeFlags = wxSIZE_AUTO) override;
+                           int sizeFlags = wxSIZE_AUTO) wxOVERRIDE;
 
 
 private:
     void OnFakeOk( wxCommandEvent &event );
     void OnSize(wxSizeEvent&);
-    virtual void AddChildGTK(wxWindowGTK* child) override;
+    virtual void AddChildGTK(wxWindowGTK* child) wxOVERRIDE;
 
     wxGtkFileChooser    m_fc;
 

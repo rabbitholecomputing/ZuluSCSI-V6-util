@@ -36,7 +36,7 @@
 #elif defined(__WINDOWS__)
     #define COMMAND "cmd.exe /c \"echo hi\""
     #define COMMAND_STDERR "cmd.exe /c \"type nonexistentfile\""
-    #define ASYNC_COMMAND "mspaint"
+    #define ASYNC_COMMAND "notepad"
     #define SHELL_COMMAND "echo hi > nul:"
     #define COMMAND_NO_OUTPUT COMMAND " > nul:"
 #else
@@ -113,7 +113,7 @@ private:
         long DoExecute(AsyncExecLoopExitEnum forceExitLoop_,
                      const wxString& command_,
                      int flags_ = wxEXEC_ASYNC,
-                     wxProcess* callback_ = nullptr)
+                     wxProcess* callback_ = NULL)
         {
             forceExitLoop = forceExitLoop_;
 
@@ -138,7 +138,7 @@ private:
             return wxExecuteReturnCode;
         }
 
-        void Notify() override
+        void Notify() wxOVERRIDE
         {
             // Run wxExecute inside the event loop.
             wxExecuteReturnCode = wxExecute(command, flags, callback);
@@ -326,7 +326,7 @@ public:
     }
 
     // may be overridden to be notified about process termination
-    virtual void OnTerminate(int WXUNUSED(pid), int WXUNUSED(status)) override
+    virtual void OnTerminate(int WXUNUSED(pid), int WXUNUSED(status)) wxOVERRIDE
     {
         wxEventLoop::GetActive()->ScheduleExit();
     }
@@ -363,7 +363,7 @@ ExecTestCase::DoTestAsyncRedirect(const wxString& command,
                                // to trigger the exit of the event loop.
                        command, wxEXEC_ASYNC, &proc) != 0 );
 
-    wxInputStream *streamToCheck = nullptr;
+    wxInputStream *streamToCheck = NULL;
     switch ( check )
     {
         case Check_Stdout:
@@ -472,7 +472,7 @@ void ExecTestCase::TestOverlappedSyncExecute()
             StartOnce(10);
         }
 
-        virtual void Notify() override
+        virtual void Notify() wxOVERRIDE
         {
             wxExecute(m_command, m_outputArray);
         }

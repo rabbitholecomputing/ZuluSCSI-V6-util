@@ -2,6 +2,7 @@
 // Name:        src/common/dseldlg.cpp
 // Purpose:     implementation of ::wxDirSelector()
 // Author:      Paul Thiessen
+// Modified by:
 // Created:     20.02.01
 // Copyright:   (c) 2001 wxWidgets team
 // Licence:     wxWindows licence

@@ -2,6 +2,7 @@
 // Name:        samples/propgrid/propgrid.cpp
 // Purpose:     wxPropertyGrid sample
 // Author:      Jaakko Salli
+// Modified by:
 // Created:     2004-09-25
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
@@ -54,9 +55,6 @@
 // This defines wxPropertyGridManager.
 #include "wx/propgrid/manager.h"
 
-// XRC handler for wxPropertyGrid.
-#include "wx/xrc/xh_propgrid.h"
-
 #include "propgrid.h"
 #include "sampleprops.h"
 
@@ -73,11 +71,6 @@
 
 #include "wx/popupwin.h"
 
-#include <random>
-
-static std::random_device s_rd;
-static std::default_random_engine s_rng(s_rd());
-
 // -----------------------------------------------------------------------
 // wxSampleMultiButtonEditor
 //   A sample editor class that has multiple buttons.
@@ -87,17 +80,17 @@ class wxSampleMultiButtonEditor : public wxPGTextCtrlEditor
 {
     wxDECLARE_DYNAMIC_CLASS(wxSampleMultiButtonEditor);
 public:
-    wxSampleMultiButtonEditor() = default;
-    virtual ~wxSampleMultiButtonEditor() = default;
+    wxSampleMultiButtonEditor() {}
+    virtual ~wxSampleMultiButtonEditor() {}
 
     virtual wxPGWindowList CreateControls( wxPropertyGrid* propGrid,
                                            wxPGProperty* property,
                                            const wxPoint& pos,
-                                           const wxSize& sz ) const override;
+                                           const wxSize& sz ) const wxOVERRIDE;
     virtual bool OnEvent( wxPropertyGrid* propGrid,
                           wxPGProperty* property,
                           wxWindow* ctrl,
-                          wxEvent& event ) const override;
+                          wxEvent& event ) const wxOVERRIDE;
 };
 
 wxIMPLEMENT_DYNAMIC_CLASS(wxSampleMultiButtonEditor, wxPGTextCtrlEditor);
@@ -177,12 +170,12 @@ public:
     {
     }
 
-    virtual wxObject* Clone() const override
+    virtual wxObject* Clone() const wxOVERRIDE
     {
         return new wxInvalidWordValidator(m_invalidWord);
     }
 
-    virtual bool Validate(wxWindow* WXUNUSED(parent)) override
+    virtual bool Validate(wxWindow* WXUNUSED(parent)) wxOVERRIDE
     {
         wxTextCtrl* tc = wxDynamicCast(GetWindow(), wxTextCtrl);
         wxCHECK_MSG(tc, true, "validator window must be wxTextCtrl");
@@ -226,9 +219,11 @@ wxVectorProperty::wxVectorProperty( const wxString& label,
     AddPrivateChild( new wxFloatProperty("Z",wxPG_LABEL,value.z) );
 }
 
+wxVectorProperty::~wxVectorProperty() { }
+
 void wxVectorProperty::RefreshChildren()
 {
-    if ( !HasAnyChild() ) return;
+    if ( !GetChildCount() ) return;
     const wxVector3f& vector = wxVector3fRefFromVariant(m_value);
     Item(0)->SetValue( vector.x );
     Item(1)->SetValue( vector.y );
@@ -275,9 +270,11 @@ wxTriangleProperty::wxTriangleProperty( const wxString& label,
     AddPrivateChild( new wxVectorProperty("C",wxPG_LABEL,value.c) );
 }
 
+wxTriangleProperty::~wxTriangleProperty() { }
+
 void wxTriangleProperty::RefreshChildren()
 {
-    if ( !HasAnyChild() ) return;
+    if ( !GetChildCount() ) return;
     const wxTriangle& triangle = wxTriangleRefFromVariant(m_value);
     Item(0)->SetValue( WXVARIANT(triangle.a) );
     Item(1)->SetValue( WXVARIANT(triangle.b) );
@@ -317,7 +314,7 @@ public:
     }
 
     virtual bool DoShowDialog( wxPropertyGrid* WXUNUSED(propGrid),
-                               wxPGProperty* WXUNUSED(property) ) override
+                               wxPGProperty* WXUNUSED(property) ) wxOVERRIDE
     {
         wxString s = ::wxGetSingleChoice("Message",
                                          "Caption",
@@ -342,7 +339,7 @@ public:
 
     SingleChoiceProperty( const wxString& label,
                           const wxString& name = wxPG_LABEL,
-                          const wxString& value = wxString() )
+                          const wxString& value = wxEmptyString )
         : wxStringProperty(label, name, value)
     {
         // Prepare choices
@@ -353,13 +350,13 @@ public:
     }
 
     // Set editor to have button
-    virtual const wxPGEditor* DoGetEditorClass() const override
+    virtual const wxPGEditor* DoGetEditorClass() const wxOVERRIDE
     {
         return wxPGEditor_TextCtrlAndButton;
     }
 
     // Set what happens on button click
-    virtual wxPGEditorDialogAdapter* GetEditorDialog() const override
+    virtual wxPGEditorDialogAdapter* GetEditorDialog() const wxOVERRIDE
     {
         return new wxSingleChoiceDialogAdapter(m_choices);
     }
@@ -410,6 +407,8 @@ enum
     ID_GETVALUES,
     ID_SETVALUES,
     ID_SETVALUES2,
+    ID_RUNTESTFULL,
+    ID_RUNTESTPARTIAL,
     ID_FITCOLUMNS,
     ID_CHANGEFLAGSITEMS,
     ID_TESTINSERTCHOICE,
@@ -543,6 +542,9 @@ wxBEGIN_EVENT_TABLE(FormMain, wxFrame)
 
     EVT_MENU( ID_CHANGEFLAGSITEMS, FormMain::OnChangeFlagsPropItemsClick )
 
+    EVT_MENU( ID_RUNTESTFULL, FormMain::OnMisc )
+    EVT_MENU( ID_RUNTESTPARTIAL, FormMain::OnMisc )
+
     EVT_MENU( ID_TESTINSERTCHOICE, FormMain::OnInsertChoice )
     EVT_MENU( ID_TESTDELETECHOICE, FormMain::OnDeleteChoice )
 
@@ -568,7 +570,7 @@ wxEND_EVENT_TABLE()
 
 void FormMain::OnMove( wxMoveEvent& event )
 {
-    if ( !m_propGridManager )
+    if ( !m_pPropGridManager )
     {
         // this check is here so the frame layout can be tested
         // without creating propertygrid
@@ -584,18 +586,18 @@ void FormMain::OnMove( wxMoveEvent& event )
 
     // Must check if properties exist (as they may be deleted).
 
-    // Using m_propGridManager, we can scan all pages automatically.
-    id = m_propGridManager->GetPropertyByName( "X" );
+    // Using m_pPropGridManager, we can scan all pages automatically.
+    id = m_pPropGridManager->GetPropertyByName( "X" );
     if ( id )
-        m_propGridManager->SetPropertyValue( id, x );
+        m_pPropGridManager->SetPropertyValue( id, x );
 
-    id = m_propGridManager->GetPropertyByName( "Y" );
+    id = m_pPropGridManager->GetPropertyByName( "Y" );
     if ( id )
-        m_propGridManager->SetPropertyValue( id, y );
+        m_pPropGridManager->SetPropertyValue( id, y );
 
-    id = m_propGridManager->GetPropertyByName( "Position" );
+    id = m_pPropGridManager->GetPropertyByName( "Position" );
     if ( id )
-        m_propGridManager->SetPropertyValue( id, WXVARIANT(wxPoint(x,y)) );
+        m_pPropGridManager->SetPropertyValue( id, WXVARIANT(wxPoint(x,y)) );
 
     // Should always call event.Skip() in frame's MoveEvent handler
     event.Skip();
@@ -605,7 +607,7 @@ void FormMain::OnMove( wxMoveEvent& event )
 
 void FormMain::OnResize( wxSizeEvent& event )
 {
-    if ( !m_propGridManager )
+    if ( !m_pPropGridManager )
     {
         // this check is here so the frame layout can be tested
         // without creating propertygrid
@@ -622,18 +624,18 @@ void FormMain::OnResize( wxSizeEvent& event )
 
     // Must check if properties exist (as they may be deleted).
 
-    // Using m_propGridManager, we can scan all pages automatically.
-    p = m_propGridManager->GetPropertyByName( "Width" );
+    // Using m_pPropGridManager, we can scan all pages automatically.
+    p = m_pPropGridManager->GetPropertyByName( "Width" );
     if ( p && !p->IsValueUnspecified() )
-        m_propGridManager->SetPropertyValue( p, w );
+        m_pPropGridManager->SetPropertyValue( p, w );
 
-    p = m_propGridManager->GetPropertyByName( "Height" );
+    p = m_pPropGridManager->GetPropertyByName( "Height" );
     if ( p && !p->IsValueUnspecified() )
-        m_propGridManager->SetPropertyValue( p, h );
+        m_pPropGridManager->SetPropertyValue( p, h );
 
-    id = m_propGridManager->GetPropertyByName ( "Size" );
+    id = m_pPropGridManager->GetPropertyByName ( "Size" );
     if ( id )
-        m_propGridManager->SetPropertyValue( id, WXVARIANT(wxSize(w,h)) );
+        m_pPropGridManager->SetPropertyValue( id, WXVARIANT(wxSize(w,h)) );
 
     // Should always call event.Skip() in frame's SizeEvent handler
     event.Skip();
@@ -650,7 +652,7 @@ void FormMain::OnPropertyGridChanging( wxPropertyGridEvent& event )
         int res =
         wxMessageBox(wxString::Format("'%s' is about to change (to variant of type '%s')\n\nAllow or deny?",
                                       p->GetName(),event.GetValue().GetType()),
-                     "Testing wxEVT_PG_CHANGING", wxYES_NO, m_propGridManager);
+                     "Testing wxEVT_PG_CHANGING", wxYES_NO, m_pPropGridManager);
 
         if ( res == wxNO )
         {
@@ -660,7 +662,7 @@ void FormMain::OnPropertyGridChanging( wxPropertyGridEvent& event )
 
             // Since we ask a question, it is better if we omit any validation
             // failure behaviour.
-            event.SetValidationFailureBehavior(wxPGVFBFlags::Null);
+            event.SetValidationFailureBehavior(0);
         }
     }
 }
@@ -701,7 +703,12 @@ void FormMain::OnPropertyGridChange( wxPropertyGridEvent& event )
     }
     else if ( name == "Password" )
     {
-        // Do something very secret here...
+        static int pwdMode = 0;
+
+        //m_pPropGridManager->SetPropertyAttribute(property, wxPG_STRING_PASSWORD, (long)pwdMode);
+
+        pwdMode++;
+        pwdMode &= 1;
     }
     else
     if ( name == "Font" )
@@ -709,28 +716,28 @@ void FormMain::OnPropertyGridChange( wxPropertyGridEvent& event )
         wxFont font = value.As<wxFont>();
         wxASSERT( font.IsOk() );
 
-        m_propGridManager->SetFont( font );
+        m_pPropGridManager->SetFont( font );
     }
     else
     if ( name == "Margin Colour" )
     {
         wxColourPropertyValue cpv = value.As<wxColourPropertyValue>();
-        m_propGridManager->GetGrid()->SetMarginColour( cpv.m_colour );
+        m_pPropGridManager->GetGrid()->SetMarginColour( cpv.m_colour );
     }
     else if ( name == "Cell Colour" )
     {
         wxColourPropertyValue cpv = value.As<wxColourPropertyValue>();
-        m_propGridManager->GetGrid()->SetCellBackgroundColour( cpv.m_colour );
+        m_pPropGridManager->GetGrid()->SetCellBackgroundColour( cpv.m_colour );
     }
     else if ( name == "Line Colour" )
     {
         wxColourPropertyValue cpv = value.As<wxColourPropertyValue>();
-        m_propGridManager->GetGrid()->SetLineColour( cpv.m_colour );
+        m_pPropGridManager->GetGrid()->SetLineColour( cpv.m_colour );
     }
     else if ( name == "Cell Text Colour" )
     {
         wxColourPropertyValue cpv = value.As<wxColourPropertyValue>();
-        m_propGridManager->GetGrid()->SetCellTextColour( cpv.m_colour );
+        m_pPropGridManager->GetGrid()->SetCellTextColour( cpv.m_colour );
     }
 }
 
@@ -758,7 +765,7 @@ void FormMain::OnPropertyGridSelect( wxPropertyGridEvent& event )
     if ( prop )
     {
         wxString text("Selected: ");
-        text += m_propGridManager->GetPropertyLabel( prop );
+        text += m_pPropGridManager->GetPropertyLabel( prop );
         sb->SetStatusText ( text );
     }
 #endif
@@ -771,7 +778,7 @@ void FormMain::OnPropertyGridPageChange( wxPropertyGridEvent& WXUNUSED(event) )
 #if wxUSE_STATUSBAR
     wxStatusBar* sb = GetStatusBar();
     wxString text("Page Changed: ");
-    text += m_propGridManager->GetPageName(m_propGridManager->GetSelectedPage());
+    text += m_pPropGridManager->GetPageName(m_pPropGridManager->GetSelectedPage());
     sb->SetStatusText( text );
 #endif
 }
@@ -810,12 +817,12 @@ void FormMain::OnPropertyGridItemRightClick( wxPropertyGridEvent& event )
         wxString text("Right-clicked: ");
         text += prop->GetLabel();
         text += ", name=";
-        text += m_propGridManager->GetPropertyName(prop);
+        text += m_pPropGridManager->GetPropertyName(prop);
         sb->SetStatusText( text );
     }
     else
     {
-        sb->SetStatusText( wxString() );
+        sb->SetStatusText( wxEmptyString );
     }
 #endif
 }
@@ -832,12 +839,12 @@ void FormMain::OnPropertyGridItemDoubleClick( wxPropertyGridEvent& event )
         wxString text("Double-clicked: ");
         text += prop->GetLabel();
         text += ", name=";
-        text += m_propGridManager->GetPropertyName(prop);
+        text += m_pPropGridManager->GetPropertyName(prop);
         sb->SetStatusText ( text );
     }
     else
     {
-        sb->SetStatusText ( wxString() );
+        sb->SetStatusText ( wxEmptyString );
     }
 #endif
 }
@@ -847,14 +854,14 @@ void FormMain::OnPropertyGridItemDoubleClick( wxPropertyGridEvent& event )
 void FormMain::OnPropertyGridButtonClick ( wxCommandEvent& )
 {
 #if wxUSE_STATUSBAR
-    wxPGProperty* prop = m_propGridManager->GetSelection();
+    wxPGProperty* prop = m_pPropGridManager->GetSelection();
     wxStatusBar* sb = GetStatusBar();
     if ( prop )
     {
         wxString text("Button clicked: ");
-        text += m_propGridManager->GetPropertyLabel(prop);
+        text += m_pPropGridManager->GetPropertyLabel(prop);
         text += ", name=";
-        text += m_propGridManager->GetPropertyName(prop);
+        text += m_pPropGridManager->GetPropertyName(prop);
         sb->SetStatusText( text );
     }
     else
@@ -930,9 +937,9 @@ void FormMain::OnPropertyGridKeyEvent( wxKeyEvent& WXUNUSED(event) )
 void FormMain::OnLabelTextChange( wxCommandEvent& WXUNUSED(event) )
 {
 // Uncomment following to allow property label modify in real-time
-//    wxPGProperty& p = m_propGridManager->GetGrid()->GetSelection();
+//    wxPGProperty& p = m_pPropGridManager->GetGrid()->GetSelection();
 //    if ( !p.IsOk() ) return;
-//    m_propGridManager->SetPropertyLabel( p, m_tcPropLabel->DoGetValue() );
+//    m_pPropGridManager->SetPropertyLabel( p, m_tcPropLabel->DoGetValue() );
 }
 
 // -----------------------------------------------------------------------
@@ -943,6 +950,7 @@ static const wxString _fs_windowstyle_labels[] = {
     "wxSUNKEN_BORDER",
     "wxRAISED_BORDER",
     "wxNO_BORDER",
+    "wxTRANSPARENT_WINDOW",
     "wxTAB_TRAVERSAL",
     "wxWANTS_CHARS",
     "wxVSCROLL",
@@ -957,6 +965,7 @@ static const long _fs_windowstyle_values[] = {
     wxSUNKEN_BORDER,
     wxRAISED_BORDER,
     wxNO_BORDER,
+    wxTRANSPARENT_WINDOW,
     wxTAB_TRAVERSAL,
     wxWANTS_CHARS,
     wxVSCROLL,
@@ -994,42 +1003,12 @@ static const long _fs_framestyle_values[] = {
 };
 void FormMain::OnTestXRC(wxCommandEvent& WXUNUSED(event))
 {
-#if wxUSE_XRC
-    auto& xml = *wxXmlResource::Get();
-
-    static bool s_added = false;
-    if ( !s_added )
-    {
-        s_added = true;
-        xml.InitAllHandlers();
-
-        // This needs to be done in addition to initializing all the standard
-        // handlers above.
-        xml.AddHandler(new wxPropertyGridXmlHandler);
-    }
-
-    if ( !xml.Load("propgrid.xrc") )
-    {
-        wxLogError("XRC file couldn't be loaded.");
-        return;
-    }
-
-    auto const frame = xml.LoadFrame(this, "propgrid");
-    if ( !frame )
-    {
-        wxLogError("Property grid frame couldn't be loaded from XRC");
-        return;
-    }
-
-    frame->Show();
-#else
-    wxMessageBox("Sorry, XRC support is not available in this build.");
-#endif
+    wxMessageBox("Sorry, not yet implemented");
 }
 
 void FormMain::OnEnableCommonValues(wxCommandEvent& WXUNUSED(event))
 {
-    wxPGProperty* prop = m_propGridManager->GetSelection();
+    wxPGProperty* prop = m_pPropGridManager->GetSelection();
     if ( prop )
         prop->EnableCommonValue();
     else
@@ -1038,7 +1017,8 @@ void FormMain::OnEnableCommonValues(wxCommandEvent& WXUNUSED(event))
 
 void FormMain::PopulateWithStandardItems ()
 {
-    wxPropertyGridPage* pg = m_propGridManager->GetPage("Standard Items");
+    wxPropertyGridManager* pgman = m_pPropGridManager;
+    wxPropertyGridPage* pg = pgman->GetPage("Standard Items");
 
     // Append is ideal way to add items to wxPropertyGrid.
     pg->Append( new wxPropertyCategory("Appearance",wxPG_LABEL) );
@@ -1187,7 +1167,8 @@ void FormMain::PopulateWithStandardItems ()
 
 void FormMain::PopulateWithExamples ()
 {
-    wxPropertyGridPage* pg = m_propGridManager->GetPage("Examples");
+    wxPropertyGridManager* pgman = m_pPropGridManager;
+    wxPropertyGridPage* pg = pgman->GetPage("Examples");
     wxPGProperty* pid;
     wxPGProperty* prop;
 
@@ -1311,7 +1292,7 @@ void FormMain::PopulateWithExamples ()
     soc.Add( "Look, it continues", 200 );
     soc.Add( "Even More", 240 );
     soc.Add( "And More", 280 );
-    soc.Add( "", 300);
+    soc.Add( wxEmptyString, 300 );
     soc.Add( "True End of the List", 320 );
 
     // Test custom colours ([] operator of wxPGChoices returns
@@ -1362,7 +1343,8 @@ void FormMain::PopulateWithExamples ()
     pg->SetPropertyHelpString( "Password",
         "Has attribute wxPG_STRING_PASSWORD set to true" );
 
-    // String editor with dir selector button.
+    // String editor with dir selector button. Uses wxEmptyString as name, which
+    // is allowed (naturally, in this case property cannot be accessed by name).
     pg->Append( new wxDirProperty( "DirProperty", wxPG_LABEL, ::wxGetUserHome()) );
     pg->SetPropertyAttribute( "DirProperty",
                               wxPG_DIALOG_TITLE,
@@ -1425,18 +1407,19 @@ void FormMain::PopulateWithExamples ()
         mdc.DrawLine(0, 0, 119, 31);
         mdc.SetTextForeground(*wxBLUE);
         wxFont f = mdc.GetFont();
-        f.SetPointSize(2 * f.GetPointSize());
+        f.SetPixelSize(2 * f.GetPixelSize());
         mdc.SetFont(f);
         mdc.DrawText("x2", 0, 0);
     }
     myTestBitmap2x.SetScaleFactor(2);
     pg->SetPropertyImage( "StringPropertyWithBitmap", wxBitmapBundle::FromBitmaps(myTestBitmap1x, myTestBitmap2x));
 
-    const wxString flagsPropLabels[] = { "Bit 0", "Bit 1", "Bit 2", "Bit 3"};
-    long flagsPropValues[] = { 0x01, 0x02, 0x04, 0x08 };
-    wxPGChoices flagsPropChoices(WXSIZEOF(flagsPropLabels), flagsPropLabels, flagsPropValues);
-    pg->Append( new wxFlagsProperty("FlagsProperty", wxPG_LABEL, flagsPropChoices, 0x03 ) );
-    pg->SetPropertyAttribute("FlagsProperty", wxPG_BOOL_USE_CHECKBOX, true);
+    // this value array would be optional if values matched string indexes
+    //long flags_prop_values[] = { wxICONIZE, wxCAPTION, wxMINIMIZE_BOX, wxMAXIMIZE_BOX };
+
+    //pg->Append( wxFlagsProperty("Example of FlagsProperty","FlagsProp",
+    //    flags_prop_labels, flags_prop_values, 0, GetWindowStyle() ) );
+
 
     // Multi choice dialog.
     wxArrayString tchoices;
@@ -1574,7 +1557,7 @@ void FormMain::PopulateWithExamples ()
     //
     // Test wxSampleMultiButtonEditor
     pg->Append( new wxLongStringProperty("MultipleButtons", wxPG_LABEL) );
-    pg->SetPropertyEditor("MultipleButtons", m_sampleMultiButtonEditor );
+    pg->SetPropertyEditor("MultipleButtons", m_pSampleMultiButtonEditor );
 
     // Test SingleChoiceProperty
     pg->Append( new SingleChoiceProperty("SingleChoiceProperty") );
@@ -1627,12 +1610,13 @@ void FormMain::PopulateWithExamples ()
 
 void FormMain::PopulateWithLibraryConfig ()
 {
-    wxPropertyGridPage* pg = m_propGridManager->GetPage("wxWidgets Library Config");
+    wxPropertyGridManager* pgman = m_pPropGridManager;
+    wxPropertyGridPage* pg = pgman->GetPage("wxWidgets Library Config");
 
     // Set custom column proportions (here in the sample app we need
     // to check if the grid has wxPG_SPLITTER_AUTO_CENTER style. You usually
     // need not to do it in your application).
-    if ( m_propGridManager->HasFlag(wxPG_SPLITTER_AUTO_CENTER) )
+    if ( pgman->HasFlag(wxPG_SPLITTER_AUTO_CENTER) )
     {
         pg->SetColumnProportion(0, 3);
         pg->SetColumnProportion(1, 1);
@@ -1644,7 +1628,7 @@ void FormMain::PopulateWithLibraryConfig ()
 
     wxPGProperty* pid;
 
-    wxFont italicFont = m_propGridManager->GetGrid()->GetCaptionFont();
+    wxFont italicFont = pgman->GetGrid()->GetCaptionFont();
     italicFont.SetStyle(wxFONTSTYLE_ITALIC);
 
     wxString italicFontHelp = "Font of this property's wxPGCell has "
@@ -1673,11 +1657,11 @@ void FormMain::PopulateWithLibraryConfig ()
     ADD_WX_LIB_CONF( wxUSE_GUI )
 
     ADD_WX_LIB_CONF_GROUP("Compatibility Settings")
+#if defined(WXWIN_COMPATIBILITY_2_8)
+    ADD_WX_LIB_CONF( WXWIN_COMPATIBILITY_2_8 )
+#endif
 #if defined(WXWIN_COMPATIBILITY_3_0)
     ADD_WX_LIB_CONF( WXWIN_COMPATIBILITY_3_0 )
-#endif
-#if defined(WXWIN_COMPATIBILITY_3_2)
-    ADD_WX_LIB_CONF( WXWIN_COMPATIBILITY_3_2 )
 #endif
 #ifdef wxFONT_SIZE_COMPATIBILITY
     ADD_WX_LIB_CONF( wxFONT_SIZE_COMPATIBILITY )
@@ -1691,8 +1675,10 @@ void FormMain::PopulateWithLibraryConfig ()
 #endif
 
     ADD_WX_LIB_CONF_GROUP("Debugging Settings")
-    ADD_WX_LIB_CONF( wxUSE_DEBUGREPORT )
-    ADD_WX_LIB_CONF( wxUSE_STACKWALKER )
+    ADD_WX_LIB_CONF( wxUSE_DEBUG_CONTEXT )
+    ADD_WX_LIB_CONF( wxUSE_MEMORY_TRACING )
+    ADD_WX_LIB_CONF( wxUSE_GLOBAL_MEMORY_OPERATORS )
+    ADD_WX_LIB_CONF( wxUSE_DEBUG_NEW_ALWAYS )
     ADD_WX_LIB_CONF( wxUSE_ON_FATAL_EXCEPTION )
 
     ADD_WX_LIB_CONF_GROUP("Unicode Support")
@@ -1701,7 +1687,7 @@ void FormMain::PopulateWithLibraryConfig ()
     ADD_WX_LIB_CONF_GROUP("Global Features")
     ADD_WX_LIB_CONF( wxUSE_EXCEPTIONS )
     ADD_WX_LIB_CONF( wxUSE_EXTENDED_RTTI )
-    ADD_WX_LIB_CONF( wxUSE_STD_CONTAINERS )
+    ADD_WX_LIB_CONF( wxUSE_STL )
     ADD_WX_LIB_CONF( wxUSE_LOG )
     ADD_WX_LIB_CONF( wxUSE_LOGWINDOW )
     ADD_WX_LIB_CONF( wxUSE_LOGGUI )
@@ -1762,23 +1748,9 @@ void FormMain::PopulateWithLibraryConfig ()
     ADD_WX_LIB_CONF( wxUSE_XML )
 
     // Set them to use check box.
-    pg->SetPropertyAttribute(pid,wxPG_BOOL_USE_CHECKBOX,true, wxPGPropertyValuesFlags::Recurse);
+    pg->SetPropertyAttribute(pid,wxPG_BOOL_USE_CHECKBOX,true,wxPG_RECURSE);
 }
 
-// -----------------------------------------------------------------------
-
-void FormMain::AddTestProperties(wxPropertyGridPage* pg)
-{
-    pg->Append(new MyColourProperty("CustomColourProperty", wxPG_LABEL, *wxGREEN));
-    pg->GetProperty("CustomColourProperty")->SetAutoUnspecified(true);
-    pg->SetPropertyEditor("CustomColourProperty", wxPGEditor_ComboBox);
-
-    pg->SetPropertyHelpString("CustomColourProperty",
-        "This is a MyColourProperty from the sample app. "
-        "It is built by subclassing wxColourProperty.");
-}
-
-// -----------------------------------------------------------------------
 
 //
 // Handle events of the third page here.
@@ -1788,13 +1760,13 @@ public:
 
     // Return false here to indicate unhandled events should be
     // propagated to manager's parent, as normal.
-    virtual bool IsHandlingAllEvents() const override { return false; }
+    virtual bool IsHandlingAllEvents() const wxOVERRIDE { return false; }
 
 protected:
 
     virtual wxPGProperty* DoInsert( wxPGProperty* parent,
                                     int index,
-                                    wxPGProperty* property ) override
+                                    wxPGProperty* property ) wxOVERRIDE
     {
         return wxPropertyGridPage::DoInsert(parent,index,property);
     }
@@ -1870,11 +1842,12 @@ wxEND_EVENT_TABLE()
 
 void FormMain::PopulateGrid()
 {
-    m_propGridManager->AddPage("Standard Items");
+    wxPropertyGridManager* pgman = m_pPropGridManager;
+    pgman->AddPage("Standard Items");
 
     PopulateWithStandardItems();
 
-    m_propGridManager->AddPage("wxWidgets Library Config");
+    pgman->AddPage("wxWidgets Library Config");
 
     PopulateWithLibraryConfig();
 
@@ -1883,7 +1856,7 @@ void FormMain::PopulateGrid()
 
     // Use wxMyPropertyGridPage (see above) to test the
     // custom wxPropertyGridPage feature.
-    m_propGridManager->AddPage("Examples", wxBitmapBundle(), myPage);
+    pgman->AddPage("Examples", wxBitmapBundle(), myPage);
 
     PopulateWithExamples();
 }
@@ -1922,7 +1895,8 @@ void FormMain::CreateGrid( int style, int extraStyle )
     m_combinedFlags.Add( WXSIZEOF(_fs_windowstyle_labels), _fs_windowstyle_labels, _fs_windowstyle_values );
     m_combinedFlags.Add( WXSIZEOF(_fs_framestyle_labels), _fs_framestyle_labels, _fs_framestyle_values );
 
-    m_propGridManager = new wxPropertyGridManager(m_panel,
+    wxPropertyGridManager* pgman = m_pPropGridManager =
+        new wxPropertyGridManager(m_panel,
                                   // Don't change this into wxID_ANY in the sample, or the
                                   // event handling will obviously be broken.
                                   PGID, /*wxID_ANY*/
@@ -1930,15 +1904,15 @@ void FormMain::CreateGrid( int style, int extraStyle )
                                   wxDefaultSize,
                                   style );
 
-    m_propGrid = m_propGridManager->GetGrid();
+    m_propGrid = pgman->GetGrid();
 
-    m_propGridManager->SetExtraStyle(extraStyle);
+    pgman->SetExtraStyle(extraStyle);
 
     // This is the default validation failure behaviour
-    m_propGridManager->SetValidationFailureBehavior( wxPGVFBFlags::MarkCell |
-                                                      wxPGVFBFlags::ShowMessageBox );
+    m_pPropGridManager->SetValidationFailureBehavior( wxPG_VFB_MARK_CELL |
+                                                      wxPG_VFB_SHOW_MESSAGEBOX );
 
-    m_propGridManager->GetGrid()->SetVerticalSpacing( 2 );
+    m_pPropGridManager->GetGrid()->SetVerticalSpacing( 2 );
 
     //
     // Set somewhat different unspecified value appearance
@@ -1950,43 +1924,42 @@ void FormMain::CreateGrid( int style, int extraStyle )
     PopulateGrid();
 
     m_propGrid->MakeColumnEditable(0, m_labelEditingEnabled);
-    m_propGridManager->ShowHeader(m_hasHeader);
+    m_pPropGridManager->ShowHeader(m_hasHeader);
     if ( m_hasHeader )
     {
-        m_propGridManager->SetColumnTitle(2, "Units");
+        m_pPropGridManager->SetColumnTitle(2, "Units");
     }
 
     // Change some attributes in all properties
-    //m_propGridManager->SetPropertyAttributeAll(wxPG_BOOL_USE_DOUBLE_CLICK_CYCLING,true);
+    //pgman->SetPropertyAttributeAll(wxPG_BOOL_USE_DOUBLE_CLICK_CYCLING,true);
 
-    //m_propGridManager->SetSplitterLeft(true);
-    //m_propGridManager->SetSplitterPosition(137);
+    //m_pPropGridManager->SetSplitterLeft(true);
+    //m_pPropGridManager->SetSplitterPosition(137);
 }
 
 void FormMain::ReplaceGrid(int style, int extraStyle)
 {
-    wxPropertyGridManager* pgmanOld = m_propGridManager;
+    wxPropertyGridManager* pgmanOld = m_pPropGridManager;
     CreateGrid(style, extraStyle);
-    m_topSizer->Replace(pgmanOld, m_propGridManager);
+    m_topSizer->Replace(pgmanOld, m_pPropGridManager);
     pgmanOld->Destroy();
-    m_propGridManager->SetFocus();
+    m_pPropGridManager->SetFocus();
 
     m_panel->Layout();
 }
 
 // -----------------------------------------------------------------------
 
-FormMain::FormMain(const wxString& title)
-    : wxFrame(nullptr, -1, title, wxDefaultPosition, wxDefaultSize,
+FormMain::FormMain(const wxString& title, const wxPoint& pos, const wxSize& size)
+    : wxFrame((wxFrame *)NULL, -1, title, pos, size,
                (wxMINIMIZE_BOX|wxMAXIMIZE_BOX|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCAPTION|
                 wxTAB_TRAVERSAL|wxCLOSE_BOX) )
-    , m_propGridManager(nullptr)
-    , m_propGrid(nullptr)
+    , m_pPropGridManager(NULL)
+    , m_propGrid(NULL)
     , m_hasHeader(false)
     , m_labelEditingEnabled(false)
 {
     SetIcon(wxICON(sample));
-    SetClientSize(FromDIP(wxSize(600, 800)));
     Centre();
 
 #ifdef __WXMAC__
@@ -2002,7 +1975,7 @@ FormMain::FormMain(const wxString& title)
 
     //
     // Create menu bar
-    wxMenu *menuFile = new wxMenu("", wxMENU_TEAROFF);
+    wxMenu *menuFile = new wxMenu(wxEmptyString, wxMENU_TEAROFF);
     wxMenu *menuTry = new wxMenu;
     wxMenu *menuTools1 = new wxMenu;
     wxMenu *menuTools2 = new wxMenu;
@@ -2105,9 +2078,13 @@ FormMain::FormMain(const wxString& title)
     menuTry->Append(ID_SETCOLUMNS, "Set Number of Columns" );
     menuTry->Append(ID_SETVIRTWIDTH, "Set Virtual Width");
     menuTry->AppendCheckItem(ID_SETPGDISABLED, "Disable Grid");
+    menuTry->AppendSeparator();
+    menuTry->Append(ID_TESTXRC, "Display XRC sample" );
 
     menuFile->Append(ID_RUNMINIMAL, "Run Minimal Sample" );
-    menuFile->Append(ID_TESTXRC, "Load from XRC\tCtrl-R" );
+    menuFile->AppendSeparator();
+    menuFile->Append(ID_RUNTESTFULL, "Run Tests (full)" );
+    menuFile->Append(ID_RUNTESTPARTIAL, "Run Tests (fast)" );
     menuFile->AppendSeparator();
     menuFile->Append(ID_QUIT, "E&xit\tAlt-X", "Quit this program" );
 
@@ -2125,14 +2102,14 @@ FormMain::FormMain(const wxString& title)
 #if wxUSE_STATUSBAR
     // create a status bar
     CreateStatusBar(1);
-    SetStatusText(wxString());
+    SetStatusText(wxEmptyString);
 #endif // wxUSE_STATUSBAR
 
     // Register all editors (SpinCtrl etc.)
     wxPropertyGridInterface::RegisterAdditionalEditors();
 
     // Register our sample custom editors
-    m_sampleMultiButtonEditor =
+    m_pSampleMultiButtonEditor =
         wxPropertyGrid::RegisterEditorClass(new wxSampleMultiButtonEditor());
 
     m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -2160,7 +2137,7 @@ FormMain::FormMain(const wxString& title)
 
     m_topSizer = new wxBoxSizer(wxVERTICAL);
 
-    m_topSizer->Add(m_propGridManager, wxSizerFlags(1).Expand());
+    m_topSizer->Add(m_pPropGridManager, wxSizerFlags(1).Expand());
 
     // Button for tab traversal testing
     wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2219,13 +2196,13 @@ void FormMain::OnInsertPropClick( wxCommandEvent& WXUNUSED(event) )
 {
     wxString propLabel;
 
-    if ( !m_propGridManager->GetGrid()->GetRoot()->HasAnyChild() )
+    if ( !m_pPropGridManager->GetGrid()->GetRoot()->GetChildCount() )
     {
         wxMessageBox("No items to relate - first add some with Append.");
         return;
     }
 
-    wxPGProperty* id = m_propGridManager->GetGrid()->GetSelection();
+    wxPGProperty* id = m_pPropGridManager->GetGrid()->GetSelection();
     if ( !id )
     {
         wxMessageBox("First select a property - new one will be inserted right before that.");
@@ -2233,9 +2210,9 @@ void FormMain::OnInsertPropClick( wxCommandEvent& WXUNUSED(event) )
     }
     if ( propLabel.Len() < 1 ) propLabel = "Property";
 
-    GenerateUniquePropertyLabel( m_propGridManager, propLabel );
+    GenerateUniquePropertyLabel( m_pPropGridManager, propLabel );
 
-    m_propGridManager->Insert( m_propGridManager->GetPropertyParent(id),
+    m_pPropGridManager->Insert( m_pPropGridManager->GetPropertyParent(id),
                                 id->GetIndexInParent(),
                                 new wxStringProperty(propLabel) );
 
@@ -2249,18 +2226,18 @@ void FormMain::OnAppendPropClick( wxCommandEvent& WXUNUSED(event) )
 
     if ( propLabel.Len() < 1 ) propLabel = "Property";
 
-    GenerateUniquePropertyLabel( m_propGridManager, propLabel );
+    GenerateUniquePropertyLabel( m_pPropGridManager, propLabel );
 
-    m_propGridManager->Append( new wxStringProperty(propLabel) );
+    m_pPropGridManager->Append( new wxStringProperty(propLabel) );
 
-    m_propGridManager->Refresh();
+    m_pPropGridManager->Refresh();
 }
 
 // -----------------------------------------------------------------------
 
 void FormMain::OnClearClick( wxCommandEvent& WXUNUSED(event) )
 {
-    m_propGridManager->GetGrid()->Clear();
+    m_pPropGridManager->GetGrid()->Clear();
 }
 
 // -----------------------------------------------------------------------
@@ -2271,11 +2248,11 @@ void FormMain::OnAppendCatClick( wxCommandEvent& WXUNUSED(event) )
 
     if ( propLabel.Len() < 1 ) propLabel = "Category";
 
-    GenerateUniquePropertyLabel( m_propGridManager, propLabel );
+    GenerateUniquePropertyLabel( m_pPropGridManager, propLabel );
 
-    m_propGridManager->Append( new wxPropertyCategory (propLabel) );
+    m_pPropGridManager->Append( new wxPropertyCategory (propLabel) );
 
-    m_propGridManager->Refresh();
+    m_pPropGridManager->Refresh();
 
 }
 
@@ -2285,13 +2262,13 @@ void FormMain::OnInsertCatClick( wxCommandEvent& WXUNUSED(event) )
 {
     wxString propLabel;
 
-    if ( !m_propGridManager->GetGrid()->GetRoot()->HasAnyChild() )
+    if ( !m_pPropGridManager->GetGrid()->GetRoot()->GetChildCount() )
     {
         wxMessageBox("No items to relate - first add some with Append.");
         return;
     }
 
-    wxPGProperty* id = m_propGridManager->GetGrid()->GetSelection();
+    wxPGProperty* id = m_pPropGridManager->GetGrid()->GetSelection();
     if ( !id )
     {
         wxMessageBox("First select a property - new one will be inserted right before that.");
@@ -2300,9 +2277,9 @@ void FormMain::OnInsertCatClick( wxCommandEvent& WXUNUSED(event) )
 
     if ( propLabel.Len() < 1 ) propLabel = "Category";
 
-    GenerateUniquePropertyLabel( m_propGridManager, propLabel );
+    GenerateUniquePropertyLabel( m_pPropGridManager, propLabel );
 
-    m_propGridManager->Insert( m_propGridManager->GetPropertyParent(id),
+    m_pPropGridManager->Insert( m_pPropGridManager->GetPropertyParent(id),
                                 id->GetIndexInParent(),
                                 new wxPropertyCategory (propLabel) );
 }
@@ -2311,14 +2288,14 @@ void FormMain::OnInsertCatClick( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnDelPropClick( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPGProperty* id = m_propGridManager->GetGrid()->GetSelection();
+    wxPGProperty* id = m_pPropGridManager->GetGrid()->GetSelection();
     if ( !id )
     {
         wxMessageBox("First select a property.");
         return;
     }
 
-    m_propGridManager->DeleteProperty( id );
+    m_pPropGridManager->DeleteProperty( id );
 }
 
 // -----------------------------------------------------------------------
@@ -2326,21 +2303,20 @@ void FormMain::OnDelPropClick( wxCommandEvent& WXUNUSED(event) )
 void FormMain::OnDelPropRClick( wxCommandEvent& WXUNUSED(event) )
 {
     // Delete random property
-    wxPGProperty* p = m_propGridManager->GetGrid()->GetRoot();
-    std::uniform_int_distribution<unsigned int> distrib(0, 1000);
+    wxPGProperty* p = m_pPropGridManager->GetGrid()->GetRoot();
 
     for (;;)
     {
-        if ( !p->HasAnyChild() )
+        if ( p->GetChildCount() == 0 )
             break;
 
-        unsigned int n = distrib(s_rng) % p->GetChildCount();
+        unsigned int n = static_cast<unsigned int>(rand()) % p->GetChildCount();
         p = p->Item(n);
 
         if ( !p->IsCategory() )
         {
             wxString label = p->GetLabel();
-            m_propGridManager->DeleteProperty(p);
+            m_pPropGridManager->DeleteProperty(p);
             wxLogMessage("Property deleted: %s", label);
             break;
         }
@@ -2364,7 +2340,7 @@ void FormMain::OnContextMenu( wxContextMenuEvent& event )
 void FormMain::OnCloseClick( wxCommandEvent& WXUNUSED(event) )
 {
 /*#ifdef __WXDEBUG__
-    m_propGridManager->GetGrid()->DumpAllocatedChoiceSets();
+    m_pPropGridManager->GetGrid()->DumpAllocatedChoiceSets();
     wxLogDebug("\\-> Don't worry, this is perfectly normal in this sample.");
 #endif*/
 
@@ -2389,7 +2365,7 @@ void FormMain::OnIterate1Click( wxCommandEvent& WXUNUSED(event) )
 {
     wxPropertyGridIterator it;
 
-    for ( it = m_propGridManager->GetCurrentPage()->
+    for ( it = m_pPropGridManager->GetCurrentPage()->
             GetIterator();
           !it.AtEnd();
           ++it )
@@ -2406,7 +2382,7 @@ void FormMain::OnIterate2Click( wxCommandEvent& WXUNUSED(event) )
 {
     wxPropertyGridIterator it;
 
-    for ( it = m_propGridManager->GetCurrentPage()->
+    for ( it = m_pPropGridManager->GetCurrentPage()->
             GetIterator( wxPG_ITERATE_VISIBLE );
           !it.AtEnd();
           ++it )
@@ -2425,7 +2401,7 @@ void FormMain::OnIterate3Click( wxCommandEvent& WXUNUSED(event) )
     // iterate over items in reverse order
     wxPropertyGridIterator it;
 
-    for ( it = m_propGridManager->GetCurrentPage()->
+    for ( it = m_pPropGridManager->GetCurrentPage()->
                 GetIterator( wxPG_ITERATE_DEFAULT, wxBOTTOM );
           !it.AtEnd();
           --it )
@@ -2443,7 +2419,7 @@ void FormMain::OnIterate4Click( wxCommandEvent& WXUNUSED(event) )
 {
     wxPropertyGridIterator it;
 
-    for ( it = m_propGridManager->GetCurrentPage()->
+    for ( it = m_pPropGridManager->GetCurrentPage()->
             GetIterator( wxPG_ITERATE_CATEGORIES );
           !it.AtEnd();
           ++it )
@@ -2461,9 +2437,9 @@ void FormMain::OnExtendedKeyNav( wxCommandEvent& WXUNUSED(event) )
 {
     // Use AddActionTrigger() and DedicateKey() to set up Enter,
     // Up, and Down keys for navigating between properties.
-    wxPropertyGrid* propGrid = m_propGridManager->GetGrid();
+    wxPropertyGrid* propGrid = m_pPropGridManager->GetGrid();
 
-    propGrid->AddActionTrigger(wxPGKeyboardAction::NextProperty,
+    propGrid->AddActionTrigger(wxPG_ACTION_NEXT_PROPERTY,
                                WXK_RETURN);
     propGrid->DedicateKey(WXK_RETURN);
 
@@ -2478,14 +2454,14 @@ void FormMain::OnExtendedKeyNav( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnFitColumnsClick( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPropertyGridPage* page = m_propGridManager->GetCurrentPage();
+    wxPropertyGridPage* page = m_pPropGridManager->GetCurrentPage();
 
     // Remove auto-centering
-    m_propGridManager->SetWindowStyle( m_propGridManager->GetWindowStyle() & ~wxPG_SPLITTER_AUTO_CENTER);
+    m_pPropGridManager->SetWindowStyle( m_pPropGridManager->GetWindowStyle() & ~wxPG_SPLITTER_AUTO_CENTER);
 
     // Grow manager size just prior fit - otherwise
     // column information may be lost.
-    wxSize oldGridSize = m_propGridManager->GetGrid()->GetClientSize();
+    wxSize oldGridSize = m_pPropGridManager->GetGrid()->GetClientSize();
     wxSize oldFullSize = GetSize();
     SetSize(1000, oldFullSize.y);
 
@@ -2503,7 +2479,7 @@ void FormMain::OnFitColumnsClick( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnChangeFlagsPropItemsClick( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPGProperty* p = m_propGridManager->GetPropertyByName("Window Styles");
+    wxPGProperty* p = m_pPropGridManager->GetPropertyByName("Window Styles");
 
     wxPGChoices newChoices;
 
@@ -2519,21 +2495,21 @@ void FormMain::OnChangeFlagsPropItemsClick( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnEnableDisable( wxCommandEvent& )
 {
-    wxPGProperty* id = m_propGridManager->GetGrid()->GetSelection();
+    wxPGProperty* id = m_pPropGridManager->GetGrid()->GetSelection();
     if ( !id )
     {
         wxMessageBox("First select a property.");
         return;
     }
 
-    if ( m_propGridManager->IsPropertyEnabled( id ) )
+    if ( m_pPropGridManager->IsPropertyEnabled( id ) )
     {
-        m_propGridManager->DisableProperty ( id );
+        m_pPropGridManager->DisableProperty ( id );
         m_itemEnable->SetItemLabel( "Enable" );
     }
     else
     {
-        m_propGridManager->EnableProperty ( id );
+        m_pPropGridManager->EnableProperty ( id );
         m_itemEnable->SetItemLabel( "Disable" );
     }
 }
@@ -2542,32 +2518,32 @@ void FormMain::OnEnableDisable( wxCommandEvent& )
 
 void FormMain::OnSetReadOnly( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPGProperty* p = m_propGridManager->GetGrid()->GetSelection();
+    wxPGProperty* p = m_pPropGridManager->GetGrid()->GetSelection();
     if ( !p )
     {
         wxMessageBox("First select a property.");
         return;
     }
-    m_propGridManager->SetPropertyReadOnly(p);
+    m_pPropGridManager->SetPropertyReadOnly(p);
 }
 
 // -----------------------------------------------------------------------
 
 void FormMain::OnHide( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPGProperty* id = m_propGridManager->GetGrid()->GetSelection();
+    wxPGProperty* id = m_pPropGridManager->GetGrid()->GetSelection();
     if ( !id )
     {
         wxMessageBox("First select a property.");
         return;
     }
 
-    m_propGridManager->HideProperty( id, true );
+    m_pPropGridManager->HideProperty( id, true );
 }
 
 void FormMain::OnBoolCheckbox(wxCommandEvent& evt)
 {
-    m_propGridManager->SetPropertyAttributeAll(wxPG_BOOL_USE_CHECKBOX, evt.IsChecked());
+    m_pPropGridManager->SetPropertyAttributeAll(wxPG_BOOL_USE_CHECKBOX, evt.IsChecked());
 }
 
 // -----------------------------------------------------------------------
@@ -2577,7 +2553,7 @@ void FormMain::OnBoolCheckbox(wxCommandEvent& evt)
 void
 FormMain::OnSetBackgroundColour( wxCommandEvent& event )
 {
-    wxPropertyGrid* pg = m_propGridManager->GetGrid();
+    wxPropertyGrid* pg = m_pPropGridManager->GetGrid();
     wxPGProperty* prop = pg->GetSelection();
     if ( !prop )
     {
@@ -2589,8 +2565,7 @@ FormMain::OnSetBackgroundColour( wxCommandEvent& event )
 
     if ( col.IsOk() )
     {
-        wxPGPropertyValuesFlags flags = (event.GetId()==ID_SETBGCOLOURRECUR)
-                            ? wxPGPropertyValuesFlags::Recurse : wxPGPropertyValuesFlags::DontRecurse;
+        int flags = (event.GetId()==ID_SETBGCOLOURRECUR) ? wxPG_RECURSE : 0;
         pg->SetPropertyBackgroundColour(prop, col, flags);
     }
 }
@@ -2599,21 +2574,21 @@ FormMain::OnSetBackgroundColour( wxCommandEvent& event )
 
 void FormMain::OnInsertPage( wxCommandEvent& WXUNUSED(event) )
 {
-    m_propGridManager->AddPage("New Page");
+    m_pPropGridManager->AddPage("New Page");
 }
 
 // -----------------------------------------------------------------------
 
 void FormMain::OnRemovePage( wxCommandEvent& WXUNUSED(event) )
 {
-    m_propGridManager->RemovePage(m_propGridManager->GetSelectedPage());
+    m_pPropGridManager->RemovePage(m_pPropGridManager->GetSelectedPage());
 }
 
 // -----------------------------------------------------------------------
 
 void FormMain::OnSaveState( wxCommandEvent& WXUNUSED(event) )
 {
-    m_savedState = m_propGridManager->SaveEditableState();
+    m_savedState = m_pPropGridManager->SaveEditableState();
     wxLogDebug("Saved editable state string: \"%s\"", m_savedState);
 }
 
@@ -2621,7 +2596,7 @@ void FormMain::OnSaveState( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnRestoreState( wxCommandEvent& WXUNUSED(event) )
 {
-    m_propGridManager->RestoreEditableState(m_savedState);
+    m_pPropGridManager->RestoreEditableState(m_savedState);
 }
 
 // -----------------------------------------------------------------------
@@ -2629,9 +2604,9 @@ void FormMain::OnRestoreState( wxCommandEvent& WXUNUSED(event) )
 void FormMain::OnSetSpinCtrlEditorClick( wxCommandEvent& WXUNUSED(event) )
 {
 #if wxUSE_SPINBTN
-    wxPGProperty* pgId = m_propGridManager->GetSelection();
+    wxPGProperty* pgId = m_pPropGridManager->GetSelection();
     if ( pgId )
-        m_propGridManager->SetPropertyEditor( pgId, wxPGEditor_SpinCtrl );
+        m_pPropGridManager->SetPropertyEditor( pgId, wxPGEditor_SpinCtrl );
     else
         wxMessageBox("First select a property");
 #endif
@@ -2641,7 +2616,7 @@ void FormMain::OnSetSpinCtrlEditorClick( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnTestReplaceClick( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPGProperty* pgId = m_propGridManager->GetSelection();
+    wxPGProperty* pgId = m_pPropGridManager->GetSelection();
     if ( pgId )
     {
         wxPGChoices choices;
@@ -2653,20 +2628,20 @@ void FormMain::OnTestReplaceClick( wxCommandEvent& WXUNUSED(event) )
         // Look for unused property name
         wxString propName = "ReplaceFlagsProperty";
         int idx = 0;
-        while ( m_propGridManager->GetPropertyByName(propName) )
+        while ( m_pPropGridManager->GetPropertyByName(propName) )
         {
             propName = wxString::Format("ReplaceFlagsProperty %i", ++idx);
         }
         // Replace property and select new one
         // with random value in range [1..maxVal]
         const long propVal = wxGetLocalTime() % maxVal + 1;
-        wxPGProperty* newId = m_propGridManager->ReplaceProperty( pgId,
+        wxPGProperty* newId = m_pPropGridManager->ReplaceProperty( pgId,
             new wxFlagsProperty(propName, wxPG_LABEL, choices, propVal) );
-        m_propGridManager->SetPropertyAttribute( newId,
+        m_pPropGridManager->SetPropertyAttribute( newId,
                                               wxPG_BOOL_USE_CHECKBOX,
                                               true,
-                                              wxPGPropertyValuesFlags::Recurse );
-        m_propGridManager->SelectProperty(newId);
+                                              wxPG_RECURSE );
+        m_pPropGridManager->SelectProperty(newId);
     }
     else
         wxMessageBox("First select a property");
@@ -2676,8 +2651,8 @@ void FormMain::OnTestReplaceClick( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnClearModifyStatusClick( wxCommandEvent& WXUNUSED(event) )
 {
-    m_propGridManager->ClearModifiedStatus();
-    m_propGridManager->Refresh();
+    m_pPropGridManager->ClearModifiedStatus();
+    m_pPropGridManager->Refresh();
 }
 
 // -----------------------------------------------------------------------
@@ -2685,21 +2660,21 @@ void FormMain::OnClearModifyStatusClick( wxCommandEvent& WXUNUSED(event) )
 // Freeze check-box checked?
 void FormMain::OnFreezeClick( wxCommandEvent& event )
 {
-    if ( !m_propGridManager ) return;
+    if ( !m_pPropGridManager ) return;
 
     if ( event.IsChecked() )
     {
-        if ( !m_propGridManager->IsFrozen() )
+        if ( !m_pPropGridManager->IsFrozen() )
         {
-            m_propGridManager->Freeze();
+            m_pPropGridManager->Freeze();
         }
     }
     else
     {
-        if ( m_propGridManager->IsFrozen() )
+        if ( m_pPropGridManager->IsFrozen() )
         {
-            m_propGridManager->Thaw();
-            m_propGridManager->Refresh();
+            m_pPropGridManager->Thaw();
+            m_pPropGridManager->Refresh();
         }
     }
 }
@@ -2718,10 +2693,10 @@ void FormMain::OnEnableLabelEditing(wxCommandEvent& event)
 void FormMain::OnShowHeader( wxCommandEvent& event )
 {
     m_hasHeader = event.IsChecked();
-    m_propGridManager->ShowHeader(m_hasHeader);
+    m_pPropGridManager->ShowHeader(m_hasHeader);
     if ( m_hasHeader )
     {
-        m_propGridManager->SetColumnTitle(2, "Units");
+        m_pPropGridManager->SetColumnTitle(2, "Units");
     }
 }
 #endif // wxUSE_HEADERCTRL
@@ -2738,11 +2713,15 @@ void FormMain::OnAbout(wxCommandEvent& WXUNUSED(event))
 
     wxString msg;
     msg.Printf( "wxPropertyGrid Sample"
+#if wxUSE_UNICODE
   #if defined(wxUSE_UNICODE_UTF8) && wxUSE_UNICODE_UTF8
                 " <utf-8>"
   #else
                 " <unicode>"
   #endif
+#else
+                " <ansi>"
+#endif
 #ifdef __WXDEBUG__
                 " <debug>"
 #else
@@ -2764,31 +2743,31 @@ void FormMain::OnColourScheme( wxCommandEvent& event )
     int id = event.GetId();
     if ( id == ID_COLOURSCHEME1 )
     {
-        m_propGridManager->GetGrid()->ResetColours();
+        m_pPropGridManager->GetGrid()->ResetColours();
     }
     else if ( id == ID_COLOURSCHEME2 )
     {
         // white
         wxColour my_grey_1(212,208,200);
         wxColour my_grey_3(113,111,100);
-        m_propGridManager->Freeze();
-        m_propGridManager->GetGrid()->SetMarginColour( *wxWHITE );
-        m_propGridManager->GetGrid()->SetCaptionBackgroundColour( *wxWHITE );
-        m_propGridManager->GetGrid()->SetCellBackgroundColour( *wxWHITE );
-        m_propGridManager->GetGrid()->SetCellTextColour( my_grey_3 );
-        m_propGridManager->GetGrid()->SetLineColour( my_grey_1 ); //wxColour(160,160,160)
-        m_propGridManager->Thaw();
+        m_pPropGridManager->Freeze();
+        m_pPropGridManager->GetGrid()->SetMarginColour( *wxWHITE );
+        m_pPropGridManager->GetGrid()->SetCaptionBackgroundColour( *wxWHITE );
+        m_pPropGridManager->GetGrid()->SetCellBackgroundColour( *wxWHITE );
+        m_pPropGridManager->GetGrid()->SetCellTextColour( my_grey_3 );
+        m_pPropGridManager->GetGrid()->SetLineColour( my_grey_1 ); //wxColour(160,160,160)
+        m_pPropGridManager->Thaw();
     }
     else if ( id == ID_COLOURSCHEME3 )
     {
         // .NET
         wxColour my_grey_1(212,208,200);
         wxColour my_grey_2(236,233,216);
-        m_propGridManager->Freeze();
-        m_propGridManager->GetGrid()->SetMarginColour( my_grey_1 );
-        m_propGridManager->GetGrid()->SetCaptionBackgroundColour( my_grey_1 );
-        m_propGridManager->GetGrid()->SetLineColour( my_grey_1 );
-        m_propGridManager->Thaw();
+        m_pPropGridManager->Freeze();
+        m_pPropGridManager->GetGrid()->SetMarginColour( my_grey_1 );
+        m_pPropGridManager->GetGrid()->SetCaptionBackgroundColour( my_grey_1 );
+        m_pPropGridManager->GetGrid()->SetLineColour( my_grey_1 );
+        m_pPropGridManager->Thaw();
     }
     else if ( id == ID_COLOURSCHEME4 )
     {
@@ -2797,14 +2776,14 @@ void FormMain::OnColourScheme( wxCommandEvent& event )
         wxColour my_grey_1(212,208,200);
         wxColour my_grey_2(241,239,226);
         wxColour my_grey_3(113,111,100);
-        m_propGridManager->Freeze();
-        m_propGridManager->GetGrid()->SetMarginColour( *wxWHITE );
-        m_propGridManager->GetGrid()->SetCaptionBackgroundColour( *wxWHITE );
-        m_propGridManager->GetGrid()->SetCellBackgroundColour( my_grey_2 );
-        m_propGridManager->GetGrid()->SetCellBackgroundColour( my_grey_2 );
-        m_propGridManager->GetGrid()->SetCellTextColour( my_grey_3 );
-        m_propGridManager->GetGrid()->SetLineColour( my_grey_1 );
-        m_propGridManager->Thaw();
+        m_pPropGridManager->Freeze();
+        m_pPropGridManager->GetGrid()->SetMarginColour( *wxWHITE );
+        m_pPropGridManager->GetGrid()->SetCaptionBackgroundColour( *wxWHITE );
+        m_pPropGridManager->GetGrid()->SetCellBackgroundColour( my_grey_2 );
+        m_pPropGridManager->GetGrid()->SetCellBackgroundColour( my_grey_2 );
+        m_pPropGridManager->GetGrid()->SetCellTextColour( my_grey_3 );
+        m_pPropGridManager->GetGrid()->SetLineColour( my_grey_1 );
+        m_pPropGridManager->Thaw();
     }
 }
 
@@ -2814,7 +2793,7 @@ void FormMain::OnCatColoursUpdateUI(wxUpdateUIEvent& WXUNUSED(event))
 {
     // Prevent menu item from being checked
     // if it is selected from improper page.
-    const wxPropertyGrid* pg = m_propGridManager->GetGrid();
+    const wxPropertyGrid* pg = m_pPropGridManager->GetGrid();
     m_itemCatColours->SetCheckable(
          pg->GetPropertyByName("Appearance") &&
          pg->GetPropertyByName("PositionCategory") &&
@@ -2824,7 +2803,7 @@ void FormMain::OnCatColoursUpdateUI(wxUpdateUIEvent& WXUNUSED(event))
 
 void FormMain::OnCatColours( wxCommandEvent& event )
 {
-    wxPropertyGrid* pg = m_propGridManager->GetGrid();
+    wxPropertyGrid* pg = m_pPropGridManager->GetGrid();
     if ( !pg->GetPropertyByName("Appearance") ||
          !pg->GetPropertyByName("PositionCategory") ||
          !pg->GetPropertyByName("Environment") ||
@@ -2834,18 +2813,18 @@ void FormMain::OnCatColours( wxCommandEvent& event )
         return;
     }
 
-    m_propGridManager->Freeze();
+    m_pPropGridManager->Freeze();
 
     if ( event.IsChecked() )
     {
         // Set custom colours.
-        pg->SetPropertyTextColour( "Appearance", wxColour(255,0,0), wxPGPropertyValuesFlags::DontRecurse );
+        pg->SetPropertyTextColour( "Appearance", wxColour(255,0,0), wxPG_DONT_RECURSE );
         pg->SetPropertyBackgroundColour( "Appearance", wxColour(255,255,183) );
         pg->SetPropertyTextColour( "Appearance", wxColour(255,0,183) );
-        pg->SetPropertyTextColour( "PositionCategory", wxColour(0,255,0), wxPGPropertyValuesFlags::DontRecurse );
+        pg->SetPropertyTextColour( "PositionCategory", wxColour(0,255,0), wxPG_DONT_RECURSE );
         pg->SetPropertyBackgroundColour( "PositionCategory", wxColour(255,226,190) );
         pg->SetPropertyTextColour( "PositionCategory", wxColour(255,0,190) );
-        pg->SetPropertyTextColour( "Environment", wxColour(0,0,255), wxPGPropertyValuesFlags::DontRecurse);
+        pg->SetPropertyTextColour( "Environment", wxColour(0,0,255), wxPG_DONT_RECURSE );
         pg->SetPropertyBackgroundColour( "Environment", wxColour(208,240,175) );
         pg->SetPropertyTextColour( "Environment", wxColour(255,255,255) );
         pg->SetPropertyBackgroundColour( "More Examples", wxColour(172,237,255) );
@@ -2855,15 +2834,15 @@ void FormMain::OnCatColours( wxCommandEvent& event )
     {
         // Revert to original.
         pg->SetPropertyColoursToDefault( "Appearance" );
-        pg->SetPropertyColoursToDefault( "Appearance", wxPGPropertyValuesFlags::Recurse );
+        pg->SetPropertyColoursToDefault( "Appearance", wxPG_RECURSE );
         pg->SetPropertyColoursToDefault( "PositionCategory" );
-        pg->SetPropertyColoursToDefault( "PositionCategory", wxPGPropertyValuesFlags::Recurse );
+        pg->SetPropertyColoursToDefault( "PositionCategory", wxPG_RECURSE );
         pg->SetPropertyColoursToDefault( "Environment" );
-        pg->SetPropertyColoursToDefault( "Environment", wxPGPropertyValuesFlags::Recurse );
-        pg->SetPropertyColoursToDefault( "More Examples", wxPGPropertyValuesFlags::Recurse );
+        pg->SetPropertyColoursToDefault( "Environment", wxPG_RECURSE );
+        pg->SetPropertyColoursToDefault( "More Examples", wxPG_RECURSE );
     }
-    m_propGridManager->Thaw();
-    m_propGridManager->Refresh();
+    m_pPropGridManager->Thaw();
+    m_pPropGridManager->Refresh();
 }
 
 // -----------------------------------------------------------------------
@@ -2884,7 +2863,7 @@ void FormMain::OnSelectStyle( wxCommandEvent& WXUNUSED(event) )
         wxArrayInt vls;
         wxArrayInt sel;
         unsigned int ind = 0;
-        int flags = m_propGridManager->GetWindowStyle();
+        int flags = m_pPropGridManager->GetWindowStyle();
         ADD_FLAG(wxPG_HIDE_CATEGORIES)
         ADD_FLAG(wxPG_AUTO_SORT)
         ADD_FLAG(wxPG_BOLD_MODIFIED)
@@ -2915,7 +2894,7 @@ void FormMain::OnSelectStyle( wxCommandEvent& WXUNUSED(event) )
         wxArrayInt vls;
         wxArrayInt sel;
         unsigned int ind = 0;
-        int flags = m_propGridManager->GetExtraStyle();
+        int flags = m_pPropGridManager->GetExtraStyle();
         ADD_FLAG(wxPG_EX_INIT_NOCAT)
         ADD_FLAG(wxPG_EX_NO_FLAT_TOOLBAR)
         ADD_FLAG(wxPG_EX_MODE_BUTTONS)
@@ -2951,12 +2930,12 @@ void FormMain::OnSelectStyle( wxCommandEvent& WXUNUSED(event) )
 void FormMain::OnSetColumns( wxCommandEvent& WXUNUSED(event) )
 {
     long colCount = ::wxGetNumberFromUser("Enter number of columns (2-20).","Columns:",
-                                          "Change Columns",m_propGridManager->GetColumnCount(),
+                                          "Change Columns",m_pPropGridManager->GetColumnCount(),
                                           2,20);
 
     if ( colCount >= 2 )
     {
-        m_propGridManager->SetColumnCount(colCount);
+        m_pPropGridManager->SetColumnCount(colCount);
     }
 }
 
@@ -2964,7 +2943,7 @@ void FormMain::OnSetColumns( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnSetVirtualWidth(wxCommandEvent& WXUNUSED(evt))
 {
-    long oldWidth = m_propGridManager->GetState()->GetVirtualWidth();
+    long oldWidth = m_pPropGridManager->GetState()->GetVirtualWidth();
     long newWidth = oldWidth;
     {
         wxNumberEntryDialog dlg(this, "Enter virtual width (-1-2000).", "Width:",
@@ -2976,7 +2955,7 @@ void FormMain::OnSetVirtualWidth(wxCommandEvent& WXUNUSED(evt))
     }
     if ( newWidth != oldWidth )
     {
-        m_propGridManager->GetGrid()->SetVirtualWidth((int)newWidth);
+        m_pPropGridManager->GetGrid()->SetVirtualWidth((int)newWidth);
     }
 }
 
@@ -2984,14 +2963,14 @@ void FormMain::OnSetVirtualWidth(wxCommandEvent& WXUNUSED(evt))
 
 void FormMain::OnSetGridDisabled(wxCommandEvent& evt)
 {
-    m_propGridManager->Enable(!evt.IsChecked());
+    m_pPropGridManager->Enable(!evt.IsChecked());
 }
 
 // -----------------------------------------------------------------------
 
 void FormMain::OnSetPropertyValue( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPropertyGrid* pg = m_propGridManager->GetGrid();
+    wxPropertyGrid* pg = m_pPropGridManager->GetGrid();
     wxPGProperty* selected = pg->GetSelection();
 
     if ( selected )
@@ -3005,7 +2984,7 @@ void FormMain::OnSetPropertyValue( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnInsertChoice( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPropertyGrid* pg = m_propGridManager->GetGrid();
+    wxPropertyGrid* pg = m_pPropGridManager->GetGrid();
     wxPGProperty* selected = pg->GetSelection();
 
     if (selected)
@@ -3029,7 +3008,7 @@ void FormMain::OnInsertChoice( wxCommandEvent& WXUNUSED(event) )
 
 void FormMain::OnDeleteChoice( wxCommandEvent& WXUNUSED(event) )
 {
-    wxPropertyGrid* pg = m_propGridManager->GetGrid();
+    wxPropertyGrid* pg = m_pPropGridManager->GetGrid();
     wxPGProperty* selected = pg->GetSelection();
 
     if (selected)
@@ -3058,14 +3037,14 @@ void FormMain::OnMisc ( wxCommandEvent& event )
     int id = event.GetId();
     if ( id == ID_STATICLAYOUT )
     {
-        long wsf = m_propGridManager->GetWindowStyleFlag();
-        if ( event.IsChecked() ) m_propGridManager->SetWindowStyleFlag( wsf|wxPG_STATIC_LAYOUT );
-        else m_propGridManager->SetWindowStyleFlag( wsf&~(wxPG_STATIC_LAYOUT) );
+        long wsf = m_pPropGridManager->GetWindowStyleFlag();
+        if ( event.IsChecked() ) m_pPropGridManager->SetWindowStyleFlag( wsf|wxPG_STATIC_LAYOUT );
+        else m_pPropGridManager->SetWindowStyleFlag( wsf&~(wxPG_STATIC_LAYOUT) );
     }
     else if ( id == ID_COLLAPSEALL )
     {
         wxPGVIterator it;
-        wxPropertyGrid* pg = m_propGridManager->GetGrid();
+        wxPropertyGrid* pg = m_pPropGridManager->GetGrid();
 
         for ( it = pg->GetVIterator( wxPG_ITERATE_ALL ); !it.AtEnd(); it.Next() )
             it.GetProperty()->SetExpanded( false );
@@ -3074,15 +3053,15 @@ void FormMain::OnMisc ( wxCommandEvent& event )
     }
     else if ( id == ID_GETVALUES )
     {
-        m_storedValues = m_propGridManager->GetGrid()->GetPropertyValues("Test",
-                                                                      m_propGridManager->GetGrid()->GetRoot(),
-                                   wxPGPropertyValuesFlags::KeepStructure|wxPGPropertyValuesFlags::IncAttributes);
+        m_storedValues = m_pPropGridManager->GetGrid()->GetPropertyValues("Test",
+                                                                      m_pPropGridManager->GetGrid()->GetRoot(),
+                                                                      wxPG_KEEP_STRUCTURE|wxPG_INC_ATTRIBUTES);
     }
     else if ( id == ID_SETVALUES )
     {
         if ( m_storedValues.IsType("list") )
         {
-            m_propGridManager->GetGrid()->SetPropertyValues(m_storedValues);
+            m_pPropGridManager->GetGrid()->SetPropertyValues(m_storedValues);
         }
         else
             wxMessageBox("First use Get Property Values.");
@@ -3094,23 +3073,33 @@ void FormMain::OnMisc ( wxCommandEvent& event )
         list.Append( wxVariant(1234L,"VariantLong") );
         list.Append( wxVariant(true,"VariantBool") );
         list.Append( wxVariant("Test Text","VariantString") );
-        m_propGridManager->GetGrid()->SetPropertyValues(list);
+        m_pPropGridManager->GetGrid()->SetPropertyValues(list);
     }
     else if ( id == ID_COLLAPSE )
     {
         // Collapses selected.
-        wxPGProperty* selProp = m_propGridManager->GetSelection();
+        wxPGProperty* selProp = m_pPropGridManager->GetSelection();
         if ( selProp )
         {
-            m_propGridManager->Collapse(selProp);
+            m_pPropGridManager->Collapse(selProp);
         }
+    }
+    else if ( id == ID_RUNTESTFULL )
+    {
+        // Runs a regression test.
+        RunTests(true);
+    }
+    else if ( id == ID_RUNTESTPARTIAL )
+    {
+        // Runs a regression test.
+        RunTests(false);
     }
     else if ( id == ID_UNSPECIFY )
     {
-        wxPGProperty* prop = m_propGridManager->GetSelection();
+        wxPGProperty* prop = m_pPropGridManager->GetSelection();
         if ( prop )
         {
-            m_propGridManager->SetPropertyValueUnspecified(prop);
+            m_pPropGridManager->SetPropertyValueUnspecified(prop);
             prop->RefreshEditor();
         }
     }
@@ -3136,64 +3125,6 @@ void FormMain::OnPopulateClick( wxCommandEvent& event )
 
 // -----------------------------------------------------------------------
 
-void FormMain::OnDumpList(wxCommandEvent& WXUNUSED(event))
-{
-    wxVariant values = m_propGridManager->GetPropertyValues("list", wxNullProperty, wxPGPropertyValuesFlags::IncAttributes);
-    wxString text = "This only tests that wxVariant related routines do not crash.\n";
-
-    wxDialog* dlg = new wxDialog(this, wxID_ANY, "wxVariant Test",
-        wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-
-    for ( size_t i = 0; i < values.GetCount(); i++ )
-    {
-        wxString t;
-        wxVariant& v = values[i];
-
-        wxString strValue = v.GetString();
-
-        if ( v.GetName().EndsWith("@attr") )
-        {
-            text += wxString::Format("Attributes:\n");
-
-            for ( size_t n = 0; n < v.GetCount(); n++ )
-            {
-                wxVariant& a = v[n];
-
-                t.Printf("  attribute %i: name=\"%s\"  (type=\"%s\"  value=\"%s\")\n", (int)n,
-                    a.GetName(), a.GetType(), a.GetString());
-                text += t;
-            }
-        }
-        else
-        {
-            t.Printf("%i: name=\"%s\"  type=\"%s\"  value=\"%s\"\n", (int)i,
-                v.GetName(), v.GetType(), strValue);
-            text += t;
-        }
-    }
-
-    // multi-line text editor dialog
-    const int spacing = 8;
-    wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer* rowsizer = new wxBoxSizer(wxHORIZONTAL);
-    wxTextCtrl* ed = new wxTextCtrl(dlg, wxID_ANY, text,
-        wxDefaultPosition, wxDefaultSize,
-        wxTE_MULTILINE | wxTE_READONLY);
-    rowsizer->Add(ed, wxSizerFlags(1).Expand().Border(wxALL, spacing));
-    topsizer->Add(rowsizer, wxSizerFlags(1).Expand());
-    rowsizer = new wxBoxSizer(wxHORIZONTAL);
-    rowsizer->Add(new wxButton(dlg, wxID_OK, "Ok"),
-        wxSizerFlags(0).CentreHorizontal().CentreVertical().Border(wxBOTTOM | wxLEFT | wxRIGHT, spacing));
-    topsizer->Add(rowsizer, wxSizerFlags().Right());
-
-    dlg->SetSizer(topsizer);
-    topsizer->SetSizeHints(dlg);
-
-    dlg->SetSize(400, 300);
-    dlg->Centre();
-    dlg->ShowModal();
-}
-
 void DisplayMinimalFrame(wxWindow* parent);  // in minimal.cpp
 
 void FormMain::OnRunMinimalClick( wxCommandEvent& WXUNUSED(event) )
@@ -3216,8 +3147,30 @@ bool cxApplication::OnInit()
     //wxLocale Locale;
     //Locale.Init(wxLANGUAGE_FINNISH);
 
-    FormMain* frame = new FormMain( "wxPropertyGrid Sample");
+    wxSize frameSize((wxSystemSettings::GetMetric(wxSYS_SCREEN_X) / 10) * 4,
+                     (wxSystemSettings::GetMetric(wxSYS_SCREEN_Y) / 10) * 8);
+    if ( frameSize.x > 500 )
+        frameSize.x = 500;
+
+    FormMain* frame = new FormMain( "wxPropertyGrid Sample", wxPoint(0,0), frameSize);
     frame->Show(true);
+
+    //
+    // Parse command-line
+    wxApp& app = wxGetApp();
+    if ( app.argc > 1 )
+    {
+        wxString s = app.argv[1];
+        if ( s == "--run-tests" )
+        {
+            //
+            // Run tests
+            bool testResult = frame->RunTests(true);
+
+            if ( testResult )
+                return false;
+        }
+    }
 
     return true;
 }
@@ -3228,7 +3181,7 @@ void FormMain::OnIdle( wxIdleEvent& event )
 {
     /*
     // This code is useful for debugging focus problems
-    static wxWindow* last_focus = nullptr;
+    static wxWindow* last_focus = (wxWindow*) NULL;
 
     wxWindow* cur_focus = ::wxWindow::FindFocus();
 
@@ -3253,7 +3206,7 @@ void FormMain::OnIdle( wxIdleEvent& event )
 wxPGProperty* GetRealRoot(wxPropertyGrid *grid)
 {
     wxPGProperty *property = grid->GetRoot();
-    return property ? grid->GetFirstChild(property) : nullptr;
+    return property ? grid->GetFirstChild(property) : NULL;
 }
 
 void GetColumnWidths(wxPropertyGrid *grid, wxPGProperty *root, int width[3])
@@ -3376,7 +3329,7 @@ struct PropertyGridPopup : wxPopupWindow
         Fit();
     }
 
-    void Fit() override
+    void Fit() wxOVERRIDE
     {
         ::SetMinSize(m_grid);
         m_sizer->Fit(m_panel);
@@ -3398,11 +3351,11 @@ wxEND_EVENT_TABLE()
 
 void FormMain::OnShowPopup(wxCommandEvent& WXUNUSED(event))
 {
-    static PropertyGridPopup *popup = nullptr;
+    static PropertyGridPopup *popup = NULL;
     if ( popup )
     {
         delete popup;
-        popup = nullptr;
+        popup = NULL;
         return;
     }
     popup = new PropertyGridPopup(this);

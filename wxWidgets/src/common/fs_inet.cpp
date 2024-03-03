@@ -93,7 +93,7 @@ wxFSFile* wxInternetFSHandler::OpenFile(wxFileSystem& WXUNUSED(fs),
                                         const wxString& location)
 {
 #if !wxUSE_URL
-    return nullptr;
+    return NULL;
 #else
     wxString right =
         GetProtocol(location) + wxT(":") + StripProtocolAnchor(location);
@@ -131,7 +131,7 @@ wxFSFile* wxInternetFSHandler::OpenFile(wxFileSystem& WXUNUSED(fs),
         }
     }
 
-    return nullptr; // incorrect URL
+    return NULL; // incorrect URL
 #endif
 }
 
@@ -143,18 +143,18 @@ class wxFileSystemInternetModule : public wxModule
     public:
         wxFileSystemInternetModule() :
            wxModule(),
-           m_handler(nullptr)
+           m_handler(NULL)
         {
         }
 
-        virtual bool OnInit() override
+        virtual bool OnInit() wxOVERRIDE
         {
             m_handler = new wxInternetFSHandler;
             wxFileSystem::AddHandler(m_handler);
             return true;
         }
 
-        virtual void OnExit() override
+        virtual void OnExit() wxOVERRIDE
         {
             delete wxFileSystem::RemoveHandler(m_handler);
         }

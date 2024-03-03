@@ -2,6 +2,7 @@
 // Name:        ownerdrw.cpp
 // Purpose:     Owner-draw sample, for Windows
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     13.11.97
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -27,7 +28,7 @@
 class OwnerDrawnApp: public wxApp
 {
 public:
-    bool OnInit() override;
+    bool OnInit() wxOVERRIDE;
 };
 
 // Define a new frame type
@@ -88,7 +89,7 @@ bool OwnerDrawnApp::OnInit(void)
     if ( !wxApp::OnInit() )
         return false;
 
-    new OwnerDrawnFrame(nullptr, "wxWidgets Ownerdraw Sample", 50, 50, 450, 340);
+    new OwnerDrawnFrame(NULL, "wxWidgets Ownerdraw Sample", 50, 50, 450, 340);
 
     return true;
 }
@@ -158,7 +159,8 @@ void OwnerDrawnFrame::InitMenu()
     pItem->SetBitmaps(bmpBell);
     file_menu->Append(pItem);
 
-    pItem = new wxMenuItem(file_menu, Menu_Bitmap2, "So&und with a very very very very very very long label", "", wxITEM_CHECK);
+    pItem = new wxMenuItem(file_menu, Menu_Bitmap2, "So&und",
+                           "icon changes!", wxITEM_CHECK);
     pItem->SetFont(fontBmp);
     pItem->SetBitmaps(bmpSound, bmpNoSound);
     file_menu->Append(pItem);
@@ -296,7 +298,7 @@ OwnerDrawnFrame::OwnerDrawnFrame(wxFrame *frame, const wxString& title,
     for ( ui = 0; ui < WXSIZEOF(aszChoices); ui += 2 )
     {
 #if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
-        m_pListBox->GetItem(ui)->SetBackgroundColour(*wxBLUE);
+        m_pListBox->GetItem(ui)->SetBackgroundColour(wxColor(200, 200, 200));
 #endif
     }
 
@@ -343,10 +345,6 @@ OwnerDrawnFrame::OwnerDrawnFrame(wxFrame *frame, const wxString& title,
         if ( ui == 4 )
         {
             pListBox->GetItem(ui)->SetBackgroundColour(wxColor(0, 0, 0));
-        }
-        else if ( ui == 5 ) // black on dark grey is barely visible
-        {
-            pListBox->GetItem(ui)->SetBackgroundColour(*wxYELLOW);
         }
     }
 

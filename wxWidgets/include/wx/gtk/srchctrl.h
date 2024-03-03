@@ -52,22 +52,22 @@ public:
 #if wxUSE_MENUS
     // get/set search button menu
     // --------------------------
-    virtual void SetMenu( wxMenu* menu ) override;
-    virtual wxMenu* GetMenu() override;
+    virtual void SetMenu( wxMenu* menu ) wxOVERRIDE;
+    virtual wxMenu* GetMenu() wxOVERRIDE;
 #endif // wxUSE_MENUS
 
     // get/set search options
     // ----------------------
-    virtual void ShowSearchButton( bool show ) override;
-    virtual bool IsSearchButtonVisible() const override;
+    virtual void ShowSearchButton( bool show ) wxOVERRIDE;
+    virtual bool IsSearchButtonVisible() const wxOVERRIDE;
 
-    virtual void ShowCancelButton( bool show ) override;
-    virtual bool IsCancelButtonVisible() const override;
+    virtual void ShowCancelButton( bool show ) wxOVERRIDE;
+    virtual bool IsCancelButtonVisible() const wxOVERRIDE;
 
-    virtual void SetDescriptiveText(const wxString& text) override;
-    virtual wxString GetDescriptiveText() const override;
+    virtual void SetDescriptiveText(const wxString& text) wxOVERRIDE;
+    virtual wxString GetDescriptiveText() const wxOVERRIDE;
 
-    virtual void Clear() override;
+    virtual void Clear() wxOVERRIDE;
 
 #if wxUSE_MENUS
     void PopupSearchMenu();
@@ -75,7 +75,7 @@ public:
 
 private:
     // From wxTextEntry:
-    virtual GtkEditable *GetEditable() const override;
+    virtual GtkEditable *GetEditable() const wxOVERRIDE;
 
 
     void Init();
@@ -90,17 +90,14 @@ private:
     bool HasMenu() const
     {
 #if wxUSE_MENUS
-        return m_menu != nullptr;
+        return m_menu != NULL;
 #else // !wxUSE_MENUS
         return false;
 #endif // wxUSE_MENUS/!wxUSE_MENUS
     }
 
-protected:
-    virtual GdkWindow* GTKGetWindow(wxArrayGdkWindows& windows) const override;
-
 private:
-    virtual GtkEntry *GetEntry() const override
+    virtual GtkEntry *GetEntry() const wxOVERRIDE
         { return m_entry; }
 
     GtkEntry *m_entry;

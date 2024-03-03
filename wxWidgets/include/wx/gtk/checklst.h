@@ -2,6 +2,7 @@
 // Name:        wx/gtk/checklst.h
 // Purpose:     wxCheckListBox class
 // Author:      Robert Roebling
+// Modified by:
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -21,7 +22,7 @@ public:
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
             int nStrings = 0,
-            const wxString *choices = nullptr,
+            const wxString *choices = NULL,
             long style = 0,
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxASCII_STR(wxListBoxNameStr));
@@ -33,8 +34,8 @@ public:
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxASCII_STR(wxListBoxNameStr));
 
-    virtual bool IsChecked(unsigned int index) const override;
-    virtual void Check(unsigned int index, bool check = true) override;
+    virtual bool IsChecked(unsigned int index) const wxOVERRIDE;
+    virtual void Check(unsigned int index, bool check = true) wxOVERRIDE;
 
     int GetItemHeight() const;
 

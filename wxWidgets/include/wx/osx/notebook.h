@@ -2,6 +2,7 @@
 // Name:        wx/osx/notebook.h
 // Purpose:     MSW/GTK compatible notebook (a.k.a. property sheet)
 // Author:      Stefan Csomor
+// Modified by:
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +33,7 @@ public:
   // ctors
   // -----
     // default for dynamic class
-  wxNotebook() = default;
+  wxNotebook() { }
     // the same arguments as for wxControl (@@@ any special styles?)
   wxNotebook(wxWindow *parent,
              wxWindowID id,
@@ -56,44 +57,44 @@ public:
     // set the currently selected page, return the index of the previously
     // selected one (or wxNOT_FOUND on error)
     // NB: this function will _not_ generate wxEVT_NOTEBOOK_PAGE_xxx events
-  int SetSelection(size_t nPage) override { return DoSetSelection(nPage, SetSelection_SendEvent); }
+  int SetSelection(size_t nPage) wxOVERRIDE { return DoSetSelection(nPage, SetSelection_SendEvent); }
 
     // changes selected page without sending events
-  int ChangeSelection(size_t nPage) override { return DoSetSelection(nPage); }
+  int ChangeSelection(size_t nPage) wxOVERRIDE { return DoSetSelection(nPage); }
 
     // set/get the title of a page
-  bool SetPageText(size_t nPage, const wxString& strText) override;
-  wxString GetPageText(size_t nPage) const override;
+  bool SetPageText(size_t nPage, const wxString& strText) wxOVERRIDE;
+  wxString GetPageText(size_t nPage) const wxOVERRIDE;
 
     // sets/returns item's image index in the current image list
-  int  GetPageImage(size_t nPage) const override;
-  bool SetPageImage(size_t nPage, int nImage) override;
+  int  GetPageImage(size_t nPage) const wxOVERRIDE;
+  bool SetPageImage(size_t nPage, int nImage) wxOVERRIDE;
 
   // control the appearance of the notebook pages
     // set the size (the same for all pages)
-  virtual void SetPageSize(const wxSize& size) override;
+  virtual void SetPageSize(const wxSize& size) wxOVERRIDE;
     // set the padding between tabs (in pixels)
-  virtual void SetPadding(const wxSize& padding) override;
+  virtual void SetPadding(const wxSize& padding) wxOVERRIDE;
     // sets the size of the tabs (assumes all tabs are the same size)
-  virtual void SetTabSize(const wxSize& sz) override;
+  virtual void SetTabSize(const wxSize& sz) wxOVERRIDE;
 
   // hit test
-  virtual int HitTest(const wxPoint& pt, long *flags = nullptr) const override;
+  virtual int HitTest(const wxPoint& pt, long *flags = NULL) const wxOVERRIDE;
 
   // calculate size for wxNotebookSizer
-  wxSize CalcSizeFromPage(const wxSize& sizePage) const override;
-  wxRect GetPageRect() const override;
+  wxSize CalcSizeFromPage(const wxSize& sizePage) const wxOVERRIDE;
+  wxRect GetPageRect() const wxOVERRIDE;
 
   // operations
   // ----------
     // remove all pages
-  bool DeleteAllPages() override;
+  bool DeleteAllPages() wxOVERRIDE;
     // the same as AddPage(), but adds it at the specified position
   bool InsertPage(size_t nPage,
                   wxNotebookPage *pPage,
                   const wxString& strText,
                   bool bSelect = false,
-                  int imageId = NO_IMAGE) override;
+                  int imageId = NO_IMAGE) wxOVERRIDE;
 
   // callbacks
   // ---------
@@ -105,20 +106,20 @@ public:
     // --------------
 
 #if wxUSE_CONSTRAINTS
-  virtual void SetConstraintSizes(bool recurse = true) override;
-  virtual bool DoPhase(int nPhase) override;
+  virtual void SetConstraintSizes(bool recurse = true) wxOVERRIDE;
+  virtual bool DoPhase(int nPhase) wxOVERRIDE;
 
 #endif
 
   // base class virtuals
   // -------------------
-  virtual void Command(wxCommandEvent& event) override;
+  virtual void Command(wxCommandEvent& event) wxOVERRIDE;
     // osx specific event handling common for all osx-ports
 
-    virtual bool OSXHandleClicked( double timestampsec ) override;
+    virtual bool OSXHandleClicked( double timestampsec ) wxOVERRIDE;
 
 protected:
-  virtual wxNotebookPage *DoRemovePage(size_t page) override;
+  virtual wxNotebookPage *DoRemovePage(size_t page) wxOVERRIDE;
   // common part of all ctors
   void Init();
 
@@ -126,7 +127,7 @@ protected:
   void ChangePage(int nOldSel, int nSel); // change pages
   void MacSetupTabs();
 
-  int DoSetSelection(size_t nPage, int flags = 0) override;
+  int DoSetSelection(size_t nPage, int flags = 0) wxOVERRIDE;
 
   // the icon indices
   wxArrayInt m_images;

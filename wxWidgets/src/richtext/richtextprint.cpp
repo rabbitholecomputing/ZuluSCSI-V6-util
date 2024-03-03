@@ -70,14 +70,14 @@ void wxRichTextPrintout::OnPreparePrinting()
 
         int yOffset = 0;
 
-        wxRichTextLine* lastLine = nullptr;
+        wxRichTextLine* lastLine = NULL;
 
         wxRichTextObjectList::compatibility_iterator node = GetRichTextBuffer()->GetChildren().GetFirst();
         while (node)
         {
             // child is a paragraph
             wxRichTextParagraph* child = wxDynamicCast(node->GetData(), wxRichTextParagraph);
-            wxASSERT (child != nullptr);
+            wxASSERT (child != NULL);
             if (child)
             {
                 wxRichTextLineVector::const_iterator it = child->GetLines().begin();
@@ -447,11 +447,11 @@ wxRichTextPrinting::wxRichTextPrinting(const wxString& name, wxWindow *parentWin
     : m_title(name)
     , m_previewRect(100, 100, 800, 800)
 {
-    m_richTextBufferPrinting = nullptr;
-    m_richTextBufferPreview = nullptr;
+    m_richTextBufferPrinting = NULL;
+    m_richTextBufferPreview = NULL;
 
     m_parentWindow = parentWindow;
-    m_printData = nullptr;
+    m_printData = NULL;
 
     m_pageSetupData = new wxPageSetupDialogData;
     m_pageSetupData->EnableMargins(true);
@@ -469,7 +469,7 @@ wxRichTextPrinting::~wxRichTextPrinting()
 
 wxPrintData *wxRichTextPrinting::GetPrintData()
 {
-    if (m_printData == nullptr)
+    if (m_printData == NULL)
         m_printData = new wxPrintData();
     return m_printData;
 }
@@ -491,7 +491,7 @@ void wxRichTextPrinting::SetRichTextBufferPrinting(wxRichTextBuffer* buf)
     if (m_richTextBufferPrinting)
     {
         delete m_richTextBufferPrinting;
-        m_richTextBufferPrinting = nullptr;
+        m_richTextBufferPrinting = NULL;
     }
     m_richTextBufferPrinting = buf;
 }
@@ -501,7 +501,7 @@ void wxRichTextPrinting::SetRichTextBufferPreview(wxRichTextBuffer* buf)
     if (m_richTextBufferPreview)
     {
         delete m_richTextBufferPreview;
-        m_richTextBufferPreview = nullptr;
+        m_richTextBufferPreview = NULL;
     }
     m_richTextBufferPreview = buf;
 }
@@ -513,7 +513,7 @@ bool wxRichTextPrinting::PreviewFile(const wxString& richTextFile)
 
     if (!m_richTextBufferPreview->LoadFile(richTextFile))
     {
-        SetRichTextBufferPreview(nullptr);
+        SetRichTextBufferPreview(NULL);
         return false;
     }
     else
@@ -549,7 +549,7 @@ bool wxRichTextPrinting::PrintFile(const wxString& richTextFile, bool showPrintD
 
     if (!m_richTextBufferPrinting->LoadFile(richTextFile))
     {
-        SetRichTextBufferPrinting(nullptr);
+        SetRichTextBufferPrinting(NULL);
         return false;
     }
 

@@ -97,7 +97,7 @@ public:
         by OnRun() and which dispatches all events sent from the native toolkit
         to the application (except when new event loops are temporarily set-up).
         The returned value maybe @NULL. Put initialization code which needs a
-        non-null main event loop into OnEventLoopEnter().
+        non-@NULL main event loop into OnEventLoopEnter().
     */
     wxEventLoopBase* GetMainLoop() const;
 
@@ -936,7 +936,7 @@ public:
         Works like SafeYield() with @e onlyIfNeeded == @true except that
         it allows the caller to specify a mask of events to be processed.
 
-        See wxEventLoopBase::YieldFor() for more info.
+        See wxAppConsole::YieldFor for more info.
     */
     virtual bool SafeYieldFor(wxWindow *win, long eventsToProcess);
 
@@ -1004,7 +1004,7 @@ public:
         first frame or dialog (or better, any wxTopLevelWindow) in its top-level
         window list, when it needs to use the top window.
         If you previously called SetTopWindow() and now you need to restore this
-        automatic behaviour you can call `wxApp::SetTopWindow(nullptr)`.
+        automatic behaviour you can call @code wxApp::SetTopWindow(NULL) @endcode.
 
         @param window
             The new top window.
@@ -1041,11 +1041,6 @@ public:
 
         This function can be called to suppress GTK diagnostic messages that
         are output on the standard error stream by default.
-
-        If @c WXSUPPRESS_GTK_DIAGNOSTICS environment variable is set to a
-        non-zero value, wxWidgets automatically calls this function on program
-        startup with the value of this variable as @a flags if it's a number or
-        with the default flags value otherwise.
 
         The default value of the argument disables all messages, but you
         can pass in a mask flag to specifically disable only particular
@@ -1186,57 +1181,6 @@ public:
 
     ///@}
 
-    /**
-        @name MSW-specific functions
-    */
-    //@{
-
-    /**
-        Enable experimental dark mode support for MSW applications.
-
-        This function uses @e undocumented, and unsupported by Microsoft,
-        functions to enable dark mode support for the desktop applications
-        under Windows 10 20H1 or later (including all Windows 11 versions).
-
-        Note that dark mode can also be enabled by setting the "msw.dark-mode"
-        @ref wxSystemOptions "system option" via an environment variable from
-        outside the application.
-
-        Known limitations of dark mode support include:
-
-            - Anything based on TaskDialog() Win32 API doesn't support dark mode:
-              wxMessageBox(), wxMessageDialog, wxRichMessageDialog, wxProgressDialog
-              and simple (i.e. without hyperlink or licence) wxAboutBox(). Consider
-              using generic versions (e.g. wxGenericMessageDialog or wxGenericProgressDialog)
-              if dark mode support is more important than using the native dialog.
-            - The following dialogs wrapping common windows dialogs don't support
-              dark mode: wxColourDialog, wxFindReplaceDialog, wxFontDialog,
-              wxPageSetupDialog, wxPrintDialog.
-            - wxDatePickerCtrl and wxTimePickerCtrl don't support dark mode and
-              use the same (light) background as by default in it.
-            - Toolbar items for which wxToolBar::SetDropdownMenu() was called
-              don't draw the menu drop-down correctly, making it almost
-              invisible.
-            - Calling wxMenu::Break() will result in the menu being light.
-
-        @param flags Can include @c wxApp::DarkMode_Always to force enabling
-            dark mode for the application, even if the system doesn't use the
-            dark mode by default. Otherwise dark mode is only used if it is the
-            default mode for the applications on the current system.
-        @param settings If specified, allows to customize dark mode appearance.
-            Please see wxDarkModeSettings documentation for more information.
-
-        @return @true if dark mode support was enabled, @false if it couldn't
-            be done, most likely because the system doesn't support dark mode.
-
-        @onlyfor{wxmsw}
-
-        @since 3.3.0
-     */
-    bool
-    MSWEnableDarkMode(int flags = 0, wxDarkModeSettings* settings = nullptr);
-
-    //@}
 };
 
 
@@ -1458,7 +1402,7 @@ bool wxYield();
 
     @header{wx/app.h}
 */
-bool wxSafeYield(wxWindow* win = nullptr, bool onlyIfNeeded = false);
+bool wxSafeYield(wxWindow* win = NULL, bool onlyIfNeeded = false);
 
 /**
     This function initializes wxWidgets in a platform-dependent way. Use this if you
@@ -1497,8 +1441,8 @@ int wxEntry(int& argc, wxChar** argv);
     @header{wx/app.h}
 */
 int wxEntry(HINSTANCE hInstance,
-            HINSTANCE hPrevInstance = nullptr,
-            char* pCmdLine = nullptr,
+            HINSTANCE hPrevInstance = NULL,
+            char* pCmdLine = NULL,
             int nCmdShow = SW_SHOWNORMAL);
 
 ///@}

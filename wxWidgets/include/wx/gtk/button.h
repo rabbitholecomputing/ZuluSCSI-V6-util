@@ -16,7 +16,7 @@
 class WXDLLIMPEXP_CORE wxButton : public wxButtonBase
 {
 public:
-    wxButton() = default;
+    wxButton() {}
     wxButton(wxWindow *parent, wxWindowID id,
            const wxString& label = wxEmptyString,
            const wxPoint& pos = wxDefaultPosition,
@@ -34,8 +34,8 @@ public:
            const wxValidator& validator = wxDefaultValidator,
            const wxString& name = wxASCII_STR(wxButtonNameStr));
 
-    virtual wxWindow *SetDefault() override;
-    virtual void SetLabel( const wxString &label ) override;
+    virtual wxWindow *SetDefault() wxOVERRIDE;
+    virtual void SetLabel( const wxString &label ) wxOVERRIDE;
 
     // implementation
     // --------------
@@ -54,11 +54,11 @@ public:
     void GTKReleased();
 
 protected:
-    virtual wxSize DoGetBestSize() const override;
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style) override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) wxOVERRIDE;
 
 #if wxUSE_MARKUP
-    virtual bool DoSetLabelMarkup(const wxString& markup) override;
+    virtual bool DoSetLabelMarkup(const wxString& markup) wxOVERRIDE;
 #endif // wxUSE_MARKUP
 
 private:

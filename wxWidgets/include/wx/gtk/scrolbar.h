@@ -33,13 +33,13 @@ public:
            const wxValidator& validator = wxDefaultValidator,
            const wxString& name = wxASCII_STR(wxScrollBarNameStr) );
     virtual ~wxScrollBar();
-    int GetThumbPosition() const override;
-    int GetThumbSize() const override;
-    int GetPageSize() const override;
-    int GetRange() const override;
-    virtual void SetThumbPosition( int viewStart ) override;
+    int GetThumbPosition() const wxOVERRIDE;
+    int GetThumbSize() const wxOVERRIDE;
+    int GetPageSize() const wxOVERRIDE;
+    int GetRange() const wxOVERRIDE;
+    virtual void SetThumbPosition( int viewStart ) wxOVERRIDE;
     virtual void SetScrollbar( int position, int thumbSize, int range, int pageSize,
-      bool refresh = true ) override;
+      bool refresh = true ) wxOVERRIDE;
 
     void SetThumbSize(int thumbSize);
     void SetPageSize( int pageLength );

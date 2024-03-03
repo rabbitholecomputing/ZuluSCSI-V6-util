@@ -34,8 +34,8 @@ class wxHtmlLineCell : public wxHtmlCell
     public:
         wxHtmlLineCell(int size, bool shading) : wxHtmlCell() {m_Height = size; m_HasShading = shading;}
         void Draw(wxDC& dc, int x, int y, int view_y1, int view_y2,
-                  wxHtmlRenderingInfo& info) override;
-        void Layout(int w) override
+                  wxHtmlRenderingInfo& info) wxOVERRIDE;
+        void Layout(int w) wxOVERRIDE
             { m_Width = w; wxHtmlCell::Layout(w); }
 
     private:

@@ -23,9 +23,6 @@
 #include "wx/filename.h"
 #include "wx/wfstream.h"
 
-#include <memory>
-#include <unordered_map>
-
 // This test uses httpbin service and by default uses the mirror at the
 // location below, which seems to be more reliable than the main site at
 // https://httpbin.org. Any other mirror, including a local one, which can be
@@ -119,7 +116,7 @@ public:
         }
     }
 
-    void Notify() override
+    void Notify() wxOVERRIDE
     {
         WARN("Exiting loop on timeout");
         loop.Exit();
@@ -127,7 +124,7 @@ public:
 
     void OnData(wxWebRequestEvent& evt)
     {
-        // Count all bytes received via data event for Storage_None
+        // Count all bytes recieved via data event for Storage_None
         dataSize += evt.GetDataSize();
     }
 
@@ -397,7 +394,7 @@ TEST_CASE_METHOD(RequestFixture,
         return;
 
     Create("/put");
-    std::unique_ptr<wxInputStream> is(new wxFileInputStream("horse.png"));
+    wxScopedPtr<wxInputStream> is(new wxFileInputStream("horse.png"));
     REQUIRE( is->IsOk() );
 
     request.SetData(is.release(), "image/png");
@@ -541,7 +538,7 @@ TEST_CASE_METHOD(RequestFixture,
     }
 }
 
-using wxWebRequestHeaderMap = std::unordered_map<wxString, wxString>;
+WX_DECLARE_STRING_HASH_MAP(wxString, wxWebRequestHeaderMap);
 
 namespace wxPrivate
 {

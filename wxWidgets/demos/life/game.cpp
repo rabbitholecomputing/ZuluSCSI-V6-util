@@ -2,6 +2,7 @@
 // Name:        game.cpp
 // Purpose:     Life! game logic
 // Author:      Guillermo Rodriguez Garcia, <guille@iies.es>
+// Modified by:
 // Created:     Jan/2000
 // Copyright:   (c) 2000, Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
@@ -111,10 +112,10 @@ Life::Life()
     // pattern data
     m_numcells    = 0;
     m_boxes       = new LifeCellBox *[HASHSIZE];
-    m_head        = nullptr;
-    m_available   = nullptr;
+    m_head        = NULL;
+    m_available   = NULL;
     for (int i = 0; i < HASHSIZE; i++)
-        m_boxes[i] = nullptr;
+        m_boxes[i] = NULL;
 
     // state vars for BeginFind & FindMore
     m_cells       = new LifeCell[CELLSARRAYSIZE];
@@ -140,7 +141,7 @@ void Life::Clear()
 
     // clear the hash table pointers
     for (int i = 0; i < HASHSIZE; i++)
-        m_boxes[i] = nullptr;
+        m_boxes[i] = NULL;
 
     // free used boxes
     c = m_head;
@@ -150,7 +151,7 @@ void Life::Clear()
         delete c;
         c = nc;
     }
-    m_head = nullptr;
+    m_head = NULL;
 
     // free available boxes
     c = m_available;
@@ -160,7 +161,7 @@ void Life::Clear()
         delete c;
         c = nc;
     }
-    m_available = nullptr;
+    m_available = NULL;
 
     // reset state
     m_name        = wxEmptyString;
@@ -294,7 +295,7 @@ LifeCellBox* Life::CreateBox(wxInt32 x, wxInt32 y, wxUint32 hv)
 
 // LinkBox:
 //  Returns a pointer to the box (x, y); if it didn't exist yet,
-//  it returns nullptr or creates a new one, depending on the value
+//  it returns NULL or creates a new one, depending on the value
 //  of the 'create' parameter.
 //
 LifeCellBox* Life::LinkBox(wxInt32 x, wxInt32 y, bool create)
@@ -311,7 +312,7 @@ LifeCellBox* Life::LinkBox(wxInt32 x, wxInt32 y, bool create)
         if ((c->m_x == x) && (c->m_y == y)) return c;
 
     // if not found, and (create == true), create a new one
-    return create? CreateBox(x, y, hv) : nullptr;
+    return create? CreateBox(x, y, hv) : (LifeCellBox*) NULL;
 }
 
 // KillBox:
@@ -337,10 +338,10 @@ void Life::KillBox(LifeCellBox *c)
     // update neighbours
     if (c->m_next) c->m_next->m_prev = c->m_prev;
     if (c->m_hnext) c->m_hnext->m_hprev = c->m_hprev;
-    if (c->m_up) c->m_up->m_dn = nullptr;
-    if (c->m_dn) c->m_dn->m_up = nullptr;
-    if (c->m_lf) c->m_lf->m_rt = nullptr;
-    if (c->m_rt) c->m_rt->m_lf = nullptr;
+    if (c->m_up) c->m_up->m_dn = NULL;
+    if (c->m_dn) c->m_dn->m_up = NULL;
+    if (c->m_lf) c->m_lf->m_rt = NULL;
+    if (c->m_rt) c->m_rt->m_lf = NULL;
 
     // append to the list of available boxes
     c->m_next = m_available;
@@ -514,7 +515,7 @@ bool Life::FindMore(LifeCell *cells[], size_t *ncells)
         for ( ; m_y <= m_y1; m_y += 8, m_x = m_x0)
             for ( ; m_x <= m_x1; m_x += 8)
             {
-                if ((c = LinkBox(m_x, m_y, false)) == nullptr)
+                if ((c = LinkBox(m_x, m_y, false)) == NULL)
                     continue;
 
                 // check whether there is enough space left in the array
@@ -539,7 +540,7 @@ bool Life::FindMore(LifeCell *cells[], size_t *ncells)
         for ( ; m_y <= m_y1; m_y += 8, m_x = m_x0)
             for ( ; m_x <= m_x1; m_x += 8)
             {
-                if ((c = LinkBox(m_x, m_y, false)) == nullptr)
+                if ((c = LinkBox(m_x, m_y, false)) == NULL)
                     continue;
 
                 // check whether there is enough space left in the array
@@ -922,8 +923,8 @@ class LifeModule: public wxModule
 
 public:
     LifeModule() {}
-    bool OnInit() override;
-    void OnExit() override;
+    bool OnInit() wxOVERRIDE;
+    void OnExit() wxOVERRIDE;
 };
 
 wxIMPLEMENT_DYNAMIC_CLASS(LifeModule, wxModule);

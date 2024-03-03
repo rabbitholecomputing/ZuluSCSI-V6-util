@@ -2,6 +2,7 @@
 // Name:        wx/gtk/accel.h
 // Purpose:     wxAcceleratorTable redirection file
 // Author:      Julian Smart
+// Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence

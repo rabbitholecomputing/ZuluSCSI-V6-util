@@ -26,8 +26,8 @@ wxString g_strLoadOrder;
 class Module : public wxModule
 {
 protected:
-    virtual bool OnInit() override { g_strLoadOrder += GetClassInfo()->GetClassName(); return true; }
-    virtual void OnExit() override { }
+    virtual bool OnInit() wxOVERRIDE { g_strLoadOrder += GetClassInfo()->GetClassName(); return true; }
+    virtual void OnExit() wxOVERRIDE { }
 };
 
 class ModuleA : public Module

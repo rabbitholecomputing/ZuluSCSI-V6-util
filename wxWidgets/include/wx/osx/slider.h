@@ -2,6 +2,7 @@
 // Name:        wx/osx/slider.h
 // Purpose:     wxSlider class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -42,52 +43,52 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxASCII_STR(wxSliderNameStr));
 
-    virtual int GetValue() const override;
-    virtual void SetValue(int) override;
+    virtual int GetValue() const wxOVERRIDE;
+    virtual void SetValue(int) wxOVERRIDE;
 
-    void SetRange(int minValue, int maxValue) override;
+    void SetRange(int minValue, int maxValue) wxOVERRIDE;
 
-    int GetMin() const override { return m_rangeMin; }
-    int GetMax() const override { return m_rangeMax; }
+    int GetMin() const wxOVERRIDE { return m_rangeMin; }
+    int GetMax() const wxOVERRIDE { return m_rangeMax; }
 
     void SetMin(int minValue) { SetRange(minValue, m_rangeMax); }
     void SetMax(int maxValue) { SetRange(m_rangeMin, maxValue); }
 
     // For trackbars only
-    int GetTickFreq() const override { return m_tickFreq; }
-    void SetPageSize(int pageSize) override;
-    int GetPageSize() const override;
-    void ClearSel() override;
-    void ClearTicks() override;
-    void SetLineSize(int lineSize) override;
-    int GetLineSize() const override;
-    int GetSelEnd() const override;
-    int GetSelStart() const override;
-    void SetSelection(int minPos, int maxPos) override;
-    void SetThumbLength(int len) override;
-    int GetThumbLength() const override;
-    void SetTick(int tickPos) override;
+    int GetTickFreq() const wxOVERRIDE { return m_tickFreq; }
+    void SetPageSize(int pageSize) wxOVERRIDE;
+    int GetPageSize() const wxOVERRIDE;
+    void ClearSel() wxOVERRIDE;
+    void ClearTicks() wxOVERRIDE;
+    void SetLineSize(int lineSize) wxOVERRIDE;
+    int GetLineSize() const wxOVERRIDE;
+    int GetSelEnd() const wxOVERRIDE;
+    int GetSelStart() const wxOVERRIDE;
+    void SetSelection(int minPos, int maxPos) wxOVERRIDE;
+    void SetThumbLength(int len) wxOVERRIDE;
+    int GetThumbLength() const wxOVERRIDE;
+    void SetTick(int tickPos) wxOVERRIDE;
 
-    void Command(wxCommandEvent& event) override;
+    void Command(wxCommandEvent& event) wxOVERRIDE;
     // osx specific event handling common for all osx-ports
 
-    virtual bool OSXHandleClicked( double timestampsec ) override;
-    virtual void TriggerScrollEvent( wxEventType scrollEvent ) override;
+    virtual bool OSXHandleClicked( double timestampsec ) wxOVERRIDE;
+    virtual void TriggerScrollEvent( wxEventType scrollEvent ) wxOVERRIDE;
 
 protected:
     // Platform-specific implementation of SetTickFreq
-    virtual void DoSetTickFreq(int freq) override;
+    virtual void DoSetTickFreq(int freq) wxOVERRIDE;
 
-    virtual wxSize DoGetBestSize() const override;
-    virtual void   DoSetSize(int x, int y, int w, int h, int sizeFlags) override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual void   DoSetSize(int x, int y, int w, int h, int sizeFlags) wxOVERRIDE;
 
     // set min/max size of the slider
     virtual void DoSetSizeHints( int minW, int minH,
                                  int maxW, int maxH,
-                                 int incW, int incH) override;
+                                 int incW, int incH) wxOVERRIDE;
 
     // Common processing to invert slider values based on wxSL_INVERSE
-    virtual int ValueInvertOrNot(int value) const override;
+    virtual int ValueInvertOrNot(int value) const wxOVERRIDE;
 
     wxStaticText*    m_macMinimumStatic ;
     wxStaticText*    m_macMaximumStatic ;
@@ -99,7 +100,7 @@ protected:
     int           m_lineSize;
     int           m_tickFreq;
 private :
-    virtual wxWindowList GetCompositeWindowParts() const override
+    virtual wxWindowList GetCompositeWindowParts() const wxOVERRIDE
     {
         wxWindowList parts;
         parts.push_back(m_macMinimumStatic);

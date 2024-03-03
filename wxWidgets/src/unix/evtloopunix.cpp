@@ -30,6 +30,7 @@
 #endif
 
 #include "wx/apptrait.h"
+#include "wx/scopedptr.h"
 #include "wx/thread.h"
 #include "wx/module.h"
 #include "wx/unix/private/timer.h"
@@ -44,8 +45,6 @@
     #include "wx/evtloopsrc.h"
 #endif // wxUSE_EVENTLOOP_SOURCE
 
-#include <memory>
-
 // ===========================================================================
 // wxEventLoop implementation
 // ===========================================================================
@@ -57,12 +56,12 @@
 wxConsoleEventLoop::wxConsoleEventLoop()
 {
     // Be pessimistic initially and assume that we failed to initialize.
-    m_dispatcher = nullptr;
-    m_wakeupPipe = nullptr;
-    m_wakeupSource = nullptr;
+    m_dispatcher = NULL;
+    m_wakeupPipe = NULL;
+    m_wakeupSource = NULL;
 
     // Create the pipe.
-    std::unique_ptr<wxWakeUpPipeMT> wakeupPipe(new wxWakeUpPipeMT);
+    wxScopedPtr<wxWakeUpPipeMT> wakeupPipe(new wxWakeUpPipeMT);
     const int pipeFD = wakeupPipe->GetReadFd();
     if ( pipeFD == wxPipe::INVALID_FD )
         return;
@@ -110,9 +109,9 @@ class wxConsoleEventLoopSourcesManager : public wxEventLoopSourcesManagerBase
 public:
     wxEventLoopSource* AddSourceForFD( int fd,
                                        wxEventLoopSourceHandler *handler,
-                                       int flags) override
+                                       int flags) wxOVERRIDE
     {
-        wxCHECK_MSG( fd != -1, nullptr, "can't monitor invalid fd" );
+        wxCHECK_MSG( fd != -1, NULL, "can't monitor invalid fd" );
 
         wxLogTrace(wxTRACE_EVT_SOURCE,
                     "Adding event loop source for fd=%d", fd);
@@ -120,11 +119,11 @@ public:
         // we need a bridge to wxFDIODispatcher
         //
         // TODO: refactor the code so that only wxEventLoopSourceHandler is used
-        std::unique_ptr<wxFDIOHandler>
+        wxScopedPtr<wxFDIOHandler>
             fdioHandler(new wxFDIOEventLoopSourceHandler(handler));
 
         if ( !wxFDIODispatcher::Get()->RegisterFD(fd, fdioHandler.get(), flags) )
-            return nullptr;
+            return NULL;
 
         return new wxUnixEventLoopSource(wxFDIODispatcher::Get(), fdioHandler.release(),
                                          fd, handler, flags);

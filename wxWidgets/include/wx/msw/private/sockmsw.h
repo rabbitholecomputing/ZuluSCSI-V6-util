@@ -47,9 +47,9 @@ public:
 
     virtual ~wxSocketImplMSW();
 
-    virtual wxSocketError GetLastError() const override;
+    virtual wxSocketError GetLastError() const wxOVERRIDE;
 
-    virtual void ReenableEvents(wxSocketEventFlags WXUNUSED(flags)) override
+    virtual void ReenableEvents(wxSocketEventFlags WXUNUSED(flags)) wxOVERRIDE
     {
         // notifications are never disabled in this implementation, there is no
         // need for this as WSAAsyncSelect() only sends notification once when
@@ -57,7 +57,7 @@ public:
         // anything here
     }
 
-    virtual void UpdateBlockingState() override
+    virtual void UpdateBlockingState() wxOVERRIDE
     {
         if ( GetSocketFlags() & wxSOCKET_BLOCK )
         {
@@ -84,7 +84,7 @@ public:
     }
 
 private:
-    virtual void DoClose() override;
+    virtual void DoClose() wxOVERRIDE;
 
     int m_msgnumber;
 

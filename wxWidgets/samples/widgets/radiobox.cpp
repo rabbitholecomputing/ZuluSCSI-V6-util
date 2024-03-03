@@ -73,11 +73,11 @@ class RadioWidgetsPage : public WidgetsPage
 public:
     RadioWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxWindow *GetWidget() const override { return m_radio; }
-    virtual void RecreateWidget() override { CreateRadio(); }
+    virtual wxWindow *GetWidget() const wxOVERRIDE { return m_radio; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateRadio(); }
 
     // lazy creation of the content
-    virtual void CreateContent() override;
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -178,16 +178,16 @@ RadioWidgetsPage::RadioWidgetsPage(WidgetsBookCtrl *book,
                   : WidgetsPage(book, imaglist, radio_xpm)
 {
     // init everything
-    m_chkSpecifyRows = nullptr;
-    m_chkEnableItem = nullptr;
-    m_chkShowItem = nullptr;
+    m_chkSpecifyRows = (wxCheckBox *)NULL;
+    m_chkEnableItem = (wxCheckBox *)NULL;
+    m_chkShowItem = (wxCheckBox *)NULL;
 
     m_textNumBtns =
     m_textLabelBtns =
-    m_textLabel = nullptr;
+    m_textLabel = (wxTextCtrl *)NULL;
 
-    m_radio = nullptr;
-    m_sizerRadio = nullptr;
+    m_radio = (wxRadioBox *)NULL;
+    m_sizerRadio = (wxSizer *)NULL;
 }
 
 void RadioWidgetsPage::CreateContent()
@@ -195,78 +195,69 @@ void RadioWidgetsPage::CreateContent()
     wxSizer *sizerTop = new wxBoxSizer(wxHORIZONTAL);
 
     // left pane
-    wxStaticBoxSizer *sizerLeft = new wxStaticBoxSizer(wxVERTICAL, this, "&Set style");
-    wxStaticBox* const sizerleftBox = sizerLeft->GetStaticBox();
+    wxStaticBox *box = new wxStaticBox(this, wxID_ANY, "&Set style");
+
+    wxSizer *sizerLeft = new wxStaticBoxSizer(box, wxVERTICAL);
 
     m_chkSpecifyRows = CreateCheckBoxAndAddToSizer
                        (
                         sizerLeft,
-                        "Major specifies &rows count",
-                        wxID_ANY,
-                        sizerleftBox
+                        "Major specifies &rows count"
                        );
 
     wxSizer *sizerRow;
     sizerRow = CreateSizerWithTextAndLabel("&Major dimension:",
                                            wxID_ANY,
-                                           &m_textMajorDim,
-                                           sizerleftBox);
+                                           &m_textMajorDim);
     sizerLeft->Add(sizerRow, wxSizerFlags().Expand().Border());
 
     sizerRow = CreateSizerWithTextAndLabel("&Number of buttons:",
                                            wxID_ANY,
-                                           &m_textNumBtns,
-                                           sizerleftBox);
+                                           &m_textNumBtns);
     sizerLeft->Add(sizerRow, wxSizerFlags().Expand().Border());
 
     wxButton *btn;
-    btn = new wxButton(sizerleftBox, RadioPage_Update, "&Update");
+    btn = new wxButton(this, RadioPage_Update, "&Update");
     sizerLeft->Add(btn, wxSizerFlags().CentreHorizontal().Border());
 
     sizerLeft->AddSpacer(5);
 
-    btn = new wxButton(sizerleftBox, RadioPage_Reset, "&Reset");
+    btn = new wxButton(this, RadioPage_Reset, "&Reset");
     sizerLeft->Add(btn, wxSizerFlags().CentreHorizontal().Border(wxALL, 15));
 
     // middle pane
-    wxStaticBoxSizer *sizerMiddle = new wxStaticBoxSizer(wxVERTICAL, this, "&Change parameters");
-    wxStaticBox* const sizerMiddleBox = sizerMiddle->GetStaticBox();
+    wxStaticBox *box2 = new wxStaticBox(this, wxID_ANY, "&Change parameters");
+    wxSizer *sizerMiddle = new wxStaticBoxSizer(box2, wxVERTICAL);
 
     sizerRow = CreateSizerWithTextAndLabel("Current selection:",
                                            wxID_ANY,
-                                           &m_textCurSel,
-                                           sizerMiddleBox);
+                                           &m_textCurSel);
     sizerMiddle->Add(sizerRow, wxSizerFlags().Expand().Border());
 
     sizerRow = CreateSizerWithTextAndButton(RadioPage_Selection,
                                             "&Change selection:",
-                                             wxID_ANY,
-                                             &m_textSel,
-                                             sizerMiddleBox);
+                                           wxID_ANY,
+                                           &m_textSel);
     sizerMiddle->Add(sizerRow, wxSizerFlags().Expand().Border());
 
     sizerRow = CreateSizerWithTextAndButton(RadioPage_Label,
                                             "&Label for box:",
                                             wxID_ANY,
-                                            &m_textLabel,
-                                            sizerMiddleBox);
+                                            &m_textLabel);
     sizerMiddle->Add(sizerRow, wxSizerFlags().Expand().Border());
 
     sizerRow = CreateSizerWithTextAndButton(RadioPage_LabelBtn,
                                             "&Label for buttons:",
                                             wxID_ANY,
-                                            &m_textLabelBtns,
-                                            sizerMiddleBox);
+                                            &m_textLabelBtns);
     sizerMiddle->Add(sizerRow, wxSizerFlags().Expand().Border());
 
     m_chkEnableItem = CreateCheckBoxAndAddToSizer(sizerMiddle,
                                                   "Disable &2nd item",
-                                                  RadioPage_EnableItem,
-                                                  sizerMiddleBox);
+                                                  RadioPage_EnableItem);
     m_chkShowItem = CreateCheckBoxAndAddToSizer(sizerMiddle,
                                                 "Hide 2nd &item",
-                                                RadioPage_ShowItem,
-                                                sizerMiddleBox);
+                                                RadioPage_ShowItem);
 
     // right pane
     wxSizer *sizerRight = new wxBoxSizer(wxHORIZONTAL);
@@ -357,8 +348,6 @@ void RadioWidgetsPage::CreateRadio()
                              items,
                              majorDim,
                              flags);
-
-    NotifyWidgetRecreation(m_radio);
 
     if ( sel >= 0 && (size_t)sel < count )
     {

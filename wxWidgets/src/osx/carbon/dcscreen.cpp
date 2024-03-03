@@ -2,6 +2,7 @@
 // Name:        src/osx/carbon/dcscreen.cpp
 // Purpose:     wxScreenDC class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -67,7 +68,7 @@ wxBitmap wxScreenDCImpl::DoGetAsBitmap(const wxRect *subrect) const
     if ( subrect )
         srcRect = CGRectOffset( srcRect, -subrect->x, -subrect->y ) ;
 
-    CGImageRef image = nullptr;
+    CGImageRef image = NULL;
     
     image = CGDisplayCreateImage(kCGDirectMainDisplay);
 

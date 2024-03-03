@@ -2,6 +2,7 @@
 // Name:        src/generic/fontdlgg.cpp
 // Purpose:     Generic font dialog
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -10,7 +11,7 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#if wxUSE_FONTDLG
+#if wxUSE_FONTDLG && (!defined(__WXGTK__) || defined(__WXGPE__) || defined(__WXUNIVERSAL__))
 
 #ifndef WX_PRECOMP
     #include <stdio.h>
@@ -260,7 +261,7 @@ static wxString wxColourDialogNames[NUM_COLS]={wxT("ORANGE"),
 void wxGenericFontDialog::Init()
 {
     m_useEvents = false;
-    m_previewer = nullptr;
+    m_previewer = NULL;
     Create( m_parent ) ;
 }
 
@@ -395,7 +396,7 @@ void wxGenericFontDialog::CreateWidgets()
 
     wxBoxSizer* itemBoxSizer14 = new wxBoxSizer(wxVERTICAL);
     itemGridSizer4->Add(itemBoxSizer14, 0, wxALIGN_CENTER_HORIZONTAL|wxGROW, 5);
-    m_colourChoice = nullptr;
+    m_colourChoice = NULL;
     if (m_fontData.GetEnableEffects())
     {
         wxStaticText* itemStaticText15 = new wxStaticText( this, wxID_STATIC, _("C&olour:"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -431,7 +432,7 @@ void wxGenericFontDialog::CreateWidgets()
     itemBoxSizer17->Add(m_pointSizeChoice, 0, wxALIGN_LEFT|wxALL, 5);
 #endif
 
-    m_underLineCheckBox = nullptr;
+    m_underLineCheckBox = NULL;
     if (m_fontData.GetEnableEffects())
     {
         wxBoxSizer* itemBoxSizer20 = new wxBoxSizer(wxVERTICAL);

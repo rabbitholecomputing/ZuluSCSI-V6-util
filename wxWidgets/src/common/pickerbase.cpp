@@ -2,6 +2,7 @@
 // Name:        src/common/pickerbase.cpp
 // Purpose:     wxPickerBase class implementation
 // Author:      Francesco Montorsi
+// Modified by:
 // Created:     15/04/2006
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
@@ -141,7 +142,7 @@ void wxPickerBase::DoSetToolTip(wxToolTip *tip)
 
     // do a copy as wxWindow will own the pointer we pass
     if ( m_text )
-        m_text->SetToolTip(tip ? new wxToolTip(tip->GetTip()) : nullptr);
+        m_text->SetToolTip(tip ? new wxToolTip(tip->GetTip()) : NULL);
 }
 
 #endif // wxUSE_TOOLTIPS
@@ -182,7 +183,7 @@ void wxPickerBase::OnTextCtrlKillFocus(wxFocusEvent& event)
 void wxPickerBase::OnTextCtrlDelete(wxWindowDestroyEvent &)
 {
     // the textctrl has been deleted; our pointer is invalid!
-    m_text = nullptr;
+    m_text = NULL;
 }
 
 void wxPickerBase::OnTextCtrlUpdate(wxCommandEvent &)

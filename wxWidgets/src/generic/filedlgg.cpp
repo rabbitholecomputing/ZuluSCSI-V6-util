@@ -2,6 +2,7 @@
 // Name:        src/generic/filedlgg.cpp
 // Purpose:     wxGenericFileDialog
 // Author:      Robert Roebling
+// Modified by:
 // Created:     12/12/98
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
@@ -22,6 +23,7 @@
     #ifdef __WXMSW__
         #include "wx/msw/wrapwin.h"
     #endif
+    #include "wx/hash.h"
     #include "wx/intl.h"
     #include "wx/settings.h"
     #include "wx/log.h"
@@ -110,9 +112,9 @@ void wxGenericFileDialog::Init()
 {
     m_bypassGenericImpl = false;
 
-    m_filectrl   = nullptr;
-    m_upDirButton  = nullptr;
-    m_newDirButton = nullptr;
+    m_filectrl   = NULL;
+    m_upDirButton  = NULL;
+    m_newDirButton = NULL;
 }
 
 wxGenericFileDialog::wxGenericFileDialog(wxWindow *parent,
@@ -306,7 +308,7 @@ int wxGenericFileDialog::ShowModal()
     if (m_extraControl)
     {
         m_extraControl->Destroy();
-        m_extraControl = nullptr;
+        m_extraControl = NULL;
     }
 
     return rc;

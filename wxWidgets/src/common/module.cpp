@@ -2,6 +2,7 @@
 // Name:        src/common/module.cpp
 // Purpose:     Modules initialization/destruction
 // Author:      Wolfram Gloger/adapted by Guilhem Lavaux
+// Modified by:
 // Created:     04/11/98
 // Copyright:   (c) Wolfram Gloger and Guilhem Lavaux
 // Licence:     wxWindows licence
@@ -14,6 +15,7 @@
 #include "wx/module.h"
 
 #ifndef WX_PRECOMP
+    #include "wx/hash.h"
     #include "wx/intl.h"
     #include "wx/log.h"
 #endif

@@ -38,39 +38,39 @@ public:
                 long style = wxTB_DEFAULT_STYLE | wxNO_BORDER,
                 const wxString& name = wxASCII_STR(wxToolBarNameStr));
 
-    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const override;
+    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const wxOVERRIDE;
 
-    virtual void SetWindowStyleFlag( long style ) override;
+    virtual void SetWindowStyleFlag( long style ) wxOVERRIDE;
 
-    virtual void SetToolShortHelp(int id, const wxString& helpString) override;
-    virtual void SetToolNormalBitmap(int id, const wxBitmapBundle& bitmap) override;
-    virtual void SetToolDisabledBitmap(int id, const wxBitmapBundle& bitmap) override;
+    virtual void SetToolShortHelp(int id, const wxString& helpString) wxOVERRIDE;
+    virtual void SetToolNormalBitmap(int id, const wxBitmapBundle& bitmap) wxOVERRIDE;
+    virtual void SetToolDisabledBitmap(int id, const wxBitmapBundle& bitmap) wxOVERRIDE;
 
-    virtual bool Realize() override;
+    virtual bool Realize() wxOVERRIDE;
 
     virtual wxToolBarToolBase *CreateTool(int toolid,
                                           const wxString& label,
                                           const wxBitmapBundle& bmpNormal,
                                           const wxBitmapBundle& bmpDisabled = wxNullBitmap,
                                           wxItemKind kind = wxITEM_NORMAL,
-                                          wxObject *clientData = nullptr,
+                                          wxObject *clientData = NULL,
                                           const wxString& shortHelp = wxEmptyString,
-                                          const wxString& longHelp = wxEmptyString) override;
+                                          const wxString& longHelp = wxEmptyString) wxOVERRIDE;
 
     virtual wxToolBarToolBase *CreateTool(wxControl *control,
-                                          const wxString& label) override;
-    QWidget *GetHandle() const override;
+                                          const wxString& label) wxOVERRIDE;
+    QWidget *GetHandle() const wxOVERRIDE;
 
     // Private, only used by wxFrame.
     QToolBar *GetQToolBar() const { return m_qtToolBar; }
 
 protected:
     QActionGroup* GetActionGroup(size_t pos);
-    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool) override;
-    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool) override;
-    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable) override;
-    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle) override;
-    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle) override;
+    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
+    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
+    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable) wxOVERRIDE;
+    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
+    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
 
 private:
     void Init();

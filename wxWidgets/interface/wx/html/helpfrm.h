@@ -36,7 +36,7 @@
 class wxHtmlHelpFrame : public wxFrame
 {
 public:
-    wxHtmlHelpFrame(wxHtmlHelpData* data = nullptr);
+    wxHtmlHelpFrame(wxHtmlHelpData* data = NULL);
 
     /**
         Constructor.
@@ -46,8 +46,8 @@ public:
     wxHtmlHelpFrame(wxWindow* parent, wxWindowID id,
                     const wxString& title = wxEmptyString,
                     int style = wxHF_DEFAULT_STYLE,
-                    wxHtmlHelpData* data = nullptr,
-                    wxConfigBase* config = nullptr,
+                    wxHtmlHelpData* data = NULL,
+                    wxConfigBase* config = NULL,
                     const wxString& rootpath = wxEmptyString);
 
     /**
@@ -65,7 +65,7 @@ public:
     */
     bool Create(wxWindow* parent, wxWindowID id,
                 const wxString& title = wxEmptyString, int style = wxHF_DEFAULT_STYLE,
-                wxConfigBase* config = nullptr,
+                wxConfigBase* config = NULL,
                 const wxString& rootpath = wxEmptyString);
 
     /**

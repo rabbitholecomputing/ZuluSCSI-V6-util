@@ -2,6 +2,7 @@
 // Name:        src/osx/dialog_osx.cpp
 // Purpose:     wxDialog class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -60,7 +61,7 @@ void wxDialog::OSXEndModalDialog()
 void wxDialog::Init()
 {
     m_modality = wxDIALOG_MODALITY_NONE;
-    m_eventLoop = nullptr;
+    m_eventLoop = NULL;
 }
 
 bool wxDialog::Create( wxWindow *parent,
@@ -167,7 +168,7 @@ int wxDialog::ShowModal()
     modalLoop.Run();
     OSXEndModalDialog();
 
-    m_eventLoop = nullptr;
+    m_eventLoop = NULL;
 
     return GetReturnCode();
 }

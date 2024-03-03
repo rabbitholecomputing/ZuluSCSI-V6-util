@@ -17,7 +17,7 @@
 class WXDLLIMPEXP_CORE wxMask : public wxMaskBase
 {
 public:
-    wxMask() = default;
+    wxMask() { }
     wxMask(const wxBitmap& bitmap, const wxColour& colour)
     {
         InitFromColour(bitmap, colour);

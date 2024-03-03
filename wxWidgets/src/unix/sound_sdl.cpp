@@ -2,6 +2,7 @@
 // Name:        src/unix/sound_sdl.cpp
 // Purpose:     wxSound backend using SDL
 // Author:      Vaclav Slavik
+// Modified by:
 // Created:     2004/01/31
 // Copyright:   (c) 2004, Open Source Applications Foundation
 // Licence:     wxWindows licence
@@ -35,7 +36,7 @@ class wxSoundBackendSDLNotification : public wxEvent
 public:
     wxDECLARE_DYNAMIC_CLASS(wxSoundBackendSDLNotification);
     wxSoundBackendSDLNotification();
-    wxEvent *Clone() const override { return new wxSoundBackendSDLNotification(*this); }
+    wxEvent *Clone() const wxOVERRIDE { return new wxSoundBackendSDLNotification(*this); }
 };
 
 typedef void (wxEvtHandler::*wxSoundBackendSDLNotificationFunction)
@@ -48,7 +49,7 @@ wxDECLARE_EVENT(wxEVT_SOUND_BACKEND_SDL_NOTIFICATION, wxSoundBackendSDLNotificat
                               -1,                       \
                               -1,                       \
                               wxEVENT_HANDLER_CAST( wxSoundBackendSDLNotificationFunction, func ), \
-                              nullptr ),
+                              NULL ),
 
 wxIMPLEMENT_DYNAMIC_CLASS(wxSoundBackendSDLNotification, wxEvtHandler);
 wxDEFINE_EVENT( wxEVT_SOUND_BACKEND_SDL_NOTIFICATION, wxSoundBackendSDLNotification );
@@ -65,21 +66,21 @@ class wxSoundBackendSDL : public wxSoundBackend
 public:
     wxSoundBackendSDL()
         : m_initialized(false), m_playing(false), m_audioOpen(false),
-          m_data(nullptr), m_evtHandler(nullptr) {}
+          m_data(NULL), m_evtHandler(NULL) {}
     virtual ~wxSoundBackendSDL();
 
-    wxString GetName() const override { return wxT("Simple DirectMedia Layer"); }
-    int GetPriority() const override { return 9; }
-    bool IsAvailable() const override;
-    bool HasNativeAsyncPlayback() const override { return true; }
+    wxString GetName() const wxOVERRIDE { return wxT("Simple DirectMedia Layer"); }
+    int GetPriority() const wxOVERRIDE { return 9; }
+    bool IsAvailable() const wxOVERRIDE;
+    bool HasNativeAsyncPlayback() const wxOVERRIDE { return true; }
     bool Play(wxSoundData *data, unsigned flags,
-              volatile wxSoundPlaybackStatus *status) override;
+              volatile wxSoundPlaybackStatus *status) wxOVERRIDE;
 
     void FillAudioBuffer(Uint8 *stream, int len);
     void FinishedPlayback();
 
-    void Stop() override;
-    bool IsPlaying() const override { return m_playing; }
+    void Stop() wxOVERRIDE;
+    bool IsPlaying() const wxOVERRIDE { return m_playing; }
 
 private:
     bool OpenAudio();
@@ -204,7 +205,7 @@ bool wxSoundBackendSDL::OpenAudio()
         m_spec.userdata = (void*)this;
 
         wxLogTrace(wxT("sound"), wxT("opening SDL audio..."));
-        if (SDL_OpenAudio(&m_spec, nullptr) >= 0)
+        if (SDL_OpenAudio(&m_spec, NULL) >= 0)
         {
 #if wxUSE_LOG_DEBUG
             char driver[256];
@@ -319,7 +320,7 @@ void wxSoundBackendSDL::Stop()
     if (m_data)
     {
         m_data->DecRef();
-        m_data = nullptr;
+        m_data = NULL;
     }
     SDL_UnlockAudio();
 }

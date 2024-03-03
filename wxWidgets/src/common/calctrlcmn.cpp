@@ -52,6 +52,7 @@ wxFLAGS_MEMBER(wxBORDER)
 // standard window styles
 wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
 wxFLAGS_MEMBER(wxCLIP_CHILDREN)
+wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
 wxFLAGS_MEMBER(wxWANTS_CHARS)
 wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
 wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
@@ -182,9 +183,10 @@ bool wxCalendarCtrlBase::SetHolidayAttrs()
     wxDateTimeArray hol;
     wxDateTimeHolidayAuthority::GetHolidaysInRange(dtStart, dtEnd, hol);
 
-    for ( const auto dt : hol )
+    const size_t count = hol.GetCount();
+    for ( size_t n = 0; n < count; n++ )
     {
-        SetHoliday(dt.GetDay());
+        SetHoliday(hol[n].GetDay());
     }
 
     return true;

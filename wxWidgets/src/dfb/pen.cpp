@@ -134,7 +134,7 @@ int wxPen::GetDashes(wxDash **ptr) const
 {
     wxFAIL_MSG( "GetDashes not implemented" );
 
-    *ptr = nullptr;
+    *ptr = NULL;
     return 0;
 }
 
@@ -149,7 +149,7 @@ wxDash* wxPen::GetDash() const
 {
     wxFAIL_MSG( "GetDash not implemented" );
 
-    return nullptr;
+    return NULL;
 }
 
 wxPenCap wxPen::GetCap() const
@@ -191,10 +191,10 @@ wxColour wxPen::GetColour() const
 
 wxBitmap *wxPen::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid pen") );
 
     wxFAIL_MSG( "GetStipple not implemented" );
-    return nullptr;
+    return NULL;
 }
 
 wxGDIRefData *wxPen::CreateGDIRefData() const

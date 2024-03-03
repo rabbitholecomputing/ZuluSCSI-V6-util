@@ -2,6 +2,7 @@
 // Name:        src/propgrid/manager.cpp
 // Purpose:     wxPropertyGridManager
 // Author:      Jaakko Salli
+// Modified by:
 // Created:     2005-01-14
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
@@ -23,8 +24,10 @@
 #include "wx/dcbuffer.h" // for wxALWAYS_NATIVE_DOUBLE_BUFFER
 #include "wx/headerctrl.h" // for wxPGHeaderCtrl
 
+// This define is necessary to prevent macro clearing
+#define __wxPG_SOURCE_FILE__
+
 #include "wx/propgrid/manager.h"
-#include "wx/propgrid/private.h"
 
 
 #define wxPG_MAN_ALTERNATE_BASE_ID          11249 // Needed for wxID_ANY madness
@@ -36,17 +39,17 @@
 // when using custom controls
 
 #define BEGIN_MOUSE_CAPTURE \
-    if ( !(m_iFlags & wxPG_MAN_FL_MOUSE_CAPTURED) ) \
+    if ( !(m_iFlags & wxPG_FL_MOUSE_CAPTURED) ) \
     { \
         CaptureMouse(); \
-        m_iFlags |= wxPG_MAN_FL_MOUSE_CAPTURED; \
+        m_iFlags |= wxPG_FL_MOUSE_CAPTURED; \
     }
 
 #define END_MOUSE_CAPTURE \
-    if ( m_iFlags & wxPG_MAN_FL_MOUSE_CAPTURED ) \
+    if ( m_iFlags & wxPG_FL_MOUSE_CAPTURED ) \
     { \
         ReleaseMouse(); \
-        m_iFlags &= ~(wxPG_MAN_FL_MOUSE_CAPTURED); \
+        m_iFlags &= ~(wxPG_FL_MOUSE_CAPTURED); \
     }
 
 // -----------------------------------------------------------------------
@@ -330,10 +333,14 @@ wxEND_EVENT_TABLE()
 
 wxPropertyGridPage::wxPropertyGridPage()
     : wxEvtHandler(), wxPropertyGridInterface(), wxPropertyGridPageState()
-    , m_manager(nullptr)
+    , m_manager(NULL)
     , m_isDefault(false)
 {
     m_pState = this; // wxPropertyGridInterface to point to State
+}
+
+wxPropertyGridPage::~wxPropertyGridPage()
+{
 }
 
 void wxPropertyGridPage::Clear()
@@ -363,15 +370,19 @@ void wxPropertyGridPage::SetSplitterPosition( int splitterPos, int col )
     if ( pg->GetState() == this )
         pg->SetSplitterPosition(splitterPos);
     else
-        DoSetSplitter(splitterPos, col, wxPGSplitterPositionFlags::Null);
+        DoSetSplitterPosition(splitterPos, col, false);
 }
 
-void wxPropertyGridPage::DoSetSplitter(int pos, int splitterColumn, wxPGSplitterPositionFlags flags )
+void wxPropertyGridPage::DoSetSplitterPosition( int pos,
+                                                int splitterColumn,
+                                                int flags )
 {
-    if ( !!(flags & wxPGSplitterPositionFlags::AllPages) && m_manager->GetPageCount() )
+    if ( (flags & wxPG_SPLITTER_ALL_PAGES) && m_manager->GetPageCount() )
         m_manager->SetSplitterPosition( pos, splitterColumn );
     else
-        wxPropertyGridPageState::DoSetSplitter( pos, splitterColumn, flags );
+        wxPropertyGridPageState::DoSetSplitterPosition( pos,
+                                                        splitterColumn,
+                                                        flags );
 }
 
 // -----------------------------------------------------------------------
@@ -401,13 +412,14 @@ public:
 
     virtual ~wxPGHeaderCtrl()
     {
-        for ( wxHeaderColumnSimple* c : m_columns )
+        for (wxVector<wxHeaderColumnSimple*>::const_iterator it = m_columns.begin();
+             it != m_columns.end(); ++it)
         {
-            delete c;
+            delete *it;
         }
     }
 
-    virtual void OnColumnCountChanging(unsigned int count) override
+    virtual void OnColumnCountChanging(unsigned int count) wxOVERRIDE
     {
         EnsureColumnCount(count);
     }
@@ -426,7 +438,7 @@ public:
         UpdateAllColumns();
     }
 
-    virtual const wxHeaderColumn& GetColumn(unsigned int idx) const override
+    virtual const wxHeaderColumn& GetColumn(unsigned int idx) const wxOVERRIDE
     {
         return *m_columns[idx];
     }
@@ -451,7 +463,7 @@ private:
     {
         while ( m_columns.size() < count )
         {
-            wxHeaderColumnSimple* colInfo = new wxHeaderColumnSimple(wxString());
+            wxHeaderColumnSimple* colInfo = new wxHeaderColumnSimple(wxEmptyString);
             m_columns.push_back(colInfo);
         }
     }
@@ -507,9 +519,9 @@ private:
 
         x += colWidth;
 
-        pg->DoSetSplitter(x, col,
-                          wxPGSplitterPositionFlags::Refresh |
-                          wxPGSplitterPositionFlags::FromEvent);
+        pg->DoSetSplitterPosition(x, col,
+                                  wxPG_SPLITTER_REFRESH |
+                                  wxPG_SPLITTER_FROM_EVENT);
     }
 
     void OnResizing(wxHeaderCtrlEvent& evt)
@@ -521,7 +533,7 @@ private:
         OnColumWidthsChanged();
 
         wxPropertyGrid* pg = m_manager->GetGrid();
-        pg->SendEvent(wxEVT_PG_COL_DRAGGING, nullptr, nullptr, wxPGSelectPropertyFlags::Null,
+        pg->SendEvent(wxEVT_PG_COL_DRAGGING, NULL, NULL, 0,
                       (unsigned int)col);
     }
 
@@ -539,7 +551,7 @@ private:
             evt.Veto();
         // Allow application to veto dragging
         else if ( pg->SendEvent(wxEVT_PG_COL_BEGIN_DRAG,
-                                nullptr, nullptr, wxPGSelectPropertyFlags::Null,
+                                NULL, NULL, 0,
                                 (unsigned int)col) )
             evt.Veto();
     }
@@ -549,13 +561,13 @@ private:
         int col = evt.GetColumn();
         wxPropertyGrid* pg = m_manager->GetGrid();
         pg->SendEvent(wxEVT_PG_COL_END_DRAG,
-                      nullptr, nullptr, wxPGSelectPropertyFlags::Null,
+                      NULL, NULL, 0,
                       (unsigned int)col);
     }
 
     wxPropertyGridManager*          m_manager;
     const wxPropertyGridPage*       m_page;
-    std::vector<wxHeaderColumnSimple*> m_columns;
+    wxVector<wxHeaderColumnSimple*> m_columns;
 };
 
 #endif // wxUSE_HEADERCTRL
@@ -563,17 +575,6 @@ private:
 // -----------------------------------------------------------------------
 // wxPropertyGridManager
 // -----------------------------------------------------------------------
-
-// Internal flags
-enum wxPGMAN_INTERNAL_FLAGS : long
-{
-    wxPG_MAN_FL_INITIALIZED           = 0x0001,
-    wxPG_MAN_FL_MOUSE_CAPTURED        = 0x0002,
-    // Set if wxPGMan requires redrawing of description text box.
-    wxPG_MAN_FL_DESC_REFRESH_REQUIRED = 0x0004,
-    // Set after page has been inserted to manager
-    wxPG_MAN_FL_PAGE_INSERTED         = 0x0008
-};
 
 // Final default splitter y is client height minus this.
 #define wxPGMAN_DEFAULT_NEGATIVE_SPLITTER_Y         100
@@ -634,8 +635,6 @@ bool wxPropertyGridManager::Create( wxWindow *parent,
     Init2(style);
 
     SetInitialSize(size);
-    // Create controls
-    RecreateControls();
 
     return res;
 }
@@ -648,19 +647,19 @@ bool wxPropertyGridManager::Create( wxWindow *parent,
 void wxPropertyGridManager::Init1()
 {
 
-    m_pPropGrid = nullptr;
+    m_pPropGrid = NULL;
 
 #if wxUSE_TOOLBAR
-    m_pToolbar = nullptr;
+    m_pToolbar = NULL;
 #endif
 #if wxUSE_HEADERCTRL
-    m_pHeaderCtrl = nullptr;
+    m_pHeaderCtrl = NULL;
     m_showHeader = false;
 #endif
-    m_pTxtHelpCaption = nullptr;
-    m_pTxtHelpContent = nullptr;
+    m_pTxtHelpCaption = NULL;
+    m_pTxtHelpContent = NULL;
 
-    m_emptyPage = nullptr;
+    m_emptyPage = NULL;
 
     m_selPage = -1;
 
@@ -684,10 +683,11 @@ void wxPropertyGridManager::Init1()
 // -----------------------------------------------------------------------
 
 // These flags are always used in wxPropertyGrid integrated in wxPropertyGridManager.
-constexpr long wxPG_MAN_PROPGRID_FORCED_FLAGS = wxBORDER_THEME | wxCLIP_CHILDREN;
+#define wxPG_MAN_PROPGRID_FORCED_FLAGS (  wxBORDER_THEME | \
+                                          wxCLIP_CHILDREN)
 
 // Which flags can be passed to underlying wxPropertyGrid.
-constexpr long wxPG_MAN_PASS_FLAGS_MASK = wxPG_WINDOW_STYLE_MASK | wxTAB_TRAVERSAL;
+#define wxPG_MAN_PASS_FLAGS_MASK       (wxPG_WINDOW_STYLE_MASK|wxTAB_TRAVERSAL)
 
 //
 // Initialize after parent etc. set
@@ -695,7 +695,7 @@ constexpr long wxPG_MAN_PASS_FLAGS_MASK = wxPG_WINDOW_STYLE_MASK | wxTAB_TRAVERS
 void wxPropertyGridManager::Init2( int style )
 {
 
-    if ( m_iFlags & wxPG_MAN_FL_INITIALIZED )
+    if ( m_iFlags & wxPG_FL_INITIALIZED )
         return;
 
     m_windowStyle |= (style & wxPG_WINDOW_STYLE_MASK);
@@ -748,7 +748,7 @@ void wxPropertyGridManager::Init2( int style )
 
     m_pPropGrid->SetId(useId);
 
-    m_pPropGrid->SetInternalFlag(wxPropertyGrid::wxPG_FL_IN_MANAGER);
+    m_pPropGrid->SetInternalFlag(wxPG_FL_IN_MANAGER);
 
     m_pState = m_pPropGrid->m_pState;
 
@@ -765,7 +765,10 @@ void wxPropertyGridManager::Init2( int style )
     //     (see wxPropertyGridManager::ProcessEvent).
     ReconnectEventHandlers(wxID_NONE, m_pPropGrid->GetId());
 
-    m_iFlags |= wxPG_MAN_FL_INITIALIZED;
+    // Optional initial controls.
+    m_width = -12345;
+
+    m_iFlags |= wxPG_FL_INITIALIZED;
 
 }
 
@@ -778,9 +781,9 @@ wxPropertyGridManager::~wxPropertyGridManager()
     //m_pPropGrid->ClearSelection();
     wxDELETE(m_pPropGrid);
 
-    for( wxPropertyGridPage* page : m_arrPages )
+    for ( size_t i = 0; i < m_arrPages.size(); i++ )
     {
-        delete page;
+        delete m_arrPages[i];
     }
 
     delete m_emptyPage;
@@ -835,7 +838,7 @@ bool wxPropertyGridManager::SetFont( const wxFont& font )
 // -----------------------------------------------------------------------
 
 // Which flags can affect the toolbar
-constexpr long wxPG_EX_WINDOW_TOOLBAR_STYLE_MASK = wxPG_EX_NO_FLAT_TOOLBAR | wxPG_EX_MODE_BUTTONS | wxPG_EX_NO_TOOLBAR_DIVIDER;
+#define wxPG_EX_WINDOW_TOOLBAR_STYLE_MASK  (wxPG_EX_NO_FLAT_TOOLBAR|wxPG_EX_MODE_BUTTONS|wxPG_EX_NO_TOOLBAR_DIVIDER)
 
 void wxPropertyGridManager::SetExtraStyle( long exStyle )
 {
@@ -938,7 +941,7 @@ bool wxPropertyGridManager::DoSelectPage( int index )
         nextPage = m_emptyPage;
     }
 
-    m_iFlags |= wxPG_MAN_FL_DESC_REFRESH_REQUIRED;
+    m_iFlags |= wxPG_FL_DESC_REFRESH_REQUIRED;
 
     m_pPropGrid->SwitchState( nextPage->GetStatePtr() );
 
@@ -1011,10 +1014,10 @@ const wxString& wxPropertyGridManager::GetPageName( int index ) const
 
 wxPropertyGridPageState* wxPropertyGridManager::GetPageState( int page ) const
 {
-    // Do not change this into wxCHECK because returning nullptr is important
+    // Do not change this into wxCHECK because returning NULL is important
     // for wxPropertyGridInterface page enumeration mechanics.
     if ( page >= (int)GetPageCount() )
-        return nullptr;
+        return NULL;
 
     if ( page == -1 )
         return m_pState;
@@ -1108,11 +1111,11 @@ wxPropertyGridPage* wxPropertyGridManager::InsertPage( int index,
     if ( index < 0 )
         index = GetPageCount();
 
-    wxCHECK_MSG( (size_t)index == GetPageCount(), nullptr,
+    wxCHECK_MSG( (size_t)index == GetPageCount(), NULL,
         wxS("wxPropertyGridManager currently only supports appending pages (due to wxToolBar limitation)."));
 
     bool needInit = true;
-    bool isPageInserted = (m_iFlags & wxPG_MAN_FL_PAGE_INSERTED) != 0;
+    bool isPageInserted = m_iFlags & wxPG_MAN_FL_PAGE_INSERTED ? true : false;
 
     wxASSERT( index == 0 || isPageInserted );
 
@@ -1319,7 +1322,7 @@ bool wxPropertyGridManager::IsPropertySelected( wxPGPropArg id ) const
 wxPGProperty* wxPropertyGridManager::GetPageRoot( int index ) const
 {
     wxCHECK_MSG( (index >= 0) && (index < (int)m_arrPages.size()),
-                 nullptr,
+                 NULL,
                  wxS("invalid page index") );
 
     return m_arrPages[index]->GetRoot();
@@ -1453,8 +1456,8 @@ void wxPropertyGridManager::RepaintDescBoxDecorations( wxDC& dc,
 
 void wxPropertyGridManager::UpdateDescriptionBox( int new_splittery, int new_width, int new_height )
 {
-    int use_hei = wxMax(1, new_height - 1);
-    int use_width = wxMax(1, new_width - 6);
+    int use_hei = new_height-1;
+    int use_width = new_width-6;
 
     // Fix help control positions.
     int cap_y = new_splittery+m_splitterHeight+5;
@@ -1494,7 +1497,7 @@ void wxPropertyGridManager::UpdateDescriptionBox( int new_splittery, int new_wid
 
     m_splitterY = new_splittery;
 
-    m_iFlags &= ~(wxPG_MAN_FL_DESC_REFRESH_REQUIRED);
+    m_iFlags &= ~(wxPG_FL_DESC_REFRESH_REQUIRED);
 }
 
 // -----------------------------------------------------------------------
@@ -1523,7 +1526,7 @@ void wxPropertyGridManager::RecalculatePositions( int width, int height )
         m_pHeaderCtrl->SetSize(0, propgridY, width, wxDefaultCoord);
         // Sync horizontal scroll position with grid
         int x;
-        m_pPropGrid->CalcScrolledPosition(0, 0, &x, nullptr);
+        m_pPropGrid->CalcScrolledPosition(0, 0, &x, NULL);
         m_pHeaderCtrl->ScrollWindow(x, 0);
         propgridY += m_pHeaderCtrl->GetSize().y;
     }
@@ -1561,7 +1564,7 @@ void wxPropertyGridManager::RecalculatePositions( int width, int height )
         UpdateDescriptionBox( new_splittery, width, height );
     }
 
-    if ( m_iFlags & wxPG_MAN_FL_INITIALIZED )
+    if ( m_iFlags & wxPG_FL_INITIALIZED )
     {
         int pgh = propgridBottomY - propgridY;
         if ( pgh < 0 )
@@ -1662,7 +1665,22 @@ void wxPropertyGridManager::RecreateControls()
                                        wxDefaultPosition,
                                        wxDefaultSize,
                                        toolBarFlags);
-            m_pToolbar->SetToolBitmapSize(FromDIP(wxSize(16, 16)));
+            m_pToolbar->SetToolBitmapSize(FromDIP(wxSize(16, 15)));
+
+        #if defined(__WXMSW__)
+            // Eliminate toolbar flicker on XP
+            // NOTE: Not enabled since it corrupts drawing somewhat.
+
+            /*
+            #ifndef WS_EX_COMPOSITED
+                #define WS_EX_COMPOSITED        0x02000000L
+            #endif
+
+            wxMSWWinExStyleUpdater(GetHwndOf(m_pToolbar))
+                .TurnOn(WS_EX_COMPOSITED);
+            */
+
+        #endif
 
             m_pToolbar->SetCursor ( *wxSTANDARD_CURSOR );
             tbModified = true;
@@ -1793,7 +1811,7 @@ void wxPropertyGridManager::RecreateControls()
         // No toolbar.
         if ( m_pToolbar )
             m_pToolbar->Destroy();
-        m_pToolbar = nullptr;
+        m_pToolbar = NULL;
     }
 #endif
 
@@ -1821,13 +1839,13 @@ void wxPropertyGridManager::RecreateControls()
     if ( m_windowStyle & wxPG_DESCRIPTION )
     {
         // Has help box.
-        m_pPropGrid->SetInternalFlag(wxPropertyGrid::wxPG_FL_NOSTATUSBARHELP);
+        m_pPropGrid->SetInternalFlag(wxPG_FL_NOSTATUSBARHELP);
 
         if ( !m_pTxtHelpCaption )
         {
             m_pTxtHelpCaption = new wxStaticText(this,
                                                  wxID_ANY,
-                                                 wxString(),
+                                                 wxEmptyString,
                                                  wxDefaultPosition,
                                                  wxDefaultSize,
                                                  wxALIGN_LEFT|wxST_NO_AUTORESIZE);
@@ -1838,7 +1856,7 @@ void wxPropertyGridManager::RecreateControls()
         {
             m_pTxtHelpContent = new wxStaticText(this,
                                                  wxID_ANY,
-                                                 wxString(),
+                                                 wxEmptyString,
                                                  wxDefaultPosition,
                                                  wxDefaultSize,
                                                  wxALIGN_LEFT|wxST_NO_AUTORESIZE);
@@ -1850,17 +1868,17 @@ void wxPropertyGridManager::RecreateControls()
     else
     {
         // No help box.
-        m_pPropGrid->ClearInternalFlag(wxPropertyGrid::wxPG_FL_NOSTATUSBARHELP);
+        m_pPropGrid->ClearInternalFlag(wxPG_FL_NOSTATUSBARHELP);
 
         if ( m_pTxtHelpCaption )
             m_pTxtHelpCaption->Destroy();
 
-        m_pTxtHelpCaption = nullptr;
+        m_pTxtHelpCaption = NULL;
 
         if ( m_pTxtHelpContent )
             m_pTxtHelpContent->Destroy();
 
-        m_pTxtHelpContent = nullptr;
+        m_pTxtHelpContent = NULL;
     }
 
     int width, height;
@@ -1886,7 +1904,7 @@ wxPGProperty* wxPropertyGridManager::DoGetPropertyByName( const wxString& name )
             return p;
         }
     }
-    return nullptr;
+    return NULL;
 }
 
 // -----------------------------------------------------------------------
@@ -1916,7 +1934,7 @@ void wxPropertyGridManager::OnToolbarClick( wxCommandEvent &event )
         // Categorized mode.
         if ( m_pPropGrid->HasFlag(wxPG_HIDE_CATEGORIES) )
         {
-            if ( !m_pPropGrid->HasInternalFlag(wxPropertyGrid::wxPG_FL_CATMODE_AUTO_SORT) )
+            if ( !m_pPropGrid->HasInternalFlag(wxPG_FL_CATMODE_AUTO_SORT) )
                 m_pPropGrid->m_windowStyle &= ~wxPG_AUTO_SORT;
             m_pPropGrid->EnableCategories( true );
         }
@@ -1927,9 +1945,9 @@ void wxPropertyGridManager::OnToolbarClick( wxCommandEvent &event )
         if ( !m_pPropGrid->HasFlag(wxPG_HIDE_CATEGORIES) )
         {
             if ( m_pPropGrid->HasFlag(wxPG_AUTO_SORT) )
-                m_pPropGrid->SetInternalFlag(wxPropertyGrid::wxPG_FL_CATMODE_AUTO_SORT);
+                m_pPropGrid->SetInternalFlag(wxPG_FL_CATMODE_AUTO_SORT);
             else
-                m_pPropGrid->ClearInternalFlag(wxPropertyGrid::wxPG_FL_CATMODE_AUTO_SORT);
+                m_pPropGrid->ClearInternalFlag(wxPG_FL_CATMODE_AUTO_SORT);
 
             m_pPropGrid->m_windowStyle |= wxPG_AUTO_SORT;
             m_pPropGrid->EnableCategories( false );
@@ -1957,7 +1975,7 @@ void wxPropertyGridManager::OnToolbarClick( wxCommandEvent &event )
         if ( DoSelectPage(index) )
         {
             // Event dispatching must be last.
-            m_pPropGrid->SendEvent( wxEVT_PG_PAGE_CHANGED, wxNullProperty );
+            m_pPropGrid->SendEvent( wxEVT_PG_PAGE_CHANGED, (wxPGProperty*)NULL );
         }
         else
         {
@@ -1998,7 +2016,7 @@ wxVariant wxPropertyGridManager::GetEditableStateItem( const wxString& name ) co
     {
         return (long) GetDescBoxHeight();
     }
-    return wxVariant();
+    return wxNullVariant;
 }
 
 // -----------------------------------------------------------------------
@@ -2032,7 +2050,7 @@ void wxPropertyGridManager::SetDescribedProperty( wxPGProperty* p )
         }
         else
         {
-            SetDescription( wxString(), wxString() );
+            SetDescription( wxEmptyString, wxEmptyString );
         }
     }
 }
@@ -2047,6 +2065,9 @@ void wxPropertyGridManager::SetSplitterLeft( bool subProps, bool allPages )
     }
     else
     {
+        wxClientDC dc(this);
+        dc.SetFont(m_pPropGrid->GetFont());
+
         int highest = 0;
 
         for ( size_t i = 0; i < GetPageCount(); i++ )
@@ -2075,6 +2096,9 @@ void wxPropertyGridManager::SetPageSplitterLeft(int page, bool subProps)
 
     if (page < (int) GetPageCount())
     {
+        wxClientDC dc(this);
+        dc.SetFont(m_pPropGrid->GetFont());
+
         int maxW = m_pState->GetColumnFitWidth(m_arrPages[page]->DoGetRoot(), 0, subProps );
         maxW += m_pPropGrid->GetMarginWidth();
         SetPageSplitterPosition( page, maxW );
@@ -2147,6 +2171,9 @@ void wxPropertyGridManager::OnResize( wxSizeEvent& WXUNUSED(event) )
     int width, height;
 
     GetClientSize(&width, &height);
+
+    if ( m_width == -12345 )
+        RecreateControls();
 
     RecalculatePositions(width, height);
 
@@ -2307,8 +2334,8 @@ void wxPropertyGridManager::SetSplitterPosition( int pos, int splitterColumn )
     for ( size_t i = 0; i < GetPageCount(); i++ )
     {
         wxPropertyGridPage* page = GetPage(i);
-        page->DoSetSplitter( pos, splitterColumn,
-                             wxPGSplitterPositionFlags::Refresh );
+        page->DoSetSplitterPosition( pos, splitterColumn,
+                                     wxPG_SPLITTER_REFRESH );
     }
 
 #if wxUSE_HEADERCTRL
@@ -2323,8 +2350,7 @@ void wxPropertyGridManager::SetPageSplitterPosition( int page,
                                                      int pos,
                                                      int column )
 {
-    GetPage(page)->DoSetSplitter( pos, column,
-                                  wxPGSplitterPositionFlags::Refresh );
+    GetPage(page)->DoSetSplitterPosition( pos, column );
 
 #if wxUSE_HEADERCTRL
     if ( m_pHeaderCtrl && m_pHeaderCtrl->IsShown() )
@@ -2341,39 +2367,23 @@ class wxPGVIteratorBase_Manager : public wxPGVIteratorBase
 {
 public:
     wxPGVIteratorBase_Manager( wxPropertyGridManager* manager, int flags )
-        : m_manager(manager), m_flags(flags)
+        : m_manager(manager), m_flags(flags), m_curPage(0)
     {
-        // Start with first non-empty page
-        for ( m_curPage = 0; m_curPage < m_manager->GetPageCount(); m_curPage++ )
-        {
-            m_it.Init(m_manager->GetPage(m_curPage), m_flags);
-            if ( !m_it.AtEnd() )
-                break;
-        }
+        m_it.Init(manager->GetPage(0), flags);
     }
-    virtual ~wxPGVIteratorBase_Manager() = default;
-    virtual void Next() override
+    virtual ~wxPGVIteratorBase_Manager() { }
+    virtual void Next() wxOVERRIDE
     {
         m_it.Next();
 
         // Next page?
         if ( m_it.AtEnd() )
         {
-            // Skip empty pages
             m_curPage++;
-            for ( ; m_curPage < m_manager->GetPageCount(); m_curPage++ )
-            {
-                m_it.Init(m_manager->GetPage(m_curPage), m_flags);
-                if ( !m_it.AtEnd() )
-                    break;
-            }
+            if ( m_curPage < m_manager->GetPageCount() )
+                m_it.Init( m_manager->GetPage(m_curPage), m_flags );
         }
     }
-    virtual bool AtEnd() const override
-    {
-        return m_it.AtEnd() && m_curPage == m_manager->GetPageCount();
-    }
-
 private:
     wxPropertyGridManager*  m_manager;
     int                     m_flags;

@@ -166,8 +166,8 @@ wxPG_EX_NATIVE_DOUBLE_BUFFERING         = 0x00080000,
 
 /**
     Set this style to let user have ability to set values of properties to
-    unspecified state. Same as setting wxPGPropertyFlags::AutoUnspecified
-    for all properties.
+    unspecified state. Same as setting wxPG_PROP_AUTO_UNSPECIFIED for
+    all properties.
     @hideinitializer
 */
 wxPG_EX_AUTO_UNSPECIFIED_VALUES         = 0x00200000,
@@ -255,14 +255,12 @@ wxPG_EX_WINDOW_STYLE_MASK = wxPG_EX_WINDOW_PG_STYLE_MASK|wxPG_EX_WINDOW_PGMAN_ST
 };
 
 /** Combines various styles.
-    @hideinitializer
 */
-constexpr long wxPG_DEFAULT_STYLE = 0L;
+#define wxPG_DEFAULT_STYLE          (0)
 
 /** Combines various styles.
-    @hideinitializer
 */
-constexpr long wxPGMAN_DEFAULT_STYLE = 0L;
+#define wxPGMAN_DEFAULT_STYLE       (0)
 
 /** @}
 */
@@ -274,34 +272,26 @@ constexpr long wxPGMAN_DEFAULT_STYLE = 0L;
     @{
 */
 
-/**
-    wxPropertyGrid Validation Failure behaviour Flags
-*/
-enum class wxPGVFBFlags : int
+enum wxPG_VALIDATION_FAILURE_BEHAVIOR_FLAGS
 {
-/**
-    @hideinitializer
-*/
-    Null                   = 0,
-
 /**
     Prevents user from leaving property unless value is valid. If this
     behaviour flag is not used, then value change is instead cancelled.
     @hideinitializer
 */
-    StayInProperty         = 0x0001,
+wxPG_VFB_STAY_IN_PROPERTY           = 0x01,
 
 /**
     Calls wxBell() on validation failure.
     @hideinitializer
 */
-    Beep                   = 0x0002,
+wxPG_VFB_BEEP                       = 0x02,
 
 /**
     Cell with invalid value will be marked (with red colour).
     @hideinitializer
 */
-    MarkCell               = 0x0004,
+wxPG_VFB_MARK_CELL                  = 0x04,
 
 /**
     Display a text message explaining the situation.
@@ -313,38 +303,41 @@ enum class wxPGVFBFlags : int
     using wxMessageBox.
     @hideinitializer
 */
-    ShowMessage            = 0x0008,
+wxPG_VFB_SHOW_MESSAGE               = 0x08,
 
 /**
-    Similar to SHOW_MESSAGE, except always displays the
+    Similar to wxPG_VFB_SHOW_MESSAGE, except always displays the
     message using wxMessageBox.
     @hideinitializer
 */
-    ShowMessageBox         = 0x0010,
+wxPG_VFB_SHOW_MESSAGEBOX            = 0x10,
 
 /**
-    Similar to SHOW_MESSAGE, except always displays the
+    Similar to wxPG_VFB_SHOW_MESSAGE, except always displays the
     message on the status bar (when present - you can reimplement
     wxPropertyGrid::GetStatusBar() in a derived class to specify
     this yourself).
     @hideinitializer
 */
-    ShowMessageOnStatusBar = 0x0020,
+wxPG_VFB_SHOW_MESSAGE_ON_STATUSBAR  = 0x20,
 
 /**
     Defaults.
     @hideinitializer
 */
-    Default = MarkCell | ShowMessageBox,
-
-/**
-    @hideinitializer
-*/
-    Undefined              = 0x0040
+wxPG_VFB_DEFAULT                    = wxPG_VFB_MARK_CELL |
+                                      wxPG_VFB_SHOW_MESSAGEBOX,
 };
 
 /** @}
 */
+
+/**
+    Having this as define instead of wxByte typedef makes things easier for
+    wxPython bindings (ignoring and redefining it in SWIG interface file
+    seemed rather tricky)
+*/
+#define wxPGVFBFlags unsigned char
 
 /**
     @class wxPGValidationInfo
@@ -371,7 +364,7 @@ public:
     /**
         Returns reference to pending value.
     */
-    const wxVariant& GetValue() const;
+    wxVariant& GetValue();
 
     /** Set validation failure behaviour
 
@@ -396,34 +389,38 @@ public:
     @{
 */
 
-enum class wxPGKeyboardAction
+enum wxPG_KEYBOARD_ACTIONS
 {
-    Invalid,
+    /**
+        @hideinitializer
+    */
+    wxPG_ACTION_INVALID = 0,
 
     /** Select the next property. */
-    NextProperty,
+    wxPG_ACTION_NEXT_PROPERTY,
 
     /** Select the previous property. */
-    PrevProperty,
+    wxPG_ACTION_PREV_PROPERTY,
 
     /** Expand the selected property, if it has child items. */
-    ExpandProperty,
+    wxPG_ACTION_EXPAND_PROPERTY,
 
     /** Collapse the selected property, if it has child items. */
-    CollapseProperty,
+    wxPG_ACTION_COLLAPSE_PROPERTY,
 
-    /** Cancel and undo any editing done in the currently active property
-        editor.
-    */
-    CancelEdit,
+    // Cancel and undo any editing done in the currently active property
+    // editor.
+    wxPG_ACTION_CANCEL_EDIT,
 
     /** Move focus to the editor control of the currently selected
         property.
     */
-    Edit,
+    wxPG_ACTION_EDIT,
 
     /** Causes editor's button (if any) to be pressed. */
-    PressButton,
+    wxPG_ACTION_PRESS_BUTTON,
+
+    wxPG_ACTION_MAX
 };
 
 /** @}
@@ -433,8 +430,8 @@ enum class wxPGKeyboardAction
 
     Call wxPropertyGrid::SetSortFunction() to set it.
 
-    Sort function should return a value greater than 0 if position of @a p1 is
-    after @a p2. So, for instance, when comparing property names, you can use
+    Sort function should return a value greater than 0 if position of p1 is
+    after p2. So, for instance, when comparing property names, you can use
     following implementation:
 
         @code
@@ -517,7 +514,7 @@ public:
         the next property.
 
         @code
-            propGrid->AddActionTrigger(wxPGKeyboardAction::NextProperty,
+            propGrid->AddActionTrigger(wxPG_ACTION_NEXT_PROPERTY,
                                        WXK_RETURN);
             propGrid->DedicateKey(WXK_RETURN);
         @endcode
@@ -525,12 +522,12 @@ public:
         @param action
             Which action to trigger. See @ref propgrid_keyboard_actions.
         @param keycode
-            Which key triggers the action.
+            Which keycode triggers the action.
         @param modifiers
-            Which key event modifiers, in addition to key code, are needed to
+            Which key event modifiers, in addition to keycode, are needed to
             trigger the action.
     */
-    void AddActionTrigger(wxPGKeyboardAction action, int keycode, int modifiers = 0);
+    void AddActionTrigger( int action, int keycode, int modifiers = 0 );
 
     /**
         Adds given property into selection. If ::wxPG_EX_MULTIPLE_SELECTION
@@ -600,9 +597,9 @@ public:
         Clears action triggers for given action.
 
         @param action
-            Which action to clear. @ref propgrid_keyboard_actions.
+            Which action to trigger. @ref propgrid_keyboard_actions.
     */
-    void ClearActionTriggers(wxPGKeyboardAction action);
+    void ClearActionTriggers( int action );
 
     /**
         Forces updating the value of property from the editor control.
@@ -611,7 +608,7 @@ public:
 
         @return Returns @true if anything was changed.
     */
-    virtual bool CommitChangesFromEditor(wxPGSelectPropertyFlags flags = wxPGSelectPropertyFlags::Null);
+    virtual bool CommitChangesFromEditor( wxUint32 flags = 0 );
 
     /**
         Two step creation. Whenever the control is created without any
@@ -627,7 +624,7 @@ public:
                 const wxString& name = wxPropertyGridNameStr );
 
     /**
-        Dedicates a specific key code to wxPropertyGrid. This means that such
+        Dedicates a specific keycode to wxPropertyGrid. This means that such
         key presses will not be redirected to editor controls.
 
         Using this function allows, for example, navigation between
@@ -641,7 +638,7 @@ public:
         enable.
 
         @remarks This functions deselects selected property, if any. Validation
-                failure option wxPGVFBFlags::StayInProperty is not respected, i.e.
+                failure option ::wxPG_VFB_STAY_IN_PROPERTY is not respected, i.e.
                 selection is cleared even if editor had invalid value.
     */
     bool EnableCategories( bool enable );
@@ -676,7 +673,7 @@ public:
                 already fairly large.
 
                 Note that you can also get calculated column widths by calling
-                GetState()->GetColumnWidth() immediately after this function
+                GetState->GetColumnWidth() immediately after this function
                 returns.
     */
     wxSize FitColumns();
@@ -766,7 +763,7 @@ public:
             Which choice of property to use (each choice may have
             different image).
     */
-    wxSize GetImageSize( wxPGProperty* property = nullptr, int item = -1 ) const;
+    wxSize GetImageSize( wxPGProperty* property = NULL, int item = -1 ) const;
 
     /**
         Returns last item which could be iterated using given flags.
@@ -851,9 +848,9 @@ public:
         Returns (visual) text representation of the unspecified
         property value.
 
-        @param flags For internal use only.
+        @param argFlags For internal use only.
     */
-    wxString GetUnspecifiedValueText(wxPGPropValFormatFlags flags = wxPGPropValFormatFlags::Null) const;
+    wxString GetUnspecifiedValueText( int argFlags = 0 ) const;
 
     /**
         Returns current vertical spacing.
@@ -897,8 +894,7 @@ public:
 
         Note that @a column must not be equal to 1, as the second column is
         always editable and can be made read-only only on cell-by-cell basis
-        using
-        @code wxPGProperty::ChangeFlag(wxPGPropertyFlags::ReadOnly, true) @endcode
+        using @code wxPGProperty::ChangeFlag(wxPG_PROP_READONLY, true) @endcode
 
         @see BeginLabelEdit(), EndLabelEdit()
     */
@@ -1061,7 +1057,7 @@ public:
 
         @param sortFunction
             The sorting function to be used. It should return a value greater
-            than 0 if position of @a p1 is after @a p2. So, for instance, when
+            than 0 if position of p1 is after p2. So, for instance, when
             comparing property names, you can use following implementation:
 
             @code
@@ -1128,7 +1124,7 @@ public:
 
     /**
         Must be called in wxPGEditor::CreateControls() if primary editor window
-        is wxTextCtrl, just before the text control is created.
+        is wxTextCtrl, just before textctrl is created.
         @param text
             Initial text value of created wxTextCtrl.
     */
@@ -1201,7 +1197,7 @@ public:
 
     /** Override to customize resetting of property validation failure status.
         @remarks
-        Property is guaranteed to have flag wxPGPropertyFlags::InvalidValue set.
+        Property is guaranteed to have flag ::wxPG_PROP_INVALID_VALUE set.
     */
     virtual void DoOnValidationFailureReset( wxPGProperty* property );
 
@@ -1352,7 +1348,7 @@ public:
     ~wxPropertyGridEvent();
 
     /**
-        Returns @true if you can veto the action that the event is signalling.
+        Returns @true if you can veto the action that the event is signaling.
     */
     bool CanVeto() const;
 
@@ -1432,13 +1428,13 @@ public:
 
     /**
         Sets custom failure message for this time only. Only applies if
-        wxPGVFBFlags::ShowMessage is set in validation failure flags.
+        ::wxPG_VFB_SHOW_MESSAGE is set in validation failure flags.
     */
     void SetValidationFailureMessage( const wxString& message );
 
     /**
         Call this from your event handler to veto action that the event is
-        signalling. You can only veto a shutdown if wxPropertyGridEvent::CanVeto()
+        signaling. You can only veto a shutdown if wxPropertyGridEvent::CanVeto()
         returns @true.
 
         @remarks Currently only @c wxEVT_PG_CHANGING supports vetoing.
@@ -1512,7 +1508,7 @@ public:
                        const wxString& propLabel,
                        const wxString& propName,
                        const wxString* propValue,
-                       wxPGChoices* pChoices = nullptr );
+                       wxPGChoices* pChoices = NULL );
 
     /**
         Pushes property to the back of parent array (ie it becomes bottommost
@@ -1534,16 +1530,10 @@ public:
 
         @param value
             Attribute value.
-
-        @param flags
-            Flags used when setting the attribute. Currently only
-            wxPGPropertyValuesFlags::Recurse is used here. This parameter is
-            only available since wxWidgets 3.3.0.
     */
     bool AddAttribute( const wxString& name,
                        const wxString& type,
-                       const wxString& value,
-                       wxPGPropertyValuesFlags flags = wxPGPropertyValuesFlags::DontRecurse );
+                       const wxString& value );
 
     /**
         Called once in AddChildren.

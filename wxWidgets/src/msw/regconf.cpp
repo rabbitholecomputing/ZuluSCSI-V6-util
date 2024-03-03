@@ -2,6 +2,7 @@
 // Name:        src/msw/regconf.cpp
 // Purpose:
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     27.04.98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -570,7 +571,7 @@ wxConfigBase::EntryType wxRegConfig::GetEntryType(const wxString& key) const
 template <typename T>
 bool wxRegConfig::DoReadValue(const wxString& key, T* pValue) const
 {
-  wxCHECK_MSG( pValue, false, wxT("wxRegConfig::Read(): null param") );
+    wxCHECK_MSG( pValue, false, wxT("wxRegConfig::Read(): NULL param") );
 
   wxConfigPathChanger path(this, key);
 

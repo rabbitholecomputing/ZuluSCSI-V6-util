@@ -42,7 +42,7 @@ public:
                 const wxString& name = wxASCII_STR(wxColourPickerWidgetNameStr));
 
 protected:
-    virtual void UpdateColour() override;
+    virtual void UpdateColour() wxOVERRIDE;
 
 private:
 };

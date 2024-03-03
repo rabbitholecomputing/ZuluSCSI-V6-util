@@ -2,6 +2,7 @@
 // Name:        src/osx/carbon/gdiobj.cpp
 // Purpose:     wxGDIObject class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -26,10 +27,10 @@ wxFORCE_LINK_THIS_MODULE(gdiobj)
 class wxStockGDIMac: public wxStockGDI, public wxModule
 {
 public:
-    virtual const wxFont* GetFont(Item item) override;
+    virtual const wxFont* GetFont(Item item) wxOVERRIDE;
 
-    virtual bool OnInit() override;
-    virtual void OnExit() override;
+    virtual bool OnInit() wxOVERRIDE;
+    virtual void OnExit() wxOVERRIDE;
 
 private:
     typedef wxStockGDI super;
@@ -52,7 +53,7 @@ void wxStockGDIMac::OnExit()
 const wxFont* wxStockGDIMac::GetFont(Item item)
 {
     wxFont* font = static_cast<wxFont*>(ms_stockObject[item]);
-    if (font == nullptr)
+    if (font == NULL)
     {
         switch (item)
         {

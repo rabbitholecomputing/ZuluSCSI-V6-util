@@ -2,6 +2,7 @@
 // Name:        src/common/stockitem.cpp
 // Purpose:     Stock buttons, menu and toolbar items labels
 // Author:      Vaclav Slavik
+// Modified by:
 // Created:     2004-08-15
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence

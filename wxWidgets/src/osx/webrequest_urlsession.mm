@@ -54,7 +54,7 @@
 
 - (wxWebRequestURLSession*)requestForTask:(NSURLSessionTask*)task
 {
-    wxWebRequestURLSession* request = nullptr;
+    wxWebRequestURLSession* request = NULL;
     NSValue* val = [m_requests objectForKey:task];
     if (val)
         request = static_cast<wxWebRequestURLSession*>(val.pointerValue);

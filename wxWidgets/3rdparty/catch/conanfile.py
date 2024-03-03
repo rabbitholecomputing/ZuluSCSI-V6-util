@@ -1,30 +1,19 @@
 #!/usr/bin/env python
-from conans import ConanFile, CMake
+from conans import ConanFile
 
 
 class CatchConan(ConanFile):
-    name = "Catch2"
+    name = "Catch"
+    version = "1.12.2"
     description = "A modern, C++-native, header-only, framework for unit-tests, TDD and BDD"
-    topics = ("conan", "catch2", "header-only", "unit-test", "tdd", "bdd")
-    url = "https://github.com/catchorg/Catch2"
-    homepage = url
-    license = "BSL-1.0"
-    exports = "LICENSE.txt"
-    exports_sources = ("single_include/*", "CMakeLists.txt", "CMake/*", "contrib/*", "src/*")
+    author = "philsquared"
     generators = "cmake"
+    exports_sources = "single_include/*"
+    url = "https://github.com/philsquared/Catch"
+    license = "Boost Software License - Version 1.0. http://www.boost.org/LICENSE_1_0.txt"
 
     def package(self):
-        cmake = CMake(self)
-        cmake.definitions["BUILD_TESTING"] = "OFF"
-        cmake.definitions["CATCH_INSTALL_DOCS"] = "OFF"
-        cmake.definitions["CATCH_INSTALL_HELPERS"] = "ON"
-        cmake.configure(build_folder='build')
-        cmake.install()
-
-        self.copy(pattern="LICENSE.txt", dst="licenses")
+        self.copy(pattern="catch.hpp", src="single_include", dst="include")
 
     def package_id(self):
-        self.info.header_only()
-
-    def package_info(self):
-        self.cpp_info.builddirs.append("lib/cmake/Catch2")
+            self.info.header_only()

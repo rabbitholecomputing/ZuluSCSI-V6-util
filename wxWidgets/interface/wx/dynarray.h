@@ -9,9 +9,6 @@
     The legacy dynamic array class, existing for compatibility only and @e NOT
     to be used in the new code.
 
-    @note Please see @ref overview_container for more information about legacy
-    container classes in wxWidgets.
-
     This section describes the so called @e "dynamic arrays". This is a C
     array-like type safe data structure i.e. the member access time is constant
     (and not linear according to the number of container elements as for linked
@@ -277,7 +274,7 @@ public:
     /**
         Constructs the container with the contents of the initializer_list @a list.
 
-        @since 3.2.3
+        @since 3.2.4
     */
     template<typename T>
     wxArray(std::initializer_list<T> list);

@@ -22,6 +22,6 @@ void wxMissingImplementation( const char fileName[], unsigned lineNumber,
     wxMissingImplementation( __FILE__, __LINE__, feature )
 
 #define wxMISSING_FUNCTION() \
-    wxMISSING_IMPLEMENTATION( __func__ )
+    wxMISSING_IMPLEMENTATION( __WXFUNCTION__ )
 
 #endif // _WX_QT_UTILS_H_

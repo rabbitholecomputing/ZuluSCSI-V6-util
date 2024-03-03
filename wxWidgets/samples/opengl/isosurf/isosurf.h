@@ -15,11 +15,14 @@
 #if defined(__WXMAC__)
 #   ifdef __DARWIN__
 #       include <OpenGL/gl.h>
+#       include <OpenGL/glu.h>
 #   else
 #       include <gl.h>
+#       include <glu.h>
 #   endif
 #else
 #   include <GL/gl.h>
+#   include <GL/glu.h>
 #endif
 
 // the maximum number of vertex in the loaded .dat file
@@ -30,10 +33,10 @@
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 
-    virtual void OnInitCmdLine(wxCmdLineParser& parser) override;
-    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) override;
+    virtual void OnInitCmdLine(wxCmdLineParser& parser) wxOVERRIDE;
+    virtual bool OnCmdLineParsed(wxCmdLineParser& parser) wxOVERRIDE;
 };
 
 
@@ -43,9 +46,7 @@ class TestGLCanvas : public wxGLCanvas
 public:
     TestGLCanvas(wxWindow *parent,
                  wxWindowID id = wxID_ANY,
-                 int *gl_attrib = nullptr);
-    TestGLCanvas(const TestGLCanvas&) = delete;
-    TestGLCanvas& operator=(const TestGLCanvas&) = delete;
+                 int *gl_attrib = NULL);
 
     virtual ~TestGLCanvas();
 
@@ -68,6 +69,7 @@ private:
     GLfloat m_xrot;
     GLfloat m_yrot;
 
+    wxDECLARE_NO_COPY_CLASS(TestGLCanvas);
     wxDECLARE_EVENT_TABLE();
 };
 

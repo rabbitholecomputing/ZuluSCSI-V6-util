@@ -2,6 +2,7 @@
 // Name:        src/unix/mimetype.cpp
 // Purpose:     classes and functions to manage MIME types
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     23.09.98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
@@ -260,7 +261,7 @@ void wxMimeTypesManagerImpl::LoadXDGGlobs(const wxString& filename)
 
        wxString icon = GetIconFromMimeType(mime);
 
-       AddToMimeData(mime, icon, nullptr, exts, wxEmptyString, true );
+       AddToMimeData(mime, icon, NULL, exts, wxEmptyString, true );
     }
 }
 
@@ -705,7 +706,7 @@ wxFileType * wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
     }
 
     if ( !DoAssociation(strType, strIcon, entry, sA_Exts, strDesc) )
-        return nullptr;
+        return NULL;
 
     return GetFileTypeFromMimeType(strType);
 }
@@ -854,11 +855,11 @@ int wxMimeTypesManagerImpl::AddToMimeData(const wxString& strType,
 wxFileType * wxMimeTypesManagerImpl::GetFileTypeFromExtension(const wxString& ext)
 {
     if (ext.empty() )
-        return nullptr;
+        return NULL;
 
     InitIfNeeded();
 
-    wxFileType* fileTypeFallback = nullptr;
+    wxFileType* fileTypeFallback = NULL;
     size_t count = m_aExtensions.GetCount();
     for ( size_t n = 0; n < count; n++ )
     {
@@ -905,7 +906,7 @@ wxFileType * wxMimeTypesManagerImpl::GetFileTypeFromMimeType(const wxString& mim
 {
     InitIfNeeded();
 
-    wxFileType * fileType = nullptr;
+    wxFileType * fileType = NULL;
     // mime types are not case-sensitive
     wxString mimetype(mimeType);
     mimetype.MakeLower();
@@ -1007,7 +1008,7 @@ void wxMimeTypesManagerImpl::AddMimeTypeInfo(const wxString& strMimeType,
         sTmp = sTmp.BeforeLast(wxT(' '));
     }
 
-    AddToMimeData(strMimeType, strIcon, nullptr, sExts, strDesc, true);
+    AddToMimeData(strMimeType, strIcon, NULL, sExts, strDesc, true);
 }
 
 size_t wxMimeTypesManagerImpl::EnumAllFileTypes(wxArrayString& mimetypes)

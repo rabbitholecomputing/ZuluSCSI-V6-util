@@ -19,7 +19,6 @@
 
 #include "wx/intl.h"
 #include "wx/uilocale.h"
-#include "wx/scopeguard.h"
 
 #include "wx/private/glibc.h"
 
@@ -32,10 +31,10 @@
 class IntlTestCase : public CppUnit::TestCase
 {
 public:
-    IntlTestCase() { m_locale=nullptr; }
+    IntlTestCase() { m_locale=NULL; }
 
-    virtual void setUp() override;
-    virtual void tearDown() override;
+    virtual void setUp() wxOVERRIDE;
+    virtual void tearDown() wxOVERRIDE;
 
 private:
     CPPUNIT_TEST_SUITE( IntlTestCase );
@@ -71,7 +70,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( IntlTestCase, "IntlTestCase" );
 void IntlTestCase::setUp()
 {
     // Check that French locale is supported, this test doesn't work without it
-    // and all the other function need to check whether m_locale is non-null
+    // and all the other function need to check whether m_locale is non-NULL
     // before continuing
     if ( !wxLocale::IsAvailable(wxLANGUAGE_FRENCH) )
         return;
@@ -93,7 +92,7 @@ void IntlTestCase::tearDown()
     if (m_locale)
     {
         delete m_locale;
-        m_locale = nullptr;
+        m_locale = NULL;
     }
 }
 
@@ -213,8 +212,6 @@ void IntlTestCase::DateTimeFmtFrench()
     // its middle, so test it piece-wise and hope it doesn't change too much.
     CHECK( fmtDT.StartsWith("%A %d %B %Y") );
     CHECK( fmtDT.EndsWith("%H:%M:%S") );
-
-    wxUnusedVar(FRENCH_DATE_TIME_FMT);
 #else
     // Some glic versions have " %Z" at the end of the locale and some don't.
     // The test is still useful if we just ignore this difference.
@@ -232,19 +229,18 @@ void IntlTestCase::DateTimeFmtFrench()
 
 void IntlTestCase::IsAvailable()
 {
-    const wxString origLocale(setlocale(LC_ALL, nullptr));
+    const wxString origLocale(setlocale(LC_ALL, NULL));
 
     // Calling IsAvailable() shouldn't change the locale.
     wxLocale::IsAvailable(wxLANGUAGE_ENGLISH);
 
-    CPPUNIT_ASSERT_EQUAL( origLocale, setlocale(LC_ALL, nullptr) );
+    CPPUNIT_ASSERT_EQUAL( origLocale, setlocale(LC_ALL, NULL) );
 }
 
 TEST_CASE("wxTranslations::AddCatalog", "[translations]")
 {
-    // We currently have translations for British English, French and Japanese
-    // in this test directory, check that loading those succeeds but loading
-    // others doesn't.
+    // We currently have translations for French and Japanese in this test
+    // directory, check that loading those succeeds but loading others doesn't.
     wxFileTranslationsLoader::AddCatalogLookupPathPrefix("./intl");
 
     const wxString domain("internat");
@@ -253,13 +249,12 @@ TEST_CASE("wxTranslations::AddCatalog", "[translations]")
 
     SECTION("All")
     {
-        auto available = trans.GetAvailableTranslations(domain);
-        REQUIRE( available.size() == 3 );
+        wxArrayString available = trans.GetAvailableTranslations(domain);
+        REQUIRE( available.size() == 2 );
 
         available.Sort();
-        CHECK( available[0] == "en_GB" );
-        CHECK( available[1] == "fr" );
-        CHECK( available[2] == "ja" );
+        CHECK( available[0] == "fr" );
+        CHECK( available[1] == "ja" );
     }
 
     SECTION("French")
@@ -290,59 +285,9 @@ TEST_CASE("wxTranslations::AddCatalog", "[translations]")
     }
 }
 
-TEST_CASE("wxTranslations::GetBestTranslation", "[translations]")
-{
-    wxFileTranslationsLoader::AddCatalogLookupPathPrefix("./intl");
-
-    const wxString domain("internat");
-
-    wxTranslations trans;
-    wxON_BLOCK_EXIT1( wxUnsetEnv, "WXLANGUAGE" );
-
-    SECTION("ChooseLanguage")
-    {
-        // Simple case.
-        wxSetEnv("WXLANGUAGE", "fr:en");
-        CHECK( trans.GetBestTranslation(domain) == "fr" );
-        CHECK( trans.GetBestAvailableTranslation(domain) == "fr" );
-
-        // Choose 2nd language _and_ its base form.
-        wxSetEnv("WXLANGUAGE", "cs:fr_CA:en");
-        CHECK( trans.GetBestTranslation(domain) == "fr" );
-        CHECK( trans.GetBestAvailableTranslation(domain) == "fr" );
-    }
-
-    SECTION("EnglishHandling")
-    {
-        // Check that existing en_GB file isn't used for msgid language.
-        wxSetEnv("WXLANGUAGE", "en_US");
-
-        CHECK( trans.GetBestTranslation(domain) == "en" );
-        // GetBestAvailableTranslation() will wrongly return "en_GB", don't test that.
-
-        wxSetEnv("WXLANGUAGE", "es:en");
-        CHECK( trans.GetBestTranslation(domain) == "en" );
-        // GetBestAvailableTranslation() will wrongly return "en_GB", don't test that.
-
-        // And that it is used when it should be
-        wxSetEnv("WXLANGUAGE", "en_GB");
-        CHECK( trans.GetBestTranslation(domain) == "en_GB" );
-        CHECK( trans.GetBestAvailableTranslation(domain) == "en_GB" );
-
-    }
-
-    SECTION("DontSkipMsgidLanguage")
-    {
-        // Check that msgid language will be used if it's the best match.
-        wxSetEnv("WXLANGUAGE", "cs:en:fr");
-        CHECK( trans.GetBestTranslation(domain) == "en" );
-
-        // ...But won't be used if there's a suitable translation file.
-        wxSetEnv("WXLANGUAGE", "fr:en:cs");
-        CHECK( trans.GetBestTranslation(domain) == "fr" );
-        CHECK( trans.GetBestAvailableTranslation(domain) == "fr" );
-    }
-}
+// The test may fail in ANSI builds because of unsupported encoding, but we
+// don't really care about this build anyhow, so just skip it there.
+#if wxUSE_UNICODE
 
 TEST_CASE("wxLocale::Default", "[locale]")
 {
@@ -354,6 +299,8 @@ TEST_CASE("wxLocale::Default", "[locale]")
 
     REQUIRE( loc.Init(langDef, wxLOCALE_DONT_LOAD_DEFAULT) );
 }
+
+#endif // wxUSE_UNICODE
 
 // Under MSW and macOS all the locales used below should be supported, but
 // under Linux some locales may be unavailable.
@@ -431,6 +378,8 @@ TEST_CASE("wxUILocale::CompareStrings", "[uilocale]")
 #endif
     }
 
+    // UTF-8 strings are not supported in ASCII build.
+#if wxUSE_UNICODE
     SECTION("German")
     {
         const wxUILocale l(wxLocaleIdent().Language("de").Region("DE"));
@@ -444,9 +393,9 @@ TEST_CASE("wxUILocale::CompareStrings", "[uilocale]")
         CHECK( l.CompareStrings(u8("ä"), "ae") == -1 );
 
 #if defined(__WINDOWS__) || defined(__WXOSX__)
-        // CompareStringsEx() was only implemented correctly in Wine 7.10.
-        wxVersionInfo wineVer;
-        if ( wxIsRunningUnderWine(&wineVer) && !wineVer.AtLeast(7, 10) )
+        // Unfortunately CompareStringsEx() doesn't seem to work correctly
+        // under Wine.
+        if ( wxIsRunningUnderWine() )
             return;
 
         CHECK( l.CompareStrings(u8("ß"), "ss", wxCompare_CaseInsensitive) == 0 );
@@ -455,8 +404,7 @@ TEST_CASE("wxUILocale::CompareStrings", "[uilocale]")
 
     SECTION("Swedish")
     {
-        wxVersionInfo wineVer;
-        if ( wxIsRunningUnderWine(&wineVer) && !wineVer.AtLeast(7, 10) )
+        if ( wxIsRunningUnderWine() )
             return;
 
         const wxUILocale l(wxUILocale::FromTag("sv"));
@@ -468,6 +416,7 @@ TEST_CASE("wxUILocale::CompareStrings", "[uilocale]")
         CHECK( l.CompareStrings(u8("ä"), "ae") == 1 );
         CHECK( l.CompareStrings(u8("ö"), "z" ) == 1 );
     }
+#endif // wxUSE_UNICODE
 }
 
 // Small helper for making the test below more concise.
@@ -513,7 +462,7 @@ static void CheckFindLanguage(const wxString& tag, const char* expected)
 
 TEST_CASE("wxUILocale::FindLanguageInfo", "[uilocale]")
 {
-    CheckFindLanguage("", nullptr);
+    CheckFindLanguage("", NULL);
     CheckFindLanguage("en", "en");
     CheckFindLanguage("en_US", "en_US");
     CheckFindLanguage("en_US.utf8", "en_US");
@@ -616,12 +565,12 @@ TEST_CASE("wxUILocale::ShowSystem", "[.]")
     WARN(GetLocaleDesc("After wxUILocale::UseDefault()"));
 
     wxString preferredLangsStr;
-    const auto preferredLangs = wxUILocale::GetPreferredUILanguages();
-    for (const auto& lang: preferredLangs)
+    const wxVector<wxString> preferredLangs = wxUILocale::GetPreferredUILanguages();
+    for (size_t n = 0; n < preferredLangs.size(); ++n)
     {
         if ( !preferredLangsStr.empty() )
             preferredLangsStr += ", ";
-        preferredLangsStr += lang;
+        preferredLangsStr += preferredLangs[n];
     }
     WARN("Preferred UI languages:\n" << preferredLangsStr);
 }

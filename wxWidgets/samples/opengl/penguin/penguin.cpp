@@ -21,6 +21,11 @@
 #endif
 
 #include "penguin.h"
+#ifdef __DARWIN__
+    #include <OpenGL/glu.h>
+#else
+    #include <GL/glu.h>
+#endif
 
 #include "../../sample.xpm"
 
@@ -35,7 +40,7 @@ bool MyApp::OnInit()
         return false;
 
     // Create the main frame window
-    MyFrame *frame = new MyFrame(nullptr, "wxWidgets Penguin Sample",
+    MyFrame *frame = new MyFrame(NULL, "wxWidgets Penguin Sample",
         wxDefaultPosition, wxDefaultSize);
 
 #if wxUSE_ZLIB
@@ -138,7 +143,7 @@ TestGLCanvas::TestGLCanvas(wxWindow *parent,
                            const wxSize& size,
                            long style,
                            const wxString& name)
-    : wxGLCanvas(parent, id, nullptr, pos, size,
+    : wxGLCanvas(parent, id, NULL, pos, size,
                  style | wxFULL_REPAINT_ON_RESIZE, name)
 {
     // Explicitly create a new rendering context instance for this canvas.
@@ -307,9 +312,7 @@ void TestGLCanvas::ResetProjectionMode()
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    double fH = tan(M_PI / 8);
-    double fW = fH * ClientSize.x / ClientSize.y;
-    glFrustum(-fW, fW, -fH, fH, 1.0, 100.0);
+    gluPerspective(45, double(ClientSize.x) / ClientSize.y, 1, 100);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }

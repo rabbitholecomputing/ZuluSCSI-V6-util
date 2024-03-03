@@ -39,12 +39,12 @@ bool wxRadioButton::Create( wxWindow *parent,
 
     if (HasFlag( wxRB_GROUP ))
     {
-        AddInCycle( nullptr );
+        AddInCycle( NULL );
     }
     else
     {
         // search backward for last group start
-        wxRadioButton *chief = nullptr;
+        wxRadioButton *chief = NULL;
         wxWindowList::compatibility_iterator node = parent->GetChildren().GetLast();
         while (node)
         {
@@ -80,7 +80,7 @@ void wxRadioButton::SetValue(bool val)
     if (val)
     {
         cycle = this->NextInCycle();
-        if (cycle != nullptr)
+        if (cycle != NULL)
         {
             while (cycle != this)
             {
@@ -113,7 +113,7 @@ bool wxRadioButton::OSXHandleClicked( double WXUNUSED(timestampsec) )
 
     wxRadioButton *cycle;
     cycle = this->NextInCycle();
-    if (cycle != nullptr)
+    if (cycle != NULL)
     {
         while (cycle != this)
         {
@@ -138,7 +138,7 @@ wxRadioButton *wxRadioButton::AddInCycle(wxRadioButton *cycle)
 {
     wxRadioButton *current;
 
-    if (cycle == nullptr)
+    if (cycle == NULL)
     {
         m_cycle = this;
     }
@@ -157,7 +157,7 @@ wxRadioButton *wxRadioButton::AddInCycle(wxRadioButton *cycle)
 
 void wxRadioButton::RemoveFromCycle()
 {
-    if ((m_cycle == nullptr) || (m_cycle == this))
+    if ((m_cycle == NULL) || (m_cycle == this))
         return;
 
     // Find the previous one and make it point to the next one

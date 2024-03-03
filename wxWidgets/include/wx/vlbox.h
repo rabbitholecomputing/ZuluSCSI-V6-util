@@ -2,6 +2,7 @@
 // Name:        wx/vlbox.h
 // Purpose:     wxVListBox is a virtual listbox with lines of variable height
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     31.05.03
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -76,7 +77,7 @@ public:
     size_t GetItemCount() const { return GetRowCount(); }
 
     // does this control use multiple selection?
-    bool HasMultipleSelection() const { return m_selStore != nullptr; }
+    bool HasMultipleSelection() const { return m_selStore != NULL; }
 
     // get the currently selected item or wxNOT_FOUND if there is no selection
     //
@@ -94,12 +95,6 @@ public:
     #ifdef __WXUNIVERSAL__
     bool IsCurrent() const { return wxVScrolledWindow::IsCurrent(); }
     #endif
-
-    // get current item
-    int GetCurrent() const { return m_current; }
-
-    // set current item
-    void SetCurrent(int current) { DoSetCurrent(current); }
 
     // is this item selected?
     bool IsSelected(size_t item) const;
@@ -199,7 +194,7 @@ public:
     void RefreshSelected();
 
 
-    virtual wxVisualAttributes GetDefaultAttributes() const override
+    virtual wxVisualAttributes GetDefaultAttributes() const wxOVERRIDE
     {
         return GetClassDefaultAttributes(GetWindowVariant());
     }
@@ -208,7 +203,7 @@ public:
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
 protected:
-    virtual wxBorder GetDefaultBorder() const override { return wxBORDER_THEME; }
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE { return wxBORDER_THEME; }
 
     // the derived class must implement this function to actually draw the item
     // with the given index on the provided DC
@@ -238,7 +233,7 @@ protected:
     // allows us to add borders to the items easily
     //
     // this function is not supposed to be overridden by the derived classes
-    virtual wxCoord OnGetRowHeight(size_t line) const override;
+    virtual wxCoord OnGetRowHeight(size_t line) const wxOVERRIDE;
 
 
     // event handlers
@@ -288,7 +283,7 @@ protected:
 private:
     // the current item or wxNOT_FOUND
     //
-    // if m_selStore == nullptr this is also the selected item, otherwise the
+    // if m_selStore == NULL this is also the selected item, otherwise the
     // selections are managed by m_selStore
     int m_current;
 
@@ -299,7 +294,7 @@ private:
     // always wxNOT_FOUND for single selection listboxes
     int m_anchor;
 
-    // the object managing our selected items if not nullptr
+    // the object managing our selected items if not NULL
     wxSelectionStore *m_selStore;
 
     // margins

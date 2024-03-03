@@ -27,7 +27,7 @@
 wxIMPLEMENT_DYNAMIC_CLASS(wxToolBarXmlHandler, wxXmlResourceHandler);
 
 wxToolBarXmlHandler::wxToolBarXmlHandler()
-: wxXmlResourceHandler(), m_isInside(false), m_toolbar(nullptr)
+: wxXmlResourceHandler(), m_isInside(false), m_toolbar(NULL)
 {
     XRC_ADD_STYLE(wxTB_FLAT);
     XRC_ADD_STYLE(wxTB_DOCKABLE);
@@ -55,7 +55,7 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
         if ( !m_toolbar )
         {
             ReportError("tool only allowed inside a wxToolBar");
-            return nullptr;
+            return NULL;
         }
 
         wxItemKind kind = wxITEM_NORMAL;
@@ -78,7 +78,7 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
 
 #if wxUSE_MENUS
         // check whether we have dropdown tag inside
-        wxMenu *menu = nullptr; // menu for drop down items
+        wxMenu *menu = NULL; // menu for drop down items
         wxXmlNode * const nodeDropdown = GetParamNode("dropdown");
         if ( nodeDropdown )
         {
@@ -99,7 +99,7 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
             wxXmlNode * const nodeMenu = nodeDropdown->GetChildren();
             if ( nodeMenu )
             {
-                wxObject *res = CreateResFromNode(nodeMenu, nullptr);
+                wxObject *res = CreateResFromNode(nodeMenu, NULL);
                 menu = wxDynamicCast(res, wxMenu);
                 if ( !menu )
                 {
@@ -157,7 +157,7 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
             tool->SetDropdownMenu(menu);
 #endif
 
-        return m_toolbar; // must return non-null
+        return m_toolbar; // must return non-NULL
     }
 
     else if (m_class == wxT("separator") || m_class == wxT("space"))
@@ -165,7 +165,7 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
         if ( !m_toolbar )
         {
             ReportError("separators only allowed inside wxToolBar");
-            return nullptr;
+            return NULL;
         }
 
         if ( m_class == wxT("separator") )
@@ -173,7 +173,7 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
         else
             m_toolbar->AddStretchableSpace();
 
-        return m_toolbar; // must return non-null
+        return m_toolbar; // must return non-NULL
     }
 
     else /*<object class="wxToolBar">*/
@@ -214,7 +214,7 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
         if (!children_node)
            children_node = GetParamNode(wxT("object_ref"));
 
-        if (children_node == nullptr) return toolbar;
+        if (children_node == NULL) return toolbar;
 
         m_isInside = true;
         m_toolbar = toolbar;
@@ -226,19 +226,19 @@ wxObject *wxToolBarXmlHandler::DoCreateResource()
             if ((n->GetType() == wxXML_ELEMENT_NODE) &&
                 (n->GetName() == wxT("object") || n->GetName() == wxT("object_ref")))
             {
-                wxObject *created = CreateResFromNode(n, toolbar, nullptr);
+                wxObject *created = CreateResFromNode(n, toolbar, NULL);
                 wxControl *control = wxDynamicCast(created, wxControl);
                 if (!IsOfClass(n, wxT("tool")) &&
                     !IsOfClass(n, wxT("separator")) &&
                     !IsOfClass(n, wxT("space")) &&
-                    control != nullptr)
+                    control != NULL)
                     toolbar->AddControl(control);
             }
             n = n->GetNext();
         }
 
         m_isInside = false;
-        m_toolbar = nullptr;
+        m_toolbar = NULL;
 
         if (m_parentAsWindow && !GetBool(wxT("dontattachtoframe")))
         {

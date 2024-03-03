@@ -61,7 +61,7 @@ class wxMFCApp : public T
 public:
     typedef T BaseApp;
 
-    BOOL InitInstance() override
+    BOOL InitInstance() wxOVERRIDE
     {
         if ( !BaseApp::InitInstance() )
             return FALSE;
@@ -78,10 +78,10 @@ public:
         return TRUE;
     }
 
-    int ExitInstance() override
+    int ExitInstance() wxOVERRIDE
     {
         delete BaseApp::m_pMainWnd;
-        BaseApp::m_pMainWnd = nullptr;
+        BaseApp::m_pMainWnd = NULL;
 
         if ( wxTheApp )
             wxTheApp->OnExit();
@@ -92,14 +92,8 @@ public:
     }
 
     // Override this to provide messages pre-processing for wxWidgets windows.
-    BOOL PreTranslateMessage(MSG *msg) override
+    BOOL PreTranslateMessage(MSG *msg) wxOVERRIDE
     {
-        // As reported in issue #23574, wxGUIEventLoop::PreProcessMessage()
-        // is always returning true, so try BaseApp::PreTranslateMessage()
-        // and hope it doesn't always report true
-        if (BaseApp::PreTranslateMessage(msg))
-            return TRUE;
-
         // Use the current event loop if there is one, or just fall back to the
         // standard one otherwise, but make sure we pre-process messages in any
         // case as otherwise many things would break (e.g. keyboard
@@ -109,10 +103,13 @@ public:
         wxGUIEventLoop evtLoopStd;
         if ( !evtLoop )
             evtLoop = &evtLoopStd;
-        return evtLoop->PreProcessMessage(msg);
+        if ( evtLoop->PreProcessMessage(msg) )
+            return TRUE;
+
+        return BaseApp::PreTranslateMessage(msg);
     }
 
-    BOOL OnIdle(LONG lCount) override
+    BOOL OnIdle(LONG lCount) wxOVERRIDE
     {
         BOOL moreIdle = BaseApp::OnIdle(lCount);
 
@@ -161,7 +158,7 @@ private:
         event.Skip();
 
         delete BaseApp::m_pMainWnd;
-        BaseApp::m_pMainWnd = nullptr;
+        BaseApp::m_pMainWnd = NULL;
     }
 };
 
@@ -174,14 +171,14 @@ typedef wxMFCApp<CWinApp> wxMFCWinApp;
 class wxAppWithMFC : public wxApp
 {
 public:
-    void ExitMainLoop() override
+    void ExitMainLoop() wxOVERRIDE
     {
         // There is no wxEventLoop to exit, tell MFC to stop pumping messages
         // instead.
         ::PostQuitMessage(0);
     }
 
-    void WakeUpIdle() override
+    void WakeUpIdle() wxOVERRIDE
     {
         // As above, we can't wake up any wx event loop, so try to wake up the
         // MFC one instead.

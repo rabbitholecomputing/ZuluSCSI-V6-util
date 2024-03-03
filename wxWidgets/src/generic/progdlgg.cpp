@@ -2,6 +2,7 @@
 // Name:        src/generic/progdlgg.cpp
 // Purpose:     wxGenericProgressDialog class
 // Author:      Karsten Ballueder
+// Modified by:
 // Created:     09.05.1999
 // Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
@@ -77,13 +78,13 @@ void wxGenericProgressDialog::Init()
     // create a valid window in this class).
 
     m_pdStyle = 0;
-    m_parentTop = nullptr;
+    m_parentTop = NULL;
 
-    m_gauge = nullptr;
-    m_msg = nullptr;
+    m_gauge = NULL;
+    m_msg = NULL;
     m_elapsed =
     m_estimated =
-    m_remaining = nullptr;
+    m_remaining = NULL;
 
     m_state = Uncancelable;
     m_maximum = 0;
@@ -95,7 +96,7 @@ void wxGenericProgressDialog::Init()
     m_skip = false;
 
     m_btnAbort =
-    m_btnSkip = nullptr;
+    m_btnSkip = NULL;
 
     m_display_estimated =
     m_last_timeupdate =
@@ -103,8 +104,8 @@ void wxGenericProgressDialog::Init()
 
     m_delay = 3;
 
-    m_winDisabler = nullptr;
-    m_tempEventLoop = nullptr;
+    m_winDisabler = NULL;
+    m_tempEventLoop = NULL;
 
     SetWindowStyle(wxDEFAULT_DIALOG_STYLE);
 }
@@ -214,22 +215,31 @@ bool wxGenericProgressDialog::Create( const wxString& title,
     // create the estimated/remaining/total time zones if requested
     m_elapsed =
     m_estimated =
-    m_remaining = nullptr;
+    m_remaining = NULL;
+
+    // also count how many labels we really have
+    size_t nTimeLabels = 0;
 
     wxSizer * const sizerLabels = new wxFlexGridSizer(2);
 
     if ( style & wxPD_ELAPSED_TIME )
     {
+        nTimeLabels++;
+
         m_elapsed = CreateLabel(GetElapsedLabel(), sizerLabels);
     }
 
     if ( style & wxPD_ESTIMATED_TIME )
     {
+        nTimeLabels++;
+
         m_estimated = CreateLabel(GetEstimatedLabel(), sizerLabels);
     }
 
     if ( style & wxPD_REMAINING_TIME )
     {
+        nTimeLabels++;
+
         m_remaining = CreateLabel(GetRemainingLabel(), sizerLabels);
     }
     sizerTop->Add(sizerLabels, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, LAYOUT_MARGIN);
@@ -373,7 +383,7 @@ wxGenericProgressDialog::CreateLabel(const wxString& text, wxSizer *sizer)
     wxStaticText *value = new wxStaticText(this, wxID_ANY, _("unknown"));
 
     // select placement most native or nice on target GUI
-#if defined(__WXMSW__) || defined(__WXMAC__) || defined(__WXGTK__)
+#if defined(__WXMSW__) || defined(__WXMAC__) || defined(__WXGTK20__)
     // value and time centered in one row
     sizer->Add(label, 1, wxALIGN_RIGHT | wxTOP | wxRIGHT, LAYOUT_MARGIN);
     sizer->Add(value, 1, wxALIGN_LEFT | wxTOP, LAYOUT_MARGIN);
@@ -714,7 +724,7 @@ wxGenericProgressDialog::~wxGenericProgressDialog()
             "wxGenericProgressDialog lifetime"
         );
 
-        wxEventLoopBase::SetActive(nullptr);
+        wxEventLoopBase::SetActive(NULL);
         delete m_tempEventLoop;
     }
 }
@@ -729,7 +739,7 @@ void wxGenericProgressDialog::DisableOtherWindows()
     {
         if ( m_parentTop )
             m_parentTop->Disable();
-        m_winDisabler = nullptr;
+        m_winDisabler = NULL;
     }
 }
 

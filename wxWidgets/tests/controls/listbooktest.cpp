@@ -25,16 +25,16 @@ class ListbookTestCase : public BookCtrlBaseTestCase, public CppUnit::TestCase
 public:
     ListbookTestCase() { }
 
-    virtual void setUp() override;
-    virtual void tearDown() override;
+    virtual void setUp() wxOVERRIDE;
+    virtual void tearDown() wxOVERRIDE;
 
 private:
-    virtual wxBookCtrlBase *GetBase() const override { return m_listbook; }
+    virtual wxBookCtrlBase *GetBase() const wxOVERRIDE { return m_listbook; }
 
-    virtual wxEventType GetChangedEvent() const override
+    virtual wxEventType GetChangedEvent() const wxOVERRIDE
     { return wxEVT_LISTBOOK_PAGE_CHANGED; }
 
-    virtual wxEventType GetChangingEvent() const override
+    virtual wxEventType GetChangingEvent() const wxOVERRIDE
     { return wxEVT_LISTBOOK_PAGE_CHANGING; }
 
     CPPUNIT_TEST_SUITE( ListbookTestCase );

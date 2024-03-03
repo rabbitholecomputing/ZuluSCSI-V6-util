@@ -2,6 +2,7 @@
 // Name:        src/common/overlaycmn.cpp
 // Purpose:     common wxOverlay code
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     2006-10-20
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -74,12 +75,6 @@ void wxOverlay::Reset()
     wxASSERT_MSG(m_inDrawing==false,wxT("cannot reset overlay during drawing"));
     m_impl->Reset();
 }
-
-void wxOverlay::SetOpacity(int alpha)
-{
-    m_impl->SetOpacity(alpha);
-}
-
 // ----------------------------------------------------------------------------
 
 wxOverlay::Impl::~Impl()
@@ -146,23 +141,19 @@ void wxDCOverlay::Clear()
 
 #include "wx/window.h"
 
-#if defined(__WXGTK__) && !defined(__WXGTK3__)
-#include "wx/gtk/dcclient.h"
-#endif
-
 namespace {
 class wxOverlayImpl: public wxOverlay::Impl
 {
 public:
     wxOverlayImpl();
     ~wxOverlayImpl();
-    virtual bool IsNative() const override;
-    virtual bool IsOk() override;
-    virtual void Init(wxDC* dc, int x, int y, int width, int height) override;
-    virtual void BeginDrawing(wxDC* dc) override;
-    virtual void EndDrawing(wxDC* dc) override;
-    virtual void Clear(wxDC* dc) override;
-    virtual void Reset() override;
+    virtual bool IsNative() const wxOVERRIDE;
+    virtual bool IsOk() wxOVERRIDE;
+    virtual void Init(wxDC* dc, int x, int y, int width, int height) wxOVERRIDE;
+    virtual void BeginDrawing(wxDC* dc) wxOVERRIDE;
+    virtual void EndDrawing(wxDC* dc) wxOVERRIDE;
+    virtual void Clear(wxDC* dc) wxOVERRIDE;
+    virtual void Reset() wxOVERRIDE;
 
     wxBitmap m_bmpSaved;
     int m_x;
@@ -175,7 +166,7 @@ public:
 
 wxOverlayImpl::wxOverlayImpl()
 {
-     m_window = nullptr ;
+     m_window = NULL ;
      m_x = m_y = m_width = m_height = 0 ;
 }
 
@@ -195,14 +186,6 @@ bool wxOverlayImpl::IsOk()
 
 void wxOverlayImpl::Init( wxDC* dc, int x , int y , int width , int height )
 {
-#if defined(__WXGTK__) && !defined(__WXGTK3__)
-    // Workaround! to include sub-windows in the final drawing (on the overlay)
-    // as drawing on a DC under wxGTK2 clips children by default.
-    const auto dcimpl = static_cast<wxWindowDCImpl *>(dc->GetImpl());
-    if ( dcimpl )
-        dcimpl->DontClipSubWindows();
-#endif
-
     if (m_bmpSaved.IsOk())
     {
         if (x != m_x || y != m_y || width != m_width || height != m_height)
@@ -253,9 +236,6 @@ void wxOverlayImpl::Clear(wxDC* dc)
 void wxOverlayImpl::Reset()
 {
     m_bmpSaved.UnRef();
-
-    if ( m_window )
-        m_window->Refresh();
 }
 
 void wxOverlayImpl::BeginDrawing(wxDC* dc)
@@ -281,7 +261,7 @@ wxOverlay::wxOverlay()
 {
     m_impl = Create();
 #if defined(wxHAS_GENERIC_OVERLAY) && defined(wxHAS_NATIVE_OVERLAY)
-    if (m_impl == nullptr)
+    if (m_impl == NULL)
         m_impl = new wxOverlayImpl;
 #endif
     m_inDrawing = false;

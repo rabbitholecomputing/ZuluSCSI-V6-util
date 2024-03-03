@@ -2,6 +2,7 @@
 // Name:        src/common/graphcmn.cpp
 // Purpose:     graphics context methods common to all platforms
 // Author:      Stefan Csomor
+// Modified by:
 // Created:
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -71,14 +72,18 @@ wxGraphicsObject::wxGraphicsObject( wxGraphicsRenderer* renderer )
     SetRefData( new wxGraphicsObjectRefData(renderer));
 }
 
+wxGraphicsObject::~wxGraphicsObject()
+{
+}
+
 bool wxGraphicsObject::IsNull() const
 {
-    return m_refData == nullptr;
+    return m_refData == NULL;
 }
 
 wxGraphicsRenderer* wxGraphicsObject::GetRenderer() const
 {
-    return ( IsNull() ? nullptr : GetGraphicsData()->GetRenderer() );
+    return ( IsNull() ? NULL : GetGraphicsData()->GetRenderer() );
 }
 
 wxGraphicsObjectRefData* wxGraphicsObject::GetGraphicsData() const
@@ -89,7 +94,7 @@ wxGraphicsObjectRefData* wxGraphicsObject::GetGraphicsData() const
 wxObjectRefData* wxGraphicsObject::CreateRefData() const
 {
     wxLogDebug(wxT("A Null Object cannot be changed"));
-    return nullptr;
+    return NULL;
 }
 
 wxObjectRefData* wxGraphicsObject::CloneRefData(const wxObjectRefData* data) const
@@ -436,9 +441,6 @@ void wxGraphicsPathData::AddRoundedRectangle( wxDouble x, wxDouble y, wxDouble w
         AddRectangle(x,y,w,h);
     else
     {
-        wxDouble maxR = std::min(w, h) / 2.0;
-        if ( radius > maxR ) radius = maxR;
-
         MoveToPoint(x+w, y+h/2);
         AddArc(x+w-radius, y+h-radius, radius, 0.0, M_PI/2.0, true);
         AddArc(x+radius, y+h-radius, radius, M_PI/2.0, M_PI, true);
@@ -1088,7 +1090,7 @@ wxGraphicsContext* wxGraphicsRenderer::CreateContextFromUnknownDC(const wxDC& dc
 #endif
 #endif
 
-    return nullptr;
+    return NULL;
 }
 
 #endif // wxUSE_GRAPHICS_CONTEXT

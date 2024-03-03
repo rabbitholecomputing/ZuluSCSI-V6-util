@@ -69,7 +69,7 @@ class PokeAdviseClient : public wxClient
 public:
     // provide a convenient helper taking care of connecting to the right
     // server/service/topic and returning the connection of the derived type
-    // (or nullptr if we failed to connect)
+    // (or NULL if we failed to connect)
     PokeAdviseConn *Connect()
     {
         wxString host = Bench::GetStringParameter();
@@ -126,7 +126,7 @@ private:
     wxDECLARE_NO_COPY_CLASS(PokeAdvisePersistentConnection);
 };
 
-PokeAdvisePersistentConnection *theConnection = nullptr;
+PokeAdvisePersistentConnection *theConnection = NULL;
 
 bool ConnInit()
 {
@@ -134,7 +134,7 @@ bool ConnInit()
     if ( !theConnection->Get() )
     {
         delete theConnection;
-        theConnection = nullptr;
+        theConnection = NULL;
         return false;
     }
 

@@ -77,7 +77,7 @@ protected:
     {
         wxTheApp->MainLoop();
 
-        return nullptr;
+        return NULL;
     }
 
     wxDECLARE_NO_COPY_CLASS(EventThread);
@@ -92,7 +92,7 @@ class IPCTestServer : public wxServer
 public:
     IPCTestServer()
     {
-        m_conn = nullptr;
+        m_conn = NULL;
 
 #if wxUSE_SOCKETS_FOR_IPC
         // we must call this from the main thread
@@ -122,7 +122,7 @@ public:
     virtual wxConnectionBase *OnAcceptConnection(const wxString& topic)
     {
         if ( topic != IPC_TEST_TOPIC )
-            return nullptr;
+            return NULL;
 
         m_conn = new IPCTestConnection;
         return m_conn;
@@ -135,7 +135,7 @@ private:
     wxDECLARE_NO_COPY_CLASS(IPCTestServer);
 };
 
-static IPCTestServer *gs_server = nullptr;
+static IPCTestServer *gs_server = NULL;
 
 // ----------------------------------------------------------------------------
 // test client class
@@ -146,7 +146,7 @@ class IPCTestClient : public wxClient
 public:
     IPCTestClient()
     {
-        m_conn = nullptr;
+        m_conn = NULL;
     }
 
     virtual ~IPCTestClient()
@@ -159,7 +159,7 @@ public:
     {
         m_conn = MakeConnection(host, service, topic);
 
-        return m_conn != nullptr;
+        return m_conn != NULL;
     }
 
     void Disconnect()
@@ -167,7 +167,7 @@ public:
         if ( m_conn )
         {
             delete m_conn;
-            m_conn = nullptr;
+            m_conn = NULL;
         }
     }
 
@@ -184,7 +184,7 @@ private:
     wxDECLARE_NO_COPY_CLASS(IPCTestClient);
 };
 
-static IPCTestClient *gs_client = nullptr;
+static IPCTestClient *gs_client = NULL;
 
 // ----------------------------------------------------------------------------
 // the test code itself
@@ -246,13 +246,13 @@ void IPCTestCase::Disconnect()
     {
         gs_client->Disconnect();
         delete gs_client;
-        gs_client = nullptr;
+        gs_client = NULL;
     }
 
     if ( gs_server )
     {
         delete gs_server;
-        gs_server = nullptr;
+        gs_server = NULL;
     }
 }
 

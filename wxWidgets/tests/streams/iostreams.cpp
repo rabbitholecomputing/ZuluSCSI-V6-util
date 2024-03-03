@@ -26,7 +26,7 @@ class IOStreamsTestCase : public CppUnit::TestCase
 public:
     IOStreamsTestCase() { }
 
-    virtual void tearDown() override
+    virtual void tearDown() wxOVERRIDE
     {
         if ( !m_fnTemp.empty() )
         {

@@ -33,15 +33,15 @@ public:
     }
 
     virtual void SetBackgroundColour(const wxColour& col,
-                                     const wxColour& colEnd) override;
-    virtual void SetCustomIcon(const wxBitmapBundle& icon) override;
-    virtual void SetStandardIcon(int icon) override;
+                                     const wxColour& colEnd) wxOVERRIDE;
+    virtual void SetCustomIcon(const wxBitmapBundle& icon) wxOVERRIDE;
+    virtual void SetStandardIcon(int icon) wxOVERRIDE;
     virtual void SetTimeout(unsigned milliseconds,
-                            unsigned millisecondsDelay = 0) override;
-    virtual void SetTipKind(wxTipKind tipKind) override;
-    virtual void SetTitleFont(const wxFont& font) override;
+                            unsigned millisecondsDelay = 0) wxOVERRIDE;
+    virtual void SetTipKind(wxTipKind tipKind) wxOVERRIDE;
+    virtual void SetTitleFont(const wxFont& font) wxOVERRIDE;
 
-    virtual void ShowFor(wxWindow* win, const wxRect* rect = nullptr) override;
+    virtual void ShowFor(wxWindow* win, const wxRect* rect = NULL) wxOVERRIDE;
 
 protected:
     wxString m_title,

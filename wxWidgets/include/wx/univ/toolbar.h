@@ -2,6 +2,7 @@
 // Name:        wx/univ/toolbar.h
 // Purpose:     wxToolBar declaration
 // Author:      Robert Roebling
+// Modified by:
 // Created:     10.09.00
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
@@ -55,23 +56,23 @@ public:
 
     virtual ~wxToolBar();
 
-    virtual bool Realize() override;
+    virtual bool Realize() wxOVERRIDE;
 
-    virtual void SetWindowStyleFlag( long style ) override;
+    virtual void SetWindowStyleFlag( long style ) wxOVERRIDE;
 
-    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const override;
+    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const wxOVERRIDE;
 
-    virtual void SetToolShortHelp(int id, const wxString& helpString) override;
+    virtual void SetToolShortHelp(int id, const wxString& helpString) wxOVERRIDE;
 
-    virtual void SetMargins(int x, int y) override;
+    virtual void SetMargins(int x, int y) wxOVERRIDE;
     void SetMargins(const wxSize& size)
         { SetMargins((int) size.x, (int) size.y); }
 
     virtual bool PerformAction(const wxControlAction& action,
                                long numArg = -1,
-                               const wxString& strArg = wxEmptyString) override;
+                               const wxString& strArg = wxEmptyString) wxOVERRIDE;
     static wxInputHandler *GetStdInputHandler(wxInputHandler *handlerDef);
-    virtual wxInputHandler *DoGetStdInputHandler(wxInputHandler *handlerDef) override
+    virtual wxInputHandler *DoGetStdInputHandler(wxInputHandler *handlerDef) wxOVERRIDE
     {
         return GetStdInputHandler(handlerDef);
     }
@@ -81,12 +82,12 @@ protected:
     void Init();
 
     // implement base class pure virtuals
-    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool) override;
-    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool) override;
+    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
+    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
 
-    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable) override;
-    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle) override;
-    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle) override;
+    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable) wxOVERRIDE;
+    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
+    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
 
     virtual wxToolBarToolBase *CreateTool(int id,
                                           const wxString& label,
@@ -95,12 +96,12 @@ protected:
                                           wxItemKind kind,
                                           wxObject *clientData,
                                           const wxString& shortHelp,
-                                          const wxString& longHelp) override;
+                                          const wxString& longHelp) wxOVERRIDE;
     virtual wxToolBarToolBase *CreateTool(wxControl *control,
-                                          const wxString& label) override;
+                                          const wxString& label) wxOVERRIDE;
 
-    virtual wxSize DoGetBestClientSize() const override;
-    virtual void DoDraw(wxControlRenderer *renderer) override;
+    virtual wxSize DoGetBestClientSize() const wxOVERRIDE;
+    virtual void DoDraw(wxControlRenderer *renderer) wxOVERRIDE;
 
     // get the bounding rect for the given tool
     wxRect GetToolRect(wxToolBarToolBase *tool) const;

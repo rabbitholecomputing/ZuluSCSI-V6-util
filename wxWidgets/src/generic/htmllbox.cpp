@@ -2,6 +2,7 @@
 // Name:        src/generic/htmllbox.cpp
 // Purpose:     implementation of wxHtmlListBox
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     31.05.03
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -70,7 +71,7 @@ public:
         for ( size_t n = 0; n < SIZE; n++ )
         {
             m_items[n] = (size_t)-1;
-            m_cells[n] = nullptr;
+            m_cells[n] = NULL;
         }
 
         m_next = 0;
@@ -93,7 +94,7 @@ public:
         }
     }
 
-    // return the cached cell for this index or nullptr if none
+    // return the cached cell for this index or NULL if none
     wxHtmlCell *Get(size_t item) const
     {
         for ( size_t n = 0; n < SIZE; n++ )
@@ -102,11 +103,11 @@ public:
                 return m_cells[n];
         }
 
-        return nullptr;
+        return NULL;
     }
 
     // returns true if we already have this item cached
-    bool Has(size_t item) const { return Get(item) != nullptr; }
+    bool Has(size_t item) const { return Get(item) != NULL; }
 
     // ensure that the item is cached
     void Store(size_t item, wxHtmlCell *cell)
@@ -139,10 +140,10 @@ private:
     // the index of the LRU (oldest) cell
     size_t m_next;
 
-    // the parsed representation of the cached item or nullptr
+    // the parsed representation of the cached item or NULL
     wxHtmlCell *m_cells[SIZE];
 
-    // the index of the currently cached item (only valid if m_cells != nullptr)
+    // the index of the currently cached item (only valid if m_cells != NULL)
     size_t m_items[SIZE];
 };
 
@@ -159,7 +160,7 @@ public:
         : wxDefaultHtmlRenderingStyle(&hlbox), m_hlbox(hlbox)
     { }
 
-    virtual wxColour GetSelectedTextColour(const wxColour& colFg) override
+    virtual wxColour GetSelectedTextColour(const wxColour& colFg) wxOVERRIDE
     {
         // by default wxHtmlListBox doesn't implement GetSelectedTextColour()
         // and returns wxNullColour from it, so use the default HTML colour for
@@ -173,7 +174,7 @@ public:
         return col;
     }
 
-    virtual wxColour GetSelectedTextBgColour(const wxColour& colBg) override
+    virtual wxColour GetSelectedTextBgColour(const wxColour& colBg) wxOVERRIDE
     {
         wxColour col = m_hlbox.GetSelectedTextBgColour(colBg);
         if ( !col.IsOk() )
@@ -233,7 +234,7 @@ wxHtmlListBox::wxHtmlListBox(wxWindow *parent,
 
 void wxHtmlListBox::Init()
 {
-    m_htmlParser = nullptr;
+    m_htmlParser = NULL;
     m_htmlRendStyle = new wxHtmlListBoxStyle(*this);
     m_cache = new wxHtmlListBoxCache;
 }
@@ -302,13 +303,17 @@ wxHtmlCell* wxHtmlListBox::CreateCellForItem(size_t n) const
         self->m_htmlParser = new wxHtmlWinParser(self);
         m_htmlParser->SetDC(new wxClientDC(self));
         m_htmlParser->SetFS(&self->m_filesystem);
+#if !wxUSE_UNICODE
+        if (GetFont().IsOk())
+            m_htmlParser->SetInputEncoding(GetFont().GetEncoding());
+#endif
         // use system's default GUI font by default:
         m_htmlParser->SetStandardFonts();
     }
 
     wxHtmlContainerCell *cell = (wxHtmlContainerCell *)m_htmlParser->
             Parse(OnGetItemMarkup(n));
-    wxCHECK_MSG( cell, nullptr, wxT("wxHtmlParser::Parse() returned nullptr?") );
+    wxCHECK_MSG( cell, NULL, wxT("wxHtmlParser::Parse() returned NULL?") );
 
     // set the cell's ID to item's index so that CellCoordsToPhysical()
     // can quickly find the item:
@@ -693,7 +698,7 @@ int wxSimpleHtmlListBox::DoInsertItems(const wxArrayStringsAdapter& items,
     const unsigned int count = items.GetCount();
 
     m_items.Insert(wxEmptyString, pos, count);
-    m_HTMLclientData.Insert(nullptr, pos, count);
+    m_HTMLclientData.Insert(NULL, pos, count);
 
     for ( unsigned int i = 0; i < count; ++i, ++pos )
     {

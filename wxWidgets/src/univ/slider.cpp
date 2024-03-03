@@ -2,6 +2,7 @@
 // Name:        src/univ/slider.cpp
 // Purpose:     implementation of the universal version of wxSlider
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     09.02.01
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -854,7 +855,7 @@ wxScrollThumb::Shaft wxSlider::HitTest(const wxPoint& pt) const
 {
     wxRect rectShaft = GetShaftRect();
     wxRect rectThumb;
-    CalcThumbRect(&rectShaft, &rectThumb, nullptr);
+    CalcThumbRect(&rectShaft, &rectThumb, NULL);
 
     // check for possible shaft or thumb hit
     if (!rectShaft.Contains(pt) && !rectThumb.Contains(pt))
@@ -898,7 +899,7 @@ wxScrollThumb::Shaft wxSlider::HitTest(const wxPoint& pt) const
 wxCoord wxSlider::ThumbPosToPixel() const
 {
     wxRect rectThumb;
-    CalcThumbRect(nullptr, &rectThumb, nullptr);
+    CalcThumbRect(NULL, &rectThumb, NULL);
 
     return IsVert() ? rectThumb.y : rectThumb.x;
 }

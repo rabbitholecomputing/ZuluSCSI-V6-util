@@ -2,6 +2,7 @@
 // Name:        wx/osx/bmpbuttn.h
 // Purpose:     wxBitmapButton class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -41,7 +42,7 @@ public:
                            const wxString& name = wxString());
 protected:
 
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
     wxDECLARE_DYNAMIC_CLASS(wxBitmapButton);
 };

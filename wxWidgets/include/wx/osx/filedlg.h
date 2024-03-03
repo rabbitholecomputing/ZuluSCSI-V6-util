@@ -2,6 +2,7 @@
 // Name:        wx/osx/filedlg.h
 // Purpose:     wxFileDialog class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -59,17 +60,17 @@ public:
     ~wxFileDialog();
 #endif
 
-    virtual void GetPaths(wxArrayString& paths) const override { paths = m_paths; }
-    virtual void GetFilenames(wxArrayString& files) const override { files = m_fileNames ; }
+    virtual void GetPaths(wxArrayString& paths) const wxOVERRIDE { paths = m_paths; }
+    virtual void GetFilenames(wxArrayString& files) const wxOVERRIDE { files = m_fileNames ; }
 
-    virtual int ShowModal() override;
+    virtual int ShowModal() wxOVERRIDE;
 
 #if wxOSX_USE_COCOA
-    virtual void ShowWindowModal() override;
-    virtual void ModalFinishedCallback(void* panel, int resultCode) override;
+    virtual void ShowWindowModal() wxOVERRIDE;
+    virtual void ModalFinishedCallback(void* panel, int resultCode) wxOVERRIDE;
 #endif
 
-    virtual bool SupportsExtraControl() const override;
+    virtual bool SupportsExtraControl() const wxOVERRIDE;
 
     // implementation only
 
@@ -77,7 +78,7 @@ protected:
     // not supported for file dialog, RR
     virtual void DoSetSize(int WXUNUSED(x), int WXUNUSED(y),
                            int WXUNUSED(width), int WXUNUSED(height),
-                           int WXUNUSED(sizeFlags) = wxSIZE_AUTO) override {}
+                           int WXUNUSED(sizeFlags) = wxSIZE_AUTO) wxOVERRIDE {}
 
     void SetupExtraControls(WXWindow nativeWindow);
 

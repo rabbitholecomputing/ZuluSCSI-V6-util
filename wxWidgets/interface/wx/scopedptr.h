@@ -8,11 +8,6 @@
 /**
     @class wxScopedPtr
 
-    Deprecated equivalent of standard @c unique_ptr template class.
-
-    Please don't use this class, and especially its macro-based versions, in
-    the new code.
-
     This is a simple scoped smart pointer implementation that is similar to
     the Boost smart pointers (see http://www.boost.org) but rewritten
     to use macros instead.
@@ -101,7 +96,7 @@ public:
 
         On compilers that support it, this uses the explicit keyword.
     */
-    explicit wxScopedPtr(type* T = nullptr);
+    explicit wxScopedPtr(type* T = NULL);
 
     /**
         Destructor frees the pointer help by this object if it is not @NULL.
@@ -147,7 +142,7 @@ public:
         This function does check to make sure that the pointer you are assigning
         is not the same pointer that is already stored.
     */
-    reset(T* p  = nullptr);
+    reset(T* p  = NULL);
 
     /**
         Swap the pointer inside the smart pointer with @a other. The pointer being
@@ -214,7 +209,7 @@ public:
         @param ptr
             Pointer allocated with @c new or @NULL.
     */
-    wxScopedPtr(T* ptr = nullptr);
+    wxScopedPtr(T* ptr = NULL);
 
     /**
         Destructor deletes the pointer.
@@ -262,7 +257,7 @@ public:
         Reset pointer to the value of @a ptr.
         The previous pointer will be deleted.
     */
-    void reset(T* ptr = nullptr);
+    void reset(T* ptr = NULL);
 
     /**
         Swaps pointers.

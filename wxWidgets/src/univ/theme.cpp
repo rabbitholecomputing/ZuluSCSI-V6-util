@@ -2,6 +2,7 @@
 // Name:        src/univ/theme.cpp
 // Purpose:     implementation of wxTheme
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     06.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -34,8 +35,8 @@
 // implementation
 // ============================================================================
 
-wxThemeInfo *wxTheme::ms_allThemes = nullptr;
-wxTheme *wxTheme::ms_theme = nullptr;
+wxThemeInfo *wxTheme::ms_allThemes = NULL;
+wxTheme *wxTheme::ms_theme = NULL;
 
 // ----------------------------------------------------------------------------
 // "dynamic" theme creation
@@ -65,7 +66,7 @@ wxThemeInfo::wxThemeInfo(Constructor c,
         info = info->next;
     }
 
-    return nullptr;
+    return NULL;
 }
 
 // ----------------------------------------------------------------------------
@@ -151,7 +152,7 @@ wxTheme::~wxTheme()
 wxDelegateTheme::wxDelegateTheme(const wxString& theme)
 {
     m_themeName = theme;
-    m_theme = nullptr;
+    m_theme = NULL;
 }
 
 wxDelegateTheme::~wxDelegateTheme()
@@ -163,13 +164,13 @@ bool wxDelegateTheme::GetOrCreateTheme()
 {
     if ( !m_theme )
         m_theme = wxTheme::Create(m_themeName);
-    return m_theme != nullptr;
+    return m_theme != NULL;
 }
 
 wxRenderer *wxDelegateTheme::GetRenderer()
 {
     if ( !GetOrCreateTheme() )
-        return nullptr;
+        return NULL;
 
     return m_theme->GetRenderer();
 }
@@ -177,7 +178,7 @@ wxRenderer *wxDelegateTheme::GetRenderer()
 wxArtProvider *wxDelegateTheme::GetArtProvider()
 {
     if ( !GetOrCreateTheme() )
-        return nullptr;
+        return NULL;
 
     return m_theme->GetArtProvider();
 }
@@ -186,7 +187,7 @@ wxInputHandler *wxDelegateTheme::GetInputHandler(const wxString& control,
                                                  wxInputConsumer *consumer)
 {
     if ( !GetOrCreateTheme() )
-        return nullptr;
+        return NULL;
 
     return m_theme->GetInputHandler(control, consumer);
 }
@@ -194,7 +195,7 @@ wxInputHandler *wxDelegateTheme::GetInputHandler(const wxString& control,
 wxColourScheme *wxDelegateTheme::GetColourScheme()
 {
     if ( !GetOrCreateTheme() )
-        return nullptr;
+        return NULL;
 
     return m_theme->GetColourScheme();
 }

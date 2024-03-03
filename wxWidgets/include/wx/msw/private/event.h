@@ -38,7 +38,7 @@ public:
     // the same semantics.
     bool Create(Kind kind = AutomaticReset,
                 InitialState initialState = Nonsignaled,
-                const wxChar* name = nullptr);
+                const wxChar* name = NULL);
     bool Set();
     bool Reset();
 
@@ -61,7 +61,7 @@ wxWinAPI::Event::Create(wxWinAPI::Event::Kind kind,
 {
     wxCHECK_MSG( !IsOk(), false, wxS("Event can't be created twice") );
 
-    WXHANDLE handle = ::CreateEvent(nullptr,
+    WXHANDLE handle = ::CreateEvent(NULL,
                                     kind == ManualReset,
                                     initialState == Signaled,
                                     name);

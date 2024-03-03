@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # This script is a slightly modified version of the original found at
 #
@@ -25,9 +25,6 @@ if len(sys.argv) < 2:
 
 r = re.compile("^([a-zA-Z._][a-zA-Z._0-9]*)[.][pP][nN][gG]$")
 
-# Automatically replace some symbols in the filenames.
-sanitize = str.maketrans('-@', '__')
-
 with_size = 0
 size_suffix = ''
 for path in sys.argv[1:]:
@@ -35,12 +32,12 @@ for path in sys.argv[1:]:
             with_size = 1
             continue
 
-        filename = os.path.basename(path).translate(sanitize)
+        filename = os.path.basename(path).replace('-','_')
         m = r.match(filename)
 
         # Allow only filenames that make sense as C variable names
         if not(m):
-                print("Skipped file (unsuitable filename): " + filename, file=sys.stderr)
+                print("Skipped file (unsuitable filename): " + filename)
                 continue
 
         # Read PNG file as character array
@@ -53,7 +50,7 @@ for path in sys.argv[1:]:
         # Each PNG file starts with a 8 byte signature that should be followed
         # by IHDR chunk which is always 13 bytes in length so the first 16
         # bytes are fixed (or at least we expect them to be).
-        if bytes[0:16].tobytes() != b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR':
+        if bytes[0:16].tostring() != b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR':
                 print('"%s" doesn\'t seem to be a valid PNG file.' % filename)
                 continue
 

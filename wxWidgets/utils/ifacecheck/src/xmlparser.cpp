@@ -79,6 +79,7 @@ void wxType::SetTypeFromString(const wxString& t)
     m_strType.Replace(" ,", ",");
 
     // ADHOC-FIX
+    m_strType.Replace("_wxArraywxArrayStringBase", "wxString");
     m_strType.Replace("ExitCode", "void*");     // used in wxThread stuff
 
     m_strType = m_strType.Strip(wxString::both);
@@ -160,7 +161,7 @@ void wxArgumentType::SetDefaultValue(const wxString& defval, const wxString& def
     // Note: we adjust the aesthetic form of the m_strDefaultValue string for the "modify mode"
     //       of ifacecheck: we may need to write it out in an interface header
 
-    wxString *p = nullptr;
+    wxString *p = NULL;
     for (int i=0; i<2; i++)     // to avoid copying&pasting the code!
     {
         if (i == 0) p = &m_strDefaultValue;
@@ -489,8 +490,8 @@ wxString wxClass::GetNameWithoutTemplate() const
 
 bool wxClass::IsValidCtorForThisClass(const wxMethod& m) const
 {
-    // remember that e.g. the ctor for wxScopedCharBuffer<wchar_t> is
-    // named wxScopedCharBuffer, without the <...> part!
+    // remember that e.g. the ctor for wxWritableCharTypeBuffer<wchar_t> is
+    // named wxWritableCharTypeBuffer, without the <...> part!
 
     if (m.IsCtor() && m.GetName() == GetNameWithoutTemplate())
         return true;
@@ -544,7 +545,7 @@ const wxMethod* wxClass::FindMethod(const wxMethod& m) const
     for (unsigned int i=0; i<m_methods.GetCount(); i++)
         if (m_methods[i] == m)
             return &m_methods[i];
-    return nullptr;
+    return NULL;
 }
 
 const wxMethod* wxClass::RecursiveUpwardFindMethod(const wxMethod& m,
@@ -566,7 +567,7 @@ const wxMethod* wxClass::RecursiveUpwardFindMethod(const wxMethod& m,
             if (!parent) {
                 wxLogError("Could not find parent '%s' of class '%s'...",
                          m_parents[i], GetName());
-                return nullptr;
+                return NULL;
             }
 
             const wxMethod *parentMethod = parent->RecursiveUpwardFindMethod(m, allclasses);
@@ -576,7 +577,7 @@ const wxMethod* wxClass::RecursiveUpwardFindMethod(const wxMethod& m,
     }
 
     // could not find anything even in parent classes...
-    return nullptr;
+    return NULL;
 }
 
 wxMethodPtrArray wxClass::FindMethodsNamed(const wxString& name) const
@@ -1372,7 +1373,7 @@ static bool HasTextNodeContaining(const wxXmlNode *parent, const wxString& name)
 static const wxXmlNode* FindNodeNamed(const wxXmlNode* parent, const wxString& name)
 {
     if (!parent)
-        return nullptr;
+        return NULL;
 
     const wxXmlNode *p = parent->GetChildren();
     while (p)
@@ -1388,7 +1389,7 @@ static const wxXmlNode* FindNodeNamed(const wxXmlNode* parent, const wxString& n
         p = p->GetNext();
     }
 
-    return nullptr;
+    return NULL;
 }
 
 int GetAvailabilityFor(const wxXmlNode *node)

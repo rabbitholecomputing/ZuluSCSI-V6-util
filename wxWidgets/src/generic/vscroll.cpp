@@ -45,7 +45,7 @@ public:
         m_scrollHelper = scrollHelper;
     }
 
-    virtual bool ProcessEvent(wxEvent& event) override;
+    virtual bool ProcessEvent(wxEvent& event) wxOVERRIDE;
 
 private:
     wxVarScrollHelperBase *m_scrollHelper;
@@ -136,7 +136,7 @@ bool wxVarScrollHelperEvtHandler::ProcessEvent(wxEvent& event)
     }
 #if wxUSE_MOUSEWHEEL
     // Use GTK's own scroll wheel handling in GtkScrolledWindow
-#ifndef __WXGTK__
+#ifndef __WXGTK20__
     else if ( evType == wxEVT_MOUSEWHEEL )
     {
         m_scrollHelper->HandleOnMouseWheel((wxMouseEvent &)event);
@@ -192,7 +192,7 @@ wxVarScrollHelperBase::wxVarScrollHelperBase(wxWindow *win)
     m_unitFirst = 0;
 
     m_physicalScrolling = true;
-    m_handler = nullptr;
+    m_handler = NULL;
 
     // by default, the associated window is also the target window
     DoSetTargetWindow(win);
@@ -332,7 +332,7 @@ size_t wxVarScrollHelperBase::GetNewScrollPosition(wxScrollWinEvent& event) cons
     }
     else if ( evtType == wxEVT_SCROLLWIN_BOTTOM )
     {
-        return m_unitMax - 1;
+        return m_unitMax;
     }
     else if ( evtType == wxEVT_SCROLLWIN_LINEUP )
     {
@@ -340,7 +340,7 @@ size_t wxVarScrollHelperBase::GetNewScrollPosition(wxScrollWinEvent& event) cons
     }
     else if ( evtType == wxEVT_SCROLLWIN_LINEDOWN )
     {
-        return wxMin(m_unitFirst + 1, m_unitMax - 1);
+        return m_unitFirst + 1;
     }
     else if ( evtType == wxEVT_SCROLLWIN_PAGEUP )
     {
@@ -352,9 +352,9 @@ size_t wxVarScrollHelperBase::GetNewScrollPosition(wxScrollWinEvent& event) cons
     {
         // And page down should do at least as much as line down.
         if ( GetVisibleEnd() )
-            return wxMax(GetVisibleEnd() - 1, wxMin(m_unitFirst + 1, m_unitMax - 1));
+            return wxMax(GetVisibleEnd() - 1, m_unitFirst + 1);
         else
-            return wxMax(GetVisibleEnd(), wxMin(m_unitFirst + 1, m_unitMax - 1));
+            return wxMax(GetVisibleEnd(), m_unitFirst + 1);
     }
     else if ( evtType == wxEVT_SCROLLWIN_THUMBRELEASE )
     {
@@ -427,7 +427,7 @@ void wxVarScrollHelperBase::DeleteEvtHandler()
         //else: something is very wrong, so better [maybe] leak memory than
         //      risk a crash because of double deletion
 
-        m_handler = nullptr;
+        m_handler = NULL;
     }
 }
 
@@ -435,7 +435,7 @@ void wxVarScrollHelperBase::DoSetTargetWindow(wxWindow *target)
 {
     m_targetWindow = target;
 #ifdef __WXMAC__
-    target->MacSetClipChildren() ;
+    target->MacSetClipChildren( true ) ;
 #endif
 
     // install the event handler which will intercept the events we're
@@ -457,7 +457,7 @@ void wxVarScrollHelperBase::DoSetTargetWindow(wxWindow *target)
 
 void wxVarScrollHelperBase::SetTargetWindow(wxWindow *target)
 {
-    wxCHECK_RET( target, wxT("target window must not be null") );
+    wxCHECK_RET( target, wxT("target window must not be NULL") );
 
     if ( target == m_targetWindow )
         return;
@@ -995,3 +995,61 @@ bool wxVarHVScrollHelper::IsVisible(size_t row, size_t column) const
 wxIMPLEMENT_ABSTRACT_CLASS(wxVScrolledWindow, wxPanel);
 wxIMPLEMENT_ABSTRACT_CLASS(wxHScrolledWindow, wxPanel);
 wxIMPLEMENT_ABSTRACT_CLASS(wxHVScrolledWindow, wxPanel);
+
+
+#if WXWIN_COMPATIBILITY_2_8
+
+// ===========================================================================
+// wxVarVScrollLegacyAdaptor
+// ===========================================================================
+
+size_t wxVarVScrollLegacyAdaptor::GetFirstVisibleLine() const
+{ return GetVisibleRowsBegin(); }
+
+size_t wxVarVScrollLegacyAdaptor::GetLastVisibleLine() const
+{ return GetVisibleRowsEnd() - 1; }
+
+size_t wxVarVScrollLegacyAdaptor::GetLineCount() const
+{ return GetRowCount(); }
+
+void wxVarVScrollLegacyAdaptor::SetLineCount(size_t count)
+{ SetRowCount(count); }
+
+void wxVarVScrollLegacyAdaptor::RefreshLine(size_t line)
+{ RefreshRow(line); }
+
+void wxVarVScrollLegacyAdaptor::RefreshLines(size_t from, size_t to)
+{ RefreshRows(from, to); }
+
+bool wxVarVScrollLegacyAdaptor::ScrollToLine(size_t line)
+{ return ScrollToRow(line); }
+
+bool wxVarVScrollLegacyAdaptor::ScrollLines(int lines)
+{ return ScrollRows(lines); }
+
+bool wxVarVScrollLegacyAdaptor::ScrollPages(int pages)
+{ return ScrollRowPages(pages); }
+
+wxCoord wxVarVScrollLegacyAdaptor::OnGetLineHeight(size_t WXUNUSED(n)) const
+{
+    wxFAIL_MSG( wxT("OnGetLineHeight() must be overridden if OnGetRowHeight() isn't!") );
+    return -1;
+}
+
+void wxVarVScrollLegacyAdaptor::OnGetLinesHint(size_t WXUNUSED(lineMin),
+                                               size_t WXUNUSED(lineMax)) const
+{
+}
+
+wxCoord wxVarVScrollLegacyAdaptor::OnGetRowHeight(size_t n) const
+{
+    return OnGetLineHeight(n);
+}
+
+void wxVarVScrollLegacyAdaptor::OnGetRowsHeightHint(size_t rowMin,
+                                                    size_t rowMax) const
+{
+    OnGetLinesHint(rowMin, rowMax);
+}
+
+#endif // WXWIN_COMPATIBILITY_2_8

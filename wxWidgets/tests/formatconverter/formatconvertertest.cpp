@@ -250,11 +250,11 @@ void FormatConverterTestCase::doTest(const char *input,
                                      const char *expectedWcharWindows)
 {
     static const wxChar *flag_width[] =
-        { wxT(""), wxT("*"), wxT("10"), wxT("-*"), wxT("-10"), nullptr };
+        { wxT(""), wxT("*"), wxT("10"), wxT("-*"), wxT("-10"), NULL };
     static const wxChar *precision[] =
-        { wxT(""), wxT(".*"), wxT(".10"), nullptr };
+        { wxT(""), wxT(".*"), wxT(".10"), NULL };
     static const wxChar *empty[] =
-        { wxT(""), nullptr };
+        { wxT(""), NULL };
 
     // no precision for %c or %C
     const wxChar **precs = wxTolower(input[wxStrlen(input)-1]) == wxT('c') ?
@@ -279,6 +279,7 @@ void FormatConverterTestCase::check(const wxString& input,
                                     const wxString& expectedWcharWindows)
 {
     // all of them are unused in some build configurations
+    wxUnusedVar(input);
     wxUnusedVar(expectedScanf);
     wxUnusedVar(expectedUtf8);
     wxUnusedVar(expectedWcharUnix);
@@ -305,7 +306,7 @@ void FormatConverterTestCase::check(const wxString& input,
     CPPUNIT_ASSERT_MESSAGE(string(msg.mb_str()), result == expectedUtf8);
 #endif // wxUSE_UNICODE_UTF8
 
-#if !wxUSE_UTF8_LOCALE_ONLY
+#if wxUSE_UNICODE && !wxUSE_UTF8_LOCALE_ONLY
     result = (const wchar_t*)wxFormatString(input);
 
 #if defined(__WINDOWS__) && \
@@ -320,7 +321,7 @@ void FormatConverterTestCase::check(const wxString& input,
           wxT("', result (wchar_t): '") + result +
           wxT("', expected: '") + expectedWchar + wxT("'");
     CPPUNIT_ASSERT_MESSAGE(string(msg.mb_str()), result == expectedWchar);
-#endif // !wxUSE_UTF8_LOCALE_ONLY
+#endif // wxUSE_UNICODE && !wxUSE_UTF8_LOCALE_ONLY
 }
 
 

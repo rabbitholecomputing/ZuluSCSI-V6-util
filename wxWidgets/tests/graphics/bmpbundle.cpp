@@ -16,7 +16,6 @@
 
 #include "wx/artprov.h"
 #include "wx/dcmemory.h"
-#include "wx/imaglist.h"
 
 #include "asserthelper.h"
 
@@ -161,7 +160,7 @@ public:
     {
     }
 
-    bool match(const BitmapAtScale& bitmapAtScale) const override
+    bool match(const BitmapAtScale& bitmapAtScale) const wxOVERRIDE
     {
         const wxBitmap& bmp = bitmapAtScale.bitmap;
 
@@ -184,7 +183,7 @@ public:
         return m_diffDesc.empty();
     }
 
-    std::string describe() const override
+    std::string describe() const wxOVERRIDE
     {
         return m_diffDesc.utf8_string();
     }
@@ -378,29 +377,6 @@ TEST_CASE("BitmapBundle::FromSVG", "[bmpbundle][svg]")
     CHECK( b.GetBitmap(wxSize(16, 16)).GetSize() == wxSize(16, 16) );
 }
 
-TEST_CASE("BitmapBundle::FromSVG-alpha", "[bmpbundle][svg][alpha]")
-{
-    static const char svg_data[] =
-        "<svg viewBox=\"0 0 100 100\">"
-        "<line x1=\"0\" y1=\"0\" x2=\"100%\" y2=\"100%\" stroke=\"#3f7fff\" stroke-width=\"71%\"/>"
-        "</svg>"
-        ;
-
-    wxBitmapBundle b = wxBitmapBundle::FromSVG(svg_data, wxSize(2, 2));
-    REQUIRE( b.IsOk() );
-
-    wxImage img = b.GetBitmap(wxDefaultSize).ConvertToImage();
-    REQUIRE( img.HasAlpha() );
-    // Check that anti-aliased edge at 50% alpha round-trips (after possibly
-    // premultiplied storage in wxBitmap) to substantially original straight
-    // alpha pixel values in wxImage, allowing for roundoff error.
-    CHECK( (int)img.GetRed(0, 1) >= 0x3c );
-    CHECK( (int)img.GetRed(0, 1) <= 0x3f );
-    CHECK( (int)img.GetGreen(0, 1) >= 0x7b );
-    CHECK( (int)img.GetGreen(0, 1) <= 0x7f);
-    CHECK( (int)img.GetBlue(0, 1) == 0xff );
-}
-
 TEST_CASE("BitmapBundle::FromSVGFile", "[bmpbundle][svg][file]")
 {
     const wxSize size(20, 20); // completely arbitrary
@@ -410,17 +386,6 @@ TEST_CASE("BitmapBundle::FromSVGFile", "[bmpbundle][svg][file]")
     wxBitmapBundle b = wxBitmapBundle::FromSVGFile("horse.svg", size);
     REQUIRE( b.IsOk() );
     CHECK( b.GetDefaultSize() == size );
-}
-
-// This can be used to test loading an arbitrary image file by setting the
-// environment variable WX_TEST_IMAGE_PATH to point to it.
-TEST_CASE("BitmapBundle::Load", "[.]")
-{
-    wxString path;
-    REQUIRE( wxGetEnv("WX_TEST_SVG", &path) );
-
-    wxBitmapBundle bb = wxBitmapBundle::FromSVGFile(path, wxSize(32, 32));
-    REQUIRE( bb.IsOk() );
 }
 
 #endif // wxHAS_SVG
@@ -494,37 +459,6 @@ TEST_CASE("BitmapBundle::Scale", "[bmpbundle][scale]")
     CHECK( b.GetDefaultSize() == wxSize(8, 8) );
 }
 
-TEST_CASE("BitmapBundle::ImageList", "[bmpbundle][imagelist]")
-{
-    wxVector<wxBitmapBundle> images;
-    images.push_back(wxBitmapBundle::FromBitmaps(wxBitmap(16, 16), wxBitmap(32, 32)));
-    images.push_back(wxBitmapBundle::FromBitmap(wxBitmap(24, 24)));
-    images.push_back(wxBitmapBundle::FromBitmaps(wxBitmap(16, 16), wxBitmap(32, 32)));
-
-    // There are 2 bundles with preferred size of 32x32, so they should win.
-    const wxSize size = wxBitmapBundle::GetConsensusSizeFor(2.0, images);
-    CHECK( size == wxSize(32, 32) );
-
-    wxImageList iml(size.x, size.y);
-    for ( const auto& bundle : images )
-    {
-        wxBitmap bmp = bundle.GetBitmap(size);
-        REQUIRE( bmp.IsOk() );
-        CHECK( bmp.GetSize() == size );
-        REQUIRE( iml.Add(bmp) != -1 );
-    }
-
-    CHECK( iml.GetBitmap(0).GetSize() == size );
-#ifdef wxHAS_DPI_INDEPENDENT_PIXELS
-    CHECK( iml.GetBitmap(0).GetScaleFactor() == 2 );
-#endif
-
-    CHECK( iml.GetBitmap(1).GetSize() == size );
-#ifdef wxHAS_DPI_INDEPENDENT_PIXELS
-    CHECK( iml.GetBitmap(1).GetScaleFactor() == Approx(1.3333333333) );
-#endif
-}
-
 #endif // ports with scaled bitmaps support
 
 TEST_CASE("BitmapBundle::GetConsensusSize", "[bmpbundle]")
@@ -556,14 +490,4 @@ TEST_CASE("BitmapBundle::GetConsensusSize", "[bmpbundle]")
 
     // Integer scaling factors should be preferred.
     CHECK( bundles.GetConsensusSize(1.5) == 16 );
-}
-
-// This test is not really related to wxBitmapBundle, but is just here because
-// this file already uses wxArtProvider and we don't have any tests for it
-// specifically right now.
-TEST_CASE("wxArtProvider::Delete", "[artprov]")
-{
-    auto* artprov = new wxArtProvider{};
-    wxArtProvider::Push(artprov);
-    delete artprov;
 }

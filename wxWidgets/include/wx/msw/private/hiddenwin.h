@@ -21,7 +21,7 @@
   Windows class unregistration).
 
   pclassname is a pointer to a caller stored classname, which must initially be
-  nullptr. classname is the desired wndclass classname. If function successfully
+  NULL. classname is the desired wndclass classname. If function successfully
   registers the class, pclassname will be set to classname.
  */
 extern "C" WXDLLIMPEXP_BASE HWND

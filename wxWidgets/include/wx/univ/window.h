@@ -4,6 +4,7 @@
 //              wxUniv port controls, it supports the customization of the
 //              window drawing and input processing.
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     06.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -81,8 +82,8 @@ public:
                                int alignment = wxALIGN_CENTRE,
                                wxStretch stretch = wxSTRETCH_NOT);
 
-    const wxBitmap& GetBackgroundBitmap(int *alignment = nullptr,
-                                        wxStretch *stretch = nullptr) const;
+    const wxBitmap& GetBackgroundBitmap(int *alignment = NULL,
+                                        wxStretch *stretch = NULL) const;
 
     // scrollbars: we (re)implement it ourselves using our own scrollbars
     // instead of the native ones
@@ -92,16 +93,16 @@ public:
                               int pos,
                               int page,
                               int range,
-                              bool refresh = true ) override;
-    virtual void SetScrollPos(int orient, int pos, bool refresh = true) override;
-    virtual int GetScrollPos(int orient) const override;
-    virtual int GetScrollThumb(int orient) const override;
-    virtual int GetScrollRange(int orient) const override;
+                              bool refresh = true ) wxOVERRIDE;
+    virtual void SetScrollPos(int orient, int pos, bool refresh = true) wxOVERRIDE;
+    virtual int GetScrollPos(int orient) const wxOVERRIDE;
+    virtual int GetScrollThumb(int orient) const wxOVERRIDE;
+    virtual int GetScrollRange(int orient) const wxOVERRIDE;
     virtual void ScrollWindow(int dx, int dy,
-                              const wxRect* rect = nullptr) override;
+                              const wxRect* rect = NULL) wxOVERRIDE;
 
     // take into account the borders here
-    virtual wxPoint GetClientAreaOrigin() const override;
+    virtual wxPoint GetClientAreaOrigin() const wxOVERRIDE;
 
     // popup menu support
     // ------------------
@@ -126,10 +127,10 @@ public:
     int GetStateFlags() const;
 
     // set the "highlighted" flag and return true if it changed
-    virtual bool WXMakeCurrent(bool doit = true);
+    virtual bool SetCurrent(bool doit = true);
 
 #if wxUSE_SCROLLBAR
-    // get the scrollbar (may be null) for the given orientation
+    // get the scrollbar (may be NULL) for the given orientation
     wxScrollBar *GetScrollbar(int orient) const
     {
         return orient & wxVERTICAL ? m_scrollbarVert : m_scrollbarHorz;
@@ -138,6 +139,10 @@ public:
 
     // methods used by wxColourScheme to choose the colours for this window
     // --------------------------------------------------------------------
+
+    // return true if this is a panel/canvas window which contains other
+    // controls only
+    virtual bool IsCanvasWindow() const { return false; }
 
     // return true if this control can be highlighted when the mouse is over
     // it (the theme decides itself whether it is really highlighted or not)
@@ -159,7 +164,7 @@ public:
     // scrolling helper: like ScrollWindow() except that it doesn't refresh the
     // uncovered window areas but returns the rectangle to update (don't call
     // this with both dx and dy non zero)
-    wxRect ScrollNoRefresh(int dx, int dy, const wxRect *rect = nullptr);
+    wxRect ScrollNoRefresh(int dx, int dy, const wxRect *rect = NULL);
 
     // after scrollbars are added or removed they must be refreshed by calling
     // this function
@@ -174,15 +179,15 @@ public:
     // the rect coordinates are, for us, in client coords, but if no rect is
     // specified, the entire window is refreshed
     virtual void Refresh(bool eraseBackground = true,
-                         const wxRect *rect = nullptr) override;
+                         const wxRect *rect = (const wxRect *) NULL) wxOVERRIDE;
 
     // we refresh the window when it is dis/enabled
-    virtual bool Enable(bool enable = true) override;
+    virtual bool Enable(bool enable = true) wxOVERRIDE;
 
     // should we use the standard control colours or not?
-    virtual bool ShouldInheritColours() const override { return false; }
+    virtual bool ShouldInheritColours() const wxOVERRIDE { return false; }
 
-    virtual bool IsClientAreaChild(const wxWindow *child) const override
+    virtual bool IsClientAreaChild(const wxWindow *child) const wxOVERRIDE
     {
 #if wxUSE_SCROLLBAR
         if ( child == (wxWindow*)m_scrollbarHorz ||
@@ -192,20 +197,20 @@ public:
         return wxWindowNative::IsClientAreaChild(child);
     }
 
-    virtual wxSize GetWindowBorderSize() const override;
+    virtual wxSize GetWindowBorderSize() const wxOVERRIDE;
 
 protected:
     // common part of all ctors
     void Init();
 
 #if wxUSE_MENUS
-    virtual bool DoPopupMenu(wxMenu *menu, int x, int y) override;
+    virtual bool DoPopupMenu(wxMenu *menu, int x, int y) wxOVERRIDE;
 #endif // wxUSE_MENUS
 
     // we deal with the scrollbars in these functions
-    virtual void DoSetClientSize(int width, int height) override;
-    virtual void DoGetClientSize(int *width, int *height) const override;
-    virtual wxHitTest DoHitTest(wxCoord x, wxCoord y) const override;
+    virtual void DoSetClientSize(int width, int height) wxOVERRIDE;
+    virtual void DoGetClientSize(int *width, int *height) const wxOVERRIDE;
+    virtual wxHitTest DoHitTest(wxCoord x, wxCoord y) const wxOVERRIDE;
 
     // event handlers
     void OnSize(wxSizeEvent& event);
@@ -238,7 +243,7 @@ protected:
     void PositionScrollbars();
 
 #if wxUSE_MENUS
-    // return the menubar of the parent frame or nullptr
+    // return the menubar of the parent frame or NULL
     wxMenuBar *GetParentFrameMenuBar() const;
 #endif // wxUSE_MENUS
 
@@ -271,7 +276,7 @@ private:
 #endif // wxUSE_SCROLLBAR
 
 #if wxUSE_MENUS
-    // the current modal event loop for the popup menu we show or nullptr
+    // the current modal event loop for the popup menu we show or NULL
     static wxEventLoop *ms_evtLoopPopup;
 
     // the last window over which Alt was pressed (used by OnKeyUp)

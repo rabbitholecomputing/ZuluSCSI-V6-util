@@ -105,6 +105,10 @@ bool wxStatusBarPane::PopText()
 
 wxIMPLEMENT_DYNAMIC_CLASS(wxStatusBar, wxWindow);
 
+#include "wx/arrimpl.cpp" // This is a magic incantation which must be done!
+WX_DEFINE_EXPORTED_OBJARRAY(wxStatusBarPaneArray)
+
+
 // ----------------------------------------------------------------------------
 // ctor/dtor
 // ----------------------------------------------------------------------------
@@ -112,8 +116,6 @@ wxIMPLEMENT_DYNAMIC_CLASS(wxStatusBar, wxWindow);
 wxStatusBarBase::wxStatusBarBase()
 {
     m_bSameWidthForAllPanes = true;
-
-    Bind(wxEVT_SIZE, &wxStatusBarBase::OnSize, this);
 }
 
 wxStatusBarBase::~wxStatusBarBase()
@@ -122,32 +124,30 @@ wxStatusBarBase::~wxStatusBarBase()
     // dangling pointers
     wxFrame *frame = wxDynamicCast(GetParent(), wxFrame);
     if ( frame && frame->GetStatusBar() == this )
-        frame->SetStatusBar(nullptr);
+        frame->SetStatusBar(NULL);
 }
 
 // ----------------------------------------------------------------------------
 // field widths
 // ----------------------------------------------------------------------------
 
-void wxStatusBarBase::SetFieldsCount(int numberInt, const int *widths)
+void wxStatusBarBase::SetFieldsCount(int number, const int *widths)
 {
-    wxCHECK_RET( numberInt > 0, wxT("invalid field number in SetFieldsCount") );
+    wxCHECK_RET( number > 0, wxT("invalid field number in SetFieldsCount") );
 
-    const auto number = static_cast<size_t>(numberInt); // cast is safe now
-
-    if ( number > m_panes.size() )
+    if ( (size_t)number > m_panes.GetCount() )
     {
         wxStatusBarPane newPane;
 
         // add more entries with the default style and zero width
         // (this will be set later)
-        m_panes.insert(m_panes.end(), number - m_panes.size(), newPane);
+        for (size_t i = m_panes.GetCount(); i < (size_t)number; ++i)
+            m_panes.Add(newPane);
     }
-    else if ( number < m_panes.size() )
+    else if ( (size_t)number < m_panes.GetCount() )
     {
         // remove entries in excess
-        const auto first = m_panes.begin() + number;
-        m_panes.erase(first, first + (m_panes.size() - number));
+        m_panes.RemoveAt(number, m_panes.GetCount()-number);
     }
 
     // SetStatusWidths will automatically refresh
@@ -157,9 +157,9 @@ void wxStatusBarBase::SetFieldsCount(int numberInt, const int *widths)
 void wxStatusBarBase::SetStatusWidths(int WXUNUSED_UNLESS_DEBUG(n),
                                     const int widths[])
 {
-    wxASSERT_MSG( (size_t)n == m_panes.size(), wxT("field number mismatch") );
+    wxASSERT_MSG( (size_t)n == m_panes.GetCount(), wxT("field number mismatch") );
 
-    if (widths == nullptr)
+    if (widths == NULL)
     {
         // special value meaning: override explicit pane widths and make them all
         // of the same size
@@ -167,8 +167,8 @@ void wxStatusBarBase::SetStatusWidths(int WXUNUSED_UNLESS_DEBUG(n),
     }
     else
     {
-        for ( auto& pane : m_panes )
-            pane.SetWidth(*widths++);
+        for ( size_t i = 0; i < m_panes.GetCount(); i++ )
+            m_panes[i].SetWidth(widths[i]);
 
         m_bSameWidthForAllPanes = false;
     }
@@ -180,12 +180,12 @@ void wxStatusBarBase::SetStatusWidths(int WXUNUSED_UNLESS_DEBUG(n),
 void wxStatusBarBase::SetStatusStyles(int WXUNUSED_UNLESS_DEBUG(n),
                                     const int styles[])
 {
-    wxCHECK_RET( styles, wxT("null pointer in SetStatusStyles") );
+    wxCHECK_RET( styles, wxT("NULL pointer in SetStatusStyles") );
 
-    wxASSERT_MSG( (size_t)n == m_panes.size(), wxT("field number mismatch") );
+    wxASSERT_MSG( (size_t)n == m_panes.GetCount(), wxT("field number mismatch") );
 
-    for ( auto& pane : m_panes )
-        pane.SetStyle(*styles++);
+    for ( size_t i = 0; i < m_panes.GetCount(); i++ )
+        m_panes[i].SetStyle(styles[i]);
 
     // update the display after the widths changed
     Refresh();
@@ -199,11 +199,11 @@ wxArrayInt wxStatusBarBase::CalculateAbsWidths(wxCoord widthTotal) const
     {
         // Default: all fields have the same width. This is not always
         // possible to do exactly (if widthTotal is not divisible by
-        // m_panes.size()) - if that happens, we distribute the extra
+        // m_panes.GetCount()) - if that happens, we distribute the extra
         // pixels among all fields:
         int widthToUse = widthTotal;
 
-        for ( size_t i = m_panes.size(); i > 0; i-- )
+        for ( size_t i = m_panes.GetCount(); i > 0; i-- )
         {
             // divide the unassigned width evently between the
             // not yet processed fields:
@@ -217,28 +217,29 @@ wxArrayInt wxStatusBarBase::CalculateAbsWidths(wxCoord widthTotal) const
         // calculate the total width of all the fixed width fields and the
         // total number of var field widths counting with multiplicity
         size_t nTotalWidth = 0,
-            nVarCount = 0;
+            nVarCount = 0,
+            i;
 
-        for ( const auto& pane : m_panes )
+        for ( i = 0; i < m_panes.GetCount(); i++ )
         {
-            if ( pane.GetWidth() >= 0 )
-                nTotalWidth += pane.GetWidth();
+            if ( m_panes[i].GetWidth() >= 0 )
+                nTotalWidth += m_panes[i].GetWidth();
             else
-                nVarCount += -pane.GetWidth();
+                nVarCount += -m_panes[i].GetWidth();
         }
 
         // the amount of extra width we have per each var width field
         int widthExtra = widthTotal - nTotalWidth;
 
         // do fill the array
-        for ( const auto& pane : m_panes )
+        for ( i = 0; i < m_panes.GetCount(); i++ )
         {
-            if ( pane.GetWidth() >= 0 )
-                widths.Add(pane.GetWidth());
+            if ( m_panes[i].GetWidth() >= 0 )
+                widths.Add(m_panes[i].GetWidth());
             else
             {
-                int nVarWidth = widthExtra > 0 ? (widthExtra * (-pane.GetWidth())) / nVarCount : 0;
-                nVarCount += pane.GetWidth();
+                int nVarWidth = widthExtra > 0 ? (widthExtra * (-m_panes[i].GetWidth())) / nVarCount : 0;
+                nVarCount += m_panes[i].GetWidth();
                 widthExtra -= nVarWidth;
                 widths.Add(nVarWidth);
             }
@@ -297,42 +298,6 @@ void wxStatusBarBase::PopStatusText(int number)
 
     if ( m_panes[number].PopText() )
         DoUpdateStatusText(number);
-}
-
-// ----------------------------------------------------------------------------
-// controls
-// ----------------------------------------------------------------------------
-bool wxStatusBarBase::AddFieldControl(int n, wxWindow* win)
-{
-    wxCHECK_MSG( (unsigned)n < m_panes.size(), false,
-                    "invalid status bar field index" );
-    wxCHECK_MSG( !m_panes[n].GetFieldControl(), false,
-                    "another control is already added in this field" );
-
-    m_panes[n].SetFieldControl(win);
-
-    return true;
-}
-
-void wxStatusBarBase::OnSize(wxSizeEvent& event)
-{
-    event.Skip();
-
-    if ( GetChildren().empty() )
-        return;
-
-    for ( int i = 0; i < (int)m_panes.size(); ++i )
-    {
-        wxWindow* const win = m_panes[i].GetFieldControl();
-        if ( win )
-        {
-            wxRect rect;
-            if ( GetFieldRect(i, rect) )
-            {
-                win->SetSize(rect);
-            }
-        }
-    }
 }
 
 #endif // wxUSE_STATUSBAR

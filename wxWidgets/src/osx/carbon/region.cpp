@@ -481,14 +481,14 @@ miInsertEdgeInET(EdgeTable *ET, EdgeTableEntry *ETE,  int scanline,
             if (!tmpSLLBlock)
                 return FALSE;
             (*SLLBlock)->next = tmpSLLBlock;
-            tmpSLLBlock->next = (ScanLineListBlock *)nullptr;
+            tmpSLLBlock->next = (ScanLineListBlock *)NULL;
             *SLLBlock = tmpSLLBlock;
             *iSLLBlock = 0;
         }
         pSLL = &((*SLLBlock)->SLLs[(*iSLLBlock)++]);
         
         pSLL->next = pPrevSLL->next;
-        pSLL->edgelist = (EdgeTableEntry *)nullptr;
+        pSLL->edgelist = (EdgeTableEntry *)NULL;
         pPrevSLL->next = pSLL;
     }
     pSLL->scanline = scanline;
@@ -496,7 +496,7 @@ miInsertEdgeInET(EdgeTable *ET, EdgeTableEntry *ETE,  int scanline,
     /*
      * now insert the edge in the right bucket
      */
-    prev = (EdgeTableEntry *)nullptr;
+    prev = (EdgeTableEntry *)NULL;
     start = pSLL->edgelist;
     while (start && (start->bres.minor < ETE->bres.minor))
     {
@@ -552,18 +552,18 @@ miCreateETandAET(int count, const wxPoint * pts, EdgeTable *ET, EdgeTableEntry *
     /*
      *  initialize the Active Edge Table
      */
-    AET->next = (EdgeTableEntry *)nullptr;
-    AET->back = (EdgeTableEntry *)nullptr;
-    AET->nextWETE = (EdgeTableEntry *)nullptr;
+    AET->next = (EdgeTableEntry *)NULL;
+    AET->back = (EdgeTableEntry *)NULL;
+    AET->nextWETE = (EdgeTableEntry *)NULL;
     AET->bres.minor = INT_MIN;
     
     /*
      *  initialize the Edge Table.
      */
-    ET->scanlines.next = (ScanLineList *)nullptr;
+    ET->scanlines.next = (ScanLineList *)NULL;
     ET->ymax = INT_MIN;
     ET->ymin = INT_MAX;
-    pSLLBlock->next = (ScanLineListBlock *)nullptr;
+    pSLLBlock->next = (ScanLineListBlock *)NULL;
     
     PrevPt = &pts[count-1];
     
@@ -581,12 +581,12 @@ miCreateETandAET(int count, const wxPoint * pts, EdgeTable *ET, EdgeTableEntry *
          */
         if (PrevPt->y > CurrPt->y)
         {
-            bottom = PrevPt; top = CurrPt;
+            bottom = PrevPt, top = CurrPt;
             pETEs->ClockWise = 0;
         }
         else
         {
-            bottom = CurrPt; top = PrevPt;
+            bottom = CurrPt, top = PrevPt;
             pETEs->ClockWise = 1;
         }
         
@@ -682,7 +682,7 @@ micomputeWAET(EdgeTableEntry *AET)
     int inside = 1;
     int isInside = 0;
     
-    AET->nextWETE = (EdgeTableEntry *)nullptr;
+    AET->nextWETE = (EdgeTableEntry *)NULL;
     pWETE = AET;
     AET = AET->next;
     while (AET)
@@ -701,7 +701,7 @@ micomputeWAET(EdgeTableEntry *AET)
         }
         AET = AET->next;
     }
-    pWETE->nextWETE = (EdgeTableEntry *)nullptr;
+    pWETE->nextWETE = (EdgeTableEntry *)NULL;
 }
 
 /*
@@ -1175,7 +1175,7 @@ bool wxRegion::IsEmpty() const
 WXHRGN wxRegion::GetWXHRGN() const
 {
     if ( !m_refData )
-        return nullptr;
+        return NULL;
 
     return M_REGION ;
 }
@@ -1227,7 +1227,7 @@ wxRegionContain wxRegion::DoContainsRect(const wxRect& r) const
  * Initialize empty iterator
  */
 wxRegionIterator::wxRegionIterator()
-    : m_current(0), m_numRects(0), m_rects(nullptr)
+    : m_current(0), m_numRects(0), m_rects(NULL)
 {
 }
 
@@ -1240,7 +1240,7 @@ wxRegionIterator::wxRegionIterator(const wxRegionIterator& iterator)
     : wxObject()
     , m_current(iterator.m_current)
     , m_numRects(0)
-    , m_rects(nullptr)
+    , m_rects(NULL)
 {
     SetRects(iterator.m_numRects, iterator.m_rects);
 }
@@ -1277,7 +1277,7 @@ void wxRegionIterator::SetRects(long numRects, wxRect *rects)
  */
 wxRegionIterator::wxRegionIterator(const wxRegion& region)
 {
-    m_rects = nullptr;
+    m_rects = NULL;
 
     Reset(region);
 }

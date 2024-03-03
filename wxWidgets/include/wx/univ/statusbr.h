@@ -2,6 +2,7 @@
 // Name:        wx/univ/statusbr.h
 // Purpose:     wxStatusBarUniv: wxStatusBar for wxUniversal declaration
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     14.10.01
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -38,35 +39,35 @@ public:
                 const wxString& name = wxASCII_STR(wxPanelNameStr));
 
     // implement base class methods
-    virtual void SetFieldsCount(int number = 1, const int *widths = nullptr) override;
-    virtual void SetStatusWidths(int n, const int widths[]) override;
+    virtual void SetFieldsCount(int number = 1, const int *widths = NULL) wxOVERRIDE;
+    virtual void SetStatusWidths(int n, const int widths[]) wxOVERRIDE;
 
-    virtual bool GetFieldRect(int i, wxRect& rect) const override;
-    virtual void SetMinHeight(int height) override;
+    virtual bool GetFieldRect(int i, wxRect& rect) const wxOVERRIDE;
+    virtual void SetMinHeight(int height) wxOVERRIDE;
 
-    virtual int GetBorderX() const override;
-    virtual int GetBorderY() const override;
+    virtual int GetBorderX() const wxOVERRIDE;
+    virtual int GetBorderY() const wxOVERRIDE;
 
     // wxInputConsumer pure virtual
-    virtual wxWindow *GetInputWindow() const override
+    virtual wxWindow *GetInputWindow() const wxOVERRIDE
         { return const_cast<wxStatusBar*>(this); }
 
 protected:
-    virtual void DoUpdateStatusText(int i) override;
+    virtual void DoUpdateStatusText(int i) wxOVERRIDE;
 
     // recalculate the field widths
     void OnSize(wxSizeEvent& event);
 
     // draw the statusbar
-    virtual void DoDraw(wxControlRenderer *renderer) override;
+    virtual void DoDraw(wxControlRenderer *renderer) wxOVERRIDE;
 
     // tell them about our preferred height
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
     // override DoSetSize() to prevent the status bar height from changing
     virtual void DoSetSize(int x, int y,
                            int width, int height,
-                           int sizeFlags = wxSIZE_AUTO) override;
+                           int sizeFlags = wxSIZE_AUTO) wxOVERRIDE;
 
     // get the (fixed) status bar height
     wxCoord GetHeight() const;

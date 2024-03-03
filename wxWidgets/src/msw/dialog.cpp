@@ -2,6 +2,7 @@
 // Name:        src/msw/dialog.cpp
 // Purpose:     wxDialog class
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -35,10 +36,6 @@
 #endif
 
 #include "wx/msw/private.h"
-#include "wx/msw/private/custompaint.h"
-#include "wx/msw/private/darkmode.h"
-#include "wx/msw/wrapcctl.h"
-
 #include "wx/evtloop.h"
 #include "wx/scopedptr.h"
 
@@ -78,77 +75,13 @@ wxDEFINE_TIED_SCOPED_PTR_TYPE(wxDialogModalData)
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// Gripper subclass proc
-// ----------------------------------------------------------------------------
-
-namespace wxMSWImpl
-{
-
-LRESULT CALLBACK
-GripperProc(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam,
-            UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
-{
-    wxDialog* const self = reinterpret_cast<wxDialog*>(dwRefData);
-
-    switch ( nMsg )
-    {
-        case WM_PAINT:
-            {
-                const auto bg = self->GetBackgroundColour();
-
-                wxMSWImpl::CustomPaint
-                (
-                    hwnd,
-                    [](HWND hwnd, WPARAM wParam)
-                    {
-                        ::DefSubclassProc(hwnd, WM_PAINT, wParam, 0);
-                    },
-                    [bg](const wxBitmap& bmp)
-                    {
-                        return wxMSWImpl::PostPaintEachPixel
-                               (
-                                    bmp,
-                                    [bg](unsigned char& r,
-                                         unsigned char& g,
-                                         unsigned char& b,
-                                         unsigned char& a)
-                                    {
-                                        // Replace all background pixels, which
-                                        // are transparent, with the colour we
-                                        // want to use.
-                                        if ( a == wxALPHA_TRANSPARENT )
-                                        {
-                                            r = bg.Red();
-                                            g = bg.Green();
-                                            b = bg.Blue();
-
-                                            a = wxALPHA_OPAQUE;
-                                        }
-                                    }
-                               );
-                    }
-                );
-            }
-            return 0;
-
-        case WM_NCDESTROY:
-            ::RemoveWindowSubclass(hwnd, GripperProc, uIdSubclass);
-            break;
-    }
-
-    return ::DefSubclassProc(hwnd, nMsg, wParam, lParam);
-}
-
-} // namespace wxMSWImpl
-
-// ----------------------------------------------------------------------------
 // wxDialog construction
 // ----------------------------------------------------------------------------
 
 void wxDialog::Init()
 {
     m_isShown = false;
-    m_modalData = nullptr;
+    m_modalData = NULL;
     m_hGripper = 0;
 }
 
@@ -276,10 +209,6 @@ void wxDialog::SetWindowStyleFlag(long style)
 {
     wxDialogBase::SetWindowStyleFlag(style);
 
-    // Don't do anything if we're setting the style before creating the dialog.
-    if ( !GetHwnd() )
-        return;
-
     if ( HasFlag(wxRESIZE_BORDER) )
         CreateGripper();
     else
@@ -304,17 +233,8 @@ void wxDialog::CreateGripper()
                                     GetHwnd(),
                                     0,
                                     wxGetInstance(),
-                                    nullptr
+                                    NULL
                                );
-
-        wxMSWDarkMode::AllowForWindow((HWND)m_hGripper);
-
-        // Whether we use the dark mode or not, handle WM_PAINT for the gripper
-        // ourselves, as even in the light mode its background is wrong if the
-        // dialog doesn't use the default background colour -- and in dark mode
-        // it's wrong even by default.
-        ::SetWindowSubclass(m_hGripper, wxMSWImpl::GripperProc,
-                            0, wxPtrToUInt(this));
     }
 }
 
@@ -425,15 +345,8 @@ WXLRESULT wxDialog::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPar
             processed = true;
             if ( HasFlag(wxFULL_REPAINT_ON_RESIZE) )
             {
-                ::InvalidateRect(GetHwnd(), nullptr, false /* erase bg */);
+                ::InvalidateRect(GetHwnd(), NULL, false /* erase bg */);
             }
-            break;
-
-        case WM_CTLCOLORDLG:
-            // We need to explicitly set the dark background colour when using
-            // dark mode, otherwise we'd be using the default light background.
-            if ( wxMSWDarkMode::IsActive() )
-                return (WXLRESULT)wxMSWDarkMode::GetBackgroundBrush();
             break;
     }
 

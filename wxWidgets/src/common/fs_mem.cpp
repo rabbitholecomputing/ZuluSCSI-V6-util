@@ -77,7 +77,7 @@ private:
 //--------------------------------------------------------------------------------
 
 
-wxMemoryFSHandlerBase::wxMemoryFSHash wxMemoryFSHandlerBase::m_Hash;
+wxMemoryFSHash wxMemoryFSHandlerBase::m_Hash;
 
 
 wxMemoryFSHandlerBase::wxMemoryFSHandlerBase() : wxFileSystemHandler()
@@ -89,6 +89,7 @@ wxMemoryFSHandlerBase::~wxMemoryFSHandlerBase()
     // as only one copy of FS handler is supposed to exist, we may silently
     // delete static data here. (There is no way how to remove FS handler from
     // wxFileSystem other than releasing _all_ handlers.)
+    WX_CLEAR_HASH_MAP(wxMemoryFSHash, m_Hash);
 }
 
 bool wxMemoryFSHandlerBase::CanOpen(const wxString& location)
@@ -101,9 +102,9 @@ wxFSFile * wxMemoryFSHandlerBase::OpenFile(wxFileSystem& WXUNUSED(fs),
 {
     wxMemoryFSHash::const_iterator i = m_Hash.find(GetRightLocation(location));
     if ( i == m_Hash.end() )
-        return nullptr;
+        return NULL;
 
-    const auto& obj = i->second;
+    const wxMemoryFSFile * const obj = i->second;
 
     return new wxFSFile
                (
@@ -175,13 +176,6 @@ bool wxMemoryFSHandlerBase::CheckDoesntExist(const wxString& filename)
 
 
 /*static*/
-void wxMemoryFSHandlerBase::DoAddFile(const wxString& filename,
-                                      wxMemoryFSFile* file)
-{
-    m_Hash[filename] = std::unique_ptr<wxMemoryFSFile>(file);
-}
-
-/*static*/
 void wxMemoryFSHandlerBase::AddFileWithMimeType(const wxString& filename,
                                                 const wxString& textdata,
                                                 const wxString& mimetype)
@@ -205,7 +199,7 @@ void wxMemoryFSHandlerBase::AddFileWithMimeType(const wxString& filename,
     if ( !CheckDoesntExist(filename) )
         return;
 
-    DoAddFile(filename, new wxMemoryFSFile(binarydata, size, mimetype));
+    m_Hash[filename] = new wxMemoryFSFile(binarydata, size, mimetype);
 }
 
 /*static*/
@@ -227,12 +221,17 @@ void wxMemoryFSHandlerBase::AddFile(const wxString& filename,
 
 /*static*/ void wxMemoryFSHandlerBase::RemoveFile(const wxString& filename)
 {
-    if ( !m_Hash.erase(filename) )
+    wxMemoryFSHash::iterator i = m_Hash.find(filename);
+    if ( i == m_Hash.end() )
     {
         wxLogError(_("Trying to remove file '%s' from memory VFS, "
                      "but it is not loaded!"),
                    filename);
+        return;
     }
+
+    delete i->second;
+    m_Hash.erase(i);
 }
 
 #endif // wxUSE_BASE
@@ -251,11 +250,11 @@ wxMemoryFSHandler::AddFile(const wxString& filename,
     wxMemoryOutputStream mems;
     if ( image.IsOk() && image.SaveFile(mems, type) )
     {
-        DoAddFile(filename, new wxMemoryFSFile
-                                (
+        m_Hash[filename] = new wxMemoryFSFile
+                               (
                                     mems,
                                     wxImage::FindHandler(type)->GetMimeType()
-                                ));
+                               );
     }
     else
     {

@@ -2,6 +2,7 @@
 // Name:        samples/richtext/richtext.cpp
 // Purpose:     wxWidgets rich text editor sample
 // Author:      Julian Smart
+// Modified by:
 // Created:     2005-10-02
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -90,15 +91,15 @@ public:
     {
     }
 
-    virtual bool CanEditProperties(wxRichTextField* WXUNUSED(obj)) const override { return true; }
-    virtual bool EditProperties(wxRichTextField* WXUNUSED(obj), wxWindow* WXUNUSED(parent), wxRichTextBuffer* WXUNUSED(buffer)) override
+    virtual bool CanEditProperties(wxRichTextField* WXUNUSED(obj)) const wxOVERRIDE { return true; }
+    virtual bool EditProperties(wxRichTextField* WXUNUSED(obj), wxWindow* WXUNUSED(parent), wxRichTextBuffer* WXUNUSED(buffer)) wxOVERRIDE
     {
         wxString label = GetLabel();
         wxMessageBox(wxString::Format("Editing %s", label));
         return true;
     }
 
-    virtual wxString GetPropertiesMenuLabel(wxRichTextField* WXUNUSED(obj)) const override
+    virtual wxString GetPropertiesMenuLabel(wxRichTextField* WXUNUSED(obj)) const wxOVERRIDE
     {
         return GetLabel();
     }
@@ -113,7 +114,7 @@ public:
     {
     }
 
-    virtual bool UpdateField(wxRichTextBuffer* buffer, wxRichTextField* obj) override
+    virtual bool UpdateField(wxRichTextBuffer* buffer, wxRichTextField* obj) wxOVERRIDE
     {
         if (buffer)
         {
@@ -165,19 +166,19 @@ public:
         Prepares the content just before insertion (or after buffer reset). Called by the same function in wxRichTextBuffer.
         Currently is only called if undo mode is on.
     */
-    virtual void PrepareContent(wxRichTextParagraphLayoutBox& container) override;
+    virtual void PrepareContent(wxRichTextParagraphLayoutBox& container) wxOVERRIDE;
 
     /**
         Can we delete this range?
         Sends an event to the control.
     */
-    virtual bool CanDeleteRange(wxRichTextParagraphLayoutBox& container, const wxRichTextRange& range) const override;
+    virtual bool CanDeleteRange(wxRichTextParagraphLayoutBox& container, const wxRichTextRange& range) const wxOVERRIDE;
 
     /**
         Can we insert content at this position?
         Sends an event to the control.
     */
-    virtual bool CanInsertContent(wxRichTextParagraphLayoutBox& container, long pos) const override;
+    virtual bool CanInsertContent(wxRichTextParagraphLayoutBox& container, long pos) const wxOVERRIDE;
 
     /**
         Finds a table,  either selected or near the cursor
@@ -203,8 +204,8 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit() override;
-    virtual int OnExit() override;
+    virtual bool OnInit() wxOVERRIDE;
+    virtual int OnExit() wxOVERRIDE;
 
     void CreateStyles();
 
@@ -314,7 +315,7 @@ public:
 protected:
 
     // Forward command events to the current rich text control, if any
-    bool ProcessEvent(wxEvent& event) override;
+    bool ProcessEvent(wxEvent& event) wxOVERRIDE;
 
     // Write text
     void WriteInitialText();
@@ -754,9 +755,9 @@ void MyApp::CreateStyles()
 // frame constructor
 MyFrame::MyFrame(const wxString& title, wxWindowID id, const wxPoint& pos,
         const wxSize& size, long style)
-       : wxFrame(nullptr, id, title, pos, size, style)
+       : wxFrame(NULL, id, title, pos, size, style)
 {
-    m_richTextCtrl = nullptr;
+    m_richTextCtrl = NULL;
 
 #ifdef __WXMAC__
     SetWindowVariant(wxWINDOW_VARIANT_SMALL);
@@ -1203,7 +1204,7 @@ void MyFrame::WriteInitialText()
 
         r.WriteText("This is a text box. Just testing! Once more unto the breach, dear friends, once more...");
 
-        r.SetFocusObject(nullptr); // Set the focus back to the main buffer
+        r.SetFocusObject(NULL); // Set the focus back to the main buffer
         r.SetInsertionPointEnd();
     }
 #endif
@@ -1262,7 +1263,7 @@ void MyFrame::WriteInitialText()
         cell->Clear();
         r.WriteText("This cell spans 2 columns and 3 rows");
 
-        r.SetFocusObject(nullptr); // Set the focus back to the main buffer
+        r.SetFocusObject(NULL); // Set the focus back to the main buffer
         r.SetInsertionPointEnd();
     }
 #endif
@@ -1344,7 +1345,7 @@ bool MyFrame::ProcessEvent(wxEvent& event)
                 focusWin = m_richTextCtrl;
             if (focusWin && focusWin->GetEventHandler()->ProcessEvent(event))
             {
-                //s_command = nullptr;
+                //s_command = NULL;
                 s_eventType = 0;
                 s_id = 0;
                 return true;
@@ -1814,7 +1815,7 @@ void MyFrame::OnViewHTML(wxCommandEvent& WXUNUSED(event))
 
 void MyFrame::OnSwitchStyleSheets(wxCommandEvent& WXUNUSED(event))
 {
-    static wxRichTextStyleSheet* gs_AlternateStyleSheet = nullptr;
+    static wxRichTextStyleSheet* gs_AlternateStyleSheet = NULL;
 
     wxRichTextStyleListCtrl *styleList = (wxRichTextStyleListCtrl*) FindWindow(ID_RICHTEXT_STYLE_LIST);
     wxRichTextStyleComboCtrl* styleCombo = (wxRichTextStyleComboCtrl*) FindWindow(ID_RICHTEXT_STYLE_COMBO);
@@ -1869,7 +1870,7 @@ void MyFrame::OnManageStyles(wxCommandEvent& WXUNUSED(event))
 
     int flags = wxRICHTEXT_ORGANISER_CREATE_STYLES|wxRICHTEXT_ORGANISER_EDIT_STYLES;
 
-    wxRichTextStyleOrganiserDialog dlg(flags, sheet, nullptr, this, wxID_ANY, _("Style Manager"));
+    wxRichTextStyleOrganiserDialog dlg(flags, sheet, NULL, this, wxID_ANY, _("Style Manager"));
     dlg.ShowModal();
 }
 
@@ -1945,7 +1946,7 @@ void MyFrame::OnRenumberList(wxCommandEvent& WXUNUSED(event))
     if (m_richTextCtrl->HasSelection())
     {
         wxRichTextRange range = m_richTextCtrl->GetSelectionRange();
-        m_richTextCtrl->NumberList(range, nullptr, wxRICHTEXT_SETSTYLE_WITH_UNDO|wxRICHTEXT_SETSTYLE_RENUMBER);
+        m_richTextCtrl->NumberList(range, NULL, wxRICHTEXT_SETSTYLE_WITH_UNDO|wxRICHTEXT_SETSTYLE_RENUMBER);
     }
 }
 
@@ -1954,7 +1955,7 @@ void MyFrame::OnPromoteList(wxCommandEvent& WXUNUSED(event))
     if (m_richTextCtrl->HasSelection())
     {
         wxRichTextRange range = m_richTextCtrl->GetSelectionRange();
-        m_richTextCtrl->PromoteList(1, range, nullptr);
+        m_richTextCtrl->PromoteList(1, range, NULL);
     }
 }
 
@@ -1963,7 +1964,7 @@ void MyFrame::OnDemoteList(wxCommandEvent& WXUNUSED(event))
     if (m_richTextCtrl->HasSelection())
     {
         wxRichTextRange range = m_richTextCtrl->GetSelectionRange();
-        m_richTextCtrl->PromoteList(-1, range, nullptr);
+        m_richTextCtrl->PromoteList(-1, range, NULL);
     }
 }
 
@@ -2028,7 +2029,7 @@ void MyFrame::OnTableDeleteRow(wxCommandEvent& WXUNUSED(event))
 
 void MyFrame::OnTableFocusedUpdateUI(wxUpdateUIEvent& event)
 {
-    event.Enable(m_richTextCtrl->FindTable() != nullptr);
+    event.Enable(m_richTextCtrl->FindTable() != NULL);
 }
 
 void MyFrame::OnTableHasCellsUpdateUI(wxUpdateUIEvent& event)
@@ -2223,37 +2224,37 @@ public:
     /**
         Returns @true if this object has virtual attributes that we can provide.
     */
-    virtual bool HasVirtualAttributes(wxRichTextObject* obj) const override;
+    virtual bool HasVirtualAttributes(wxRichTextObject* obj) const wxOVERRIDE;
 
     /**
         Provides virtual attributes that we can provide.
     */
-    virtual bool GetVirtualAttributes(wxRichTextAttr& attr, wxRichTextObject* obj) const override;
+    virtual bool GetVirtualAttributes(wxRichTextAttr& attr, wxRichTextObject* obj) const wxOVERRIDE;
 
     /**
         Gets the count for mixed virtual attributes for individual positions within the object.
         For example, individual characters within a text object may require special highlighting.
     */
-    virtual int GetVirtualSubobjectAttributesCount(wxRichTextObject* WXUNUSED(obj)) const override { return 0; }
+    virtual int GetVirtualSubobjectAttributesCount(wxRichTextObject* WXUNUSED(obj)) const wxOVERRIDE { return 0; }
 
     /**
         Gets the mixed virtual attributes for individual positions within the object.
         For example, individual characters within a text object may require special highlighting.
         Returns the number of virtual attributes found.
     */
-    virtual int GetVirtualSubobjectAttributes(wxRichTextObject* WXUNUSED(obj), wxArrayInt& WXUNUSED(positions), wxRichTextAttrArray& WXUNUSED(attributes)) const override  { return 0; }
+    virtual int GetVirtualSubobjectAttributes(wxRichTextObject* WXUNUSED(obj), wxArrayInt& WXUNUSED(positions), wxRichTextAttrArray& WXUNUSED(attributes)) const wxOVERRIDE  { return 0; }
 
     /**
         Do we have virtual text for this object? Virtual text allows an application
         to replace characters in an object for editing and display purposes, for example
         for highlighting special characters.
     */
-    virtual bool HasVirtualText(const wxRichTextPlainText* WXUNUSED(obj)) const override { return false; }
+    virtual bool HasVirtualText(const wxRichTextPlainText* WXUNUSED(obj)) const wxOVERRIDE { return false; }
 
     /**
         Gets the virtual text for this object.
     */
-    virtual bool GetVirtualText(const wxRichTextPlainText* WXUNUSED(obj), wxString& WXUNUSED(text)) const override { return false; }
+    virtual bool GetVirtualText(const wxRichTextPlainText* WXUNUSED(obj), wxString& WXUNUSED(text)) const wxOVERRIDE { return false; }
 
     wxColour    m_lockBackgroundColour;
 };
@@ -2322,5 +2323,5 @@ wxRichTextTable* MyRichTextCtrl::FindTable() const
         }
     }
 
-    return nullptr;
+    return NULL;
 }

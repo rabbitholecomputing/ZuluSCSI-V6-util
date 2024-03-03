@@ -22,14 +22,13 @@
 #include "wx/fs_inet.h"
 #include "wx/imagxpm.h"
 #include "wx/xml/xml.h"
+#include "wx/scopedptr.h"
 #include "wx/sstream.h"
 #include "wx/wfstream.h"
 #include "wx/xrc/xmlres.h"
 #include "wx/xrc/xh_bmp.h"
 
 #include <stdarg.h>
-
-#include <memory>
 
 #include "testfile.h"
 
@@ -45,7 +44,7 @@ static const char *TEST_XRC_FILE = "test.xrc";
 void LoadXrcFrom(const wxString& xrcText)
 {
     wxStringInputStream sis(xrcText);
-    std::unique_ptr<wxXmlDocument> xmlDoc(new wxXmlDocument(sis));
+    wxScopedPtr<wxXmlDocument> xmlDoc(new wxXmlDocument(sis, "UTF-8"));
     REQUIRE( xmlDoc->IsOk() );
 
     // Load the xrc we've just created
@@ -162,7 +161,7 @@ TEST_CASE_METHOD(XrcTestCase, "XRC::ObjectReferences", "[xrc]")
         // In xrc there's now a dialog containing two panels, one an object
         // reference of the other
         wxDialog dlg;
-        REQUIRE( wxXmlResource::Get()->LoadDialog(&dlg, nullptr, "dialog") );
+        REQUIRE( wxXmlResource::Get()->LoadDialog(&dlg, NULL, "dialog") );
         // Might as well test XRCCTRL too
         wxPanel* panel1 = XRCCTRL(dlg,"panel1",wxPanel);
         wxPanel* panel2 = XRCCTRL(dlg,"ref_of_panel1",wxPanel);
@@ -258,33 +257,6 @@ TEST_CASE("XRC::PathWithFragment", "[xrc][uri]")
     CHECK( !wxXmlResource::Get()->LoadBitmap("bad").IsOk() );
 }
 
-TEST_CASE("XRC::Features", "[xrc]")
-{
-    auto& xrc = *wxXmlResource::Get();
-
-    xrc.EnableFeature("European");
-    xrc.EnableFeature("African");
-
-    // Not all birds are available in all geographic editions of this program.
-    LoadXrcFrom(R"(<?xml version="1.0" ?>
-<resource>
-  <object class="wxFrame" name="pigeon"/> <!-- Those are everywhere -->
-  <object class="wxFrame" name="eagle" feature="American"/>
-  <object class="wxFrame" name="rooster" feature="European"/>
-  <object class="wxFrame" name="swallow" feature="African"/>
-  <object class="wxFrame" name="sparrow" feature="American|European"/>
-  <object class="wxFrame" name="dodo" feature="African|extinct"/>
-</resource>
-    )");
-
-    CHECK( xrc.LoadFrame(nullptr, "pigeon") );
-    CHECK(!xrc.LoadFrame(nullptr, "eagle") );
-    CHECK( xrc.LoadFrame(nullptr, "rooster") );
-    CHECK( xrc.LoadFrame(nullptr, "sparrow") );
-    CHECK( xrc.LoadFrame(nullptr, "swallow") );
-    CHECK( xrc.LoadFrame(nullptr, "dodo") );
-}
-
 TEST_CASE("XRC::EnvVarInPath", "[xrc]")
 {
     wxStringInputStream sis(
@@ -294,7 +266,7 @@ TEST_CASE("XRC::EnvVarInPath", "[xrc]")
         "<root><bitmap>$(WX_TEST_ENV_IN_PATH).bmp</bitmap></root>"
 #endif
     );
-    wxXmlDocument xmlDoc(sis);
+    wxXmlDocument xmlDoc(sis, "UTF-8");
     REQUIRE( xmlDoc.IsOk() );
 
     class wxTestEnvXmlHandler : public wxXmlResourceHandler
@@ -314,8 +286,8 @@ TEST_CASE("XRC::EnvVarInPath", "[xrc]")
             wxUnsetEnv("WX_TEST_ENV_IN_PATH");
             wxXmlResource::Get()->SetFlags(wxXRC_USE_LOCALE);
         }
-        virtual wxObject* DoCreateResource() override { return nullptr; }
-        virtual bool CanHandle(wxXmlNode*) override { return false; }
+        virtual wxObject* DoCreateResource() wxOVERRIDE { return NULL; }
+        virtual bool CanHandle(wxXmlNode*) wxOVERRIDE { return false; }
         bool varIsSet;
     } handler(xmlDoc.GetRoot());
 
@@ -333,7 +305,7 @@ TEST_CASE("XRC::EnvVarInPath", "[xrc]")
 //
 // Use something like "python3 -m http.server samples/xrc/rc" and set
 // WX_TEST_XRC_URL to http://localhost/menu.xrc to run this test.
-TEST_CASE_METHOD(XrcTestCase, "XRC::LoadURL", "[.]")
+TEST_CASE_METHOD(XrcTestCase, "XRC::LoadURL", "[xrc][.]")
 {
     wxString url;
     REQUIRE( wxGetEnv("WX_TEST_XRC_URL", &url) );

@@ -8,8 +8,6 @@
 
 #include "wx/wxprec.h"
 
-#include <memory>
-
 #if wxUSE_FS_ARCHIVE
 
 #include "wx/fs_arc.h"
@@ -34,8 +32,7 @@
 // version.
 //---------------------------------------------------------------------------
 
-using wxArchiveFSEntryHash =
-    std::unordered_map<wxString, std::unique_ptr<wxArchiveEntry>>;
+WX_DECLARE_STRING_HASH_MAP(wxArchiveEntry*, wxArchiveFSEntryHash);
 
 struct wxArchiveFSEntry
 {
@@ -62,7 +59,6 @@ public:
     wxArchiveFSEntry *GetNext(wxArchiveFSEntry *fse);
 
 private:
-    // Takes ownership of "entry".
     wxArchiveFSEntry *AddToCache(wxArchiveEntry *entry);
     void CloseStreams();
 
@@ -81,7 +77,7 @@ wxArchiveFSCacheDataImpl::wxArchiveFSCacheDataImpl(
         const wxArchiveClassFactory& factory,
         const wxBackingFile& backer)
  :  m_refcount(1),
-    m_begin(nullptr),
+    m_begin(NULL),
     m_endptr(&m_begin),
     m_backer(backer),
     m_stream(new wxBackedInputStream(backer)),
@@ -93,7 +89,7 @@ wxArchiveFSCacheDataImpl::wxArchiveFSCacheDataImpl(
         const wxArchiveClassFactory& factory,
         wxInputStream *stream)
  :  m_refcount(1),
-    m_begin(nullptr),
+    m_begin(NULL),
     m_endptr(&m_begin),
     m_stream(stream),
     m_archive(factory.NewStream(*m_stream))
@@ -102,6 +98,8 @@ wxArchiveFSCacheDataImpl::wxArchiveFSCacheDataImpl(
 
 wxArchiveFSCacheDataImpl::~wxArchiveFSCacheDataImpl()
 {
+    WX_CLEAR_HASH_MAP(wxArchiveFSEntryHash, m_hash);
+
     wxArchiveFSEntry *entry = m_begin;
 
     while (entry)
@@ -116,11 +114,11 @@ wxArchiveFSCacheDataImpl::~wxArchiveFSCacheDataImpl()
 
 wxArchiveFSEntry *wxArchiveFSCacheDataImpl::AddToCache(wxArchiveEntry *entry)
 {
-    m_hash[entry->GetName(wxPATH_UNIX)] = std::unique_ptr<wxArchiveEntry>(entry);
+    m_hash[entry->GetName(wxPATH_UNIX)] = entry;
     wxArchiveFSEntry *fse = new wxArchiveFSEntry;
     *m_endptr = fse;
     (*m_endptr)->entry = entry;
-    (*m_endptr)->next = nullptr;
+    (*m_endptr)->next = NULL;
     m_endptr = &(*m_endptr)->next;
     return fse;
 }
@@ -133,17 +131,17 @@ void wxArchiveFSCacheDataImpl::CloseStreams()
 
 wxArchiveEntry *wxArchiveFSCacheDataImpl::Get(const wxString& name)
 {
-    const auto it = m_hash.find(name);
+    wxArchiveFSEntryHash::iterator it = m_hash.find(name);
 
     if (it != m_hash.end())
-        return it->second.get();
+        return it->second;
 
     if (!m_archive)
-        return nullptr;
+        return NULL;
 
     wxArchiveEntry *entry;
 
-    while ((entry = m_archive->GetNextEntry()) != nullptr)
+    while ((entry = m_archive->GetNextEntry()) != NULL)
     {
         AddToCache(entry);
 
@@ -153,7 +151,7 @@ wxArchiveEntry *wxArchiveFSCacheDataImpl::Get(const wxString& name)
 
     CloseStreams();
 
-    return nullptr;
+    return NULL;
 }
 
 wxInputStream* wxArchiveFSCacheDataImpl::NewStream() const
@@ -161,7 +159,7 @@ wxInputStream* wxArchiveFSCacheDataImpl::NewStream() const
     if (m_backer)
         return new wxBackedInputStream(m_backer);
     else
-        return nullptr;
+        return NULL;
 }
 
 wxArchiveFSEntry *wxArchiveFSCacheDataImpl::GetNext(wxArchiveFSEntry *fse)
@@ -192,7 +190,7 @@ wxArchiveFSEntry *wxArchiveFSCacheDataImpl::GetNext(wxArchiveFSEntry *fse)
 class wxArchiveFSCacheData
 {
 public:
-    wxArchiveFSCacheData() : m_impl(nullptr) { }
+    wxArchiveFSCacheData() : m_impl(NULL) { }
     wxArchiveFSCacheData(const wxArchiveClassFactory& factory,
                          const wxBackingFile& backer);
     wxArchiveFSCacheData(const wxArchiveClassFactory& factory,
@@ -227,7 +225,7 @@ wxArchiveFSCacheData::wxArchiveFSCacheData(
 }
 
 wxArchiveFSCacheData::wxArchiveFSCacheData(const wxArchiveFSCacheData& data)
-  : m_impl(data.m_impl ? data.m_impl->AddRef() : nullptr)
+  : m_impl(data.m_impl ? data.m_impl->AddRef() : NULL)
 {
 }
 
@@ -256,8 +254,7 @@ wxArchiveFSCacheData& wxArchiveFSCacheData::operator=(
 // of wxFileSystem.
 //---------------------------------------------------------------------------
 
-using wxArchiveFSCacheDataHash =
-    std::unordered_map<wxString, wxArchiveFSCacheData>;
+WX_DECLARE_STRING_HASH_MAP(wxArchiveFSCacheData, wxArchiveFSCacheDataHash);
 
 class wxArchiveFSCache
 {
@@ -292,12 +289,12 @@ wxArchiveFSCacheData* wxArchiveFSCache::Add(
 
 wxArchiveFSCacheData *wxArchiveFSCache::Get(const wxString& name)
 {
-    const auto it = m_hash.find(name);
+    wxArchiveFSCacheDataHash::iterator it;
 
-    if (it != m_hash.end())
+    if ((it = m_hash.find(name)) != m_hash.end())
         return &it->second;
 
-    return nullptr;
+    return NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -309,11 +306,11 @@ wxIMPLEMENT_DYNAMIC_CLASS(wxArchiveFSHandler, wxFileSystemHandler);
 wxArchiveFSHandler::wxArchiveFSHandler()
  :  wxFileSystemHandler()
 {
-    m_Archive = nullptr;
-    m_FindEntry = nullptr;
+    m_Archive = NULL;
+    m_FindEntry = NULL;
     m_AllowDirs = m_AllowFiles = true;
-    m_DirsFound = nullptr;
-    m_cache = nullptr;
+    m_DirsFound = NULL;
+    m_cache = NULL;
 }
 
 wxArchiveFSHandler::~wxArchiveFSHandler()
@@ -330,7 +327,7 @@ void wxArchiveFSHandler::Cleanup()
 bool wxArchiveFSHandler::CanOpen(const wxString& location)
 {
     wxString p = GetProtocol(location);
-    return wxArchiveClassFactory::Find(p) != nullptr;
+    return wxArchiveClassFactory::Find(p) != NULL;
 }
 
 wxFSFile* wxArchiveFSHandler::OpenFile(
@@ -358,42 +355,42 @@ wxFSFile* wxArchiveFSHandler::OpenFile(
     const wxArchiveClassFactory *factory;
     factory = wxArchiveClassFactory::Find(protocol);
     if (!factory)
-        return nullptr;
+        return NULL;
 
     wxArchiveFSCacheData *cached = m_cache->Get(key);
     if (!cached)
     {
         wxFSFile *leftFile = m_fs.OpenFile(left);
         if (!leftFile)
-            return nullptr;
+            return NULL;
         cached = m_cache->Add(key, *factory, leftFile->DetachStream());
         delete leftFile;
     }
 
     wxArchiveEntry *entry = cached->Get(right);
     if (!entry)
-        return nullptr;
+        return NULL;
 
     wxInputStream *leftStream = cached->NewStream();
     if (!leftStream)
     {
         wxFSFile *leftFile = m_fs.OpenFile(left);
         if (!leftFile)
-            return nullptr;
+            return NULL;
         leftStream = leftFile->DetachStream();
         delete leftFile;
     }
 
     wxArchiveInputStream *s = factory->NewStream(leftStream);
     if ( !s )
-        return nullptr;
+        return NULL;
 
     s->OpenEntry(*entry);
 
     if (!s->IsOk())
     {
         delete s;
-        return nullptr;
+        return NULL;
     }
 
     return new wxFSFile(s,
@@ -433,14 +430,14 @@ wxString wxArchiveFSHandler::FindFirst(const wxString& spec, int flags)
         delete leftFile;
     }
 
-    m_FindEntry = nullptr;
+    m_FindEntry = NULL;
 
     switch (flags)
     {
         case wxFILE:
-            m_AllowDirs = false; m_AllowFiles = true; break;
+            m_AllowDirs = false, m_AllowFiles = true; break;
         case wxDIR:
-            m_AllowDirs = true; m_AllowFiles = false; break;
+            m_AllowDirs = true, m_AllowFiles = false; break;
         default:
             m_AllowDirs = m_AllowFiles = true; break;
     }
@@ -483,8 +480,8 @@ wxString wxArchiveFSHandler::DoFind()
 
         if (!m_FindEntry)
         {
-            m_Archive = nullptr;
-            m_FindEntry = nullptr;
+            m_Archive = NULL;
+            m_FindEntry = NULL;
             break;
         }
         namestr = m_FindEntry->entry->GetName(wxPATH_UNIX);

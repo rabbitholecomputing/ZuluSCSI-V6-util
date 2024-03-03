@@ -2,6 +2,7 @@
 // Name:        src/common/odcombocmn.cpp
 // Purpose:     wxOwnerDrawnComboBox common code
 // Author:      Jaakko Salli
+// Modified by:
 // Created:     Apr-30-2006
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence

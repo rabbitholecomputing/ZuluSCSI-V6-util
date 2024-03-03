@@ -31,10 +31,10 @@ public:
     virtual void Show(wxWindow* parent) = 0;
     virtual void Dismiss() = 0;
 
-    virtual ~wxPreferencesEditorImpl() = default;
+    virtual ~wxPreferencesEditorImpl() {}
 
 protected:
-    wxPreferencesEditorImpl() = default;
+    wxPreferencesEditorImpl() {}
 };
 
 #endif // _WX_PRIVATE_PREFERENCES_H_

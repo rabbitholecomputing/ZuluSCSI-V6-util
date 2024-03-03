@@ -57,6 +57,7 @@ wxFLAGS_MEMBER(wxBORDER)
 // standard window styles
 wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
 wxFLAGS_MEMBER(wxCLIP_CHILDREN)
+wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
 wxFLAGS_MEMBER(wxWANTS_CHARS)
 wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
 wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
@@ -143,8 +144,9 @@ bool wxSpinCtrlImpl::IsBaseCompatibleWithRange(int minVal, int maxVal, int base)
 
 unsigned wxSpinCtrlImpl::DetermineDigits(double inc)
 {
-    double ipart;
-    inc = std::abs(std::modf(inc, &ipart));
+    // TODO-C++11: Use std::modf() to get the fractional part.
+    inc = fabs(inc);
+    inc -= static_cast<int>(inc);
     if ( inc > 0.0 )
     {
         return wxMin(SPINCTRLDBL_MAX_DIGITS, -static_cast<int>(floor(log10(inc))));

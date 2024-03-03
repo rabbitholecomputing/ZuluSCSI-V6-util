@@ -68,10 +68,15 @@ private:
 class wxSecretValueLibSecretImpl : public wxSecretValueImpl
 {
 public:
-    // Create a new secret value for the given content type.
-    wxSecretValueLibSecretImpl(size_t size, const void* data, const char* contentType)
+    // Create a new secret value.
+    //
+    // Notice that we have to use text/plain as content type and not
+    // application/octet-stream which would have been more logical because
+    // libsecret accepts only valid UTF-8 strings for the latter, while our
+    // data is not necessarily UTF-8 (nor even text at all...).
+    wxSecretValueLibSecretImpl(size_t size, const void* data)
         : m_value(secret_value_new(static_cast<const gchar*>(data), size,
-                                   contentType))
+                                   "text/plain"))
     {
     }
 
@@ -90,16 +95,16 @@ public:
         secret_value_unref(m_value);
     }
 
-    virtual size_t GetSize() const override
+    virtual size_t GetSize() const wxOVERRIDE
     {
         gsize length = 0;
         (void)secret_value_get(m_value, &length);
         return length;
     }
 
-    virtual const void *GetData() const override
+    virtual const void *GetData() const wxOVERRIDE
     {
-        return secret_value_get(m_value, nullptr);
+        return secret_value_get(m_value, NULL);
     }
 
     SecretValue* GetValue() const
@@ -120,7 +125,7 @@ public:
     {
     }
 
-    virtual bool IsOk(wxString* errmsg) const override
+    virtual bool IsOk(wxString* errmsg) const wxOVERRIDE
     {
         if ( errmsg )
             *errmsg = m_error;
@@ -131,7 +136,7 @@ public:
     virtual bool Save(const wxString& WXUNUSED(service),
                       const wxString& WXUNUSED(user),
                       const wxSecretValueImpl& WXUNUSED(secret),
-                      wxString& errmsg) override
+                      wxString& errmsg) wxOVERRIDE
     {
         errmsg = m_error;
         return false;
@@ -140,14 +145,14 @@ public:
     virtual bool Load(const wxString& WXUNUSED(service),
                       wxString* WXUNUSED(user),
                       wxSecretValueImpl** WXUNUSED(secret),
-                      wxString& errmsg) const override
+                      wxString& errmsg) const wxOVERRIDE
     {
         errmsg = m_error;
         return false;
     }
 
     virtual bool Delete(const wxString& WXUNUSED(service),
-                        wxString& errmsg) override
+                        wxString& errmsg) wxOVERRIDE
     {
         errmsg = m_error;
         return false;
@@ -171,13 +176,13 @@ public:
         SecretService* const service = secret_service_get_sync
                                        (
                                             SECRET_SERVICE_OPEN_SESSION,
-                                            nullptr,   // No cancellation
+                                            NULL,   // No cancellation
                                             error.Out()
                                        );
         if ( !service )
         {
             errmsg = error.GetMessage();
-            return nullptr;
+            return NULL;
         }
 
         // This passes ownership of service to the new object.
@@ -187,7 +192,7 @@ public:
     virtual bool Save(const wxString& service,
                       const wxString& user,
                       const wxSecretValueImpl& secret,
-                      wxString& errmsg) override
+                      wxString& errmsg) wxOVERRIDE
     {
         // We don't have any argument for the user-visible secret description
         // supported by libsecret, so we just reuse the service string. It
@@ -205,7 +210,7 @@ public:
                 SECRET_COLLECTION_DEFAULT,
                 service.utf8_str(),
                 static_cast<const wxSecretValueLibSecretImpl&>(secret).GetValue(),
-                nullptr,                           // Can't be cancelled
+                NULL,                           // Can't be cancelled
                 error.Out()
               ) )
         {
@@ -219,7 +224,7 @@ public:
     virtual bool Load(const wxString& service,
                       wxString* user,
                       wxSecretValueImpl** secret,
-                      wxString& errmsg) const override
+                      wxString& errmsg) const wxOVERRIDE
     {
         wxGtkError error;
         GList* const found = secret_service_search_sync
@@ -232,7 +237,7 @@ public:
                     SECRET_SEARCH_UNLOCK |
                     SECRET_SEARCH_LOAD_SECRETS
                 ),
-                nullptr,                           // Can't be cancelled
+                NULL,                           // Can't be cancelled
                 error.Out()
             );
 
@@ -263,7 +268,7 @@ public:
     }
 
     virtual bool Delete(const wxString& service,
-                        wxString& errmsg) override
+                        wxString& errmsg) wxOVERRIDE
     {
         wxGtkError error;
         if ( !secret_service_clear_sync
@@ -271,7 +276,7 @@ public:
                 m_service,
                 GetSchema(),
                 BuildAttributes(service),
-                nullptr,                           // Can't be cancelled
+                NULL,                           // Can't be cancelled
                 error.Out()
               ) )
         {
@@ -305,7 +310,7 @@ private:
                 {
                     { FIELD_SERVICE,    SECRET_SCHEMA_ATTRIBUTE_STRING },
                     { FIELD_USER,       SECRET_SCHEMA_ATTRIBUTE_STRING },
-                    { nullptr }
+                    { NULL }
                 }
             };
 
@@ -321,7 +326,7 @@ private:
                             (
                                 GetSchema(),
                                 FIELD_SERVICE,  service.utf8_str().data(),
-                                nullptr
+                                NULL
                             ));
     }
 
@@ -333,7 +338,7 @@ private:
                                 GetSchema(),
                                 FIELD_SERVICE,  service.utf8_str().data(),
                                 FIELD_USER,     user.utf8_str().data(),
-                                nullptr
+                                NULL
                             ));
     }
 
@@ -357,12 +362,9 @@ const char* wxSecretStoreLibSecretImpl::FIELD_USER = "user";
 // ============================================================================
 
 /* static */
-wxSecretValueImpl*
-wxSecretValue::NewImpl(size_t size,
-                       const void *data,
-                       const char* contentType)
+wxSecretValueImpl* wxSecretValue::NewImpl(size_t size, const void *data)
 {
-    return new wxSecretValueLibSecretImpl(size, data, contentType);
+    return new wxSecretValueLibSecretImpl(size, data);
 }
 
 /* static */

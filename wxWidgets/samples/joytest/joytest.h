@@ -2,6 +2,7 @@
 // Name:        joytest.cpp
 // Purpose:     Joystick sample
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -11,7 +12,7 @@
 class MyApp: public wxApp
 {
 public:
-    bool OnInit() override;
+    bool OnInit() wxOVERRIDE;
 
     // Joystick max values
     int     m_minX;
@@ -26,36 +27,28 @@ public:
 
 wxDECLARE_APP(MyApp);
 
-class MyCanvas
-    : public wxPanel
+class MyCanvas: public wxScrolledWindow
 {
-private:
-    wxPoint m_pos;
-    wxPoint m_point;
-    bool m_validPoint;
-
-    wxJoystick* m_stick;
-    int m_nButtons;
-
 public:
-    MyCanvas(wxWindow* parent);
+    MyCanvas(wxWindow *parent, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~MyCanvas();
     void OnJoystickEvent(wxJoystickEvent& event);
-    void OnPaint(wxPaintEvent& evt);
-    void OnSize(wxSizeEvent& evt);
 
+    wxJoystick* m_stick;
     wxDECLARE_EVENT_TABLE();
 };
 
 class MyFrame: public wxFrame
 {
-    MyCanvas* canvas;
-
 public:
-    MyFrame(wxFrame* parent, const wxString& title);
-
+    MyCanvas *canvas;
+    MyFrame(wxFrame *parent, const wxString& title,
+        const wxPoint& pos, const wxSize& size, const long style);
+    ~MyFrame(){}
     void OnActivate(wxActivateEvent& event);
     void OnQuit(wxCommandEvent& event);
 
     wxDECLARE_EVENT_TABLE();
 };
+
+#define JOYTEST_QUIT        1

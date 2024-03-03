@@ -2,6 +2,7 @@
 // Name:        tbtest.h
 // Purpose:     wxTaskBarIcon sample
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c)
 // Licence:     wxWindows licence
@@ -25,7 +26,7 @@ public:
     void OnMenuCheckmark(wxCommandEvent&);
     void OnMenuUICheckmark(wxUpdateUIEvent&);
     void OnMenuSub(wxCommandEvent&);
-    virtual wxMenu *CreatePopupMenu() override;
+    virtual wxMenu *CreatePopupMenu() wxOVERRIDE;
 
     wxDECLARE_EVENT_TABLE();
 };
@@ -35,7 +36,7 @@ public:
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 class MyDialog: public wxDialog

@@ -24,9 +24,6 @@
     <ClCompile Include="..\..\src\common\webview.cpp">
       <Filter>Common Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\common\webview_chromium.cpp">
-      <Filter>Common Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\common\webviewarchivehandler.cpp">
       <Filter>Common Sources</Filter>
     </ClCompile>
@@ -56,12 +53,6 @@
       <Filter>MSW Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\webview.h">
-      <Filter>Common Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\webview_chromium.h">
-      <Filter>Common Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\webview_chromium_impl.h">
       <Filter>Common Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\webviewarchivehandler.h">

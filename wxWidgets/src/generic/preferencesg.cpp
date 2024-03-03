@@ -29,9 +29,10 @@
 #include "wx/dialog.h"
 #include "wx/notebook.h"
 #include "wx/sizer.h"
+#include "wx/sharedptr.h"
+#include "wx/scopedptr.h"
 #include "wx/scopeguard.h"
-
-#include <memory>
+#include "wx/vector.h"
 
 namespace
 {
@@ -77,7 +78,7 @@ public:
         m_notebook->ChangeSelection(page);
     }
 
-     bool ShouldPreventAppExit() const override
+     bool ShouldPreventAppExit() const wxOVERRIDE
      {
          return false;
      }
@@ -100,9 +101,9 @@ public:
         m_title = title;
     }
 
-    virtual void AddPage(wxPreferencesPage* page) override
+    virtual void AddPage(wxPreferencesPage* page) wxOVERRIDE
     {
-        m_pages.emplace_back(page);
+        m_pages.push_back(wxSharedPtr<wxPreferencesPage>(page));
     }
 
 protected:
@@ -125,9 +126,11 @@ protected:
         //       can determine its best size. We'll need to extend
         //       wxPreferencesPage with a GetBestSize() virtual method to make
         //       it possible to defer the creation.
-        for ( const auto& page : m_pages )
+        for ( Pages::const_iterator i = m_pages.begin();
+              i != m_pages.end();
+              ++i )
         {
-            dlg->AddPage(page.get());
+            dlg->AddPage(i->get());
         }
 
         dlg->FitPages();
@@ -135,7 +138,8 @@ protected:
         return dlg;
     }
 
-    std::vector<std::unique_ptr<wxPreferencesPage>> m_pages;
+    typedef wxVector< wxSharedPtr<wxPreferencesPage> > Pages;
+    Pages m_pages;
 
 private:
     wxString m_title;
@@ -156,7 +160,7 @@ public:
             m_win->Destroy();
     }
 
-    virtual void Show(wxWindow* parent) override
+    virtual void Show(wxWindow* parent) wxOVERRIDE
     {
         if ( !m_win )
         {
@@ -174,12 +178,12 @@ public:
         }
     }
 
-    virtual void Dismiss() override
+    virtual void Dismiss() wxOVERRIDE
     {
         if ( m_win )
         {
             m_win->Close(/*force=*/true);
-            m_win = nullptr;
+            m_win = NULL;
         }
     }
 
@@ -200,15 +204,15 @@ class wxModalPreferencesEditorImpl : public wxGenericPreferencesEditorImplBase
 public:
     wxModalPreferencesEditorImpl()
     {
-        m_dlg = nullptr;
+        m_dlg = NULL;
         m_currentPage = -1;
     }
 
-    virtual void Show(wxWindow* parent) override
+    virtual void Show(wxWindow* parent) wxOVERRIDE
     {
-        std::unique_ptr<wxGenericPrefsDialog> dlg(CreateDialog(parent));
+        wxScopedPtr<wxGenericPrefsDialog> dlg(CreateDialog(parent));
 
-        // Store it for Dismiss() but ensure that the pointer is reset to nullptr
+        // Store it for Dismiss() but ensure that the pointer is reset to NULL
         // when the dialog is destroyed on leaving this function.
         m_dlg = dlg.get();
         wxON_BLOCK_EXIT_NULL(m_dlg);
@@ -222,12 +226,12 @@ public:
             m_currentPage = dlg->GetSelectedPage();
     }
 
-    virtual void Dismiss() override
+    virtual void Dismiss() wxOVERRIDE
     {
         if ( m_dlg )
         {
             m_dlg->EndModal(wxID_CANCEL);
-            m_dlg = nullptr;
+            m_dlg = NULL;
         }
     }
 

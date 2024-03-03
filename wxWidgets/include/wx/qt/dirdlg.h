@@ -13,7 +13,7 @@ class QFileDialog;
 class WXDLLIMPEXP_CORE wxDirDialog : public wxDirDialogBase
 {
 public:
-    wxDirDialog() = default;
+    wxDirDialog() { }
 
     wxDirDialog(wxWindow *parent,
                 const wxString& message = wxASCII_STR(wxDirSelectorPromptStr),
@@ -33,8 +33,8 @@ public:
 
 public:     // overrides from wxGenericDirDialog
 
-    wxString GetPath() const override;
-    void SetPath(const wxString& path) override;
+    wxString GetPath() const wxOVERRIDE;
+    void SetPath(const wxString& path) wxOVERRIDE;
 
 private:
 

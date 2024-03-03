@@ -10,9 +10,8 @@
 #ifndef _WX_PRIVATE_FDIODISPATCHER_H_
 #define _WX_PRIVATE_FDIODISPATCHER_H_
 
+#include "wx/hashmap.h"
 #include "wx/private/fdiohandler.h"
-
-#include <unordered_map>
 
 // those flags describes sets where descriptor should be added
 enum wxFDIODispatcherEntryFlags
@@ -29,7 +28,7 @@ class WXDLLIMPEXP_BASE wxFDIODispatcher
 public:
     enum { TIMEOUT_INFINITE = -1 };
 
-    // return the global dispatcher to be used for IO events, can be null only
+    // return the global dispatcher to be used for IO events, can be NULL only
     // if wxSelectDispatcher wasn't compiled into the library at all as
     // creating it never fails
     //
@@ -59,7 +58,7 @@ public:
     // -1 if an error occurred
     virtual int Dispatch(int timeout = TIMEOUT_INFINITE) = 0;
 
-    virtual ~wxFDIODispatcher() = default;
+    virtual ~wxFDIODispatcher() { }
 };
 
 //entry for wxFDIOHandlerMap
@@ -67,8 +66,6 @@ struct wxFDIOHandlerEntry
 {
     wxFDIOHandlerEntry()
     {
-        handler = nullptr;
-        flags = 0;
     }
 
     wxFDIOHandlerEntry(wxFDIOHandler *handler_, int flags_)
@@ -82,7 +79,13 @@ struct wxFDIOHandlerEntry
 };
 
 // this hash is used to map file descriptors to their handlers
-using wxFDIOHandlerMap = std::unordered_map<int, wxFDIOHandlerEntry>;
+WX_DECLARE_HASH_MAP(
+  int,
+  wxFDIOHandlerEntry,
+  wxIntegerHash,
+  wxIntegerEqual,
+  wxFDIOHandlerMap
+);
 
 // FDIODispatcher that holds map fd <-> FDIOHandler, this should be used if
 // this map isn't maintained elsewhere already as it is usually needed anyhow
@@ -92,20 +95,20 @@ using wxFDIOHandlerMap = std::unordered_map<int, wxFDIOHandlerEntry>;
 class WXDLLIMPEXP_BASE wxMappedFDIODispatcher : public wxFDIODispatcher
 {
 public:
-    // find the handler for the given fd, return nullptr if none
+    // find the handler for the given fd, return NULL if none
     wxFDIOHandler *FindHandler(int fd) const;
 
     // register handler for the given descriptor with the dispatcher, return
     // true on success or false on error
-    virtual bool RegisterFD(int fd, wxFDIOHandler *handler, int flags) override;
+    virtual bool RegisterFD(int fd, wxFDIOHandler *handler, int flags) wxOVERRIDE;
 
     // modify descriptor flags or handler, return true on success
-    virtual bool ModifyFD(int fd, wxFDIOHandler *handler, int flags) override;
+    virtual bool ModifyFD(int fd, wxFDIOHandler *handler, int flags) wxOVERRIDE;
 
     // unregister descriptor previously registered with RegisterFD()
-    virtual bool UnregisterFD(int fd) override;
+    virtual bool UnregisterFD(int fd) wxOVERRIDE;
 
-    virtual ~wxMappedFDIODispatcher() = default;
+    virtual ~wxMappedFDIODispatcher() { }
 
 protected:
     // the fd -> handler map containing all the registered handlers

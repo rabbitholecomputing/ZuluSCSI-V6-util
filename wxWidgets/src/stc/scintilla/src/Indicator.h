@@ -8,16 +8,18 @@
 #ifndef INDICATOR_H
 #define INDICATOR_H
 
+#ifdef SCI_NAMESPACE
 namespace Scintilla {
+#endif
 
 struct StyleAndColour {
 	int style;
 	ColourDesired fore;
-	StyleAndColour() noexcept : style(INDIC_PLAIN), fore(0, 0, 0) {
+	StyleAndColour() : style(INDIC_PLAIN), fore(0, 0, 0) {
 	}
-	StyleAndColour(int style_, ColourDesired fore_ = ColourDesired(0, 0, 0)) noexcept : style(style_), fore(fore_) {
+	StyleAndColour(int style_, ColourDesired fore_ = ColourDesired(0, 0, 0)) : style(style_), fore(fore_) {
 	}
-	bool operator==(const StyleAndColour &other) const noexcept {
+	bool operator==(const StyleAndColour &other) const {
 		return (style == other.style) && (fore == other.fore);
 	}
 };
@@ -26,31 +28,33 @@ struct StyleAndColour {
  */
 class Indicator {
 public:
-	enum class State { normal, hover };
+	enum DrawState { drawNormal, drawHover };
 	StyleAndColour sacNormal;
 	StyleAndColour sacHover;
 	bool under;
 	int fillAlpha;
 	int outlineAlpha;
 	int attributes;
-	Indicator() noexcept : under(false), fillAlpha(30), outlineAlpha(50), attributes(0) {
+	Indicator() : under(false), fillAlpha(30), outlineAlpha(50), attributes(0) {
 	}
-	Indicator(int style_, ColourDesired fore_=ColourDesired(0,0,0), bool under_=false, int fillAlpha_=30, int outlineAlpha_=50) noexcept :
+	Indicator(int style_, ColourDesired fore_=ColourDesired(0,0,0), bool under_=false, int fillAlpha_=30, int outlineAlpha_=50) :
 		sacNormal(style_, fore_), sacHover(style_, fore_), under(under_), fillAlpha(fillAlpha_), outlineAlpha(outlineAlpha_), attributes(0) {
 	}
-	void Draw(Surface *surface, const PRectangle &rc, const PRectangle &rcLine, const PRectangle &rcCharacter, State drawState, int value) const;
-	bool IsDynamic() const noexcept {
+	void Draw(Surface *surface, const PRectangle &rc, const PRectangle &rcLine, const PRectangle &rcCharacter, DrawState drawState, int value) const;
+	bool IsDynamic() const {
 		return !(sacNormal == sacHover);
 	}
-	bool OverridesTextFore() const noexcept {
+	bool OverridesTextFore() const {
 		return sacNormal.style == INDIC_TEXTFORE || sacHover.style == INDIC_TEXTFORE;
 	}
-	int Flags() const noexcept {
+	int Flags() const {
 		return attributes;
 	}
-	void SetFlags(int attributes_) noexcept;
+	void SetFlags(int attributes_);
 };
 
+#ifdef SCI_NAMESPACE
 }
+#endif
 
 #endif

@@ -12,6 +12,9 @@
 
 #include "testprec.h"
 
+
+#if wxUSE_UNICODE
+
 #include "wx/convauto.h"
 
 #include "wx/mstream.h"
@@ -128,7 +131,7 @@ void ConvAutoTestCase::TestFirstChar(const char *src, wchar_t wch, size_t len,
                                      ConvState st, wxFontEncoding fe)
 {
     wxConvAuto conv(fe);
-    wxWCharBuffer wbuf = conv.cMB2WC(src, len, nullptr);
+    wxWCharBuffer wbuf = conv.cMB2WC(src, len, NULL);
     CPPUNIT_ASSERT( wbuf );
     CPPUNIT_ASSERT_EQUAL( wch, *wbuf );
     st.Check(conv);
@@ -301,3 +304,5 @@ void ConvAutoTestCase::StreamFallbackMultibyte()
     TestTextStream("\x61\x82\xa0\x0A\x83\xc0",
                    6, line1, line2, wxFONTENCODING_CP932);
 }
+
+#endif // wxUSE_UNICODE

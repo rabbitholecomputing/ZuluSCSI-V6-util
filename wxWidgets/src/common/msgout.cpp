@@ -2,6 +2,7 @@
 // Name:        src/common/msgout.cpp
 // Purpose:     wxMessageOutput implementation
 // Author:      Mattia Barbon
+// Modified by:
 // Created:     17.07.02
 // Copyright:   (c) the wxWidgets team
 // Licence:     wxWindows licence
@@ -39,10 +40,6 @@
     #include "wx/msw/private.h"
 #endif
 
-#if defined(__ANDROID__)
-    #include <android/log.h>
-#endif
-
 // ===========================================================================
 // implementation
 // ===========================================================================
@@ -53,7 +50,7 @@
 // wxMessageOutput
 // ----------------------------------------------------------------------------
 
-wxMessageOutput* wxMessageOutput::ms_msgOut = nullptr;
+wxMessageOutput* wxMessageOutput::ms_msgOut = 0;
 
 wxMessageOutput* wxMessageOutput::Get()
 {
@@ -71,6 +68,34 @@ wxMessageOutput* wxMessageOutput::Set(wxMessageOutput* msgout)
     ms_msgOut = msgout;
     return old;
 }
+
+#if !wxUSE_UTF8_LOCALE_ONLY
+void wxMessageOutput::DoPrintfWchar(const wxChar *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    wxString out;
+
+    out.PrintfV(format, args);
+    va_end(args);
+
+    Output(out);
+}
+#endif // !wxUSE_UTF8_LOCALE_ONLY
+
+#if wxUSE_UNICODE_UTF8
+void wxMessageOutput::DoPrintfUtf8(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    wxString out;
+
+    out.PrintfV(format, args);
+    va_end(args);
+
+    Output(out);
+}
+#endif // wxUSE_UNICODE_UTF8
 
 // ----------------------------------------------------------------------------
 // wxMessageOutputBest
@@ -95,7 +120,7 @@ void wxMessageOutputBest::Output(const wxString& str)
     else // Use some title to avoid default "Error"
         title = _("Message");
 
-    ::MessageBox(nullptr, str.t_str(), title.t_str(), MB_ICONINFORMATION | MB_OK);
+    ::MessageBox(NULL, str.t_str(), title.t_str(), MB_ICONINFORMATION | MB_OK);
 #else // !__WINDOWS__
     wxUnusedVar(m_flags);
 
@@ -147,13 +172,8 @@ wxMessageOutputStderr::wxMessageOutputStderr(FILE *fp, const wxMBConv& conv)
 void wxMessageOutputStderr::Output(const wxString& str)
 {
     const wxCharBuffer& buf = PrepareForOutput(str);
-
-#if defined(__ANDROID__)
-    __android_log_write(ANDROID_LOG_INFO, "wxWidgets", buf.data());
-#else
     fwrite(buf, buf.length(), 1, m_fp);
     fflush(m_fp);
-#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -167,10 +187,6 @@ void wxMessageOutputDebug::Output(const wxString& str)
     out.Replace(wxT("\t"), wxT("        "));
     out.Replace(wxT("\n"), wxT("\r\n"));
     ::OutputDebugString(out.t_str());
-#elif defined(__ANDROID__)
-    const wxCharBuffer& buf = PrepareForOutput(str);
-
-    __android_log_write(ANDROID_LOG_DEBUG, "wxWidgets", buf.data());
 #else
     // TODO: use native debug output function for the other ports too
     wxMessageOutputStderr::Output(str);

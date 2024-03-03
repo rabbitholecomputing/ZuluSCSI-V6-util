@@ -2,6 +2,7 @@
 // Name:        src/generic/msgdlgg.cpp
 // Purpose:     wxGenericMessageDialog
 // Author:      Julian Smart, Robert Roebling
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
@@ -52,7 +53,7 @@ public:
     }
 
 protected:
-    virtual wxWindow *OnCreateLine(const wxString& s) override
+    virtual wxWindow *OnCreateLine(const wxString& s) wxOVERRIDE
     {
         wxWindow * const win = wxTextSizerWrapper::OnCreateLine(s);
 
@@ -95,7 +96,7 @@ wxSizer *wxGenericMessageDialog::CreateMsgDlgButtonSizer()
     {
         wxStdDialogButtonSizer * const sizerStd = new wxStdDialogButtonSizer;
 
-        wxButton *btnDef = nullptr;
+        wxButton *btnDef = NULL;
 
         if ( m_dialogStyle & wxOK )
         {

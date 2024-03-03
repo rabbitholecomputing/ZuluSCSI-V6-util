@@ -2,6 +2,7 @@
 // Name:        src/msw/checklst.cpp
 // Purpose:     implementation of wxCheckListBox class
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     16.11.97
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -77,7 +78,7 @@ public:
     wxCheckListBoxItem(wxCheckListBox *parent);
 
     // drawing functions
-    virtual bool OnDrawItem(wxDC& dc, const wxRect& rc, wxODAction act, wxODStatus stat) override;
+    virtual bool OnDrawItem(wxDC& dc, const wxRect& rc, wxODAction act, wxODStatus stat) wxOVERRIDE;
 
     // simple accessors and operations
     wxCheckListBox *GetParent() const
@@ -86,7 +87,7 @@ public:
     int GetIndex() const
         { return m_parent->GetItemIndex(const_cast<wxCheckListBoxItem*>(this)); }
 
-    wxString GetName() const override
+    wxString GetName() const wxOVERRIDE
         { return m_parent->GetString(GetIndex()); }
 
 
@@ -100,7 +101,7 @@ public:
         { Check(!IsChecked()); }
 
 protected:
-    virtual int MSWGetTextType() const override
+    virtual int MSWGetTextType() const wxOVERRIDE
     {
         // Don't handle mnemonics in the label specially, they don't make sense
         // for the listbox items that can't be activated from keyboard using
@@ -417,7 +418,7 @@ void wxCheckListBox::OnLeftClick(wxMouseEvent& event)
                 // scroll one item down if the item is the last one
                 // and isn't visible at all
                 int h;
-                GetClientSize(nullptr, &h);
+                GetClientSize(NULL, &h);
                 if ( rect.GetBottom() > h )
                     ScrollLines(1);
             }

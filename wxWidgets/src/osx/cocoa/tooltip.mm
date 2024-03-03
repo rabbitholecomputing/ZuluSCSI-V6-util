@@ -40,7 +40,7 @@ wxIMPLEMENT_ABSTRACT_CLASS(wxToolTip, wxObject);
 wxToolTip::wxToolTip( const wxString &tip )
 {
     m_text = tip;
-    m_window = nullptr;
+    m_window = NULL;
 }
 
 wxToolTip::~wxToolTip()

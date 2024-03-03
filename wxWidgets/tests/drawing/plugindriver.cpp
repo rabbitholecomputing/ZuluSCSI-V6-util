@@ -82,7 +82,7 @@ void GraphicsContextDrawingTestCase::RunPluginsDrawingCase (
 // GraphicsContextDrawingTestCase::PluginInfo /////////////////////////////////
 
 GraphicsContextDrawingTestCase::PluginInfo::PluginInfo()
-    : library(nullptr), gcFactory(nullptr), destroy(nullptr) {
+    : library(NULL), gcFactory(NULL), destroy(NULL) {
 }
 
 GraphicsContextDrawingTestCase::PluginInfo::~PluginInfo()

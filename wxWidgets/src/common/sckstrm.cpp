@@ -2,6 +2,7 @@
 // Name:        src/common/sckstrm.cpp
 // Purpose:     wxSocket*Stream
 // Author:      Guilhem Lavaux
+// Modified by:
 // Created:     17/07/97
 // Copyright:   (c)
 // Licence:     wxWindows licence

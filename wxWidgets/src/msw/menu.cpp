@@ -110,7 +110,7 @@ void SetOwnerDrawnMenuItem(HMENU hmenu,
 // Construct a menu with optional title (then use append)
 void wxMenu::InitNoCreate()
 {
-    m_radioData = nullptr;
+    m_radioData = NULL;
     m_doBreak = false;
 
 #if wxUSE_OWNER_DRAWN
@@ -349,7 +349,7 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
     // required by ::AppendMenu() API
     UINT_PTR id;
     wxMenu *submenu = pItem->GetSubMenu();
-    if ( submenu != nullptr ) {
+    if ( submenu != NULL ) {
         wxASSERT_MSG( submenu->GetHMenu(), wxT("invalid submenu") );
 
         submenu->SetParent(this);
@@ -365,19 +365,7 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
 
     // prepare to insert the item in the menu
     wxString itemText = pItem->GetItemLabel();
-#if wxUSE_ACCEL
-    const int n = FindAccel(pItem->GetId());
-    if ( n != wxNOT_FOUND )
-    {
-        // We need to normalize the accelerator if only to account for RawCtrl
-        // modifier used: we want to show just "Ctrl" for it in the menu.
-        itemText = wxString::Format("%s\t%s",
-                                    itemText.BeforeFirst('\t'),
-                                    m_accels[n]->ToString());
-    }
-#endif // wxUSE_ACCEL
-
-    LPCTSTR pData = nullptr;
+    LPCTSTR pData = NULL;
     if ( pos == (size_t)-1 )
     {
         // append at the end (note that the item is already appended to
@@ -618,7 +606,7 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
 
 wxMenuItem* wxMenu::DoAppend(wxMenuItem *item)
 {
-    return wxMenuBase::DoAppend(item) && DoInsertOrAppend(item) ? item : nullptr;
+    return wxMenuBase::DoAppend(item) && DoInsertOrAppend(item) ? item : NULL;
 }
 
 wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
@@ -626,7 +614,7 @@ wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
     if (wxMenuBase::DoInsert(pos, item) && DoInsertOrAppend(item, pos))
         return item;
     else
-        return nullptr;
+        return NULL;
 }
 
 wxMenuItem *wxMenu::DoRemove(wxMenuItem *item)
@@ -748,7 +736,7 @@ void wxMenu::SetTitle(const wxString& label)
         {
             if ( !::InsertMenu(hMenu, 0u, MF_BYPOSITION | MF_STRING,
                                (UINT_PTR)idMenuTitle, m_title.t_str()) ||
-                 !::InsertMenu(hMenu, 1u, MF_BYPOSITION, (unsigned)-1, nullptr) )
+                 !::InsertMenu(hMenu, 1u, MF_BYPOSITION, (unsigned)-1, NULL) )
             {
                 wxLogLastError(wxT("InsertMenu"));
             }
@@ -850,7 +838,7 @@ wxMenu* wxMenu::MSWGetMenu(WXHMENU hMenu)
     }
 
     // unknown hMenu
-    return nullptr;
+    return NULL;
 }
 
 // ---------------------------------------------------------------------------
@@ -896,7 +884,7 @@ wxMenuBar::~wxMenuBar()
     if (m_hMenu && !IsAttached())
     {
         ::DestroyMenu((HMENU)m_hMenu);
-        m_hMenu = (WXHMENU)nullptr;
+        m_hMenu = (WXHMENU)NULL;
     }
 }
 
@@ -1057,7 +1045,7 @@ wxMenu *wxMenuBar::Replace(size_t pos, wxMenu *menu, const wxString& title)
 {
     wxMenu *menuOld = wxMenuBarBase::Replace(pos, menu, title);
     if ( !menuOld )
-        return nullptr;
+        return NULL;
 
     menu->wxMenuBase::SetTitle(title);
 
@@ -1191,7 +1179,7 @@ wxMenu *wxMenuBar::Remove(size_t pos)
 {
     wxMenu *menu = wxMenuBarBase::Remove(pos);
     if ( !menu )
-        return nullptr;
+        return NULL;
 
     if (GetHmenu())
     {
@@ -1281,7 +1269,7 @@ wxMenu* wxMenuBar::MSWGetMenu(WXHMENU hMenu) const
     // If we're called with the handle of the menu bar itself, we can return
     // immediately as it certainly can't be the handle of one of our menus.
     if ( hMenu == GetHMenu() )
-        return nullptr;
+        return NULL;
 
     // query all menus
     for ( size_t n = 0 ; n < GetMenuCount(); ++n )
@@ -1292,7 +1280,7 @@ wxMenu* wxMenuBar::MSWGetMenu(WXHMENU hMenu) const
     }
 
     // unknown hMenu
-    return nullptr;
+    return NULL;
 }
 
 #endif // wxUSE_MENUS

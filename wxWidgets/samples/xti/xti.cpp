@@ -2,6 +2,7 @@
 // Name:        xti.cpp
 // Purpose:     eXtended RTTI support sample
 // Author:      Stefan Csomor, Francesco Montorsi
+// Modified by:
 // Created:     13/5/2007
 // Copyright:   (c) Stefan Csomor, Francesco Montorsi
 // Licence:     wxWindows licence
@@ -153,7 +154,7 @@ bool MyApp::OnInit()
 // ----------------------------------------------------------------------------
 
 MyFrame::MyFrame(const wxString& title)
-    : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxSize(300, 200))
+    : wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(300, 200))
 {
     // set the frame icon
     SetIcon(wxICON(sample));
@@ -211,7 +212,7 @@ MyFrame::MyFrame(const wxString& title)
 //      MyXTIFrame()
 //      {
 //          Init();
-//          m_button = nullptr;
+//          m_button = NULL;
 //      }
 //
 //      bool Create(wxWindow *parent,
@@ -312,22 +313,22 @@ void RegisterFrameRTTI()
     // is not defined anywhere in this program
     wxDynamicClassInfo *dyninfo =
         wx_dynamic_cast( wxDynamicClassInfo *, wxClassInfo::FindClass("MyXTIFrame"));
-    if ( dyninfo == nullptr )
+    if ( dyninfo == NULL )
     {
         dyninfo = new wxDynamicClassInfo(wxT("myxtiframe.h"),
                             wxT("MyXTIFrame"),
                             CLASSINFO(wxFrame) );
 
         // this class has a property named "Button" and the relative handler:
-        dyninfo->AddProperty(wxT("Button"), wxGetTypeInfo((wxButton**) nullptr));
+        dyninfo->AddProperty(wxT("Button"), wxGetTypeInfo((wxButton**) NULL));
         dyninfo->AddHandler(wxT("ButtonClickHandler"),
-            nullptr /* no instance of the handler method */, CLASSINFO( wxEvent ) );
+            NULL /* no instance of the handler method */, CLASSINFO( wxEvent ) );
     }
 }
 
 wxDynamicObject* CreateFrameRTTI()
 {
-    int baseID = wxID_HIGHEST;
+    int baseID = 100;
     wxAny Params[10];
 
     // the class is now part of XTI internal table so that we can
@@ -337,7 +338,7 @@ wxDynamicObject* CreateFrameRTTI()
     wxASSERT( info );
     wxDynamicObject* frameWrapper =
         wx_dynamic_cast(wxDynamicObject*, info->CreateObject() );
-    Params[0] = wxAny((wxWindow*)(nullptr));
+    Params[0] = wxAny((wxWindow*)(NULL));
     Params[1] = wxAny(wxWindowID(baseID++));
     Params[2] = wxAny(wxString("This is a frame created from XTI"));
     Params[3] = wxAny(wxPoint(-1,-1));
@@ -549,11 +550,11 @@ wxDynamicObject* LoadFrameRTTI(const wxString &fileName)
     // load the XML document
     wxXmlDocument xml;
     if (!xml.Load(fileName))
-        return nullptr;
+        return NULL;
 
     wxXmlNode *root = xml.GetRoot();
     if (root->GetName() != "TestXTI")
-        return nullptr;
+        return NULL;
 
     // now depersist the wxFrame we saved into it using wxObjectRuntimeReaderCallback
     wxObjectRuntimeReaderCallback Callbacks;

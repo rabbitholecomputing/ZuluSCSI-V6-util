@@ -14,23 +14,23 @@
 class WXDLLIMPEXP_CORE wxAnyButton : public wxAnyButtonBase
 {
 public:
-    wxAnyButton() = default;
+    wxAnyButton() {}
 
     static wxSize GetDefaultSize();
 
-    virtual void SetLabel(const wxString& label) override;
+    virtual void SetLabel(const wxString& label) wxOVERRIDE;
 
 protected:
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
     void OnEnterWindow( wxMouseEvent& event);
     void OnLeaveWindow( wxMouseEvent& event);
 
-    virtual wxBitmap DoGetBitmap(State which) const override;
-    virtual void DoSetBitmap(const wxBitmapBundle& bitmapBundle, State which) override;
-    virtual void DoSetBitmapPosition(wxDirection dir) override;
+    virtual wxBitmap DoGetBitmap(State which) const wxOVERRIDE;
+    virtual void DoSetBitmap(const wxBitmapBundle& bitmapBundle, State which) wxOVERRIDE;
+    virtual void DoSetBitmapPosition(wxDirection dir) wxOVERRIDE;
 
-    virtual void DoSetBitmapMargins(int x, int y) override
+    virtual void DoSetBitmapMargins(int x, int y) wxOVERRIDE
     {
         m_marginX = x;
         m_marginY = y;
@@ -38,7 +38,7 @@ protected:
     }
 
 #if wxUSE_MARKUP && wxOSX_USE_COCOA
-    virtual bool DoSetLabelMarkup(const wxString& markup) override;
+    virtual bool DoSetLabelMarkup(const wxString& markup) wxOVERRIDE;
 #endif // wxUSE_MARKUP && wxOSX_USE_COCOA
 
 

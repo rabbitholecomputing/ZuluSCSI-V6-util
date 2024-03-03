@@ -4,6 +4,7 @@
 //              toggle button under wxMSW.
 // Author:      John Norris, minor changes by Axel Schlueter
 //              and William Gallafent.
+// Modified by:
 // Created:     08.02.01
 // Copyright:   (c) 2000 Johnny C. Norris II
 // Licence:     wxWindows licence

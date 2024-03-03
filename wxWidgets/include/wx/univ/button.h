@@ -2,6 +2,7 @@
 // Name:        wx/univ/button.h
 // Purpose:     wxButton for wxUniversal
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     15.08.00
 // Copyright:   (c) 2000 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -81,22 +82,22 @@ public:
 
     virtual ~wxButton();
 
-    virtual wxWindow *SetDefault() override;
+    virtual wxWindow *SetDefault() wxOVERRIDE;
 
-    virtual bool IsPressed() const override { return m_isPressed; }
-    virtual bool IsDefault() const override { return m_isDefault; }
+    virtual bool IsPressed() const wxOVERRIDE { return m_isPressed; }
+    virtual bool IsDefault() const wxOVERRIDE { return m_isDefault; }
 
     // wxButton actions
-    virtual void Click() override;
+    virtual void Click() wxOVERRIDE;
 
-    virtual bool CanBeHighlighted() const override { return true; }
+    virtual bool CanBeHighlighted() const wxOVERRIDE { return true; }
 
 
 
 protected:
-    virtual void DoSetBitmap(const wxBitmapBundle& bitmap, State which) override;
-    virtual wxBitmap DoGetBitmap(State which) const override;
-    virtual void DoSetBitmapMargins(wxCoord x, wxCoord y) override;
+    virtual void DoSetBitmap(const wxBitmapBundle& bitmap, State which) wxOVERRIDE;
+    virtual wxBitmap DoGetBitmap(State which) const wxOVERRIDE;
+    virtual void DoSetBitmapMargins(wxCoord x, wxCoord y) wxOVERRIDE;
 
     // common part of all ctors
     void Init();

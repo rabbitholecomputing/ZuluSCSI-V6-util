@@ -34,7 +34,7 @@ public:
                      const wxPoint& pos = wxDefaultPosition,
                      const wxSize& size = wxDefaultSize,
                      int n = 0,
-                     const wxString choices[] = nullptr,
+                     const wxString choices[] = NULL,
                      long style = 0,
                      const wxValidator& validator = wxDefaultValidator,
                      const wxString& name = wxASCII_STR(wxBitmapComboBoxNameStr))
@@ -81,13 +81,13 @@ public:
     virtual ~wxBitmapComboBox();
 
     // Sets the image for the given item.
-    virtual void SetItemBitmap(unsigned int n, const wxBitmapBundle& bitmap) override;
+    virtual void SetItemBitmap(unsigned int n, const wxBitmapBundle& bitmap) wxOVERRIDE;
 
     // Returns the image of the item with the given index.
-    virtual wxBitmap GetItemBitmap(unsigned int n) const override;
+    virtual wxBitmap GetItemBitmap(unsigned int n) const wxOVERRIDE;
 
     // Returns size of the image used in list
-    virtual wxSize GetBitmapSize() const override
+    virtual wxSize GetBitmapSize() const wxOVERRIDE
     {
         return m_bitmapSize;
     }
@@ -106,32 +106,33 @@ public:
                unsigned int pos, wxClientData *clientData);
 
     // Override some wxTextEntry interface.
-    virtual void WriteText(const wxString& value) override;
+    virtual void WriteText(const wxString& value) wxOVERRIDE;
 
-    virtual wxString GetValue() const override;
-    virtual void Remove(long from, long to) override;
+    virtual wxString GetValue() const wxOVERRIDE;
+    virtual void Remove(long from, long to) wxOVERRIDE;
 
-    virtual void SetInsertionPoint(long pos) override;
-    virtual long GetInsertionPoint() const override;
-    virtual long GetLastPosition() const override;
+    virtual void SetInsertionPoint(long pos) wxOVERRIDE;
+    virtual long GetInsertionPoint() const wxOVERRIDE;
+    virtual long GetLastPosition() const wxOVERRIDE;
 
-    virtual void SetSelection(long from, long to) override;
-    virtual void GetSelection(long *from, long *to) const override;
+    virtual void SetSelection(long from, long to) wxOVERRIDE;
+    virtual void GetSelection(long *from, long *to) const wxOVERRIDE;
 
-    virtual void SetSelection(int n) override { wxComboBox::SetSelection(n); }
-    virtual int GetSelection() const override { return wxComboBox::GetSelection(); }
+    virtual void SetSelection(int n) wxOVERRIDE { wxComboBox::SetSelection(n); }
+    virtual int GetSelection() const wxOVERRIDE { return wxComboBox::GetSelection(); }
 
-    virtual bool IsEditable() const override;
-    virtual void SetEditable(bool editable) override;
+    virtual bool IsEditable() const wxOVERRIDE;
+    virtual void SetEditable(bool editable) wxOVERRIDE;
 
-    virtual GtkWidget* GetConnectWidget() override;
+    virtual GtkWidget* GetConnectWidget() wxOVERRIDE;
 
 protected:
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const override;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
-    virtual void GTKCreateComboBoxWidget() override;
+    virtual void GTKCreateComboBoxWidget() wxOVERRIDE;
+    virtual void GTKInsertComboBoxTextItem( unsigned int n, const wxString& text ) wxOVERRIDE;
 
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
     wxSize                  m_bitmapSize;
     int                     m_bitmapCellIndex;

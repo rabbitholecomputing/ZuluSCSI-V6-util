@@ -9,11 +9,13 @@
 #ifndef TWOBLUECUBES_CATCH_STREAM_H_INCLUDED
 #define TWOBLUECUBES_CATCH_STREAM_H_INCLUDED
 
-#include "catch_common.h"
+#include "catch_compiler_capabilities.h"
+#include "catch_streambuf.h"
 
-#include <iosfwd>
-#include <cstddef>
+#include <streambuf>
 #include <ostream>
+#include <fstream>
+#include <memory>
 
 namespace Catch {
 
@@ -21,30 +23,42 @@ namespace Catch {
     std::ostream& cerr();
     std::ostream& clog();
 
-    class StringRef;
 
     struct IStream {
-        virtual ~IStream();
+        virtual ~IStream() CATCH_NOEXCEPT;
         virtual std::ostream& stream() const = 0;
     };
 
-    auto makeStream( StringRef const &filename ) -> IStream const*;
-
-    class ReusableStringStream : NonCopyable {
-        std::size_t m_index;
-        std::ostream* m_oss;
+    class FileStream : public IStream {
+        mutable std::ofstream m_ofs;
     public:
-        ReusableStringStream();
-        ~ReusableStringStream();
+        FileStream( std::string const& filename );
+        virtual ~FileStream() CATCH_NOEXCEPT;
+    public: // IStream
+        virtual std::ostream& stream() const CATCH_OVERRIDE;
+    };
 
-        auto str() const -> std::string;
 
-        template<typename T>
-        auto operator << ( T const& value ) -> ReusableStringStream& {
-            *m_oss << value;
-            return *this;
-        }
-        auto get() -> std::ostream& { return *m_oss; }
+    class CoutStream : public IStream {
+        mutable std::ostream m_os;
+    public:
+        CoutStream();
+        virtual ~CoutStream() CATCH_NOEXCEPT;
+
+    public: // IStream
+        virtual std::ostream& stream() const CATCH_OVERRIDE;
+    };
+
+
+    class DebugOutStream : public IStream {
+        CATCH_AUTO_PTR( StreamBufBase ) m_streamBuf;
+        mutable std::ostream m_os;
+    public:
+        DebugOutStream();
+        virtual ~DebugOutStream() CATCH_NOEXCEPT;
+
+    public: // IStream
+        virtual std::ostream& stream() const CATCH_OVERRIDE;
     };
 }
 

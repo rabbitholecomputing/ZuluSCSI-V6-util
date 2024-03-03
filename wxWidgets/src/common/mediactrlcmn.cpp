@@ -2,6 +2,7 @@
 // Name:        src/common/mediactrlcmn.cpp
 // Purpose:     wxMediaCtrl common code
 // Author:      Ryan Norton <wxprojects@comcast.net>
+// Modified by:
 // Created:     11/07/04
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
@@ -23,6 +24,7 @@
 #if wxUSE_MEDIACTRL
 
 #ifndef WX_PRECOMP
+    #include "wx/hash.h"
     #include "wx/log.h"
 #endif
 
@@ -93,7 +95,7 @@ bool wxMediaCtrl::Create(wxWindow* parent, wxWindowID id,
         if(!pClassInfo || !DoCreate(pClassInfo, parent, id,
                                     pos, size, style, validator, name))
         {
-            m_imp = nullptr;
+            m_imp = NULL;
             return false;
         }
 
@@ -115,7 +117,7 @@ bool wxMediaCtrl::Create(wxWindow* parent, wxWindowID id,
 
         const wxClassInfo* classInfo;
 
-        while((classInfo = NextBackend(&it)) != nullptr)
+        while((classInfo = NextBackend(&it)) != NULL)
         {
             if(!DoCreate(classInfo, parent, id,
                          pos, size, style, validator, name))
@@ -138,7 +140,7 @@ bool wxMediaCtrl::Create(wxWindow* parent, wxWindowID id,
             }
         }
 
-        m_imp = nullptr;
+        m_imp = NULL;
         return false;
     }
 }
@@ -158,7 +160,7 @@ bool wxMediaCtrl::Create(wxWindow* parent, wxWindowID id,
         if(!pClassInfo || !DoCreate(pClassInfo, parent, id,
                                     pos, size, style, validator, name))
         {
-            m_imp = nullptr;
+            m_imp = NULL;
             return false;
         }
 
@@ -177,7 +179,7 @@ bool wxMediaCtrl::Create(wxWindow* parent, wxWindowID id,
 
         const wxClassInfo* classInfo;
 
-        while((classInfo = NextBackend(&it)) != nullptr)
+        while((classInfo = NextBackend(&it)) != NULL)
         {
             if(!DoCreate(classInfo, parent, id,
                          pos, size, style, validator, name))
@@ -192,7 +194,7 @@ bool wxMediaCtrl::Create(wxWindow* parent, wxWindowID id,
                 delete m_imp;
         }
 
-        m_imp = nullptr;
+        m_imp = NULL;
         return false;
     }
 }
@@ -253,7 +255,7 @@ const wxClassInfo* wxMediaCtrl::NextBackend(wxClassInfo::const_iterator* it)
     //
     // Nope - couldn't successfully find one... fail
     //
-    return nullptr;
+    return NULL;
 }
 
 

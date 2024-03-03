@@ -2,6 +2,7 @@
 // Name:        src/common/validate.cpp
 // Purpose:     wxValidator
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -29,7 +30,7 @@ bool wxValidator::ms_isSilent = false;
 
 wxValidator::wxValidator()
 {
-  m_validatorWindow = nullptr;
+  m_validatorWindow = NULL;
 }
 
 wxValidator::~wxValidator()

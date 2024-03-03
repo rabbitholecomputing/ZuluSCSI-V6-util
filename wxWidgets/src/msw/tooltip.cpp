@@ -2,6 +2,7 @@
 // Name:        src/msw/tooltip.cpp
 // Purpose:     wxToolTip class implementation for MSW
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     31.01.99
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -33,7 +34,6 @@
 #include "wx/tokenzr.h"
 #include "wx/vector.h"
 #include "wx/msw/private.h"
-#include "wx/msw/private/darkmode.h"
 
 #ifndef TTTOOLINFO_V1_SIZE
     #define TTTOOLINFO_V1_SIZE 0x28
@@ -58,7 +58,7 @@
 // ----------------------------------------------------------------------------
 
 // the tooltip parent window
-WXHWND wxToolTip::ms_hwndTT = nullptr;
+WXHWND wxToolTip::ms_hwndTT = (WXHWND)NULL;
 
 // new tooltip maximum width, default value is set on first call to wxToolTip::Add()
 int wxToolTip::ms_maxWidth = 0;
@@ -66,7 +66,7 @@ int wxToolTip::ms_maxWidth = 0;
 #if wxUSE_TTM_WINDOWFROMPOINT
 
 // the tooltip window proc
-static WNDPROC gs_wndprocToolTip = nullptr;
+static WNDPROC gs_wndprocToolTip = (WNDPROC)NULL;
 
 #endif // wxUSE_TTM_WINDOWFROMPOINT
 
@@ -140,12 +140,12 @@ public:
     {
     }
 
-    virtual bool OnInit() override
+    virtual bool OnInit() wxOVERRIDE
     {
         return true;
     }
 
-    virtual void OnExit() override
+    virtual void OnExit() wxOVERRIDE
     {
         wxToolTip::DeleteToolTipCtrl();
     }
@@ -280,7 +280,7 @@ void wxToolTip::DeleteToolTipCtrl()
     if ( ms_hwndTT )
     {
         ::DestroyWindow((HWND)ms_hwndTT);
-        ms_hwndTT = nullptr;
+        ms_hwndTT = (WXHWND)NULL;
     }
 }
 
@@ -304,17 +304,16 @@ WXHWND wxToolTip::GetToolTipCtrl()
         // active) and we don't want to strip "&"s from them
         ms_hwndTT = (WXHWND)::CreateWindowEx(exflags,
                                              TOOLTIPS_CLASS,
-                                             nullptr,
+                                             (LPCTSTR)NULL,
                                              TTS_ALWAYSTIP | TTS_NOPREFIX,
                                              CW_USEDEFAULT, CW_USEDEFAULT,
                                              CW_USEDEFAULT, CW_USEDEFAULT,
-                                             nullptr, nullptr,
+                                             NULL, (HMENU)NULL,
                                              wxGetInstance(),
-                                             nullptr);
+                                             NULL);
        if ( ms_hwndTT )
        {
            HWND hwnd = (HWND)ms_hwndTT;
-           wxMSWDarkMode::AllowForWindow(hwnd);
            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
@@ -331,7 +330,7 @@ WXHWND wxToolTip::GetToolTipCtrl()
 /* static */
 void wxToolTip::UpdateVisibility()
 {
-    wxToolInfo ti(nullptr, 0, wxRect());
+    wxToolInfo ti(NULL, 0, wxRect());
     ti.uFlags = 0;
 
     if ( !SendTooltipMessage(ms_hwndTT, TTM_GETCURRENTTOOL, &ti) )
@@ -377,8 +376,8 @@ wxIMPLEMENT_ABSTRACT_CLASS(wxToolTip, wxObject);
 wxToolTip::wxToolTip(const wxString &tip)
          : m_text(tip)
 {
-    m_window = nullptr;
-    m_others = nullptr;
+    m_window = NULL;
+    m_others = NULL;
 
     // make sure m_rect.IsEmpty() == true
     m_rect.SetWidth(0);
@@ -391,8 +390,8 @@ wxToolTip::wxToolTip(const wxString &tip)
 wxToolTip::wxToolTip(wxWindow* win, unsigned int id, const wxString &tip, const wxRect& rc)
          : m_text(tip), m_rect(rc), m_id(id)
 {
-    m_window = nullptr;
-    m_others = nullptr;
+    m_window = NULL;
+    m_others = NULL;
 
     SetWindow(win);
 }
@@ -571,7 +570,7 @@ bool wxToolTip::AdjustMaxWidth()
     // use TTM_SETMAXTIPWIDTH to make tooltip multiline using the
     // extent of its first line as max value
     HFONT hfont = (HFONT)
-        SendTooltipMessage(GetToolTipCtrl(), WM_GETFONT, nullptr);
+        SendTooltipMessage(GetToolTipCtrl(), WM_GETFONT, 0);
 
     if ( !hfont )
     {
@@ -585,7 +584,7 @@ bool wxToolTip::AdjustMaxWidth()
     MemoryHDC hdc;
     if ( !hdc )
     {
-        wxLogLastError(wxT("CreateCompatibleDC(nullptr)"));
+        wxLogLastError(wxT("CreateCompatibleDC(NULL)"));
     }
 
     if ( !SelectObject(hdc, hfont) )
@@ -631,7 +630,7 @@ bool wxToolTip::AdjustMaxWidth()
     // one would result in breaking the longer lines unnecessarily as
     // all our tooltips share the same maximal width
     if ( maxWidth > SendTooltipMessage(GetToolTipCtrl(),
-                                       TTM_GETMAXTIPWIDTH, nullptr) )
+                                       TTM_GETMAXTIPWIDTH, 0) )
     {
         SendTooltipMessage(GetToolTipCtrl(), TTM_SETMAXTIPWIDTH,
                            wxUIntToPtr(maxWidth));

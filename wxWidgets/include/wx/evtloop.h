@@ -2,6 +2,7 @@
 // Name:        wx/evtloop.h
 // Purpose:     declares wxEventLoop class
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     01.06.01
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -173,7 +174,7 @@ public:
     // active loop
     // -----------
 
-    // return currently active (running) event loop, may be null
+    // return currently active (running) event loop, may be NULL
     static wxEventLoopBase *GetActive() { return ms_activeLoop; }
 
     // set currently active (running) event loop
@@ -237,12 +238,12 @@ public:
 
     // sets the "should exit" flag and wakes up the loop so that it terminates
     // soon
-    virtual void ScheduleExit(int rc = 0) override;
+    virtual void ScheduleExit(int rc = 0) wxOVERRIDE;
 
 protected:
     // enters a loop calling OnNextIteration(), Pending() and Dispatch() and
     // terminating when Exit() is called
-    virtual int DoRun() override;
+    virtual int DoRun() wxOVERRIDE;
 
     // may be overridden to perform some action at the start of each new event
     // loop iteration
@@ -293,7 +294,7 @@ private:
     #include "wx/osx/evtloop.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/evtloop.h"
-#elif defined(__WXGTK__)
+#elif defined(__WXGTK20__)
     #include "wx/gtk/evtloop.h"
 #elif defined(__WXQT__)
     #include "wx/qt/evtloop.h"
@@ -306,7 +307,7 @@ class WXDLLIMPEXP_FWD_CORE wxEventLoopImpl;
 class WXDLLIMPEXP_CORE wxGUIEventLoop : public wxEventLoopBase
 {
 public:
-    wxGUIEventLoop() { m_impl = nullptr; }
+    wxGUIEventLoop() { m_impl = NULL; }
     virtual ~wxGUIEventLoop();
 
     virtual void ScheduleExit(int rc = 0);
@@ -376,10 +377,10 @@ public:
     }
 
 protected:
-    virtual void OnExit() override
+    virtual void OnExit() wxOVERRIDE
     {
         delete m_windowDisabler;
-        m_windowDisabler = nullptr;
+        m_windowDisabler = NULL;
 
         wxGUIEventLoop::OnExit();
     }
@@ -423,7 +424,7 @@ class wxEventLoopGuarantor
 public:
     wxEventLoopGuarantor()
     {
-        m_evtLoopNew = nullptr;
+        m_evtLoopNew = NULL;
         if (!wxEventLoop::GetActive())
         {
             m_evtLoopNew = new wxEventLoop;
@@ -435,7 +436,7 @@ public:
     {
         if (m_evtLoopNew)
         {
-            wxEventLoop::SetActive(nullptr);
+            wxEventLoop::SetActive(NULL);
             delete m_evtLoopNew;
         }
     }

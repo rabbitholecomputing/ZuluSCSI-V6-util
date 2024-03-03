@@ -40,8 +40,6 @@ public:
     {
         m_tracker->StartTrackingData();
     }
-    TrackedClientData(const TrackedClientData&) = delete;
-    TrackedClientData& operator=(const TrackedClientData&) = delete;
 
     virtual ~TrackedClientData()
     {
@@ -56,6 +54,8 @@ public:
 private:
     ItemContainerWidgetsPage *m_tracker;
     int m_value;
+
+    wxDECLARE_NO_COPY_CLASS(TrackedClientData);
 };
 
 // ============================================================================

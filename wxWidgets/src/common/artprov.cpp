@@ -2,6 +2,7 @@
 // Name:        src/common/artprov.cpp
 // Purpose:     wxArtProvider class
 // Author:      Vaclav Slavik
+// Modified by:
 // Created:     18/03/2002
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
@@ -18,32 +19,31 @@
 #include "wx/artprov.h"
 
 #ifndef WX_PRECOMP
+    #include "wx/list.h"
     #include "wx/log.h"
+    #include "wx/hashmap.h"
     #include "wx/image.h"
     #include "wx/module.h"
     #include "wx/window.h"
 #endif
 
-#include <list>
-#include <memory>
-#include <unordered_map>
+// ===========================================================================
+// implementation
+// ===========================================================================
 
-using wxArtProviderPtr = std::unique_ptr<wxArtProvider>;
-class wxArtProvidersList : public std::list<wxArtProviderPtr>
-{
-public:
-    using std::list<wxArtProviderPtr>::list;
-};
+#include "wx/listimpl.cpp"
+WX_DECLARE_LIST(wxArtProvider, wxArtProvidersList);
+WX_DEFINE_LIST(wxArtProvidersList)
 
 // ----------------------------------------------------------------------------
 // Cache class - stores already requested bitmaps
 // ----------------------------------------------------------------------------
 
-using wxArtProviderBitmapsHash = std::unordered_map<wxString, wxBitmap>;
-using wxArtProviderBitmapBundlesHash = std::unordered_map<wxString, wxBitmapBundle>;
-using wxArtProviderIconBundlesHash = std::unordered_map<wxString, wxIconBundle>;
+WX_DECLARE_EXPORTED_STRING_HASH_MAP(wxBitmap, wxArtProviderBitmapsHash);
+WX_DECLARE_EXPORTED_STRING_HASH_MAP(wxBitmapBundle, wxArtProviderBitmapBundlesHash);
+WX_DECLARE_EXPORTED_STRING_HASH_MAP(wxIconBundle, wxArtProviderIconBundlesHash);
 
-class wxArtProviderCache
+class WXDLLEXPORT wxArtProviderCache
 {
 public:
     bool GetBitmap(const wxString& full_id, wxBitmap* bmp);
@@ -165,24 +165,24 @@ public:
     {
     }
 
-    virtual wxSize GetDefaultSize() const override
+    virtual wxSize GetDefaultSize() const wxOVERRIDE
     {
         return m_sizeDefault;
     }
 
-    virtual wxSize GetPreferredBitmapSizeAtScale(double scale) const override
+    virtual wxSize GetPreferredBitmapSizeAtScale(double scale) const wxOVERRIDE
     {
         // Use the standard logic for integer-factor upscaling.
         return DoGetPreferredSize(scale);
     }
 
-    virtual wxBitmap GetBitmap(const wxSize& size) override
+    virtual wxBitmap GetBitmap(const wxSize& size) wxOVERRIDE
     {
         return wxArtProvider::GetBitmap(m_artId, m_artClient, size);
     }
 
 protected:
-    virtual double GetNextAvailableScale(size_t& i) const override
+    virtual double GetNextAvailableScale(size_t& i) const wxOVERRIDE
     {
         // Unfortunately we don't know what bitmap sizes are available here as
         // there is simply nothing in wxArtProvider API that returns this (and
@@ -234,8 +234,8 @@ private:
 
 wxIMPLEMENT_ABSTRACT_CLASS(wxArtProvider, wxObject);
 
-wxArtProvidersList *wxArtProvider::sm_providers = nullptr;
-wxArtProviderCache *wxArtProvider::sm_cache = nullptr;
+wxArtProvidersList *wxArtProvider::sm_providers = NULL;
+wxArtProviderCache *wxArtProvider::sm_cache = NULL;
 
 // ----------------------------------------------------------------------------
 // wxArtProvider ctors/dtor
@@ -243,8 +243,7 @@ wxArtProviderCache *wxArtProvider::sm_cache = nullptr;
 
 wxArtProvider::~wxArtProvider()
 {
-    if ( sm_providers )
-        Remove(this);
+    Remove(this);
 }
 
 // ----------------------------------------------------------------------------
@@ -265,13 +264,13 @@ wxArtProvider::~wxArtProvider()
 /*static*/ void wxArtProvider::Push(wxArtProvider *provider)
 {
     CommonAddingProvider();
-    sm_providers->push_front(wxArtProviderPtr(provider));
+    sm_providers->Insert(provider);
 }
 
 /*static*/ void wxArtProvider::PushBack(wxArtProvider *provider)
 {
     CommonAddingProvider();
-    sm_providers->push_back(wxArtProviderPtr(provider));
+    sm_providers->Append(provider);
 }
 
 /*static*/ bool wxArtProvider::Pop()
@@ -279,7 +278,7 @@ wxArtProvider::~wxArtProvider()
     wxCHECK_MSG( sm_providers, false, wxT("no wxArtProvider exists") );
     wxCHECK_MSG( !sm_providers->empty(), false, wxT("wxArtProviders stack is empty") );
 
-    sm_providers->pop_front();
+    delete sm_providers->GetFirst()->GetData();
     sm_cache->Clear();
     return true;
 }
@@ -288,19 +287,10 @@ wxArtProvider::~wxArtProvider()
 {
     wxCHECK_MSG( sm_providers, false, wxT("no wxArtProvider exists") );
 
-    for ( auto it = sm_providers->begin(); it != sm_providers->end(); ++it )
+    if ( sm_providers->DeleteObject(provider) )
     {
-        if ( it->get() == provider )
-        {
-            // We must not delete the provider here, the caller is responsible
-            // for doing it.
-            it->release();
-
-            sm_providers->erase(it);
-
-            sm_cache->Clear();
-            return true;
-        }
+        sm_cache->Clear();
+        return true;
     }
 
     return false;
@@ -318,15 +308,8 @@ wxArtProvider::~wxArtProvider()
 {
     if ( sm_providers )
     {
-        // Just deleting sm_providers wouldn't work correctly because this
-        // would delete wxArtProvider objects in it which would try to remove
-        // themselves from the list in their dtor, so do it two steps instead:
-        // first clear sm_providers without deleting the objects to ensure that
-        // they don't change it while they're being destroyed, and then
-        // actually destroy them.
-        wxArtProvidersList providers;
-        providers.swap(*sm_providers);
-        providers.clear();
+        while ( !sm_providers->empty() )
+            delete *sm_providers->begin();
 
         wxDELETE(sm_providers);
         wxDELETE(sm_cache);
@@ -433,8 +416,10 @@ wxArtProvider::RescaleOrResizeIfNeeded(wxBitmap& bmp, const wxSize& sizeNeeded)
     wxBitmap bmp;
     if ( !sm_cache->GetBitmap(hashId, &bmp) )
     {
-        for (const auto& provider : *sm_providers)
+        for (wxArtProvidersList::compatibility_iterator node = sm_providers->GetFirst();
+             node; node = node->GetNext())
         {
+            wxArtProvider* const provider = node->GetData();
             bmp = provider->CreateBitmap(id, client, size);
             if ( bmp.IsOk() )
                 break;
@@ -496,8 +481,10 @@ wxBitmapBundle wxArtProvider::GetBitmapBundle(const wxArtID& id,
 
     if ( !sm_cache->GetBitmapBundle(hashId, &bitmapbundle) )
     {
-        for (const auto& provider : *sm_providers)
+        for (wxArtProvidersList::compatibility_iterator node = sm_providers->GetFirst();
+             node; node = node->GetNext())
         {
+            wxArtProvider* const provider = node->GetData();
             bitmapbundle = provider->CreateBitmapBundle(id, client, size);
             if ( bitmapbundle.IsOk() )
                 break;
@@ -559,9 +546,10 @@ wxIconBundle wxArtProvider::DoGetIconBundle(const wxArtID& id, const wxArtClient
     wxIconBundle iconbundle;
     if ( !sm_cache->GetIconBundle(hashId, &iconbundle) )
     {
-        for (const auto& provider : *sm_providers)
+        for (wxArtProvidersList::compatibility_iterator node = sm_providers->GetFirst();
+             node; node = node->GetNext())
         {
-            iconbundle = provider->CreateIconBundle(id, client);
+            iconbundle = node->GetData()->CreateIconBundle(id, client);
             if ( iconbundle.IsOk() )
                 break;
         }
@@ -619,8 +607,9 @@ wxArtID wxArtProvider::GetMessageBoxIconId(int flags)
 
 /*static*/ wxSize wxArtProvider::GetDIPSizeHint(const wxArtClient& client)
 {
-    if ( !sm_providers->empty() )
-        return sm_providers->front()->DoGetSizeHint(client);
+    wxArtProvidersList::compatibility_iterator node = sm_providers->GetFirst();
+    if (node)
+        return node->GetData()->DoGetSizeHint(client);
 
     return GetNativeDIPSizeHint(client);
 }
@@ -661,12 +650,23 @@ void wxArtProvider::InitNativeProvider()
 /* static */
 bool wxArtProvider::HasNativeProvider()
 {
-#ifdef __WXGTK__
+#ifdef __WXGTK20__
     return true;
 #else
     return false;
 #endif
 }
+
+// ----------------------------------------------------------------------------
+// deprecated wxArtProvider methods
+// ----------------------------------------------------------------------------
+
+#if WXWIN_COMPATIBILITY_2_8
+/* static */ void wxArtProvider::Insert(wxArtProvider *provider)
+{
+    PushBack(provider);
+}
+#endif // WXWIN_COMPATIBILITY_2_8
 
 // ============================================================================
 // wxArtProviderModule
@@ -675,7 +675,7 @@ bool wxArtProvider::HasNativeProvider()
 class wxArtProviderModule: public wxModule
 {
 public:
-    bool OnInit() override
+    bool OnInit() wxOVERRIDE
     {
         // The order here is such that the native provider will be used first
         // and the standard one last as all these default providers add
@@ -689,7 +689,7 @@ public:
 #endif // wxUSE_ARTPROVIDER_STD
         return true;
     }
-    void OnExit() override
+    void OnExit() wxOVERRIDE
     {
         wxArtProvider::CleanUpProviders();
     }

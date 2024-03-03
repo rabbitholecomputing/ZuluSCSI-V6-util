@@ -6,48 +6,53 @@
 // Copyright:   (c) 2017 wxWidgets development team
 ///////////////////////////////////////////////////////////////////////////////
 
+// ----------------------------------------------------------------------------
+// headers
+// ----------------------------------------------------------------------------
+
 #include "testprec.h"
 
 
 #include "wx/utils.h"
 
-static void DecToHex1();
-static void DecToHex2();
-static void DecToHex3();
-static void HexToDec1();
-static void HexToDec2();
+// ----------------------------------------------------------------------------
+// test class
+// ----------------------------------------------------------------------------
 
-TEST_CASE("HexConvTestCase", "[string][hexconv]")
+class HexConvTestCase : public CppUnit::TestCase
 {
-    SECTION("DecToHex1") // Conversion to wxString
-    {
-        DecToHex1();
-    }
+public:
+    HexConvTestCase() {}
 
-    SECTION("DecToHex2") // Conversion to wxChar string
-    {
-        DecToHex2();
-    }
+private:
+    CPPUNIT_TEST_SUITE( HexConvTestCase );
+        CPPUNIT_TEST( DecToHex1 ); // Conversion to wxString
+        CPPUNIT_TEST( DecToHex2 ); // Conversion to wxChar string
+        CPPUNIT_TEST( DecToHex3 ); // Conversion to 2 characters
+        CPPUNIT_TEST( HexToDec1 ); // Conversion from char string
+        CPPUNIT_TEST( HexToDec2 ); // Conversion from wxString
+    CPPUNIT_TEST_SUITE_END();
 
-    SECTION("DecToHex3") // Conversion to 2 characters
-    {
-        DecToHex3();
-    }
+    void DecToHex1();
+    void DecToHex2();
+    void DecToHex3();
+    void HexToDec1();
+    void HexToDec2();
 
-    SECTION("HexToDec1") // Conversion from char string
-    {
-        HexToDec1();
-    }
+    wxDECLARE_NO_COPY_CLASS(HexConvTestCase);
+};
 
-    SECTION("HexToDec2") // Conversion from wxString
-    {
-        HexToDec2();
-    }
-}
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( HexConvTestCase );
 
-// =====  Implementation  =====
+// also include in its own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( HexConvTestCase, "HexConvTestCase" );
 
-static void DecToHex1()
+// ----------------------------------------------------------------------------
+// tests themselves
+// ----------------------------------------------------------------------------
+
+void HexConvTestCase::DecToHex1()
 {
     // Conversion to wxString
     for ( int i = 0; i < 256; i++ )
@@ -58,11 +63,11 @@ static void DecToHex1()
 
         wxString hexStr = wxDecToHex(i);
 
-        CHECK(hexStr == hexStrRef);
+        CPPUNIT_ASSERT_EQUAL( hexStr, hexStrRef );
     }
 }
 
-static void DecToHex2()
+void HexConvTestCase::DecToHex2()
 {
     // Conversion to wxChar string
     for ( int i = 0; i < 256; i++ )
@@ -75,14 +80,14 @@ static void DecToHex2()
         wxChar c3 = hexStr[3]; // This character should remain untouched
         wxDecToHex(i, hexStr);
 
-        CHECK(hexStr[0] == (wxChar)szHexStrRef[0]);
-        CHECK(hexStr[1] == (wxChar)szHexStrRef[1]);
-        CHECK(hexStr[2] == (wxChar)'\0');
-        CHECK(hexStr[3] == c3);
+        CPPUNIT_ASSERT_EQUAL( hexStr[0], (wxChar)szHexStrRef[0] );
+        CPPUNIT_ASSERT_EQUAL( hexStr[1], (wxChar)szHexStrRef[1] );
+        CPPUNIT_ASSERT_EQUAL( hexStr[2], (wxChar)'\0' );
+        CPPUNIT_ASSERT_EQUAL( hexStr[3], c3 );
     }
 }
 
-static void DecToHex3()
+void HexConvTestCase::DecToHex3()
 {
     // Conversion to 2 characters
     for ( int i = 0; i < 256; i++ )
@@ -94,12 +99,12 @@ static void DecToHex3()
         char c2 = '\xFF';
         wxDecToHex(i, &c1, &c2);
 
-        CHECK(c1 == szHexStrRef[0]);
-        CHECK(c2 == szHexStrRef[1]);
+        CPPUNIT_ASSERT_EQUAL( c1, szHexStrRef[0] );
+        CPPUNIT_ASSERT_EQUAL( c2, szHexStrRef[1] );
     }
 }
 
-static void HexToDec1()
+void HexConvTestCase::HexToDec1()
 {
     // Conversion from char string
     for ( int i = 0; i < 256; i++ )
@@ -108,11 +113,11 @@ static void HexToDec1()
         sprintf(szHexStr, "%02X", i);
 
         int n = wxHexToDec(szHexStr);
-        CHECK(n == i);
+        CPPUNIT_ASSERT_EQUAL( n, i );
     }
 }
 
-static void HexToDec2()
+void HexConvTestCase::HexToDec2()
 {
     // Conversion from wxString
     for ( int i = 0; i < 256; i++ )
@@ -122,6 +127,6 @@ static void HexToDec2()
         wxString hexStr = wxString(szHexStr);
 
         int n = wxHexToDec(hexStr);
-        CHECK(n == i);
+        CPPUNIT_ASSERT_EQUAL( n, i );
     }
 }

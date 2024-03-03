@@ -30,11 +30,9 @@
     In addition to normal images, handled with the methods mentioned above,
     wxTreeCtrl also provides optional state images that may be used to indicate
     some additional state of the item, e.g. checked or unchecked status. These
-    images can be set using SetStateImages() (preferred, as they allow to
-    specify high resolution versions of the state images too) or legacy
-    SetStateImageList() and AssignStateImageList() functions that behave in the
-    same way as the corresponding methods of wxWithImages. Note that state
-    images are currently not supported in the native wxQt version.
+    images can be set using SetStateImageList() and AssignStateImageList()
+    functions that behave in the same way as the corresponding methods of
+    wxWithImages.
 
     Finally, in the generic version of this control (wxGenericTreeCtrl), also
     provides SetButtonsImageList() and AssignButtonsImageList(), which can be
@@ -58,7 +56,7 @@
     @style{wxTR_TWIST_BUTTONS}
         Selects alternative style of @c +/@c - buttons and shows rotating
         ("twisting") arrows instead. Currently this style is only implemented
-        in wxMSW and is ignored
+        under Microsoft Windows Vista and later Windows versions and is ignored
         under the other platforms as enabling it is equivalent to using
         wxSystemThemedControl::EnableSystemTheme().
     @style{wxTR_NO_LINES}
@@ -246,7 +244,7 @@ public:
     */
     virtual wxTreeItemId AddRoot(const wxString& text, int image = -1,
                                  int selImage = -1,
-                                 wxTreeItemData* data = nullptr);
+                                 wxTreeItemData* data = NULL);
 
     /**
         Appends an item to the end of the branch identified by @a parent, return
@@ -261,7 +259,7 @@ public:
                             const wxString& text,
                             int image = -1,
                             int selImage = -1,
-                            wxTreeItemData* data = nullptr);
+                            wxTreeItemData* data = NULL);
 
     /**
         Sets the buttons image list. The button images assigned with this method
@@ -282,8 +280,6 @@ public:
         Sets the state image list. Image list assigned with this method will be
         automatically deleted by wxTreeCtrl as appropriate (i.e. it takes
         ownership of the list).
-
-        @note Prefer using SetStateImages() in the new code.
 
         @see SetStateImageList().
     */
@@ -700,36 +696,10 @@ public:
     virtual size_t GetSelections(wxArrayTreeItemIds& selection) const;
 
     /**
-        Returns the number of state images used by the control.
-
-        Returns the number of images passed to the last call to
-        SetStateImages() or 0 if it had been never called.
-
-        @see HasImages()
-
-        @since 3.3.0
-     */
-    int GetStateImageCount() const;
-
-    /**
         Returns the state image list (from which application-defined state
         images are taken).
-
-        @see HasStateImages(), GetStateImageCount()
     */
     wxImageList* GetStateImageList() const;
-
-    /**
-        Returns true if the control uses any state images.
-
-        This is equivalent to comparing GetStateImageCount() return value with
-        0 but more clear.
-
-        @see SetStateImages(), GetStateImageCount()
-
-        @since 3.3.0
-     */
-    bool HasStateImages() const;
 
     /**
         Calculates which (if any) item is under the given @a point, returning
@@ -770,7 +740,7 @@ public:
                             const wxString& text,
                             int image = -1,
                             int selImage = -1,
-                            wxTreeItemData* data = nullptr);
+                            wxTreeItemData* data = NULL);
 
     /**
         Inserts an item before one identified
@@ -787,7 +757,7 @@ public:
                             const wxString& text,
                             int image = -1,
                             int selImage = -1,
-                            wxTreeItemData* data = nullptr);
+                            wxTreeItemData* data = NULL);
 
     /**
         Returns @true if the given item is in bold state.
@@ -852,7 +822,7 @@ public:
                              const wxString& text,
                              int image = -1,
                              int selImage = -1,
-                             wxTreeItemData* data = nullptr);
+                             wxTreeItemData* data = NULL);
 
     /**
         Scrolls the specified item into view.
@@ -1006,25 +976,9 @@ public:
         by @ref wxTreeCtrl "wxTreeCtrl"'s destructor, you must delete it
         yourself.
 
-        @note Prefer using SetStateImages() in the new code.
-
-        @see AssignStateImageList()
+        @see AssignStateImageList().
     */
     virtual void SetStateImageList(wxImageList* imageList);
-
-    /**
-        Sets the images to use for the application-defined item states.
-
-        This function takes a vector of wxBitmapBundle objects which can
-        specify multiple versions of the same icon for different display
-        resolutions for each state. If the vector is empty, no state images are
-        shown.
-
-        @see HasStateImages(), GetStateImageCount()
-
-        @since 3.3.0
-     */
-    virtual void SetStateImages(const wxVector<wxBitmapBundle>& images);
 
     /**
         Sets the mode flags associated with the display of the tree control. The

@@ -4,6 +4,7 @@
 //              sash on each edge, allowing it to be dragged. An event
 //              is generated when the sash is released.
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -74,7 +75,7 @@ void wxSashWindow::Init()
     m_sashCursorWE = new wxCursor(wxCURSOR_SIZEWE);
     m_sashCursorNS = new wxCursor(wxCURSOR_SIZENS);
     m_mouseCaptured = false;
-    m_currentCursor = nullptr;
+    m_currentCursor = NULL;
 
     // Eventually, we'll respond to colour change messages
     InitColours();
@@ -309,7 +310,7 @@ void wxSashWindow::OnMouseEvent(wxMouseEvent& event)
         else
         {
             SetCursor(wxNullCursor);
-            m_currentCursor = nullptr;
+            m_currentCursor = NULL;
         }
     }
     else if ( event.Dragging() &&

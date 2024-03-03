@@ -2,6 +2,7 @@
 // Name:        sound.cpp
 // Purpose:     Example of sound playing in wxWidgets
 // Author:      Vaclav Slavik
+// Modified by:
 // Created:     2004/01/29
 // Copyright:   (c) 2004 Vaclav Salvik
 // Licence:     wxWindows licence
@@ -44,7 +45,7 @@
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 
@@ -100,7 +101,7 @@ private:
 enum
 {
     // menu items
-    Sound_SelectFile = wxID_HIGHEST,
+    Sound_SelectFile = wxID_HIGHEST + 1,
 #ifdef __WXMSW__
     Sound_SelectResource,
 #endif // __WXMSW__
@@ -180,9 +181,9 @@ bool MyApp::OnInit()
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title)
-       : wxFrame(nullptr, wxID_ANY, title)
+       : wxFrame(NULL, wxID_ANY, title)
 {
-    m_sound = nullptr;
+    m_sound = NULL;
     m_soundFile = WAV_FILE;
     m_useMemory = false;
 
@@ -978,7 +979,7 @@ wxSound* MyFrame::TryCreateSound() const
     if ( !CreateSound(*sound) )
     {
         delete sound;
-        return nullptr;
+        return NULL;
     }
 
     return sound;

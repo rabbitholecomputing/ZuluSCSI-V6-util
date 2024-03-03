@@ -62,11 +62,11 @@ class TimePickerWidgetsPage : public WidgetsPage
 public:
     TimePickerWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxWindow *GetWidget() const override { return m_timePicker; }
-    virtual void RecreateWidget() override { CreateTimePicker(); }
+    virtual wxWindow *GetWidget() const wxOVERRIDE { return m_timePicker; }
+    virtual void RecreateWidget() wxOVERRIDE { CreateTimePicker(); }
 
     // lazy creation of the content
-    virtual void CreateContent() override;
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -197,8 +197,6 @@ void TimePickerWidgetsPage::CreateTimePicker()
     m_timePicker = new wxTimePickerCtrl(this, TimePickerPage_Picker, value,
                                         wxDefaultPosition, wxDefaultSize,
                                         style);
-
-    NotifyWidgetRecreation(m_timePicker);
 
     m_sizerTimePicker->Add(0, 0, 1, wxCENTRE);
     m_sizerTimePicker->Add(m_timePicker, 1, wxCENTRE);

@@ -525,14 +525,14 @@ public:
         @return The full temporary filepath, or an empty string on error.
     */
     static wxString CreateTempFileName(const wxString& prefix,
-                                       wxFile* fileTemp = nullptr);
+                                       wxFile* fileTemp = NULL);
 
     /**
         This is the same as CreateTempFileName(const wxString &prefix, wxFile *fileTemp)
         but takes a wxFFile parameter instead of wxFile.
     */
     static wxString CreateTempFileName(const wxString& prefix,
-                                       wxFFile* fileTemp = nullptr);
+                                       wxFFile* fileTemp = NULL);
 
 
     /**
@@ -1423,7 +1423,7 @@ public:
                           wxString* path,
                           wxString* name,
                           wxString* ext,
-                          bool* hasExt = nullptr,
+                          bool* hasExt = NULL,
                           wxPathFormat format = wxPATH_NATIVE);
     static void SplitPath(const wxString& fullpath,
                           wxString* volume,

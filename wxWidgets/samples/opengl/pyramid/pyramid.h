@@ -15,7 +15,7 @@ class MyApp: public wxApp
 {
 public:
     MyApp(){}
-    bool OnInit() override;
+    bool OnInit() wxOVERRIDE;
 };
 
 
@@ -56,7 +56,7 @@ public:
 
     //Used just to know if we must end now because OGL 3.2 isn't available
     bool OglCtxAvailable()
-        {return m_oglContext != nullptr;}
+        {return m_oglContext != NULL;}
 
     //Init the OpenGL stuff
     bool oglInit();
@@ -81,7 +81,7 @@ enum
 {
     Pyramid_Quit = wxID_EXIT,
     Pyramid_About = wxID_ABOUT,
-    Pyramid_LogW = wxID_HIGHEST
+    Pyramid_LogW = wxID_HIGHEST + 10
 };
 
 #endif // PYRSAMLE_H

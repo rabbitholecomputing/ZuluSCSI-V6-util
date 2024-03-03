@@ -293,7 +293,7 @@ public:
         constructor and exactly once.
 
         @param parent
-            The parent window, must be non-null.
+            The parent window, must be non-NULL.
         @param id
             The window identifier, may be ::wxID_ANY.
         @param pos
@@ -449,7 +449,7 @@ public:
                               const wxString& text,
                               int imageClosed = NO_IMAGE,
                               int imageOpened = NO_IMAGE,
-                              wxClientData* data = nullptr);
+                              wxClientData* data = NULL);
 
     /**
         Insert a new item into the tree.
@@ -478,14 +478,14 @@ public:
                               const wxString& text,
                               int imageClosed = NO_IMAGE,
                               int imageOpened = NO_IMAGE,
-                              wxClientData* data = nullptr);
+                              wxClientData* data = NULL);
 
     /// Same as InsertItem() with wxTLI_FIRST.
     wxTreeListItem PrependItem(wxTreeListItem parent,
                                const wxString& text,
                                int imageClosed = NO_IMAGE,
                                int imageOpened = NO_IMAGE,
-                               wxClientData* data = nullptr);
+                               wxClientData* data = NULL);
 
     /// Delete the specified item.
     void DeleteItem(wxTreeListItem item);
@@ -841,14 +841,14 @@ public:
         @false and doesn't modify any of its output parameters.
 
         @param col
-            Receives the index of the column used for sorting if non-null.
+            Receives the index of the column used for sorting if non-@NULL.
         @param ascendingOrder
             Receives @true or @false depending on whether the items are sorted
             in ascending or descending order.
         @return
             @true if the control is sorted or @false if it isn't sorted at all.
      */
-    bool GetSortColumn(unsigned* col, bool* ascendingOrder = nullptr);
+    bool GetSortColumn(unsigned* col, bool* ascendingOrder = NULL);
 
     /**
         Set the object to use for comparing the items.
@@ -880,7 +880,7 @@ public:
     /**
         Return the view part of this control as a wxWindow.
 
-        This method always returns non-null pointer once the window was
+        This method always returns non-@NULL pointer once the window was
         created.
      */
     wxWindow* GetView() const;

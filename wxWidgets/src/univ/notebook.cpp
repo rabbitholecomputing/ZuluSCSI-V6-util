@@ -2,6 +2,7 @@
 // Name:        src/univ/notebook.cpp
 // Purpose:     wxNotebook implementation
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     01.02.01
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
@@ -115,7 +116,7 @@ void wxNotebook::Init()
 
     m_offset = 0;
 
-    m_spinbtn = nullptr;
+    m_spinbtn = NULL;
 }
 
 bool wxNotebook::Create(wxWindow *parent,
@@ -372,7 +373,7 @@ bool wxNotebook::DeleteAllPages()
 
 wxNotebookPage *wxNotebook::DoRemovePage(size_t nPage)
 {
-    wxCHECK_MSG( IS_VALID_PAGE(nPage), nullptr, wxT("invalid notebook page") );
+    wxCHECK_MSG( IS_VALID_PAGE(nPage), NULL, wxT("invalid notebook page") );
 
     wxNotebookPage *page = m_pages[nPage];
     m_pages.erase(m_pages.begin() + nPage);
@@ -658,7 +659,21 @@ bool wxNotebook::IsVertical() const
     return dir == wxLEFT || dir == wxRIGHT;
 }
 
-wxRect wxNotebook::GetTabRect(size_t page) const
+wxDirection wxNotebook::GetTabOrientation() const
+{
+    long style = GetWindowStyle();
+    if ( style & wxBK_BOTTOM )
+        return wxBOTTOM;
+    else if ( style & wxBK_RIGHT )
+        return wxRIGHT;
+    else if ( style & wxBK_LEFT )
+        return wxLEFT;
+
+    // wxBK_TOP == 0 so we don't have to test for it
+    return wxTOP;
+}
+
+wxRect wxNotebook::GetTabRect(int page) const
 {
     wxRect rect;
     wxCHECK_MSG( IS_VALID_PAGE(page), rect, wxT("invalid notebook page") );
@@ -673,7 +688,7 @@ wxRect wxNotebook::GetTabRect(size_t page) const
     else
     {
         widthBefore = 0;
-        for ( size_t n = 0; n < page; n++ )
+        for ( int n = 0; n < page; n++ )
         {
             widthBefore += m_widths[n];
         }
@@ -764,7 +779,7 @@ wxRect wxNotebook::GetTabsPart() const
 
 void wxNotebook::GetTabSize(int page, wxCoord *w, wxCoord *h) const
 {
-    wxCHECK_RET( w && h, wxT("null pointer in GetTabSize") );
+    wxCHECK_RET( w && h, wxT("NULL pointer in GetTabSize") );
 
     if ( IsVertical() )
     {

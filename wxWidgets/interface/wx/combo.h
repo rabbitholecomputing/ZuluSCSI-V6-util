@@ -77,13 +77,13 @@ public:
             When item matches an entry, but the entry's string representation
             is not exactly the same (case mismatch, for example), then the
             true item string should be written back to here, if it is not
-            @NULL.
+            a NULL pointer.
 
         @remarks
             Default implementation always return true and does not alter
             trueItem.
     */
-    virtual bool FindItem(const wxString& item, wxString* trueItem = nullptr);
+    virtual bool FindItem(const wxString& item, wxString* trueItem=NULL);
 
     /**
         The derived class may implement this to return adjusted size for the

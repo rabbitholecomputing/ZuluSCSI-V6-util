@@ -6,14 +6,13 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /**
-    wxHashSet is a legacy hash set container similar to std::unordered_set.
+    @class wxHashSet
 
-    @note As all the other legacy @ref overview_container "container classes",
-    this class shouldn't be used in the new code.
+    This is a simple, type-safe, and reasonably efficient hash set class,
+    whose interface is a subset of the interface of STL containers.
 
-    Please see https://en.cppreference.com/w/cpp/container/unordered_set for
-    the full description of this class API: in the default build, this class is
-    a thin wrapper inheriting from the standard class.
+    The interface is similar to std::tr1::hash_set or std::set classes but
+    notice that, unlike std::set, the contents of a hash set is not sorted.
 
     Example:
     @code
@@ -81,7 +80,7 @@
         class MyKeyHash
         {
         public:
-            MyKeyHash() = default;
+            MyKeyHash() { }
 
             unsigned long operator()( const MyKey& k ) const
                 {
@@ -95,7 +94,7 @@
         class MyKeyEqual
         {
         public:
-            MyKeyEqual() = default;
+            MyKeyEqual() { }
             bool operator()( const MyKey& a, const MyKey& b ) const
                 {
                     // compare for equality

@@ -2,6 +2,7 @@
 // Name:        wx/osx/app.h
 // Purpose:     wxApp class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -37,21 +38,21 @@ class WXDLLIMPEXP_CORE wxApp: public wxAppBase
     wxApp();
     virtual ~wxApp();
 
-    virtual void WakeUpIdle() override;
+    virtual void WakeUpIdle() wxOVERRIDE;
 
-    virtual void SetPrintMode(int mode) override { m_printMode = mode; }
+    virtual void SetPrintMode(int mode) wxOVERRIDE { m_printMode = mode; }
     virtual int GetPrintMode() const { return m_printMode; }
 
     // calling OnInit with an auto-release pool ready ...
-    virtual bool CallOnInit() override;
+    virtual bool CallOnInit() wxOVERRIDE;
 #if wxUSE_GUI
     // setting up all MacOS Specific Event-Handlers etc
-    virtual bool OnInitGui() override;
+    virtual bool OnInitGui() wxOVERRIDE;
 #endif // wxUSE_GUI
 
-    virtual int OnRun() override;
+    virtual int OnRun() wxOVERRIDE;
 
-    virtual bool ProcessIdle() override;
+    virtual bool ProcessIdle() wxOVERRIDE;
 
     // implementation only
     void OnIdle(wxIdleEvent& event);
@@ -66,8 +67,8 @@ public:
 
     static bool           sm_isEmbedded;
     // Implementation
-    virtual bool Initialize(int& argc, wxChar **argv) override;
-    virtual void CleanUp() override;
+    virtual bool Initialize(int& argc, wxChar **argv) wxOVERRIDE;
+    virtual void CleanUp() wxOVERRIDE;
 
     // the installed application event handler
     WXEVENTHANDLERREF    MacGetEventHandler() { return m_macEventHandler ; }

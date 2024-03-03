@@ -84,8 +84,8 @@ class SpinBtnWidgetsPage : public WidgetsPage
 public:
     SpinBtnWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxWindow *GetWidget() const override { return m_spinbtn; }
-    virtual Widgets GetWidgets() const override
+    virtual wxWindow *GetWidget() const wxOVERRIDE { return m_spinbtn; }
+    virtual Widgets GetWidgets() const wxOVERRIDE
     {
         Widgets widgets(WidgetsPage::GetWidgets());
         widgets.push_back(m_spinctrl);
@@ -93,10 +93,10 @@ public:
         return widgets;
     }
 
-    virtual void RecreateWidget() override { CreateSpin(); }
+    virtual void RecreateWidget() wxOVERRIDE { CreateSpin(); }
 
     // lazy creation of the content
-    virtual void CreateContent() override;
+    virtual void CreateContent() wxOVERRIDE;
 
 protected:
     // event handlers
@@ -223,19 +223,19 @@ SpinBtnWidgetsPage::SpinBtnWidgetsPage(WidgetsBookCtrl *book,
                                        wxImageList *imaglist)
                   : WidgetsPage(book, imaglist, spinbtn_xpm)
 {
-    m_chkVert = nullptr;
-    m_chkArrowKeys = nullptr;
-    m_chkWrap = nullptr;
-    m_chkProcessEnter = nullptr;
-    m_radioAlign = nullptr;
-    m_spinbtn = nullptr;
-    m_spinctrl = nullptr;
-    m_spinctrldbl = nullptr;
+    m_chkVert = NULL;
+    m_chkArrowKeys = NULL;
+    m_chkWrap = NULL;
+    m_chkProcessEnter = NULL;
+    m_radioAlign = NULL;
+    m_spinbtn = NULL;
+    m_spinctrl = NULL;
+    m_spinctrldbl = NULL;
     m_textValue =
     m_textMin =
     m_textMax =
     m_textBase =
-    m_textIncrement = nullptr;
+    m_textIncrement = NULL;
 
     m_min = 0;
     m_max = 10;
@@ -243,7 +243,7 @@ SpinBtnWidgetsPage::SpinBtnWidgetsPage(WidgetsBookCtrl *book,
     m_base = 10;
     m_increment = 1;
 
-    m_sizerSpin = nullptr;
+    m_sizerSpin = NULL;
 }
 
 void SpinBtnWidgetsPage::CreateContent()
@@ -251,15 +251,14 @@ void SpinBtnWidgetsPage::CreateContent()
     wxSizer *sizerTop = new wxBoxSizer(wxHORIZONTAL);
 
     // left pane
-    wxStaticBoxSizer *sizerLeft = new wxStaticBoxSizer(wxVERTICAL, this, "&Set style");
-    wxStaticBox* const sizerLeftBox = sizerLeft->GetStaticBox();
+    wxStaticBox *box = new wxStaticBox(this, wxID_ANY, "&Set style");
+    wxSizer *sizerLeft = new wxStaticBoxSizer(box, wxVERTICAL);
 
-    m_chkVert = CreateCheckBoxAndAddToSizer(sizerLeft, "&Vertical", wxID_ANY, sizerLeftBox);
-    m_chkArrowKeys = CreateCheckBoxAndAddToSizer(sizerLeft, "&Arrow Keys", wxID_ANY, sizerLeftBox);
-    m_chkWrap = CreateCheckBoxAndAddToSizer(sizerLeft, "&Wrap", wxID_ANY, sizerLeftBox);
+    m_chkVert = CreateCheckBoxAndAddToSizer(sizerLeft, "&Vertical");
+    m_chkArrowKeys = CreateCheckBoxAndAddToSizer(sizerLeft, "&Arrow Keys");
+    m_chkWrap = CreateCheckBoxAndAddToSizer(sizerLeft, "&Wrap");
     m_chkProcessEnter = CreateCheckBoxAndAddToSizer(sizerLeft,
-                                                    "Process &Enter",
-                                                     wxID_ANY, sizerLeftBox);
+                                                    "Process &Enter");
 
     sizerLeft->Add(5, 5, 0, wxGROW | wxALL, 5); // spacer
 
@@ -270,7 +269,7 @@ void SpinBtnWidgetsPage::CreateContent()
         "right",
     };
 
-    m_radioAlign = new wxRadioBox(sizerLeftBox, wxID_ANY, "&Text alignment",
+    m_radioAlign = new wxRadioBox(this, wxID_ANY, "&Text alignment",
                                    wxDefaultPosition, wxDefaultSize,
                                    WXSIZEOF(halign), halign, 1);
 
@@ -278,18 +277,19 @@ void SpinBtnWidgetsPage::CreateContent()
 
     sizerLeft->Add(5, 5, 0, wxGROW | wxALL, 5); // spacer
 
-    wxButton *btn = new wxButton(sizerLeftBox, SpinBtnPage_Reset, "&Reset");
+    wxButton *btn = new wxButton(this, SpinBtnPage_Reset, "&Reset");
     sizerLeft->Add(btn, 0, wxALIGN_CENTRE_HORIZONTAL | wxALL, 15);
 
     // middle pane
-    wxStaticBoxSizer *sizerMiddle = new wxStaticBoxSizer(wxVERTICAL, this, "&Change spinbtn value");
-    wxStaticBox* const sizerMiddleBox = sizerMiddle->GetStaticBox();
+    wxStaticBox *box2 = new wxStaticBox(this, wxID_ANY,
+        "&Change spinbtn value");
+
+    wxSizer *sizerMiddle = new wxStaticBoxSizer(box2, wxVERTICAL);
 
     wxTextCtrl *text;
     wxSizer *sizerRow = CreateSizerWithTextAndLabel("Current value",
                                                     SpinBtnPage_CurValueText,
-                                                    &text,
-                                                    sizerMiddleBox);
+                                                    &text);
     text->SetEditable(false);
 
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
@@ -297,17 +297,15 @@ void SpinBtnWidgetsPage::CreateContent()
     sizerRow = CreateSizerWithTextAndButton(SpinBtnPage_SetValue,
                                             "Set &value",
                                             SpinBtnPage_ValueText,
-                                            &m_textValue,
-                                            sizerMiddleBox);
+                                            &m_textValue);
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
     sizerRow = CreateSizerWithTextAndButton(SpinBtnPage_SetMinAndMax,
                                             "&Min and max",
                                             SpinBtnPage_MinText,
-                                            &m_textMin,
-                                            sizerMiddleBox);
+                                            &m_textMin);
 
-    m_textMax = new wxTextCtrl(sizerMiddleBox, SpinBtnPage_MaxText, wxEmptyString);
+    m_textMax = new wxTextCtrl(this, SpinBtnPage_MaxText, wxEmptyString);
     sizerRow->Add(m_textMax, 1, wxLEFT | wxALIGN_CENTRE_VERTICAL, 5);
 
     m_textMin->SetValue( wxString::Format("%d", m_min) );
@@ -318,16 +316,14 @@ void SpinBtnWidgetsPage::CreateContent()
     sizerRow = CreateSizerWithTextAndButton(SpinBtnPage_SetBase,
                                             "Set &base",
                                             SpinBtnPage_BaseText,
-                                            &m_textBase,
-                                            sizerMiddleBox);
+                                            &m_textBase);
     m_textBase->SetValue("10");
     sizerMiddle->Add(sizerRow, 0, wxALL | wxGROW, 5);
 
     sizerRow = CreateSizerWithTextAndButton( SpinBtnPage_SetIncrement,
                                              "Set Increment",
                                              SpinBtnPage_SetIncrementText,
-                                             &m_textIncrement,
-                                             sizerMiddleBox);
+                                             &m_textIncrement );
     m_textIncrement->SetValue( "1" );
     sizerMiddle->Add( sizerRow, 0, wxALL | wxGROW, 5 );
 
@@ -416,8 +412,6 @@ void SpinBtnWidgetsPage::CreateSpin()
                                  wxDefaultPosition, wxDefaultSize,
                                  flags);
 
-    NotifyWidgetRecreation(m_spinbtn);
-
     m_spinbtn->SetValue(val);
     m_spinbtn->SetRange(m_min, m_max);
 
@@ -427,15 +421,11 @@ void SpinBtnWidgetsPage::CreateSpin()
                                 flags | textFlags,
                                 m_min, m_max, val);
 
-    NotifyWidgetRecreation(m_spinctrl);
-
     m_spinctrldbl = new wxSpinCtrlDouble(this, SpinBtnPage_SpinCtrlDouble,
                                          wxString::Format("%d", val),
                                          wxDefaultPosition, wxDefaultSize,
                                          flags | textFlags,
                                          m_min, m_max, val, 0.1);
-
-    NotifyWidgetRecreation(m_spinctrldbl);
 
     // Add spacers, labels and spin controls to the sizer.
     m_sizerSpin->Add(0, 0, 1);

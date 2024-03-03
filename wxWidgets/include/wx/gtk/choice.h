@@ -28,7 +28,7 @@ public:
     wxChoice( wxWindow *parent, wxWindowID id,
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
-            int n = 0, const wxString choices[] = (const wxString *) nullptr,
+            int n = 0, const wxString choices[] = (const wxString *) NULL,
             long style = 0,
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxASCII_STR(wxChoiceNameStr) )
@@ -51,7 +51,7 @@ public:
     bool Create( wxWindow *parent, wxWindowID id,
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
-            int n = 0, const wxString choices[] = nullptr,
+            int n = 0, const wxString choices[] = NULL,
             long style = 0,
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxASCII_STR(wxChoiceNameStr) );
@@ -63,16 +63,16 @@ public:
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxASCII_STR(wxChoiceNameStr) );
 
-    int GetSelection() const override;
-    void SetSelection(int n) override;
+    int GetSelection() const wxOVERRIDE;
+    void SetSelection(int n) wxOVERRIDE;
 
-    virtual unsigned int GetCount() const override;
-    virtual int FindString(const wxString& s, bool bCase = false) const override;
-    virtual wxString GetString(unsigned int n) const override;
-    virtual void SetString(unsigned int n, const wxString& string) override;
+    virtual unsigned int GetCount() const wxOVERRIDE;
+    virtual int FindString(const wxString& s, bool bCase = false) const wxOVERRIDE;
+    virtual wxString GetString(unsigned int n) const wxOVERRIDE;
+    virtual void SetString(unsigned int n, const wxString& string) wxOVERRIDE;
 
-    virtual void SetColumns(int n=1) override;
-    virtual int GetColumns() const override;
+    virtual void SetColumns(int n=1) wxOVERRIDE;
+    virtual int GetColumns() const wxOVERRIDE;
 
     virtual void GTKDisableEvents();
     virtual void GTKEnableEvents();
@@ -91,19 +91,23 @@ protected:
     // index to GtkListStore cell which displays the item text
     int m_stringCellIndex;
 
-    virtual wxSize DoGetBestSize() const override;
-    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const wxOVERRIDE;
     virtual int DoInsertItems(const wxArrayStringsAdapter& items,
                               unsigned int pos,
-                              void **clientData, wxClientDataType type) override;
-    virtual void DoSetItemClientData(unsigned int n, void* clientData) override;
-    virtual void* DoGetItemClientData(unsigned int n) const override;
-    virtual void DoClear() override;
-    virtual void DoDeleteOneItem(unsigned int n) override;
+                              void **clientData, wxClientDataType type) wxOVERRIDE;
+    virtual void DoSetItemClientData(unsigned int n, void* clientData) wxOVERRIDE;
+    virtual void* DoGetItemClientData(unsigned int n) const wxOVERRIDE;
+    virtual void DoClear() wxOVERRIDE;
+    virtual void DoDeleteOneItem(unsigned int n) wxOVERRIDE;
 
-    virtual bool GTKHandleFocusOut() override;
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const override;
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style) override;
+    virtual bool GTKHandleFocusOut() wxOVERRIDE;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) wxOVERRIDE;
+
+    // in derived classes, implement this to insert list store entry
+    // with all items default except text
+    virtual void GTKInsertComboBoxTextItem( unsigned int n, const wxString& text );
 
 private:
     void Init();

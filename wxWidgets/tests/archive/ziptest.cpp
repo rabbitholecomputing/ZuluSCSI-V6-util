@@ -17,8 +17,6 @@
 #include "archivetest.h"
 #include "wx/zipstrm.h"
 
-#include <memory>
-
 using std::string;
 
 
@@ -40,19 +38,19 @@ public:
     { }
 
 protected:
-    void OnCreateArchive(wxZipOutputStream& zip) override;
+    void OnCreateArchive(wxZipOutputStream& zip) wxOVERRIDE;
 
-    void OnArchiveExtracted(wxZipInputStream& zip, int expectedTotal) override;
+    void OnArchiveExtracted(wxZipInputStream& zip, int expectedTotal) wxOVERRIDE;
 
     void OnCreateEntry(wxZipOutputStream& zip,
                        TestEntry& testEntry,
-                       wxZipEntry *entry) override;
+                       wxZipEntry *entry) wxOVERRIDE;
 
     void OnEntryExtracted(wxZipEntry& entry,
                           const TestEntry& testEntry,
-                          wxZipInputStream *arc) override;
+                          wxZipInputStream *arc) wxOVERRIDE;
 
-    void OnSetNotifier(EntryT& entry) override;
+    void OnSetNotifier(EntryT& entry) wxOVERRIDE;
 
     int m_count;
     wxString m_comment;
@@ -134,7 +132,7 @@ void ZipTestCase::OnEntryExtracted(wxZipEntry& entry,
 class ZipNotifier : public wxZipNotifier
 {
 public:
-    void OnEntryUpdated(wxZipEntry& entry) override;
+    void OnEntryUpdated(wxZipEntry& entry) wxOVERRIDE;
 };
 
 void ZipNotifier::OnEntryUpdated(wxZipEntry& entry)
@@ -164,7 +162,7 @@ public:
     { }
 
 protected:
-    void runTest() override;
+    void runTest() wxOVERRIDE;
     int m_options;
     int m_id;
 };
@@ -185,8 +183,8 @@ void ZipPipeTestCase::runTest()
     TestInputStream in(out, m_id % ((m_options & PipeIn) ? 4 : 3));
     wxZipInputStream zip(in);
 
-    std::unique_ptr<wxZipEntry> entry(zip.GetNextEntry());
-    CPPUNIT_ASSERT(entry.get() != nullptr);
+    wxScopedPtr<wxZipEntry> entry(zip.GetNextEntry());
+    CPPUNIT_ASSERT(entry.get() != NULL);
 
     if ((m_options & PipeIn) == 0)
         CPPUNIT_ASSERT(entry->GetSize() != wxInvalidOffset);
@@ -211,12 +209,12 @@ class ziptest : public ArchiveTestSuite
 public:
     ziptest();
 
-    void runTest() override { DoRunTest(); }
+    void runTest() wxOVERRIDE { DoRunTest(); }
 
 protected:
     CppUnit::Test *makeTest(string descr, int options,
                             bool genericInterface, const wxString& archiver,
-                            const wxString& unarchiver) override;
+                            const wxString& unarchiver) wxOVERRIDE;
 };
 
 ziptest::ziptest()
@@ -235,7 +233,7 @@ CppUnit::Test *ziptest::makeTest(
 {
     // unzip doesn't support piping in the zip
     if ((options & PipeIn) && !unarchiver.empty())
-        return nullptr;
+        return NULL;
 
     if (genericInterface)
     {

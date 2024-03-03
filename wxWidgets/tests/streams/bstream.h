@@ -50,8 +50,8 @@ public:
          m_bSimpleTellOTest(false),
          m_bSeekInvalidBeyondEnd(true),
          m_bEofAtLastRead(true),
-         m_pCurrentIn(nullptr),
-         m_pCurrentOut(nullptr)
+         m_pCurrentIn(NULL),
+         m_pCurrentOut(NULL)
     { /* Nothing extra */ }
     virtual ~BaseStreamTestCase()
     {
@@ -253,17 +253,9 @@ protected:
         while (stream_in.IsOk())
         {
             char peekChar = stream_in.Peek();
-            size_t peekLastRead = stream_in.LastRead();
-
             char getChar = stream_in.GetC();
-
-            // Peek and GetC should retrieve the same 0 or 1 characters.
-            CPPUNIT_ASSERT_EQUAL(peekLastRead, stream_in.LastRead());
-
             if (stream_in.LastRead() == 1)
-            {
                 CPPUNIT_ASSERT_EQUAL(getChar, peekChar);
-            }
         }
     }
 
@@ -419,7 +411,7 @@ protected:
         }
 
         m_pCurrentIn = DoCreateInStream();
-        wxASSERT(m_pCurrentIn != nullptr);
+        wxASSERT(m_pCurrentIn != NULL);
         return *m_pCurrentIn;
     }
     TStreamOut &CreateOutStream()
@@ -430,28 +422,28 @@ protected:
         }
 
         m_pCurrentOut = DoCreateOutStream();
-        wxASSERT(m_pCurrentOut != nullptr);
+        wxASSERT(m_pCurrentOut != NULL);
         return *m_pCurrentOut;
     }
 
     void DeleteInStream()
     {
-        if (m_pCurrentIn == nullptr)
+        if (m_pCurrentIn == NULL)
             return;
         delete m_pCurrentIn;
-        m_pCurrentIn = nullptr;
+        m_pCurrentIn = NULL;
         // In case something extra needs to be done.
         DoDeleteInStream();
     }
     void DeleteOutStream()
     {
-        if (m_pCurrentOut == nullptr)
+        if (m_pCurrentOut == NULL)
             return;
 
         CPPUNIT_ASSERT(m_pCurrentOut->Close());
 
         delete m_pCurrentOut;
-        m_pCurrentOut = nullptr;
+        m_pCurrentOut = NULL;
         // In case something extra needs to be done.
         DoDeleteOutStream();
     }

@@ -3,6 +3,7 @@
 // Purpose:     Clipboard functionality
 // Author:      Stefan Csomor;
 //              Generalized clipboard implementation by Matthew Flatt
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -43,7 +44,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(wxClipboard, wxObject);
 wxClipboard::wxClipboard()
 {
     m_open = false;
-    m_data = nullptr ;
+    m_data = NULL ;
 }
 
 wxClipboard::~wxClipboard()
@@ -164,7 +165,7 @@ bool wxClipboard::GetData( wxDataObject& data )
 
                 if (dataSize == 0)
                 {
-                    data.SetData( format, 0, nullptr );
+                    data.SetData( format, 0, 0 );
                 }
                 else
                 {

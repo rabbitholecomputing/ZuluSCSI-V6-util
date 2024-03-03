@@ -49,11 +49,11 @@ wxHtmlHelpController::wxHtmlHelpController(wxWindow* parentWindow, int style):
 
 void wxHtmlHelpController::Init(int style)
 {
-    m_helpWindow = nullptr;
-    m_helpFrame = nullptr;
-    m_helpDialog = nullptr;
+    m_helpWindow = NULL;
+    m_helpFrame = NULL;
+    m_helpDialog = NULL;
 #if wxUSE_CONFIG
-    m_Config = nullptr;
+    m_Config = NULL;
     m_ConfigRoot.clear();
 #endif // wxUSE_CONFIG
     m_titleFormat = _("Help: %s");
@@ -89,10 +89,10 @@ void wxHtmlHelpController::DestroyHelpWindow()
             dialog->EndModal(wxID_OK);
         }
         parent->Destroy();
-        m_helpWindow = nullptr;
+        m_helpWindow = NULL;
     }
-    m_helpDialog = nullptr;
-    m_helpFrame = nullptr;
+    m_helpDialog = NULL;
+    m_helpFrame = NULL;
 }
 
 void wxHtmlHelpController::OnCloseFrame(wxCloseEvent& evt)
@@ -107,10 +107,10 @@ void wxHtmlHelpController::OnCloseFrame(wxCloseEvent& evt)
     OnQuit();
 
     if ( m_helpWindow )
-        m_helpWindow->SetController(nullptr);
-    m_helpWindow = nullptr;
-    m_helpDialog = nullptr;
-    m_helpFrame = nullptr;
+        m_helpWindow->SetController(NULL);
+    m_helpWindow = NULL;
+    m_helpDialog = NULL;
+    m_helpFrame = NULL;
 }
 
 void wxHtmlHelpController::SetShouldPreventAppExit(bool enable)
@@ -148,7 +148,7 @@ bool wxHtmlHelpController::AddBook(const wxString& book, bool show_wait_msg)
 {
     wxBusyCursor cur;
 #if wxUSE_BUSYINFO
-    wxBusyInfo* busy = nullptr;
+    wxBusyInfo* busy = NULL;
     wxString info;
     if (show_wait_msg)
     {
@@ -207,10 +207,10 @@ wxWindow* wxHtmlHelpController::CreateHelpWindow()
     }
 
 #if wxUSE_CONFIG
-    if (m_Config == nullptr)
+    if (m_Config == NULL)
     {
         m_Config = wxConfigBase::Get(false);
-        if (m_Config != nullptr)
+        if (m_Config != NULL)
             m_ConfigRoot = wxT("wxWindows/wxHtmlHelpController");
     }
 #endif // wxUSE_CONFIG
@@ -305,16 +305,16 @@ bool wxHtmlHelpController::DisplaySection(int sectionNo)
 bool wxHtmlHelpController::DisplayTextPopup(const wxString& text, const wxPoint& WXUNUSED(pos))
 {
 #if wxUSE_TIPWINDOW
-    static wxTipWindow* s_tipWindow = nullptr;
+    static wxTipWindow* s_tipWindow = NULL;
 
     if (s_tipWindow)
     {
         // Prevent s_tipWindow being nulled in OnIdle,
         // thereby removing the chance for the window to be closed by ShowHelp
-        s_tipWindow->SetTipWindowPtr(nullptr);
+        s_tipWindow->SetTipWindowPtr(NULL);
         s_tipWindow->Close();
     }
-    s_tipWindow = nullptr;
+    s_tipWindow = NULL;
 
     if ( !text.empty() )
     {
@@ -373,9 +373,9 @@ wxFrame* wxHtmlHelpController::GetFrameParameters(wxSize *size,
             (* size) = dialog->GetSize();
         if (pos)
             (* pos) = dialog->GetPosition();
-        return nullptr;
+        return NULL;
     }
-    return nullptr;
+    return NULL;
 }
 
 bool wxHtmlHelpController::Quit()

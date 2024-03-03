@@ -15,8 +15,13 @@
 #include "wx/dcclient.h"
 #include "wx/window.h"
 
-// All current ports use double buffering.
-#define wxALWAYS_NATIVE_DOUBLE_BUFFER       1
+// Split platforms into two groups - those which have well-working
+// double-buffering by default, and those which do not.
+#if defined(__WXMAC__) || defined(__WXGTK20__) || defined(__WXDFB__) || defined(__WXQT__)
+    #define wxALWAYS_NATIVE_DOUBLE_BUFFER       1
+#else
+    #define wxALWAYS_NATIVE_DOUBLE_BUFFER       0
+#endif
 
 
 // ----------------------------------------------------------------------------
@@ -40,8 +45,8 @@ class WXDLLIMPEXP_CORE wxBufferedDC : public wxMemoryDC
 public:
     // Default ctor, must subsequently call Init for two stage construction.
     wxBufferedDC()
-        : m_dc(nullptr),
-          m_buffer(nullptr),
+        : m_dc(NULL),
+          m_buffer(NULL),
           m_style(0)
     {
     }
@@ -50,7 +55,7 @@ public:
     wxBufferedDC(wxDC *dc,
                  wxBitmap& buffer = wxNullBitmap,
                  int style = wxBUFFER_CLIENT_AREA)
-        : m_dc(nullptr), m_buffer(nullptr)
+        : m_dc(NULL), m_buffer(NULL)
     {
         Init(dc, buffer, style);
     }
@@ -59,7 +64,7 @@ public:
     // (where area is usually something like the size of the window
     // being buffered)
     wxBufferedDC(wxDC *dc, const wxSize& area, int style = wxBUFFER_CLIENT_AREA)
-        : m_dc(nullptr), m_buffer(nullptr)
+        : m_dc(NULL), m_buffer(NULL)
     {
         Init(dc, area, style);
     }
@@ -225,7 +230,7 @@ public:
         );
     }
 
-    virtual ~wxAutoBufferedPaintDC() = default;
+    virtual ~wxAutoBufferedPaintDC() { }
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxAutoBufferedPaintDC);

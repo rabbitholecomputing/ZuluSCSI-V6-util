@@ -10,8 +10,8 @@
 #ifndef _WX_PRIVATE_ROWHEIGHTCACHE_H_
 #define _WX_PRIVATE_ROWHEIGHTCACHE_H_
 
-#include <unordered_map>
-#include <vector>
+#include "wx/hashmap.h"
+#include "wx/vector.h"
 
 // struct describing a range of rows which contains rows <from> .. <to-1>
 struct RowRange
@@ -66,7 +66,7 @@ public:
     unsigned int GetSize() const { return m_ranges.size(); }
 
 private:
-    std::vector<RowRange> m_ranges;
+    wxVector<RowRange> m_ranges;
 
     /**
         If a new row index was inserted, Cleanup() checks if the neighbour
@@ -75,6 +75,9 @@ private:
     */
     void CleanUp(unsigned int idx);
 };
+
+WX_DECLARE_HASH_MAP(unsigned int, RowRanges*, wxIntegerHash, wxIntegerEqual,
+    HeightToRowRangesMap);
 
 /**
     HeightCache implements a cache mechanism for wxDataViewCtrl.
@@ -145,8 +148,6 @@ public:
     void Clear();
 
 private:
-    using HeightToRowRangesMap = std::unordered_map<int, RowRanges>;
-
     HeightToRowRangesMap m_heightToRowRange;
 };
 

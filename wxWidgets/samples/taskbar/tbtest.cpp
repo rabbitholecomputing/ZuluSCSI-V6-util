@@ -2,6 +2,7 @@
 // Name:        tbtest.cpp
 // Purpose:     wxTaskBarIcon demo
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c)
 // Licence:     wxWindows licence
@@ -35,7 +36,7 @@
 // global variables
 // ----------------------------------------------------------------------------
 
-static MyDialog *gs_dialog = nullptr;
+static MyDialog *gs_dialog = NULL;
 
 // ============================================================================
 // implementation
@@ -84,7 +85,7 @@ wxEND_EVENT_TABLE()
 
 
 MyDialog::MyDialog(const wxString& title)
-        : wxDialog(nullptr, wxID_ANY, title)
+        : wxDialog(NULL, wxID_ANY, title)
 {
     wxSizer * const sizerTop = new wxBoxSizer(wxVERTICAL);
 

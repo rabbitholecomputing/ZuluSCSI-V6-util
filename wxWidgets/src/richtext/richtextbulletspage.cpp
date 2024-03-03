@@ -2,6 +2,7 @@
 // Name:        src/richtext/richtextbulletspage.cpp
 // Purpose:     Implements the rich text formatting dialog bullets page.
 // Author:      Julian Smart
+// Modified by:
 // Created:     10/4/2006 10:32:31 AM
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -87,16 +88,16 @@ void wxRichTextBulletsPage::Init()
     m_dontUpdate = false;
 
 ////@begin wxRichTextBulletsPage member initialisation
-    m_styleListBox = nullptr;
-    m_periodCtrl = nullptr;
-    m_parenthesesCtrl = nullptr;
-    m_rightParenthesisCtrl = nullptr;
-    m_bulletAlignmentCtrl = nullptr;
-    m_symbolCtrl = nullptr;
-    m_symbolFontCtrl = nullptr;
-    m_bulletNameCtrl = nullptr;
-    m_numberCtrl = nullptr;
-    m_previewCtrl = nullptr;
+    m_styleListBox = NULL;
+    m_periodCtrl = NULL;
+    m_parenthesesCtrl = NULL;
+    m_rightParenthesisCtrl = NULL;
+    m_bulletAlignmentCtrl = NULL;
+    m_symbolCtrl = NULL;
+    m_symbolFontCtrl = NULL;
+    m_bulletNameCtrl = NULL;
+    m_numberCtrl = NULL;
+    m_previewCtrl = NULL;
 ////@end wxRichTextBulletsPage member initialisation
 }
 

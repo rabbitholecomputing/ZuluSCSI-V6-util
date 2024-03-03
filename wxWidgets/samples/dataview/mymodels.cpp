@@ -27,7 +27,7 @@
 
 MyMusicTreeModel::MyMusicTreeModel()
 {
-    m_root = new MyMusicTreeModelNode( nullptr, "My Music" );
+    m_root = new MyMusicTreeModelNode( NULL, "My Music" );
 
     // setup pop music
     m_pop = new MyMusicTreeModelNode( m_root, "Pop music" );
@@ -47,6 +47,8 @@ MyMusicTreeModel::MyMusicTreeModel()
     m_classical->Append( new MyMusicTreeModelNode( m_classical, "German Requiem",
                                                    "Johannes Brahms", 1868 ) );
     m_root->Append( m_classical );
+
+    m_classicalMusicIsKnownToControl = false;
 }
 
 wxString MyMusicTreeModel::GetTitle( const wxDataViewItem &item ) const
@@ -98,10 +100,14 @@ void MyMusicTreeModel::AddToClassical( const wxString &title, const wxString &ar
         new MyMusicTreeModelNode( m_classical, title, artist, year );
     m_classical->Append( child_node );
 
-    // notify control
-    wxDataViewItem child( (void*) child_node );
-    wxDataViewItem parent( (void*) m_classical );
-    ItemAdded( parent, child );
+    // FIXME: what's m_classicalMusicIsKnownToControl for?
+    if (m_classicalMusicIsKnownToControl)
+    {
+        // notify control
+        wxDataViewItem child( (void*) child_node );
+        wxDataViewItem parent( (void*) m_classical );
+        ItemAdded( parent, child );
+    }
 }
 
 void MyMusicTreeModel::Delete( const wxDataViewItem &item )
@@ -122,33 +128,35 @@ void MyMusicTreeModel::Delete( const wxDataViewItem &item )
 
     // is the node one of those we keep stored in special pointers?
     if (node == m_pop)
-        m_pop = nullptr;
+        m_pop = NULL;
     else if (node == m_classical)
-        m_classical = nullptr;
+        m_classical = NULL;
     else if (node == m_ninth)
-        m_ninth = nullptr;
+        m_ninth = NULL;
 
     // first remove the node from the parent's array of children;
-    auto& siblings = node->GetParent()->GetChildren();
-    for ( auto it = siblings.begin(); it != siblings.end(); ++it )
-    {
-        if ( it->get() == node )
-        {
-            siblings.erase(it);
-            break;
-        }
-    }
+    // NOTE: MyMusicTreeModelNodePtrArray is only an array of _pointers_
+    //       thus removing the node from it doesn't result in freeing it
+    node->GetParent()->GetChildren().Remove( node );
+
+    // free the node
+    delete node;
 
     // notify control
     ItemDeleted( parent, item );
 }
 void MyMusicTreeModel::Clear()
 {
-    m_pop       = nullptr;
-    m_classical = nullptr;
-    m_ninth     = nullptr;
+    m_pop       = NULL;
+    m_classical = NULL;
+    m_ninth     = NULL;
 
-    m_root->GetChildren().clear();
+    while (!m_root->GetChildren().IsEmpty())
+    {
+        MyMusicTreeModelNode* node = m_root->GetNthChild(0);
+        m_root->GetChildren().Remove(node);
+        delete node;
+    }
 
     Cleared();
 }
@@ -301,17 +309,25 @@ unsigned int MyMusicTreeModel::GetChildren( const wxDataViewItem &parent,
         return 1;
     }
 
+    if (node == m_classical)
+    {
+        MyMusicTreeModel* model = const_cast<MyMusicTreeModel*>(this);
+        model->m_classicalMusicIsKnownToControl = true;
+    }
+
     if (node->GetChildCount() == 0)
     {
         return 0;
     }
 
-    for ( const auto& child : node->GetChildren() )
+    unsigned int count = node->GetChildren().GetCount();
+    for (unsigned int pos = 0; pos < count; pos++)
     {
-        array.Add( wxDataViewItem( child.get() ) );
+        MyMusicTreeModelNode *child = node->GetChildren().Item( pos );
+        array.Add( wxDataViewItem( (void*) child ) );
     }
 
-    return array.size();
+    return count;
 }
 
 
@@ -498,7 +514,7 @@ void MyListModel::GetValueByRow( wxVariant &variant,
 
         case Col_Custom:
             {
-                const auto it = m_customColValues.find(row);
+                IntToStringMap::const_iterator it = m_customColValues.find(row);
                 if ( it != m_customColValues.end() )
                     variant = it->second;
                 else

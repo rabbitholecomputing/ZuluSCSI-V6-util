@@ -2,6 +2,7 @@
 // Name:        src/osx/cocoa/combobox.mm
 // Purpose:     wxChoice
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -47,6 +48,33 @@
     }
 }
 
+- (void) dealloc
+{
+    [fieldEditor release];
+    [super dealloc];
+}
+
+// Over-riding NSComboBox onKeyDown method doesn't work for key events.
+// Ensure that we can use our own wxNSTextFieldEditor to catch key events.
+// See windowWillReturnFieldEditor in nonownedwnd.mm.
+// Key events will be caught and handled via wxNSTextFieldEditor onkey...
+// methods in textctrl.mm.
+
+- (void) setFieldEditor:(wxNSTextFieldEditor*) editor
+{
+    if ( editor != fieldEditor )
+    {
+        [editor retain];
+        [fieldEditor release];
+        fieldEditor = editor;
+    }
+}
+
+- (wxNSTextFieldEditor*) fieldEditor
+{
+    return fieldEditor;
+}
+
 - (void)controlTextDidChange:(NSNotification *)aNotification
 {
     wxUnusedVar(aNotification);
@@ -71,7 +99,7 @@
     {
         wxNSTextFieldControl* timpl = dynamic_cast<wxNSTextFieldControl*>(impl);
         if ( timpl )
-            timpl->UpdateInternalSelectionFromEditor(self.WXFieldEditor);
+            timpl->UpdateInternalSelectionFromEditor(fieldEditor);
         impl->DoNotifyFocusLost();
     }
 }
@@ -197,7 +225,7 @@ void wxNSComboBoxControl::mouseEvent(WX_NSEvent event, WXWidget slf, void *_cmd)
     bool reset = false;
     wxEventLoop* const loop = (wxEventLoop*) wxEventLoopBase::GetActive();
 
-    if ( loop != nullptr && [event type] == NSLeftMouseDown )
+    if ( loop != NULL && [event type] == NSLeftMouseDown )
     {
         reset = true;
         loop->OSXUseLowLevelWakeup(true);
@@ -244,7 +272,7 @@ int wxNSComboBoxControl::GetNumberOfItems() const
 
 void wxNSComboBoxControl::InsertItem(int pos, const wxString& item)
 {
-    wxCFStringRef itemLabel( item );
+    wxCFStringRef itemLabel(  item, m_wxPeer->GetFont().GetEncoding() );
     NSString* const cocoaStr = itemLabel.AsNSString();
 
     if ( m_wxPeer->HasFlag(wxCB_SORT) )
@@ -288,12 +316,12 @@ void wxNSComboBoxControl::Clear()
 
 wxString wxNSComboBoxControl::GetStringAtIndex(int pos) const
 {
-    return wxCFStringRef::AsString([m_comboBox itemObjectValueAtIndex:pos]);
+    return wxCFStringRef::AsString([m_comboBox itemObjectValueAtIndex:pos], m_wxPeer->GetFont().GetEncoding());
 }
 
 int wxNSComboBoxControl::FindString(const wxString& text) const
 {
-    NSInteger nsresult = [m_comboBox indexOfItemWithObjectValue:wxCFStringRef( text ).AsNSString()];
+    NSInteger nsresult = [m_comboBox indexOfItemWithObjectValue:wxCFStringRef( text , m_wxPeer->GetFont().GetEncoding() ).AsNSString()];
 
     int result;
     if (nsresult == NSNotFound)

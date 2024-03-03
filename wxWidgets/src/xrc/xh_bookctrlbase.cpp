@@ -30,7 +30,7 @@
 
 wxBookCtrlXmlHandlerBase::PageWithAttrs::PageWithAttrs()
 {
-    wnd = nullptr;
+    wnd = NULL;
     selected = false;
     imgId =
     bmpId = wxWithImages::NO_IMAGE;
@@ -103,7 +103,7 @@ wxBookCtrlXmlHandlerBase::DoCreatePage(wxBookCtrlBase* book)
     {
         bool old_ins = m_isInside;
         m_isInside = false;
-        wxObject *item = CreateResFromNode(n, book, nullptr);
+        wxObject *item = CreateResFromNode(n, book, NULL);
         m_isInside = old_ins;
         wxWindow *wnd = wxDynamicCast(item, wxWindow);
 
@@ -143,7 +143,7 @@ wxBookCtrlXmlHandlerBase::DoCreatePage(wxBookCtrlBase* book)
     else
     {
         ReportError(wxString::Format("%s must have a window child", m_class));
-        return nullptr;
+        return NULL;
     }
 }
 

@@ -2,6 +2,7 @@
 // Name:        src/osx/iphone/menu.mm
 // Purpose:     wxMenu
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -41,7 +42,7 @@
 {
     if ( self = [super initWithTitle:title] )
     {
-        impl = nullptr;
+        impl = NULL;
     }
     return self;
 }
@@ -157,8 +158,8 @@ public :
     wxMenuCocoaImpl( wxMenu* peer , UIMenu* menu) : wxMenuImpl(peer), m_osxMenu(wxCFRetain(menu))
     {
         /*
-        static wxUIMenuController* controller = nullptr;
-        if ( controller == nullptr )
+        static wxUIMenuController* controller = NULL;
+        if ( controller == NULL )
         {
             controller = [[wxUIMenuController alloc] init];
         }
@@ -173,7 +174,7 @@ public :
 
     virtual ~wxMenuCocoaImpl();
 
-    virtual void InsertOrAppend(wxMenuItem *pItem, size_t pos) override
+    virtual void InsertOrAppend(wxMenuItem *pItem, size_t pos) wxOVERRIDE
     {
         UIMenuElement* uimenuitem = (UIMenuElement*) pItem->GetPeer()->GetHMenuItem();
         m_children.push_back(uimenuitem);
@@ -199,12 +200,12 @@ public :
         */
     }
 
-    virtual void Remove( wxMenuItem *pItem ) override
+    virtual void Remove( wxMenuItem *pItem ) wxOVERRIDE
     {
         // [m_osxMenu removeItem:(UIMenuItem*) pItem->GetPeer()->GetHMenuItem()];
     }
 
-    virtual void MakeRoot() override
+    virtual void MakeRoot() wxOVERRIDE
     {
     }
 
@@ -212,13 +213,13 @@ public :
     {
     }
 
-    virtual void SetTitle( const wxString& text ) override
+    virtual void SetTitle( const wxString& text ) wxOVERRIDE
     {
      //   wxCFStringRef cfText(text);
      //   [m_osxMenu setTitle:cfText.AsNSString()];
     }
 
-    virtual void PopUp( wxWindow *win, int x, int y ) override
+    virtual void PopUp( wxWindow *win, int x, int y ) wxOVERRIDE
     {
 #if 0 //  TODO wxIOS
         UIView *view = win->GetPeer()->GetWXWidget();
@@ -236,7 +237,7 @@ public :
             wxTopLevelWindow* tlw = static_cast<wxTopLevelWindow*>(wxGetTopLevelParent(win));
             NSWindow* nsWindow = tlw->GetWXWindow();
             NSRect nsrect = NSZeroRect;
-            nsrect.origin = wxToNSPoint( nullptr, screenPoint );
+            nsrect.origin = wxToNSPoint( NULL, screenPoint );
             nsrect = [nsWindow convertRectFromScreen:nsrect];
 
             NSEvent* rightClick = [NSEvent mouseEventWithType:NSRightMouseDown
@@ -258,7 +259,7 @@ public :
 #endif
     }
 
-    virtual void GetMenuBarDimensions(int &x, int &y, int &width, int &height) const override
+    virtual void GetMenuBarDimensions(int &x, int &y, int &width, int &height) const wxOVERRIDE
     {
 #if 0 //  TODO wxIOS
         NSRect r = [(NSScreen*)[[NSScreen screens] objectAtIndex:0] frame];
@@ -290,7 +291,7 @@ public :
 */
     }
 
-    WXHMENU GetHMenu() override {
+    WXHMENU GetHMenu() wxOVERRIDE {
         if ( m_osxMenu == nil )
         {
             m_osxMenu.reset( [UIMenu menuWithTitle:wxCFStringRef(m_peer->GetTitle()).AsNSString() children:m_children] );

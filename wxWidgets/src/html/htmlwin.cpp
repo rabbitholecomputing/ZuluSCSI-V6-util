@@ -29,7 +29,8 @@
 #include "wx/clipbrd.h"
 #include "wx/recguard.h"
 
-#include <list>
+#include "wx/arrimpl.cpp"
+#include "wx/listimpl.cpp"
 
 // uncomment this line to visually show the extent of the selection
 //#define DEBUG_HTML_SELECTION
@@ -62,7 +63,7 @@ public:
         m_orient = orient;
     }
 
-    virtual void Notify() override;
+    virtual void Notify() wxOVERRIDE;
 
 private:
     wxScrolledWindow *m_win;
@@ -138,20 +139,14 @@ private:
 
 
 //-----------------------------------------------------------------------------
-// our private containers: they have to be classes as they're forward-declared
+// our private arrays:
 //-----------------------------------------------------------------------------
 
-class wxHtmlHistoryArray : public std::vector<wxHtmlHistoryItem>
-{
-public:
-    wxHtmlHistoryArray() = default;
-};
+WX_DECLARE_OBJARRAY(wxHtmlHistoryItem, wxHtmlHistoryArray);
+WX_DEFINE_OBJARRAY(wxHtmlHistoryArray)
 
-class wxHtmlProcessorList : public std::list<std::unique_ptr<wxHtmlProcessor>>
-{
-public:
-    wxHtmlProcessorList() = default;
-};
+WX_DECLARE_LIST(wxHtmlProcessor, wxHtmlProcessorList);
+WX_DEFINE_LIST(wxHtmlProcessorList)
 
 //-----------------------------------------------------------------------------
 // wxHtmlWindowMouseHelper
@@ -159,8 +154,8 @@ public:
 
 wxHtmlWindowMouseHelper::wxHtmlWindowMouseHelper(wxHtmlWindowInterface *iface)
     : m_tmpMouseMoved(false),
-      m_tmpLastLink(nullptr),
-      m_tmpLastCell(nullptr),
+      m_tmpLastLink(NULL),
+      m_tmpLastCell(NULL),
       m_interface(iface)
 {
 }
@@ -179,7 +174,7 @@ bool wxHtmlWindowMouseHelper::HandleMouseClick(wxHtmlCell *rootCell,
 
     wxHtmlCell *cell = rootCell->FindCellByPos(pos.x, pos.y);
     // this check is needed because FindCellByPos returns terminal cell and
-    // containers may have empty borders -- in this case nullptr will be
+    // containers may have empty borders -- in this case NULL will be
     // returned
     if (!cell)
         return false;
@@ -193,11 +188,11 @@ bool wxHtmlWindowMouseHelper::HandleMouseClick(wxHtmlCell *rootCell,
 void wxHtmlWindowMouseHelper::HandleIdle(wxHtmlCell *rootCell,
                                          const wxPoint& pos)
 {
-    wxHtmlCell *cell = rootCell ? rootCell->FindCellByPos(pos.x, pos.y) : nullptr;
+    wxHtmlCell *cell = rootCell ? rootCell->FindCellByPos(pos.x, pos.y) : NULL;
 
     if (cell != m_tmpLastCell)
     {
-        wxHtmlLinkInfo *lnk = nullptr;
+        wxHtmlLinkInfo *lnk = NULL;
         if (cell)
         {
             // adjust the coordinates to be relative to this cell:
@@ -254,7 +249,7 @@ bool wxHtmlWindowMouseHelper::OnCellClicked(wxHtmlCell *cell,
     {
         // if the event wasn't handled, do the default processing here:
 
-        wxASSERT_MSG( cell, wxT("can't be called with null cell") );
+        wxASSERT_MSG( cell, wxT("can't be called with NULL cell") );
 
         // If we don't return true, HTML listboxes will always think that they should take
         // the focus
@@ -284,16 +279,18 @@ void wxHtmlWindowMouseHelper::OnCellMouseHover(wxHtmlCell * cell,
 //-----------------------------------------------------------------------------
 
 wxList wxHtmlWindow::m_Filters;
-wxHtmlFilter *wxHtmlWindow::m_DefaultFilter = nullptr;
-wxHtmlProcessorList *wxHtmlWindow::m_GlobalProcessors = nullptr;
-wxCursor *wxHtmlWindow::ms_cursorLink = nullptr;
-wxCursor *wxHtmlWindow::ms_cursorText = nullptr;
-wxCursor *wxHtmlWindow::ms_cursorDefault = nullptr;
+wxHtmlFilter *wxHtmlWindow::m_DefaultFilter = NULL;
+wxHtmlProcessorList *wxHtmlWindow::m_GlobalProcessors = NULL;
+wxCursor *wxHtmlWindow::ms_cursorLink = NULL;
+wxCursor *wxHtmlWindow::ms_cursorText = NULL;
+wxCursor *wxHtmlWindow::ms_cursorDefault = NULL;
 
 void wxHtmlWindow::CleanUpStatics()
 {
     wxDELETE(m_DefaultFilter);
     WX_CLEAR_LIST(wxList, m_Filters);
+    if (m_GlobalProcessors)
+        WX_CLEAR_LIST(wxHtmlProcessorList, *m_GlobalProcessors);
     wxDELETE(m_GlobalProcessors);
     wxDELETE(ms_cursorLink);
     wxDELETE(ms_cursorText);
@@ -305,29 +302,29 @@ void wxHtmlWindow::Init()
     m_tmpCanDrawLocks = 0;
     m_FS = new wxFileSystem();
 #if wxUSE_STATUSBAR
-    m_RelatedStatusBar = nullptr;
+    m_RelatedStatusBar = NULL;
     m_RelatedStatusBarIndex = -1;
 #endif // wxUSE_STATUSBAR
-    m_RelatedFrame = nullptr;
+    m_RelatedFrame = NULL;
     m_TitleFormat = wxT("%s");
     m_OpenedPage.clear();
     m_OpenedAnchor.clear();
     m_OpenedPageTitle.clear();
-    m_Cell = nullptr;
+    m_Cell = NULL;
     m_Parser = new wxHtmlWinParser(this);
     m_Parser->SetFS(m_FS);
     m_HistoryPos = -1;
     m_HistoryOn = true;
     m_History = new wxHtmlHistoryArray;
-    m_Processors = nullptr;
+    m_Processors = NULL;
     SetBorders(10);
-    m_selection = nullptr;
+    m_selection = NULL;
     m_makingSelection = false;
 #if wxUSE_CLIPBOARD
-    m_timerAutoScroll = nullptr;
+    m_timerAutoScroll = NULL;
     m_lastDoubleClick = 0;
 #endif // wxUSE_CLIPBOARD
-    m_tmpSelFromCell = nullptr;
+    m_tmpSelFromCell = NULL;
 }
 
 bool wxHtmlWindow::Create(wxWindow *parent, wxWindowID id,
@@ -369,6 +366,11 @@ wxHtmlWindow::~wxHtmlWindow()
     delete m_selection;
 
     delete m_Cell;
+
+    if ( m_Processors )
+    {
+        WX_CLEAR_LIST(wxHtmlProcessorList, *m_Processors);
+    }
 
     delete m_Parser;
     delete m_FS;
@@ -443,49 +445,39 @@ bool wxHtmlWindow::DoSetPage(const wxString& source)
     wxDELETE(m_selection);
 
     // we will soon delete all the cells, so clear pointers to them:
-    m_tmpSelFromCell = nullptr;
+    m_tmpSelFromCell = NULL;
 
     // pass HTML through registered processors:
     if (m_Processors || m_GlobalProcessors)
     {
-        wxHtmlProcessorList::iterator nodeL, nodeG;
-
-        const auto isNodeLValid = [&nodeL, this]()
-        {
-            return m_Processors && nodeL != m_Processors->end();
-        };
-
-        const auto isNodeGValid = [&nodeG]()
-        {
-            return m_GlobalProcessors && nodeG != m_GlobalProcessors->end();
-        };
+        wxHtmlProcessorList::compatibility_iterator nodeL, nodeG;
 
         if ( m_Processors )
-            nodeL = m_Processors->begin();
+            nodeL = m_Processors->GetFirst();
         if ( m_GlobalProcessors )
-            nodeG = m_GlobalProcessors->begin();
+            nodeG = m_GlobalProcessors->GetFirst();
 
         // VS: there are two lists, global and local, both of them sorted by
         //     priority. Since we have to go through _both_ lists with
         //     decreasing priority, we "merge-sort" the lists on-line by
         //     processing that one of the two heads that has higher priority
         //     in every iteration
-        while (isNodeLValid() || isNodeGValid())
+        while (nodeL || nodeG)
         {
             int prL, prG;
-            prL = isNodeLValid() ? (*nodeL)->GetPriority() : -1;
-            prG = isNodeGValid() ? (*nodeG)->GetPriority() : -1;
+            prL = (nodeL) ? nodeL->GetData()->GetPriority() : -1;
+            prG = (nodeG) ? nodeG->GetData()->GetPriority() : -1;
             if (prL > prG)
             {
-                if ((*nodeL)->IsEnabled())
-                    newsrc = (*nodeL)->Process(newsrc);
-                ++nodeL;
+                if (nodeL->GetData()->IsEnabled())
+                    newsrc = nodeL->GetData()->Process(newsrc);
+                nodeL = nodeL->GetNext();
             }
             else // prL <= prG
             {
-                if ((*nodeG)->IsEnabled())
-                    newsrc = (*nodeG)->Process(newsrc);
-                ++nodeG;
+                if (nodeG->GetData()->IsEnabled())
+                    newsrc = nodeG->GetData()->Process(newsrc);
+                nodeG = nodeG->GetNext();
             }
         }
     }
@@ -493,7 +485,7 @@ bool wxHtmlWindow::DoSetPage(const wxString& source)
     // ...and run the parser on it:
     wxClientDC dc(this);
     dc.SetMapMode(wxMM_TEXT);
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    SetBackgroundColour(wxColour(0xFF, 0xFF, 0xFF));
     SetBackgroundImage(wxNullBitmap);
 
     double pixelScale = 1.0;
@@ -503,7 +495,7 @@ bool wxHtmlWindow::DoSetPage(const wxString& source)
 
     m_Parser->SetDC(&dc, pixelScale, 1.0);
 
-    // notice that it's important to set m_Cell to nullptr here before calling
+    // notice that it's important to set m_Cell to NULL here before calling
     // Parse() below, even if it will be overwritten by its return value as
     // without this we may crash if it's used from inside Parse(), so use
     // wxDELETE() and not just delete here
@@ -513,7 +505,7 @@ bool wxHtmlWindow::DoSetPage(const wxString& source)
 
     // The parser doesn't need the DC any more, so ensure it's not left with a
     // dangling pointer after the DC object goes out of scope.
-    m_Parser->SetDC(nullptr);
+    m_Parser->SetDC(NULL);
 
     m_Cell->SetIndent(m_Borders, wxHTML_INDENT_ALL, wxHTML_UNITS_PIXELS);
     m_Cell->SetAlignHor(wxHTML_ALIGN_CENTER);
@@ -582,14 +574,14 @@ bool wxHtmlWindow::LoadPage(const wxString& location)
         wxFSFile *f = m_Parser->OpenURL(wxHTML_URL_PAGE, location);
 
         // try to interpret 'location' as filename instead of URL:
-        if (f == nullptr)
+        if (f == NULL)
         {
             wxFileName fn(location);
             wxString location2 = wxFileSystem::FileNameToURL(fn);
             f = m_Parser->OpenURL(wxHTML_URL_PAGE, location2);
         }
 
-        if (f == nullptr)
+        if (f == NULL)
         {
             wxLogError(_("Unable to open requested HTML document: %s"), location);
             m_tmpCanDrawLocks--;
@@ -624,7 +616,7 @@ bool wxHtmlWindow::LoadPage(const wxString& location)
             }
             if (src.empty())
             {
-                if (m_DefaultFilter == nullptr) m_DefaultFilter = GetDefaultFilter();
+                if (m_DefaultFilter == NULL) m_DefaultFilter = GetDefaultFilter();
                 src = m_DefaultFilter->ReadFile(*f);
             }
 
@@ -656,18 +648,16 @@ bool wxHtmlWindow::LoadPage(const wxString& location)
 
     if (m_HistoryOn) // add this page to history there:
     {
-        int c = m_History->size() - (m_HistoryPos + 1);
+        int c = m_History->GetCount() - (m_HistoryPos + 1);
 
         if (m_HistoryPos < 0 ||
             (*m_History)[m_HistoryPos].GetPage() != m_OpenedPage ||
             (*m_History)[m_HistoryPos].GetAnchor() != m_OpenedAnchor)
         {
             m_HistoryPos++;
-
-            const auto first = m_History->begin() + m_HistoryPos;
-            m_History->erase(first, first + c);
-
-            m_History->emplace_back(m_OpenedPage, m_OpenedAnchor);
+            for (int i = 0; i < c; i++)
+                m_History->RemoveAt(m_HistoryPos);
+            m_History->Add(new wxHtmlHistoryItem(m_OpenedPage, m_OpenedAnchor));
         }
     }
 
@@ -715,7 +705,7 @@ bool wxHtmlWindow::ScrollToAnchor(const wxString& anchor)
 
         int y;
 
-        for (y = 0; c != nullptr; c = c->GetParent()) y += c->GetPosY();
+        for (y = 0; c != NULL; c = c->GetParent()) y += c->GetPosY();
         Scroll(-1, y / wxHTML_SCROLL_STEP);
         m_OpenedAnchor = anchor;
         return true;
@@ -869,7 +859,7 @@ bool wxHtmlWindow::HistoryForward()
     wxString a, l;
 
     if (m_HistoryPos == -1) return false;
-    if (m_HistoryPos >= (int)m_History->size() - 1)return false;
+    if (m_HistoryPos >= (int)m_History->GetCount() - 1)return false;
 
     m_OpenedPage.clear(); // this will disable adding new entry into history in LoadPage()
 
@@ -890,14 +880,14 @@ bool wxHtmlWindow::HistoryForward()
 bool wxHtmlWindow::HistoryCanForward()
 {
     if (m_HistoryPos == -1) return false;
-    if (m_HistoryPos >= (int)m_History->size() - 1)return false;
+    if (m_HistoryPos >= (int)m_History->GetCount() - 1)return false;
     return true ;
 }
 
 
 void wxHtmlWindow::HistoryClear()
 {
-    m_History->clear();
+    m_History->Empty();
     m_HistoryPos = -1;
 }
 
@@ -907,20 +897,17 @@ void wxHtmlWindow::AddProcessor(wxHtmlProcessor *processor)
     {
         m_Processors = new wxHtmlProcessorList;
     }
+    wxHtmlProcessorList::compatibility_iterator node;
 
-    std::unique_ptr<wxHtmlProcessor> processorPtr{processor};
-
-    wxHtmlProcessorList::iterator node;
-
-    for (node = m_Processors->begin(); node != m_Processors->end(); ++node)
+    for (node = m_Processors->GetFirst(); node; node = node->GetNext())
     {
-        if (processor->GetPriority() > (*node)->GetPriority())
+        if (processor->GetPriority() > node->GetData()->GetPriority())
         {
-            m_Processors->insert(node, std::move(processorPtr));
+            m_Processors->Insert(node, processor);
             return;
         }
     }
-    m_Processors->push_back(std::move(processorPtr));
+    m_Processors->Append(processor);
 }
 
 /*static */ void wxHtmlWindow::AddGlobalProcessor(wxHtmlProcessor *processor)
@@ -929,20 +916,17 @@ void wxHtmlWindow::AddProcessor(wxHtmlProcessor *processor)
     {
         m_GlobalProcessors = new wxHtmlProcessorList;
     }
+    wxHtmlProcessorList::compatibility_iterator node;
 
-    std::unique_ptr<wxHtmlProcessor> processorPtr{processor};
-
-    wxHtmlProcessorList::iterator node;
-
-    for (node = m_GlobalProcessors->begin(); node != m_GlobalProcessors->end(); ++node)
+    for (node = m_GlobalProcessors->GetFirst(); node; node = node->GetNext())
     {
-        if (processor->GetPriority() > (*node)->GetPriority())
+        if (processor->GetPriority() > node->GetData()->GetPriority())
         {
-            m_GlobalProcessors->insert(node, std::move(processorPtr));
+            m_GlobalProcessors->Insert(node, processor);
             return;
         }
     }
-    m_GlobalProcessors->push_back(std::move(processorPtr));
+    m_GlobalProcessors->Append(processor);
 }
 
 
@@ -973,7 +957,7 @@ wxString wxHtmlWindow::DoSelectionToText(wxHtmlSelection *sel)
     wxString text;
 
     wxHtmlTerminalCellsInterator i(sel->GetFromCell(), sel->GetToCell());
-    const wxHtmlCell *prev = nullptr;
+    const wxHtmlCell *prev = NULL;
 
     while ( i )
     {
@@ -1054,7 +1038,7 @@ void wxHtmlWindow::OnLinkClicked(const wxHtmlLinkInfo& link)
     {
         // the default behaviour is to load the URL in this window
         const wxMouseEvent *e = event.GetLinkInfo().GetEvent();
-        if (e == nullptr || e->LeftUp())
+        if (e == NULL || e->LeftUp())
             LoadPage(event.GetLinkInfo().GetHref());
     }
 }
@@ -1104,7 +1088,7 @@ void wxHtmlWindow::OnPaint(wxPaintEvent& WXUNUSED(event))
 {
     wxPaintDC dcPaint(this);
 
-    if (m_tmpCanDrawLocks > 0 || m_Cell == nullptr)
+    if (m_tmpCanDrawLocks > 0 || m_Cell == NULL)
         return;
 
     int x, y;
@@ -1371,7 +1355,7 @@ void wxHtmlWindow::OnMouseDown(wxMouseEvent& event)
                 Refresh();
             }
             m_tmpSelFromPos = CalcUnscrolledPosition(event.GetPosition());
-            m_tmpSelFromCell = nullptr;
+            m_tmpSelFromCell = NULL;
 
             CaptureMouse();
         }
@@ -1390,7 +1374,7 @@ void wxHtmlWindow::OnMouseUp(wxMouseEvent& event)
         ReleaseMouse();
         m_makingSelection = false;
 
-        // if m_selection=nullptr, the user didn't move the mouse far enough from
+        // if m_selection=NULL, the user didn't move the mouse far enough from
         // starting point and the mouse up event is part of a click, the user
         // is not selecting text:
         if ( m_selection )
@@ -1418,7 +1402,7 @@ void wxHtmlWindow::OnMouseCaptureLost(wxMouseCaptureLostEvent& WXUNUSED(event))
     // discard the selecting operation
     m_makingSelection = false;
     wxDELETE(m_selection);
-    m_tmpSelFromCell = nullptr;
+    m_tmpSelFromCell = NULL;
     Refresh();
 }
 #endif // wxUSE_CLIPBOARD
@@ -1428,7 +1412,7 @@ void wxHtmlWindow::OnInternalIdle()
 {
     wxWindow::OnInternalIdle();
 
-    if (m_Cell != nullptr && DidMouseMove())
+    if (m_Cell != NULL && DidMouseMove())
     {
 #ifdef DEBUG_HTML_SELECTION
         Refresh();
@@ -1709,8 +1693,8 @@ void wxHtmlWindow::SelectLine(const wxPoint& pos)
             int y2 = y1 + cell->GetHeight();
             int y;
             const wxHtmlCell *c;
-            const wxHtmlCell *before = nullptr;
-            const wxHtmlCell *after = nullptr;
+            const wxHtmlCell *before = NULL;
+            const wxHtmlCell *after = NULL;
 
             // find last cell of line:
             for ( c = cell->GetNext(); c; c = c->GetNext())
@@ -1735,7 +1719,7 @@ void wxHtmlWindow::SelectLine(const wxPoint& pos)
                         before = c;
                 }
                 else
-                    before = nullptr;
+                    before = NULL;
             }
             if ( !before )
                 before = cell;
@@ -1934,8 +1918,8 @@ class wxHtmlWinModule: public wxModule
     wxDECLARE_DYNAMIC_CLASS(wxHtmlWinModule);
 public:
     wxHtmlWinModule() : wxModule() {}
-    bool OnInit() override { return true; }
-    void OnExit() override { wxHtmlWindow::CleanUpStatics(); }
+    bool OnInit() wxOVERRIDE { return true; }
+    void OnExit() wxOVERRIDE { wxHtmlWindow::CleanUpStatics(); }
 };
 
 wxIMPLEMENT_DYNAMIC_CLASS(wxHtmlWinModule, wxModule);

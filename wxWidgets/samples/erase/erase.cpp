@@ -46,7 +46,7 @@
 class MyApp : public wxApp
 {
 public:
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 
@@ -246,7 +246,7 @@ wxEND_EVENT_TABLE()
 
 // frame constructor
 MyFrame::MyFrame()
-       : wxFrame(nullptr, wxID_ANY, "Erase sample",
+       : wxFrame(NULL, wxID_ANY, "Erase sample",
                  wxPoint(50, 50), wxSize(450, 340))
 {
     SetIcon(wxICON(sample));

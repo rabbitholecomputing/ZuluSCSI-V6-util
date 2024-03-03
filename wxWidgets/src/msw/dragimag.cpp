@@ -2,6 +2,7 @@
 // Name:        src/msw/dragimag.cpp
 // Purpose:     wxDragImage
 // Author:      Julian Smart
+// Modified by:
 // Created:     08/04/99
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -83,9 +84,47 @@ void wxDragImage::Init()
 #if !wxUSE_SIMPLER_DRAGIMAGE
     m_hCursorImageList = 0;
 #endif
-    m_window = nullptr;
+    m_window = NULL;
     m_fullScreen = false;
 }
+
+#if WXWIN_COMPATIBILITY_2_8
+wxDragImage::wxDragImage(const wxBitmap& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(image, cursor);
+}
+
+wxDragImage::wxDragImage(const wxIcon& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(image, cursor);
+}
+
+wxDragImage::wxDragImage(const wxString& str, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    Init();
+
+    Create(str, cursor);
+}
+
+bool wxDragImage::Create(const wxBitmap& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(image, cursor);
+}
+
+bool wxDragImage::Create(const wxIcon& image, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(image, cursor);
+}
+
+bool wxDragImage::Create(const wxString& str, const wxCursor& cursor, const wxPoint& WXUNUSED(cursorHotspot))
+{
+    return Create(str, cursor);
+}
+#endif // WXWIN_COMPATIBILITY_2_8
 
 // Attributes
 ////////////////////////////////////////////////////////////////////////////
@@ -113,7 +152,7 @@ bool wxDragImage::Create(const wxBitmap& image, const wxCursor& cursor)
     else
         flags = ILC_COLOR32;
 
-    bool mask = image.GetMask() != nullptr;
+    bool mask = (image.GetMask() != 0);
 
     // Curiously, even if the image doesn't have a mask,
     // we still have to use ILC_MASK or the image won't show
@@ -271,10 +310,6 @@ bool wxDragImage::BeginDrag(const wxPoint& hotspot, wxWindow* window, bool fullS
     wxASSERT_MSG( (m_hImageList != 0), wxT("Image list must not be null in BeginDrag."));
     wxASSERT_MSG( (window != 0), wxT("Window must not be null in BeginDrag."));
 
-    // Using ImageList_BeginDrag() doesn't work with composited windows,
-    // nothing gets shown, so reset WS_EX_COMPOSITED to make it work.
-    window->MSWDisableComposited();
-
     m_fullScreen = fullScreen;
     if (rect)
         m_boundingRect = * rect;
@@ -384,13 +419,13 @@ bool wxDragImage::EndDrag()
     ::ShowCursor(TRUE);
 #endif
 
-    m_window = nullptr;
+    m_window = NULL;
 
     return true;
 }
 
 // Move the image: call from OnMouseMove. Pt is in window client coordinates if window
-// is non-null, or in screen coordinates if null.
+// is non-NULL, or in screen coordinates if NULL.
 bool wxDragImage::Move(const wxPoint& pt)
 {
     wxASSERT_MSG( (m_hImageList != 0), wxT("Image list must not be null in Move."));

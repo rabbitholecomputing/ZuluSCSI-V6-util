@@ -2,6 +2,7 @@
 // Name:        samples/menu.cpp
 // Purpose:     wxMenu/wxMenuBar sample
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     01.11.99
 // Copyright:   (c) 1999 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -42,7 +43,7 @@
 
 // not all ports have support for EVT_CONTEXT_MENU yet, don't define
 // USE_CONTEXT_MENU for those which don't
-#if defined(__WXX11__)
+#if defined(__WXMOTIF__) || defined(__WXX11__)
     #define USE_CONTEXT_MENU 0
 #else
     #define USE_CONTEXT_MENU 1
@@ -68,7 +69,7 @@
 class MyApp: public wxApp
 {
 public:
-    bool OnInit() override;
+    bool OnInit() wxOVERRIDE;
 };
 
 // Define a new frame
@@ -174,7 +175,7 @@ private:
 
     wxMenuItem *GetLastMenuItem() const;
 
-    // the menu previously detached from the menubar (may be null)
+    // the menu previously detached from the menubar (may be NULL)
     wxMenu *m_menu;
 
     // the count of dummy menus already created
@@ -465,16 +466,16 @@ bool MyApp::OnInit()
 
 // Define my frame constructor
 MyFrame::MyFrame()
-       : wxFrame(nullptr, wxID_ANY, "wxWidgets menu sample")
+       : wxFrame((wxFrame *)NULL, wxID_ANY, "wxWidgets menu sample")
 {
     SetIcon(wxICON(sample));
 
 #if USE_LOG_WINDOW
-    m_textctrl = nullptr;
+    m_textctrl = NULL;
 #endif
-    m_menu = nullptr;
+    m_menu = NULL;
     m_countDummy = 0;
-    m_logOld = nullptr;
+    m_logOld = NULL;
 
 #if wxUSE_STATUSBAR
     CreateStatusBar();
@@ -770,14 +771,14 @@ wxMenuItem *MyFrame::GetLastMenuItem() const
 {
     wxMenuBar *menubar = GetMenuBar();
     wxMenu *menu = menubar->GetMenu(menubar->FindMenu("Test"));
-    wxCHECK_MSG( menu, nullptr, "no 'Test' menu?" );
+    wxCHECK_MSG( menu, NULL, "no 'Test' menu?" );
 
     wxMenuItemList::compatibility_iterator node = menu->GetMenuItems().GetLast();
     if ( !node )
     {
         wxLogWarning("No last item in the 'Test' menu!");
 
-        return nullptr;
+        return NULL;
     }
     else
     {
@@ -886,7 +887,7 @@ void MyFrame::OnToggleMenu(wxCommandEvent& WXUNUSED(event))
     {
         // restore it
         mbar->Insert(0, m_menu, "&File");
-        m_menu = nullptr;
+        m_menu = NULL;
     }
 }
 
@@ -985,7 +986,7 @@ void MyFrame::OnAppendSubMenu(wxCommandEvent& WXUNUSED(event))
     wxCHECK_RET( menu, "no 'Test' menu?" );
 
     menu->Append(Menu_Dummy_Last, "&Dummy sub menu",
-                 CreateDummyMenu(nullptr), "Dummy sub menu help");
+                 CreateDummyMenu(NULL), "Dummy sub menu help");
 }
 
 void MyFrame::OnDeleteMenuItem(wxCommandEvent& WXUNUSED(event))
@@ -1240,7 +1241,7 @@ void MyFrame::ShowContextMenu(const wxPoint& pos)
     else // normal case, shift not pressed
     {
         menu.Append(Menu_Help_About, "&About");
-        menu.Append(Menu_Popup_Submenu, "&Submenu", CreateDummyMenu(nullptr));
+        menu.Append(Menu_Popup_Submenu, "&Submenu", CreateDummyMenu(NULL));
         menu.Append(Menu_Popup_ToBeDeleted, "To be &deleted");
         menu.AppendCheckItem(Menu_Popup_ToBeChecked, "To be &checked");
         menu.Append(Menu_Popup_ToBeGreyed, "To be &greyed",

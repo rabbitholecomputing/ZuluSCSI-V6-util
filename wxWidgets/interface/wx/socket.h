@@ -131,17 +131,13 @@ public:
     bool AnyAddress();
 
     /**
-        Set the address to hostname, which can be a host name, an IP-style address
-        in dot notation(<tt>a.b.c.d</tt>) or a 32-bit representation of the
-        address as the number.
+        Set the address to hostname, which can be a host name or an IP-style address
+        in dot notation(<tt>a.b.c.d</tt>).
 
         @return @true on success, @false if something goes wrong (invalid
                 hostname or invalid IP address).
     */
-    //@{
     bool Hostname(const wxString& hostname);
-    bool Hostname(unsigned long addr);
-    //@}
 
     /**
         Returns the hostname which matches the IP address.
@@ -781,8 +777,7 @@ public:
 
         It is safe to call this function multiple times (only the first call
         does anything) but you must call Shutdown() exactly once for every call
-        to Initialize(), see wxSocketInitializer which ensures that this is the
-        case.
+        to Initialize().
 
         This function should only be called from the main thread.
 
@@ -799,8 +794,7 @@ public:
         every successful call to Initialize().
 
         This function should only be called from the main thread, just as
-        Initialize() and usually shouldn't be called explicitly at all as it's
-        safer to use wxSocketInitializer.
+        Initialize().
      */
     static void Shutdown();
 
@@ -1430,31 +1424,6 @@ public:
     ///@}
 };
 
-/**
-    @class wxSocketInitializer
-
-    Class initializing sockets in its ctor and shutting them down in its dtor.
-
-    This is a simple RAII wrapper around wxSocketBase::Initialize() and
-    wxSocketBase::Shutdown().
-
-    @since 3.3.0
- */
-class wxSocketInitializer
-{
-public:
-    /// Calls wxSocketBase::Initialize().
-    wxSocketInitializer();
-
-    /// Calls wxSocketBase::Shutdown().
-    ~wxSocketInitializer();
-
-    /// Can't be copied.
-    wxSocketInitializer(const wxSocketInitializer&) = delete;
-
-    /// Can't be assigned.
-    wxSocketInitializer& operator=(const wxSocketInitializer&) = delete;
-};
 
 
 /**

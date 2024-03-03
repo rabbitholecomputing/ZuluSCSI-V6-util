@@ -2,6 +2,7 @@
 // Name:        caret.cpp
 // Purpose:     wxCaret sample
 // Author:      Robert Roebling
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) wxWindows team
 // Licence:     wxWindows licence
@@ -44,7 +45,7 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 // MyCanvas is a canvas on which you can type
@@ -199,7 +200,7 @@ bool MyApp::OnInit()
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-       : wxFrame(nullptr, wxID_ANY, title, pos, size)
+       : wxFrame((wxFrame *)NULL, wxID_ANY, title, pos, size)
 {
     // set the frame icon
     SetIcon(wxICON(sample));
@@ -303,9 +304,9 @@ MyCanvas::MyCanvas( wxWindow *parent )
                             wxDefaultPosition, wxDefaultSize,
                             wxSUNKEN_BORDER )
 {
-    m_text = nullptr;
+    m_text = (wxChar *)NULL;
 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    SetBackgroundColour(*wxWHITE);
 
     SetFontSize(12);
 
@@ -419,7 +420,7 @@ void MyCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
             wxChar ch = CharAt(x, y);
             if ( !ch )
                 ch = ' ';
-#if defined(__WXOSX__) || defined(__WXQT__)
+#ifdef __WXOSX__
             dc.DrawText(ch, m_xMargin + x * m_widthChar,
                         m_yMargin + y * m_heightChar );
 #else
@@ -427,8 +428,9 @@ void MyCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
 #endif
         }
 
-        if ( !line.empty() )
-            dc.DrawText( line, m_xMargin, m_yMargin + y * m_heightChar );
+#ifndef __WXOSX__
+        dc.DrawText( line, m_xMargin, m_yMargin + y * m_heightChar );
+#endif
     }
 }
 

@@ -51,6 +51,14 @@ bool MyApp::OnInit()
     // Create the main window
     MyFrame *frame = new MyFrame();
 
+    // Problem with generic wxNotebook implementation whereby it doesn't size
+    // properly unless you set the size again
+#if defined(__WXMOTIF__)
+    int width, height;
+    frame->GetSize(& width, & height);
+    frame->SetSize(wxDefaultCoord, wxDefaultCoord, width, height);
+#endif
+
     frame->Show();
 
     return true;
@@ -114,11 +122,9 @@ wxPanel *CreateVetoPage(wxBookCtrlBase *parent)
     panel->SetHelpText("An empty panel");
 #endif
 
-    wxSizer* const s = new wxBoxSizer(wxVERTICAL);
-    s->Add(new wxStaticText( panel, wxID_ANY,
-                             "This page intentionally left blank" ),
-           wxSizerFlags().Expand().DoubleBorder());
-    panel->SetSizer(s);
+    (void) new wxStaticText( panel, wxID_ANY,
+                             "This page intentionally left blank",
+                             wxPoint(10, 10) );
 
     return panel;
 }
@@ -145,12 +151,9 @@ wxPanel *CreateInsertPage(wxBookCtrlBase *parent)
 #endif
 
     panel->SetBackgroundColour( wxColour( "MAROON" ) );
-
-    wxSizer* const s = new wxBoxSizer(wxVERTICAL);
-    s->Add(new wxStaticText( panel, wxID_ANY,
-                             "This page has been inserted, not added." ),
-           wxSizerFlags().Expand().DoubleBorder());
-    panel->SetSizer(s);
+    (void) new wxStaticText( panel, wxID_ANY,
+                             "This page has been inserted, not added.",
+                             wxPoint(10, 10) );
 
     return panel;
 }
@@ -210,7 +213,7 @@ wxWindow *CreatePage(wxBookCtrlBase *parent, const wxString&pageName)
 
     wxFAIL_MSG( "unknown page name" );
 
-    return nullptr;
+    return NULL;
 }
 
 
@@ -279,7 +282,7 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
 wxEND_EVENT_TABLE()
 
 MyFrame::MyFrame()
-    : wxFrame(nullptr, wxID_ANY, wxString("wxWidgets book controls sample"))
+    : wxFrame(NULL, wxID_ANY, wxString("wxWidgets book controls sample"))
 {
 #if wxUSE_HELP
     SetExtraStyle(wxFRAME_EX_CONTEXTHELP);
@@ -394,8 +397,8 @@ MyFrame::MyFrame()
     SetMenuBar(menuBar);
 
     // books creation
-    m_panel    = nullptr;
-    m_bookCtrl = nullptr;
+    m_panel    = NULL;
+    m_bookCtrl = NULL;
 
     // use some random images for the book control pages
     const wxSize imageSize(32, 32);
@@ -538,7 +541,7 @@ void MyFrame::RecreateBook()
 
     wxBookCtrlBase *oldBook = m_bookCtrl;
 
-    m_bookCtrl = nullptr;
+    m_bookCtrl = NULL;
 
     DISPATCH_ON_TYPE(m_bookCtrl = new,
                          wxNotebook,
@@ -567,7 +570,7 @@ void MyFrame::RecreateBook()
         // we only need the old treebook if we're recreating another treebook
         wxTreebook *tbkOld = m_type == Type_Treebook
                                 ? wxDynamicCast(oldBook, wxTreebook)
-                                : nullptr;
+                                : NULL;
 #endif // wxUSE_TREEBOOK
 
         const int count = oldBook->GetPageCount();
@@ -930,7 +933,7 @@ void MyFrame::OnIdle( wxIdleEvent& WXUNUSED(event) )
 {
     static int s_nPages = wxNOT_FOUND;
     static int s_nSel = wxNOT_FOUND;
-    static wxBookCtrlBase *s_currBook = nullptr;
+    static wxBookCtrlBase *s_currBook = NULL;
 
     wxBookCtrlBase *currBook = GetCurrentBook();
 

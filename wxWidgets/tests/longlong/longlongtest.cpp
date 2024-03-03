@@ -89,7 +89,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( LongLongTestCase, "LongLongTestCase" );
 
 LongLongTestCase::LongLongTestCase()
 {
-    srand((unsigned)time(nullptr));
+    srand((unsigned)time(NULL));
 }
 
 void LongLongTestCase::Conversion()

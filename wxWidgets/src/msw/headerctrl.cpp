@@ -35,10 +35,7 @@
 #include "wx/msw/wrapcctl.h"
 #include "wx/msw/private.h"
 #include "wx/msw/private/customdraw.h"
-#include "wx/msw/private/darkmode.h"
 #include "wx/msw/private/winstyle.h"
-
-#include <memory>
 
 #ifndef HDM_SETBITMAPMARGIN
     #define HDM_SETBITMAPMARGIN 0x1234
@@ -53,6 +50,36 @@
 extern int WXDLLIMPEXP_CORE wxMSWGetColumnClicked(NMHDR *nmhdr, POINT *ptClick);
 
 // ----------------------------------------------------------------------------
+// wxMSWHeaderCtrlCustomDraw: our custom draw helper
+// ----------------------------------------------------------------------------
+
+class wxMSWHeaderCtrlCustomDraw : public wxMSWImpl::CustomDraw
+{
+public:
+    wxMSWHeaderCtrlCustomDraw()
+    {
+    }
+
+    // Make this field public to let wxHeaderCtrl update it directly when its
+    // attributes change.
+    wxItemAttr m_attr;
+
+private:
+    virtual bool HasCustomDrawnItems() const wxOVERRIDE
+    {
+        // We only exist if the header does need to be custom drawn.
+        return true;
+    }
+
+    virtual const wxItemAttr*
+    GetItemAttr(DWORD_PTR WXUNUSED(dwItemSpec)) const wxOVERRIDE
+    {
+        // We use the same attribute for all items for now.
+        return &m_attr;
+    }
+};
+
+// ----------------------------------------------------------------------------
 // wxMSWHeaderCtrl: the native header control
 // ----------------------------------------------------------------------------
 class wxMSWHeaderCtrl : public wxControl
@@ -61,6 +88,7 @@ public:
     explicit wxMSWHeaderCtrl(wxHeaderCtrl& header) :
         m_header(header)
     {
+        Init();
     }
 
     bool Create(wxWindow *parent,
@@ -70,10 +98,12 @@ public:
                 long style,
                 const wxString& name);
 
+    virtual ~wxMSWHeaderCtrl();
+
     // Override to implement colours support via custom drawing.
-    virtual bool SetBackgroundColour(const wxColour& colour) override;
-    virtual bool SetForegroundColour(const wxColour& colour) override;
-    virtual bool SetFont(const wxFont& font) override;
+    virtual bool SetBackgroundColour(const wxColour& colour) wxOVERRIDE;
+    virtual bool SetForegroundColour(const wxColour& colour) wxOVERRIDE;
+    virtual bool SetFont(const wxFont& font) wxOVERRIDE;
 
     // The implementation of wxHeaderCtrlBase virtual functions
     void SetCount(unsigned int count);
@@ -87,21 +117,22 @@ public:
 
 protected:
     // override wxWindow methods which must be implemented by a new control
-    virtual wxSize DoGetBestSize() const override;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
     virtual void DoSetSize(int x, int y,
                            int width, int height,
-                           int sizeFlags = wxSIZE_AUTO) override;
-    virtual void MSWUpdateFontOnDPIChange(const wxSize& newDPI) override;
-
-    virtual bool MSWGetDarkModeSupport(MSWDarkModeSupport& support) const override;
+                           int sizeFlags = wxSIZE_AUTO) wxOVERRIDE;
+    virtual void MSWUpdateFontOnDPIChange(const wxSize& newDPI) wxOVERRIDE;
 
     // This function can be used as event handle for wxEVT_DPI_CHANGED event.
     void WXHandleDPIChanged(wxDPIChangedEvent& event);
 
 private:
     // override MSW-specific methods needed for new control
-    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const override;
-    virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result) override;
+    virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const wxOVERRIDE;
+    virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result) wxOVERRIDE;
+
+    // common part of all ctors
+    void Init();
 
     // wrapper around Header_InsertItem(): insert the item using information
     // from the given column at the given index
@@ -140,7 +171,7 @@ private:
 
     // the number of columns in the control, including the hidden ones (not
     // taken into account by the native control, see comment in DoGetCount())
-    unsigned int m_numColumns = 0;
+    unsigned int m_numColumns;
 
     // this is a lookup table allowing us to check whether the column with the
     // given index is currently shown in the native control, in which case the
@@ -159,21 +190,21 @@ private:
     // doesn't know about them and so we can't use Header_GetOrderArray()
     wxArrayInt m_colIndices;
 
-    // the image list: initially nullptr, created on demand
-    std::unique_ptr<wxImageList> m_imageList;
+    // the image list: initially NULL, created on demand
+    wxImageList *m_imageList;
 
     // the offset of the window used to emulate scrolling it
-    int m_scrollOffset = 0;
+    int m_scrollOffset;
 
     // actual column we are dragging or -1 if not dragging anything
-    int m_colBeingDragged = -1;
+    int m_colBeingDragged;
 
     // a column is currently being resized
-    bool m_isColBeingResized = false;
+    bool m_isColBeingResized;
 
-    // the custom draw helper: initially nullptr, created on demand, use
+    // the custom draw helper: initially NULL, created on demand, use
     // GetCustomDraw() to do it
-    std::unique_ptr<wxMSWHeaderCtrlCustomDraw> m_customDraw;
+    wxMSWHeaderCtrlCustomDraw *m_customDraw;
 };
 
 // ============================================================================
@@ -185,6 +216,18 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxMSWHeaderCtrlNameStr[] = "wxMSWHeader
 // ----------------------------------------------------------------------------
 // wxMSWHeaderCtrl construction/destruction
 // ----------------------------------------------------------------------------
+
+void wxMSWHeaderCtrl::Init()
+{
+    m_numColumns = 0;
+    m_imageList = NULL;
+    m_scrollOffset = 0;
+    m_colBeingDragged = -1;
+    m_isColBeingResized = false;
+    m_customDraw = NULL;
+
+    Bind(wxEVT_DPI_CHANGED, &wxMSWHeaderCtrl::WXHandleDPIChanged, this);
+}
 
 bool wxMSWHeaderCtrl::Create(wxWindow *parent,
                              wxWindowID id,
@@ -202,18 +245,6 @@ bool wxMSWHeaderCtrl::Create(wxWindow *parent,
 
     if ( !MSWCreateControl(WC_HEADER, wxT(""), pos, size) )
         return false;
-
-    Bind(wxEVT_DPI_CHANGED, &wxMSWHeaderCtrl::WXHandleDPIChanged, this);
-
-    if ( wxMSWDarkMode::IsActive() )
-    {
-        // Note that it may have been already allocated by MSWCreateControl()
-        // which calls SetFont() from InheritAttributes(), so don't recreate it
-        // in this case.
-        if ( !m_customDraw )
-            m_customDraw.reset(new wxMSWHeaderCtrlCustomDraw());
-        m_customDraw->UseHeaderThemeColors(GetHwnd());
-    }
 
     // special hack for margins when using comctl32.dll v6 or later: the
     // default margin is too big and results in label truncation when the
@@ -245,11 +276,10 @@ WXDWORD wxMSWHeaderCtrl::MSWGetStyle(long style, WXDWORD *exstyle) const
     return msStyle;
 }
 
-bool wxMSWHeaderCtrl::MSWGetDarkModeSupport(MSWDarkModeSupport& support) const
+wxMSWHeaderCtrl::~wxMSWHeaderCtrl()
 {
-    support.themeName = L"ItemsView";
-
-    return true;
+    delete m_imageList;
+    delete m_customDraw;
 }
 
 // ----------------------------------------------------------------------------
@@ -309,7 +339,8 @@ void wxMSWHeaderCtrl::MSWUpdateFontOnDPIChange(const wxSize& newDPI)
 
 void wxMSWHeaderCtrl::WXHandleDPIChanged(wxDPIChangedEvent& event)
 {
-    m_imageList.reset();
+    delete m_imageList;
+    m_imageList = NULL;
     for (unsigned int i = 0; i < m_numColumns; ++i)
     {
         UpdateHeader(i);
@@ -425,7 +456,7 @@ void wxMSWHeaderCtrl::DoInsertItem(const wxHeaderColumn& col, unsigned int idx)
     // notice that we need to store the string we use the pointer to until we
     // pass it to the control
     hdi.mask |= HDI_TEXT;
-    wxWCharBuffer buf = col.GetTitle().t_str();
+    wxWxCharBuffer buf = col.GetTitle().t_str();
     hdi.pszText = buf.data();
     hdi.cchTextMax = wxStrlen(buf);
 
@@ -441,7 +472,7 @@ void wxMSWHeaderCtrl::DoInsertItem(const wxHeaderColumn& col, unsigned int idx)
         if ( !m_imageList )
         {
             bmpSize = bb.GetPreferredBitmapSizeFor(this);
-            m_imageList.reset(new wxImageList(bmpSize.x, bmpSize.y));
+            m_imageList = new wxImageList(bmpSize.x, bmpSize.y);
             (void) // suppress mingw32 warning about unused computed value
             Header_SetImageList(GetHwnd(), GetHimagelistOf(m_imageList));
         }
@@ -643,18 +674,22 @@ wxMSWHeaderCtrlCustomDraw* wxMSWHeaderCtrl::GetCustomDraw()
     // custom font, the native control handles the font just fine on its own,
     // so if our custom colours were reset, don't bother with custom drawing
     // any longer.
-    if ( !m_hasBgCol && !m_hasFgCol && !wxMSWDarkMode::IsActive() )
+    if ( !m_hasBgCol && !m_hasFgCol )
     {
-        m_customDraw.reset();
-    }
-    else
-    {
-        // We do have at least one custom colour, so enable custom drawing.
-        if ( !m_customDraw )
-            m_customDraw.reset(new wxMSWHeaderCtrlCustomDraw());
+        if ( m_customDraw )
+        {
+            delete m_customDraw;
+            m_customDraw = NULL;
+        }
+
+        return NULL;
     }
 
-    return m_customDraw.get();
+    // We do have at least one custom colour, so enable custom drawing.
+    if ( !m_customDraw )
+        m_customDraw = new wxMSWHeaderCtrlCustomDraw();
+
+    return m_customDraw;
 }
 
 bool wxMSWHeaderCtrl::SetBackgroundColour(const wxColour& colour)
@@ -969,17 +1004,7 @@ bool wxMSWHeaderCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
             // internal column indices array if this is allowed to go ahead as
             // the native control is going to reorder its columns now
             if ( evtType == wxEVT_HEADER_END_REORDER )
-            {
-                // If the event handler didn't process the event, call the
-                // virtual function callback.
-                wxArrayInt colIndices = m_header.GetColumnsOrder();
-                m_header.MoveColumnInOrderArray(colIndices, idx, order);
-                if ( !processed )
-                  m_header.UpdateColumnsOrder(colIndices);
-
-                // And update internally columns indices in any case.
-                m_colIndices = colIndices;
-            }
+                m_header.MoveColumnInOrderArray(m_colIndices, idx, order);
 
             if ( processed )
             {
@@ -1012,7 +1037,7 @@ bool wxMSWHeaderCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
 
 void wxHeaderCtrl::Init()
 {
-    m_nativeControl = nullptr;
+    m_nativeControl = NULL;
 }
 
 bool wxHeaderCtrl::Create(wxWindow *parent,
@@ -1048,7 +1073,7 @@ bool wxHeaderCtrl::Create(wxWindow *parent,
 
 void wxHeaderCtrl::OnSize(wxSizeEvent& WXUNUSED(event))
 {
-    if (m_nativeControl != nullptr) // check whether initialisation has been done
+    if (m_nativeControl != NULL) // check whether initialisation has been done
     {
         int cw, ch;
         GetClientSize(&cw, &ch);

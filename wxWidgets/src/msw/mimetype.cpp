@@ -2,6 +2,7 @@
 // Name:        src/msw/mimetype.cpp
 // Purpose:     classes and functions to manage MIME types
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     23.09.98
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWidgets licence (part of base library)
@@ -212,7 +213,7 @@ size_t wxFileTypeImpl::GetAllCommands(wxArrayString *verbs,
 void wxFileTypeImpl::MSWNotifyShell()
 {
     if (!m_suppressNotify)
-        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSHNOWAIT, nullptr, nullptr);
+        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSHNOWAIT, NULL, NULL);
 }
 
 void wxFileTypeImpl::MSWSuppressNotifications(bool supress)
@@ -265,7 +266,7 @@ wxString wxAssocQueryString(ASSOCSTR assoc,
                     wxASSOCF_NOTRUNCATE,// Fail if buffer is too small.
                     assoc,              // The association to retrieve.
                     ext.t_str(),        // The extension to retrieve it for.
-                    verb.empty() ? nullptr
+                    verb.empty() ? NULL
                                  : static_cast<const TCHAR*>(verb.t_str()),
                     bufOut,             // The buffer for output value.
                     &dwSize             // And its size
@@ -276,8 +277,12 @@ wxString wxAssocQueryString(ASSOCSTR assoc,
     if ( hr != S_OK )
     {
         // The only really expected error here is that no association is
-        // defined, anything else is not expected.
-        if ( hr != HRESULT_FROM_WIN32(ERROR_NO_ASSOCIATION) )
+        // defined, anything else is not expected. The confusing thing is that
+        // different errors are returned for this expected error under
+        // different Windows versions: XP returns ERROR_FILE_NOT_FOUND while 7
+        // returns ERROR_NO_ASSOCIATION. Just check for both to be sure.
+        if ( hr != HRESULT_FROM_WIN32(ERROR_NO_ASSOCIATION) &&
+                hr != HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND) )
         {
             wxLogApiError("AssocQueryString", hr);
         }
@@ -487,7 +492,7 @@ wxMimeTypesManagerImpl::GetFileTypeFromExtension(const wxString& ext)
     if ( !knownExtension )
     {
         // unknown extension
-        return nullptr;
+        return NULL;
     }
 
     return CreateFileType(wxEmptyString, ext);
@@ -512,7 +517,7 @@ wxMimeTypesManagerImpl::GetFileTypeFromMimeType(const wxString& mimeType)
     }
 
     // unknown MIME type
-    return nullptr;
+    return NULL;
 }
 
 size_t wxMimeTypesManagerImpl::EnumAllFileTypes(wxArrayString& mimetypes)
@@ -539,7 +544,7 @@ size_t wxMimeTypesManagerImpl::EnumAllFileTypes(wxArrayString& mimetypes)
 
 wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
 {
-    wxCHECK_MSG( !ftInfo.GetExtensions().empty(), nullptr,
+    wxCHECK_MSG( !ftInfo.GetExtensions().empty(), NULL,
                  wxT("Associate() needs extension") );
 
     bool ok;
@@ -549,7 +554,7 @@ wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
 
     wxString ext = ftInfo.GetExtensions()[iExtCount];
 
-    wxCHECK_MSG( !ext.empty(), nullptr,
+    wxCHECK_MSG( !ext.empty(), NULL,
                  wxT("Associate() needs non empty extension") );
 
     if ( ext[0u] != wxT('.') )

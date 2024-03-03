@@ -13,12 +13,12 @@ class QFontDialog;
 class WXDLLIMPEXP_CORE wxFontDialog : public wxFontDialogBase
 {
 public:
-    wxFontDialog() = default;
+    wxFontDialog() { }
     wxFontDialog(wxWindow *parent) { Create(parent); }
     wxFontDialog(wxWindow *parent, const wxFontData& data) { Create(parent, data); }
 
 protected:
-    bool DoCreate(wxWindow *parent) override;
+    bool DoCreate(wxWindow *parent) wxOVERRIDE;
 
 private:
 

@@ -2,6 +2,7 @@
 // Name:        wx/dir.h
 // Purpose:     wxDir is a class for enumerating the files in a directory
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     08.12.99
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -57,7 +58,7 @@ class WXDLLIMPEXP_BASE wxDirTraverser
 {
 public:
     /// a virtual dtor has been provided since this class has virtual members
-    virtual ~wxDirTraverser() = default;
+    virtual ~wxDirTraverser() { }
     // called for each file found by wxDir::Traverse()
     //
     // return wxDIR_STOP or wxDIR_CONTINUE from here (wxDIR_IGNORE doesn't
@@ -95,7 +96,7 @@ public:
     // -----
 
     // default, use Open()
-    wxDir() { m_data = nullptr; }
+    wxDir() { m_data = NULL; }
 
     // opens the directory for enumeration, use IsOpened() to test success
     wxDir(const wxString& dir);
@@ -161,7 +162,7 @@ public:
 
 #if wxUSE_LONGLONG
     // returns the size of all directories recursively found in given path
-    static wxULongLong GetTotalSize(const wxString &dir, wxArrayString *filesSkipped = nullptr);
+    static wxULongLong GetTotalSize(const wxString &dir, wxArrayString *filesSkipped = NULL);
 #endif // wxUSE_LONGLONG
 
 

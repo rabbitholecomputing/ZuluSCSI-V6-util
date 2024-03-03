@@ -35,7 +35,7 @@ wxDEFINE_EVENT( wxEVT_NOTIFICATION_MESSAGE_ACTION, wxCommandEvent );
 
 wxNotificationMessageBase::~wxNotificationMessageBase()
 {
-    delete m_impl;
+    m_impl->Detach();
 }
 
 bool wxNotificationMessageBase::Show(int timeout)

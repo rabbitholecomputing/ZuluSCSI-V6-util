@@ -2,6 +2,7 @@
 // Name:        src/common/fontenumcmn.cpp
 // Purpose:     wxFontEnumerator class
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     7/5/2006
 // Copyright:   (c) 1999-2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -37,8 +38,8 @@ class wxFontEnumCacheCleanupModule : public wxModule
 public:
     wxFontEnumCacheCleanupModule() { }
 
-    bool OnInit() override { return true; }
-    void OnExit() override { gs_allFacenames.clear(); }
+    bool OnInit() wxOVERRIDE { return true; }
+    void OnExit() wxOVERRIDE { gs_allFacenames.clear(); }
 
 private:
     wxDECLARE_DYNAMIC_CLASS(wxFontEnumCacheCleanupModule);
@@ -60,7 +61,7 @@ public:
     wxSimpleFontEnumerator() { }
 
     // called by EnumerateFacenames
-    virtual bool OnFacename(const wxString& facename) override
+    virtual bool OnFacename(const wxString& facename) wxOVERRIDE
     {
         m_arrFacenames.Add(facename);
         return true;
@@ -68,7 +69,7 @@ public:
 
     // called by EnumerateEncodings
     virtual bool OnFontEncoding(const wxString& WXUNUSED(facename),
-                                const wxString& encoding) override
+                                const wxString& encoding) wxOVERRIDE
     {
         m_arrEncodings.Add(encoding);
         return true;

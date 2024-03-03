@@ -142,10 +142,6 @@ public:
     /**
         Returns the colour used to print the label of the hyperlink when the mouse is
         over the control.
-
-        In native wxMSW version of this control hover colour is always the same
-        as normal colour, i.e. the control doesn't change its appearance when
-        the mouse hovers over it.
     */
     virtual wxColour GetHoverColour() const;
 
@@ -164,7 +160,7 @@ public:
         Returns @true if the hyperlink has already been clicked by the user at least
         one time.
     */
-    virtual bool GetVisited() const;
+    virtual bool GetVisited() const = 0;
 
     /**
         Returns the colour used to print the label when the mouse is not over the
@@ -176,8 +172,6 @@ public:
     /**
         Sets the colour used to print the label of the hyperlink when the mouse is over
         the control.
-
-        Changing this colour is not supported in the native wxMSW version.
     */
     virtual void SetHoverColour(const wxColour& colour);
 
@@ -195,7 +189,7 @@ public:
     /**
         Marks the hyperlink as visited (see wxHyperlinkCtrl::SetVisitedColour).
     */
-    virtual void SetVisited(bool visited = true);
+    virtual void SetVisited(bool visited = true) = 0;
 
     /**
         Sets the colour used to print the label when the mouse is not over the control

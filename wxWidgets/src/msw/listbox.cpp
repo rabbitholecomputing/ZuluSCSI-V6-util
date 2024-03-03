@@ -61,7 +61,7 @@ public:
     int GetIndex() const
         { return m_parent->GetItemIndex(const_cast<wxListBoxItem*>(this)); }
 
-    wxString GetName() const override
+    wxString GetName() const wxOVERRIDE
         { return m_parent->GetString(GetIndex()); }
 
 private:
@@ -376,7 +376,7 @@ void *wxListBox::DoGetItemClientData(unsigned int n) const
     {
         wxLogLastError(wxT("LB_GETITEMDATA"));
 
-        return nullptr;
+        return NULL;
     }
 
     return (void *)rc;
@@ -524,8 +524,8 @@ void wxListBox::SetString(unsigned int n, const wxString& s)
     // remember the state of the item
     bool wasSelected = IsSelected(n);
 
-    void *oldData = nullptr;
-    wxClientData *oldObjData = nullptr;
+    void *oldData = NULL;
+    wxClientData *oldObjData = NULL;
     if ( HasClientUntypedData() )
         oldData = GetClientData(n);
     else if ( HasClientObjectData() )
@@ -569,7 +569,7 @@ void wxListBox::SetHorizontalExtent(const wxString& s)
         return;
 
 
-    ClientHDC dc(GetHwnd());
+    WindowHDC dc(GetHwnd());
     SelectInHDC selFont(dc, GetHfontOf(GetFont()));
 
     TEXTMETRIC lpTextMetric;
@@ -614,7 +614,7 @@ void wxListBox::SetHorizontalExtent(const wxString& s)
 bool wxListBox::MSWSetTabStops(const wxVector<int>& tabStops)
 {
     return SendMessage(GetHwnd(), LB_SETTABSTOPS, (WPARAM)tabStops.size(),
-                       (LPARAM)(tabStops.empty() ? nullptr : &tabStops[0])) == TRUE;
+                       (LPARAM)(tabStops.empty() ? NULL : &tabStops[0])) == TRUE;
 }
 
 wxSize wxListBox::DoGetBestClientSize() const
@@ -625,7 +625,7 @@ wxSize wxListBox::DoGetBestClientSize() const
     for (unsigned int i = 0; i < m_noItems; i++)
     {
         wxString str(GetString(i));
-        GetTextExtent(str, &wLine, nullptr);
+        GetTextExtent(str, &wLine, NULL);
         if ( wLine > wListbox )
             wListbox = wLine;
     }
@@ -775,7 +775,7 @@ bool wxListBox::MSWOnMeasure(WXMEASUREITEMSTRUCT *item)
 
     MEASUREITEMSTRUCT *pStruct = (MEASUREITEMSTRUCT *)item;
 
-    HDC hdc = CreateIC(wxT("DISPLAY"), nullptr, nullptr, 0);
+    HDC hdc = CreateIC(wxT("DISPLAY"), NULL, NULL, 0);
 
     {
         wxDCTemp dc((WXHDC)hdc);

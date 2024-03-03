@@ -1,7 +1,7 @@
-wxWidgets 3.3.0 Release Notes
+wxWidgets 3.2.4 Release Notes
 =============================
 
-Welcome to the latest release of wxWidgets, a free and open source
+Welcome to the new stable release of wxWidgets, a free and open source
 cross-platform C++ framework for writing advanced GUI applications using
 native controls.
 
@@ -16,7 +16,7 @@ more about wxWidgets at:
 
 Documentation is available online at:
 
-* https://docs.wxwidgets.org/3.3.0/
+* https://docs.wxwidgets.org/3.2.4/
 
 wxWidgets sources and binaries for the selected platforms are available for
 download from:
@@ -25,21 +25,42 @@ download from:
 
 or, for a more more permanent but less convenient to use link, from
 
-* https://github.com/wxWidgets/wxWidgets/releases/tag/v3.3.0/
+* https://github.com/wxWidgets/wxWidgets/releases/tag/v3.2.4/
 
-Please see https://docs.wxwidgets.org/3.3.0/overview_install.html for full
+Please see https://docs.wxwidgets.org/3.2.4/overview_install.html for full
 installation instructions.
 
 
 
-Changes since 3.2
------------------
+Changes since 3.2.3
+-------------------
 
-- TODO
+This release comes very soon after 3.2.3 because some of the changes
+in the last release resulted in regressions fixed by this release.
+Notably, 3.2.4 fixes a critical bug which made applications using wxGTK
+but not initializing the GUI to crash (see issue #23981).
 
-Note that in spite of all these changes, wxWidgets 3.3 is almost fully
-compatible with wxWidgets 3.2 and updating the existing applications to
-use it shouldn't require much effort.
+Other bug fixes include:
+
+- Fix regression in wxTranslations::AddCatalog() return value (#24019).
+- Fix possible crash and too high CPU use when using EGL (#24018).
+- Fix losing clipboard contents when clearing a different selection (#23988).
+- Fix possible crash when dragging pages in wxAuiNotebook (#24027).
+- Fix refreshing multiple selection items in generic wxListCtrl.
+- Fix showing windows for background apps under macOS Sonoma (#23893).
+
+The only new addition in this release is the possibility to create objects
+of wx legacy "dynamic arrays" class from std::initializer_list<> (#23966).
+
+Please see the full change log for more details:
+
+https://raw.githubusercontent.com/wxWidgets/wxWidgets/v3.2.4/docs/changes.txt
+
+This release is API and ABI-compatible with the previous 3.2.x releases, so
+the existing applications don't even need to be rebuilt to profit from all the
+fixes above if they use shared/dynamic libraries. And if they do need to be
+recompiled, this can be done without any changes to the code.
+
 
 
 Supported Platforms
@@ -47,13 +68,14 @@ Supported Platforms
 
 This version of wxWidgets supports the following primary platforms:
 
-* Windows 7, 8, 10 and 11 (32/64 bits).
+* Windows XP, Vista, 7, 8, 10 and 11 (32/64 bits).
 * Most Unix variants using the GTK+ toolkit (version 2.6 or newer)
 * macOS (10.10 or newer) using Cocoa (x86-64 or ARM).
 
 There is some support for the following platforms:
 
 * Most Unix variants with X11
+* Most Unix variants with Motif/Lesstif
 * Most Unix variants with GTK+ 1.2
 * Most Unix variants with Qt 5 or newer (experimental)
 
@@ -79,8 +101,8 @@ unrestricted distribution of application binaries. To answer a FAQ, you don't
 have to distribute any source if you wish to write commercial applications using
 wxWidgets.
 
-However, if you distribute wxGTK or wxQt version of your
-application, don't forget that it is linked against GTK or Qt, which
+However, if you distribute wxGTK, wxQt or wxMotif (with Lesstif) version of your
+application, don't forget that it is linked against GTK+, Qt or Lesstif, which
 are covered by LGPL *without* exception notice and so is bound by its
 requirements.
 
@@ -132,4 +154,4 @@ developed by its users and your contributions to it are always welcome!
 
 Have fun!
 
-The wxWidgets Team, July 2022
+The wxWidgets Team, November 2023

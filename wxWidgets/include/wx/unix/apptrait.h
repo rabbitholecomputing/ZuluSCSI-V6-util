@@ -2,6 +2,7 @@
 // Name:        wx/unix/apptrait.h
 // Purpose:     standard implementations of wxAppTraits for Unix
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     23.06.2003
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -18,23 +19,23 @@ class WXDLLIMPEXP_BASE wxConsoleAppTraits : public wxConsoleAppTraitsBase
 {
 public:
 #if wxUSE_CONSOLE_EVENTLOOP
-    virtual wxEventLoopBase *CreateEventLoop() override;
+    virtual wxEventLoopBase *CreateEventLoop() wxOVERRIDE;
 #endif // wxUSE_CONSOLE_EVENTLOOP
 #if wxUSE_TIMER
-    virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer) override;
+    virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer) wxOVERRIDE;
 #endif
 };
 
 #if wxUSE_GUI
 
-// GTK and Qt integrate sockets and child processes monitoring directly in
+// GTK+ and Motif integrate sockets and child processes monitoring directly in
 // their main loop, the other Unix ports do it at wxEventLoop level and so use
 // the non-GUI traits and don't need anything here
 //
 // TODO: Should we use XtAddInput() for wxX11 too? Or, vice versa, if there is
 //       no advantage in doing this compared to the generic way currently used
-//       by wxX11, should we continue to use GTK-specific stuff?
-#if defined(__WXGTK__) || defined(__WXQT__)
+//       by wxX11, should we continue to use GTK/Motif-specific stuff?
+#if defined(__WXGTK__) || defined(__WXMOTIF__) || defined(__WXQT__)
     #define wxHAS_GUI_FDIOMANAGER
     #define wxHAS_GUI_PROCESS_CALLBACKS
 #endif // ports using wxFDIOManager
@@ -47,42 +48,42 @@ public:
 class WXDLLIMPEXP_CORE wxGUIAppTraits : public wxGUIAppTraitsBase
 {
 public:
-    virtual wxEventLoopBase *CreateEventLoop() override;
-    virtual int WaitForChild(wxExecuteData& execData) override;
+    virtual wxEventLoopBase *CreateEventLoop() wxOVERRIDE;
+    virtual int WaitForChild(wxExecuteData& execData) wxOVERRIDE;
 #if wxUSE_TIMER
-    virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer) override;
+    virtual wxTimerImpl *CreateTimerImpl(wxTimer *timer) wxOVERRIDE;
 #endif
-#if wxUSE_THREADS && defined(__WXGTK__)
-    virtual void MutexGuiEnter() override;
-    virtual void MutexGuiLeave() override;
+#if wxUSE_THREADS && defined(__WXGTK20__)
+    virtual void MutexGuiEnter() wxOVERRIDE;
+    virtual void MutexGuiLeave() wxOVERRIDE;
 #endif
 
-    wxPortId GetToolkitVersion(int *majVer = nullptr,
-                               int *minVer = nullptr,
-                               int *microVer = nullptr) const override;
+    wxPortId GetToolkitVersion(int *majVer = NULL,
+                               int *minVer = NULL,
+                               int *microVer = NULL) const wxOVERRIDE;
 
-#ifdef __WXGTK__
-    virtual wxString GetDesktopEnvironment() const override;
-#endif // __WXGTK____
+#ifdef __WXGTK20__
+    virtual wxString GetDesktopEnvironment() const wxOVERRIDE;
+#endif // __WXGTK20____
 
-#if defined(__WXGTK__)
-    virtual bool ShowAssertDialog(const wxString& msg) override;
+#if defined(__WXGTK20__)
+    virtual bool ShowAssertDialog(const wxString& msg) wxOVERRIDE;
 #endif
 
 #if wxUSE_SOCKETS
 
 #ifdef wxHAS_GUI_SOCKET_MANAGER
-    virtual wxSocketManager *GetSocketManager() override;
+    virtual wxSocketManager *GetSocketManager() wxOVERRIDE;
 #endif
 
 #ifdef wxHAS_GUI_FDIOMANAGER
-    virtual wxFDIOManager *GetFDIOManager() override;
+    virtual wxFDIOManager *GetFDIOManager() wxOVERRIDE;
 #endif
 
 #endif // wxUSE_SOCKETS
 
 #if wxUSE_EVENTLOOP_SOURCE
-    virtual wxEventLoopSourcesManagerBase* GetEventLoopSourcesManager() override;
+    virtual wxEventLoopSourcesManagerBase* GetEventLoopSourcesManager() wxOVERRIDE;
 #endif
 };
 

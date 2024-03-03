@@ -2,6 +2,7 @@
 // Name:        src/osx/iphone/nonownedwnd.mm
 // Purpose:     non owned window for iphone
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     2008-06-20
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -73,15 +74,15 @@ wxIMPLEMENT_DYNAMIC_CLASS(wxNonOwnedWindowIPhoneImpl , wxNonOwnedWindowImpl);
 wxNonOwnedWindowIPhoneImpl::wxNonOwnedWindowIPhoneImpl( wxNonOwnedWindow* nonownedwnd) :
     wxNonOwnedWindowImpl(nonownedwnd)
 {
-    m_macWindow = nullptr;
-    m_macFullScreenData = nullptr;
+    m_macWindow = NULL;
+    m_macFullScreenData = NULL;
     m_initialShowSent = false;
 }
 
 wxNonOwnedWindowIPhoneImpl::wxNonOwnedWindowIPhoneImpl()
 {
-    m_macWindow = nullptr;
-    m_macFullScreenData = nullptr;
+    m_macWindow = NULL;
+    m_macFullScreenData = NULL;
     m_initialShowSent = false;
 }
 
@@ -250,7 +251,7 @@ bool wxNonOwnedWindowIPhoneImpl::SetShape(const wxRegion& region)
     return false;
 }
 
-void wxNonOwnedWindowIPhoneImpl::SetTitle( const wxString& title )
+void wxNonOwnedWindowIPhoneImpl::SetTitle( const wxString& title, wxFontEncoding encoding )
 {
 // TODO change title of app ?
 }
@@ -280,7 +281,7 @@ void wxNonOwnedWindowIPhoneImpl::Maximize(bool maximize)
 
 bool wxNonOwnedWindowIPhoneImpl::IsFullScreen() const
 {
-    return m_macFullScreenData != nullptr ;
+    return m_macFullScreenData != NULL ;
 }
 
 bool wxNonOwnedWindowIPhoneImpl::EnableFullScreenView(bool WXUNUSED(enable), long WXUNUSED(style))

@@ -22,9 +22,8 @@
 #include "textentrytest.h"
 #include "testableframe.h"
 
+#include "wx/scopedptr.h"
 #include "wx/uiaction.h"
-
-#include <memory>
 
 void TextEntryTestCase::SetValue()
 {
@@ -52,17 +51,25 @@ void TextEntryTestCase::TextChangeEvents()
     wxTextEntry * const entry = GetTestEntry();
 
     // notice that SetValue() generates an event even if the text didn't change
+#ifndef __WXQT__
     entry->SetValue("");
     CPPUNIT_ASSERT_EQUAL( 1, updated.GetCount() );
     updated.Clear();
+#else
+    WARN("Events are only sent when text changes in WxQt");
+#endif
 
     entry->SetValue("foo");
     CPPUNIT_ASSERT_EQUAL( 1, updated.GetCount() );
     updated.Clear();
 
+#ifndef __WXQT__
     entry->SetValue("foo");
     CPPUNIT_ASSERT_EQUAL( 1, updated.GetCount() );
     updated.Clear();
+#else
+    WARN("Events are only sent when text changes in WxQt");
+#endif
 
     entry->SetValue("");
     CPPUNIT_ASSERT_EQUAL( 1, updated.GetCount() );
@@ -525,7 +532,7 @@ void TestProcessEnter(const TextLikeControlCreator& controlCreator)
 
     SECTION("Without wxTE_PROCESS_ENTER but with wxTE_MULTILINE")
     {
-        std::unique_ptr<TextLikeControlCreator>
+        wxScopedPtr<TextLikeControlCreator>
             multiLineCreator(controlCreator.CloneAsMultiLine());
         if ( !multiLineCreator )
             return;
@@ -537,7 +544,7 @@ void TestProcessEnter(const TextLikeControlCreator& controlCreator)
 
     SECTION("With wxTE_PROCESS_ENTER and wxTE_MULTILINE but skipping")
     {
-        std::unique_ptr<TextLikeControlCreator>
+        wxScopedPtr<TextLikeControlCreator>
             multiLineCreator(controlCreator.CloneAsMultiLine());
         if ( !multiLineCreator )
             return;
@@ -549,7 +556,7 @@ void TestProcessEnter(const TextLikeControlCreator& controlCreator)
 
     SECTION("With wxTE_PROCESS_ENTER and wxTE_MULTILINE without skipping")
     {
-        std::unique_ptr<TextLikeControlCreator>
+        wxScopedPtr<TextLikeControlCreator>
             multiLineCreator(controlCreator.CloneAsMultiLine());
         if ( !multiLineCreator )
             return;

@@ -2,6 +2,7 @@
 // Name:        wx/generic/filedlgg.h
 // Purpose:     wxGenericFileDialog
 // Author:      Robert Roebling
+// Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
@@ -59,45 +60,45 @@ public:
 
     virtual ~wxGenericFileDialog();
 
-    virtual void SetDirectory(const wxString& dir) override
+    virtual void SetDirectory(const wxString& dir) wxOVERRIDE
         { m_filectrl->SetDirectory(dir); }
-    virtual void SetFilename(const wxString& name) override
+    virtual void SetFilename(const wxString& name) wxOVERRIDE
         { m_filectrl->SetFilename(name); }
-    virtual void SetMessage(const wxString& message) override { SetTitle(message); }
-    virtual void SetPath(const wxString& path) override
+    virtual void SetMessage(const wxString& message) wxOVERRIDE { SetTitle(message); }
+    virtual void SetPath(const wxString& path) wxOVERRIDE
         { m_filectrl->SetPath(path); }
-    virtual void SetFilterIndex(int filterIndex) override
+    virtual void SetFilterIndex(int filterIndex) wxOVERRIDE
         { m_filectrl->SetFilterIndex(filterIndex); }
-    virtual void SetWildcard(const wxString& wildCard) override
+    virtual void SetWildcard(const wxString& wildCard) wxOVERRIDE
         { m_filectrl->SetWildcard(wildCard); }
 
-    virtual wxString GetPath() const override
+    virtual wxString GetPath() const wxOVERRIDE
         {
             wxCHECK_MSG( !HasFlag(wxFD_MULTIPLE), wxString(), "When using wxFD_MULTIPLE, must call GetPaths() instead" );
             return m_filectrl->GetPath();
         }
-    virtual void GetPaths(wxArrayString& paths) const override
+    virtual void GetPaths(wxArrayString& paths) const wxOVERRIDE
         { m_filectrl->GetPaths(paths); }
-    virtual wxString GetDirectory() const override
+    virtual wxString GetDirectory() const wxOVERRIDE
         { return m_filectrl->GetDirectory(); }
-    virtual wxString GetFilename() const override
+    virtual wxString GetFilename() const wxOVERRIDE
         {
             wxCHECK_MSG( !HasFlag(wxFD_MULTIPLE), wxString(), "When using wxFD_MULTIPLE, must call GetFilenames() instead" );
             return m_filectrl->GetFilename();
         }
-    virtual void GetFilenames(wxArrayString& files) const override
+    virtual void GetFilenames(wxArrayString& files) const wxOVERRIDE
         { m_filectrl->GetFilenames(files); }
-    virtual wxString GetWildcard() const override
+    virtual wxString GetWildcard() const wxOVERRIDE
         { return m_filectrl->GetWildcard(); }
-    virtual int GetFilterIndex() const override
+    virtual int GetFilterIndex() const wxOVERRIDE
         { return m_filectrl->GetFilterIndex(); }
-    virtual bool SupportsExtraControl() const override { return true; }
+    virtual bool SupportsExtraControl() const wxOVERRIDE { return true; }
 
     // implementation only from now on
     // -------------------------------
 
-    virtual int ShowModal() override;
-    virtual bool Show( bool show = true ) override;
+    virtual int ShowModal() wxOVERRIDE;
+    virtual bool Show( bool show = true ) wxOVERRIDE;
 
     void OnList( wxCommandEvent &event );
     void OnReport( wxCommandEvent &event );
@@ -139,7 +140,7 @@ private:
 class WXDLLIMPEXP_CORE wxFileDialog: public wxGenericFileDialog
 {
 public:
-    wxFileDialog() = default;
+    wxFileDialog() {}
 
     wxFileDialog(wxWindow *parent,
                  const wxString& message = wxASCII_STR(wxFileSelectorPromptStr),

@@ -2,6 +2,7 @@
 // Name:        src/osx/cocoa/glcanvas.mm
 // Purpose:     wxGLCanvas, for using OpenGL with wxWidgets under Macintosh
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -150,7 +151,7 @@ WXGLPixelFormat WXGLChoosePixelFormat(const int *GLAttrs,
 {
     // Prevent the NSOpenGLView from making it's own context
     // We want to force using wxGLContexts
-    return nullptr;
+    return NULL;
 }
 
 @end

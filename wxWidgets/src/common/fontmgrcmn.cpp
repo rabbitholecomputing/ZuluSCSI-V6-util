@@ -86,7 +86,7 @@ wxFontInstance *wxFontFaceBase::GetFontInstance(float ptSize, bool aa)
 wxFontBundleBase::wxFontBundleBase()
 {
     for (int i = 0; i < FaceType_Max; i++)
-        m_faces[i] = nullptr;
+        m_faces[i] = NULL;
 }
 
 wxFontBundleBase::~wxFontBundleBase()
@@ -99,7 +99,7 @@ wxFontFace *wxFontBundleBase::GetFace(FaceType type) const
 {
     wxFontFace *f = m_faces[type];
 
-    wxCHECK_MSG( f, nullptr, wxT("no such face in font bundle") );
+    wxCHECK_MSG( f, NULL, wxT("no such face in font bundle") );
 
     f->Acquire();
 
@@ -139,7 +139,7 @@ wxFontBundleBase::GetFaceForFont(const wxFontMgrFontRefData& font) const
         }
 
         wxFAIL_MSG( wxT("no face") );
-        return nullptr;
+        return NULL;
     }
 
     return GetFace((FaceType)type);
@@ -149,7 +149,7 @@ wxFontBundleBase::GetFaceForFont(const wxFontMgrFontRefData& font) const
 // wxFontsManagerBase
 // ----------------------------------------------------------------------------
 
-wxFontsManager *wxFontsManagerBase::ms_instance = nullptr;
+wxFontsManager *wxFontsManagerBase::ms_instance = NULL;
 
 wxFontsManagerBase::wxFontsManagerBase()
 {
@@ -186,7 +186,7 @@ wxFontBundle *wxFontsManagerBase::GetBundle(const wxString& name) const
 wxFontBundle *
 wxFontsManagerBase::GetBundleForFont(const wxFontMgrFontRefData& font) const
 {
-    wxFontBundle *bundle = nullptr;
+    wxFontBundle *bundle = NULL;
 
     wxString facename = font.GetFaceName();
     if ( !facename.empty() )
@@ -242,8 +242,8 @@ wxFontMgrFontRefData::wxFontMgrFontRefData(int size,
     m_info.underlined = underlined;
     m_info.encoding = encoding;
 
-    m_fontFace = nullptr;
-    m_fontBundle = nullptr;
+    m_fontFace = NULL;
+    m_fontBundle = NULL;
     m_fontValid = false;
 }
 

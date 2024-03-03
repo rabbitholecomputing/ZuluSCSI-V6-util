@@ -26,7 +26,7 @@ public:
     BombsGame()
     {
         m_width = m_height = 0;
-        m_field = nullptr;
+        m_field = NULL;
     }
 
     ~BombsGame();

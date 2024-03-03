@@ -32,7 +32,7 @@ elseif(APPLE)
     set(wxPLATFORM OSX)
 elseif(UNIX)
     set(wxDEFAULT_TOOLKIT gtk3)
-    set(wxTOOLKIT_OPTIONS gtk2 gtk3 gtk4 qt)
+    set(wxTOOLKIT_OPTIONS gtk2 gtk3 gtk4 motif qt)
     set(wxPLATFORM UNIX)
 else()
     message(FATAL_ERROR "Unsupported platform")
@@ -115,11 +115,11 @@ if(WXGTK)
     endif()
 endif()
 
-# We need X11 for non-GTK Unix ports (X11) and for GTK with X11
+# We need X11 for non-GTK Unix ports (X11, Motif) and for GTK with X11
 # support, but not for Wayland-only GTK (necessarily 3 or later), which is why
 # we have to do this after find_package(GTKx) above, as this is what sets
 # wxHAVE_GDK_X11.
-if(UNIX AND NOT APPLE AND NOT WIN32 AND (WXX11 OR WXGTK2 OR (WXGTK AND wxHAVE_GDK_X11)))
+if(UNIX AND NOT APPLE AND NOT WIN32 AND (WXX11 OR WXMOTIF OR WXGTK2 OR (WXGTK AND wxHAVE_GDK_X11)))
     find_package(X11 REQUIRED)
     list(APPEND wxTOOLKIT_INCLUDE_DIRS ${X11_INCLUDE_DIR})
     list(APPEND wxTOOLKIT_LIBRARIES ${X11_LIBRARIES})
@@ -134,13 +134,6 @@ if(WXQT)
         list(APPEND wxTOOLKIT_DEFINITIONS ${Qt5${QT_COMPONENT}_COMPILE_DEFINITIONS})
     endforeach()
     set(wxTOOLKIT_VERSION ${Qt5Core_VERSION})
-
-    if(ANDROID)
-        # A hack to remove _${ANDROID_ABI} that Qt5AndroidSupport.cmake added
-        # which breaks wx-config.
-        set(CMAKE_SHARED_LIBRARY_SUFFIX_C ${CMAKE_SHARED_LIBRARY_SUFFIX})
-        set(CMAKE_SHARED_LIBRARY_SUFFIX_CXX ${CMAKE_SHARED_LIBRARY_SUFFIX})
-    endif()
 endif()
 
 if(APPLE)

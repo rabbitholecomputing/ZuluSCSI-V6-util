@@ -2,6 +2,7 @@
 // Name:        life.cpp
 // Purpose:     The game of Life, created by J. H. Conway
 // Author:      Guillermo Rodriguez Garcia, <guille@iies.es>
+// Modified by:
 // Created:     Jan/2000
 // Copyright:   (c) 2000, Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
@@ -34,7 +35,7 @@
 // resources
 // --------------------------------------------------------------------------
 
-#ifndef wxHAS_IMAGES_IN_RESOURCES
+#if defined(__WXGTK__) || defined(__WXMOTIF__) || defined(__WXMAC__) || defined(__WXMGL__) || defined(__WXX11__) || defined(__WXQT__)
     // application icon
     #include "mondrian.xpm"
 
@@ -162,6 +163,11 @@ bool LifeApp::OnInit()
     // show it
     frame->Show(true);
 
+    // just for Motif
+#ifdef __WXMOTIF__
+    frame->UpdateInfoText();
+#endif
+
     // enter the main message loop and run the app
     return true;
 }
@@ -172,8 +178,8 @@ bool LifeApp::OnInit()
 
 // frame constructor
 LifeFrame::LifeFrame() :
-  wxFrame( nullptr, wxID_ANY, _("Life!"), wxDefaultPosition ),
-  m_navigator(nullptr)
+  wxFrame( (wxFrame *) NULL, wxID_ANY, _("Life!"), wxDefaultPosition ),
+  m_navigator(NULL)
 {
     // frame icon
     SetIcon(wxICON(mondrian));
@@ -617,7 +623,7 @@ LifeNavigator::LifeNavigator(wxWindow *parent)
         bmpe = wxBITMAP(east),
         bmps = wxBITMAP(south);
 
-#if !defined(__WXGTK__) && !defined(__WXMAC__)
+#if !defined(__WXGTK__) && !defined(__WXMOTIF__) && !defined(__WXMAC__)
     bmpn.SetMask(new wxMask(bmpn, *wxLIGHT_GREY));
     bmpw.SetMask(new wxMask(bmpw, *wxLIGHT_GREY));
     bmpc.SetMask(new wxMask(bmpc, *wxLIGHT_GREY));
@@ -1087,8 +1093,8 @@ void LifeCanvas::OnScroll(wxScrollWinEvent& event)
         m_thumbY = m_viewportH;
     }
 
-#if defined(__WXGTK__)
-    // wxGTK updates the thumb automatically (wxMSW doesn't);
+#if defined(__WXGTK__) || defined(__WXMOTIF__)
+    // wxGTK and wxMotif update the thumb automatically (wxMSW doesn't);
     // so reset it back as we always want it to be in the same position.
     if (type != wxEVT_SCROLLWIN_THUMBTRACK)
     {
@@ -1103,12 +1109,12 @@ void LifeCanvas::OnScroll(wxScrollWinEvent& event)
     if (orient == wxHORIZONTAL)
     {
         m_viewportX += scrollinc;
-        ScrollWindow( -m_cellsize * scrollinc, 0, nullptr);
+        ScrollWindow( -m_cellsize * scrollinc, 0, (const wxRect *) NULL);
     }
     else
     {
         m_viewportY += scrollinc;
-        ScrollWindow( 0, -m_cellsize * scrollinc, nullptr);
+        ScrollWindow( 0, -m_cellsize * scrollinc, (const wxRect *) NULL);
     }
 }
 

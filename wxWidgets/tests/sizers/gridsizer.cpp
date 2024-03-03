@@ -22,79 +22,59 @@
 #include "asserthelper.h"
 
 // ----------------------------------------------------------------------------
-// test fixtures
+// test class
 // ----------------------------------------------------------------------------
 
-// Base class for the two fixtures below.
-class GridSizerTestCaseBase
+class GridSizerTestCase
 {
 protected:
-    explicit GridSizerTestCaseBase(wxGridSizer* sizer);
-    ~GridSizerTestCaseBase();
+    GridSizerTestCase();
+    ~GridSizerTestCase();
     // Clear the current sizer contents and add the specified windows to it,
     // using the same flags for all of them.
     void SetChildren(const wxVector<wxWindow*>& children,
                      const wxSizerFlags& flags);
 
     wxWindow *m_win;
-    wxGridSizer* const m_sizerBase;
-
-    wxDECLARE_NO_COPY_CLASS(GridSizerTestCaseBase);
-};
-
-class GridSizerTestCase : public GridSizerTestCaseBase
-{
-protected:
-    GridSizerTestCase()
-        : GridSizerTestCaseBase(m_sizer = new wxGridSizer(2))
-    {
-    }
-
-    wxGridSizer *m_sizer;
-};
-
-class FlexGridSizerTestCase : public GridSizerTestCaseBase
-{
-protected:
-    FlexGridSizerTestCase()
-        : GridSizerTestCaseBase(m_sizer = new wxFlexGridSizer(2))
-    {
-    }
-
     wxFlexGridSizer *m_sizer;
+
+    wxDECLARE_NO_COPY_CLASS(GridSizerTestCase);
 };
 
 // ----------------------------------------------------------------------------
 // test initialization
 // ----------------------------------------------------------------------------
 
-GridSizerTestCaseBase::GridSizerTestCaseBase(wxGridSizer* sizer)
-    : m_sizerBase(sizer)
+GridSizerTestCase::GridSizerTestCase()
 {
     m_win = new wxWindow(wxTheApp->GetTopWindow(), wxID_ANY);
     m_win->SetClientSize(127, 35);
 
-    m_win->SetSizer(m_sizerBase);
+    m_sizer = new wxFlexGridSizer(2);
+    m_win->SetSizer(m_sizer);
 }
 
-GridSizerTestCaseBase::~GridSizerTestCaseBase()
+GridSizerTestCase::~GridSizerTestCase()
 {
     delete m_win;
+    m_win = NULL;
+
+    m_sizer = NULL;
 }
 
 // ----------------------------------------------------------------------------
 // helpers
 // ----------------------------------------------------------------------------
 
-void GridSizerTestCaseBase::SetChildren(const wxVector<wxWindow*>& children,
-                                        const wxSizerFlags& flags)
+void GridSizerTestCase::SetChildren(const wxVector<wxWindow*>& children,
+                                    const wxSizerFlags& flags)
 {
-    m_sizerBase->Clear();
+    m_sizer->Clear();
     for ( wxVector<wxWindow*>::const_iterator i = children.begin();
           i != children.end();
           ++i )
     {
-        m_sizerBase->Add(*i, flags);
+        m_sizer->Add(*i, flags);
     }
 
     m_win->Layout();
@@ -106,25 +86,6 @@ void GridSizerTestCaseBase::SetChildren(const wxVector<wxWindow*>& children,
 
 TEST_CASE_METHOD(GridSizerTestCase,
                  "wxGridSizer::Layout",
-                 "[grid-sizer][sizer]")
-{
-    const wxSize sizeTotal = m_win->GetClientSize();
-    const wxSize sizeChild(sizeTotal.x / 2, sizeTotal.y / 2);
-
-    wxVector<wxWindow*> children;
-    for ( int n = 0; n < 3; n++ )
-    {
-        children.push_back(new wxWindow(m_win, wxID_ANY));
-    }
-
-    SetChildren(children, wxSizerFlags().Expand());
-    CHECK( children[0]->GetRect() == wxRect(wxPoint(0, 0), sizeChild) );
-    CHECK( children[1]->GetRect() == wxRect(wxPoint(sizeChild.x, 0), sizeChild) );
-    CHECK( children[2]->GetRect() == wxRect(wxPoint(0, sizeChild.y), sizeChild) );
-}
-
-TEST_CASE_METHOD(FlexGridSizerTestCase,
-                 "wxFlexGridSizer::Layout",
                  "[grid-sizer][sizer]")
 {
     const wxSize sizeTotal = m_win->GetClientSize();
@@ -219,8 +180,8 @@ TEST_CASE_METHOD(GridSizerTestCase,
     );
 }
 
-TEST_CASE_METHOD(FlexGridSizerTestCase,
-                 "wxFlexGridSizer::GrowMode",
+TEST_CASE_METHOD(GridSizerTestCase,
+                 "wxGridSizer::GrowMode",
                  "[grid-sizer][sizer]")
 {
     wxVector<wxWindow*> children;

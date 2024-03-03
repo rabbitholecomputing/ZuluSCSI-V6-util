@@ -50,7 +50,7 @@ MyCanvas::MyCanvas( wxWindow *parent, wxWindowID id,
     , m_bmpSmileXpm(smile_xpm)
     , m_iconSmileXpm(smile_xpm)
 {
-    my_horse_ani = nullptr;
+    my_horse_ani = NULL;
     m_ani_images = 0 ;
 
     SetBackgroundColour(* wxWHITE);
@@ -401,7 +401,6 @@ void MyCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
     wxPaintDC dc( this );
     PrepareDC( dc );
 
-    dc.SetTextForeground(*wxBLACK);
     dc.DrawText( "Loaded image", 30, 10 );
     if (my_square.IsOk())
         dc.DrawBitmap( my_square, 30, 30 );
@@ -547,7 +546,7 @@ void MyCanvas::OnPaint( wxPaintEvent &WXUNUSED(event) )
     memdc.SetBrush( *wxWHITE_BRUSH );
     memdc.DrawRectangle( 0,0,60,50 );
     memdc.SetTextForeground( *wxBLACK );
-#ifndef __WXGTK__
+#ifndef __WXGTK20__
     // I cannot convince GTK2 to draw into mono bitmaps
     memdc.DrawText( "Hi!", 5, 5 );
 #endif

@@ -23,7 +23,6 @@ Cham cham
 Cher cherokee
 Chrs chorasmian
 Copt coptic
-Cpmn cypro_minoan
 Cprt cypriot
 Cyrl cyrillic
 Deva devanagari
@@ -104,7 +103,6 @@ Orkh old_turkic
 Orya oriya
 Osge osage
 Osma osmanya
-Ougr old_uyghur
 Palm palmyrene
 Pauc pau_cin_hau
 Perm old_permic
@@ -147,11 +145,8 @@ Thaa thaana
 Thai thai
 Tibt tibetan
 Tirh tirhuta
-Tnsa tangsa
-Toto toto
 Ugar ugaritic
 Vaii vai
-Vith vithkuqi
 Wara warang_citi
 Wcho wancho
 Xpeo old_persian

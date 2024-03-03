@@ -256,7 +256,7 @@ private:
 // wxSocketManager
 // ============================================================================
 
-wxSocketManager *wxSocketManager::ms_manager = nullptr;
+wxSocketManager *wxSocketManager::ms_manager = NULL;
 
 /* static */
 void wxSocketManager::Set(wxSocketManager *manager)
@@ -531,17 +531,17 @@ wxSocketImpl *wxSocketImpl::Accept(wxSocketBase& wxsocket)
     ReenableEvents(wxSOCKET_INPUT_FLAG);
 
     if ( fd == INVALID_SOCKET )
-        return nullptr;
+        return NULL;
 
     wxScopeGuard closeSocket = wxMakeGuard(wxCloseSocket, fd);
 
     wxSocketManager * const manager = wxSocketManager::Get();
     if ( !manager )
-        return nullptr;
+        return NULL;
 
     wxSocketImpl * const sock = manager->CreateSocket(wxsocket);
     if ( !sock )
-        return nullptr;
+        return NULL;
 
     // Ownership of the socket now passes to wxSocketImpl object.
     closeSocket.Dismiss();
@@ -818,7 +818,7 @@ void wxSocketBase::Shutdown()
 
 void wxSocketBase::Init()
 {
-    m_impl         = nullptr;
+    m_impl         = NULL;
     m_type         = wxSOCKET_UNINIT;
 
     // state
@@ -835,14 +835,14 @@ void wxSocketBase::Init()
     m_beingDeleted = false;
 
     // pushback buffer
-    m_unread       = nullptr;
+    m_unread       = NULL;
     m_unrd_size    = 0;
     m_unrd_cur     = 0;
 
     // events
     m_id           = wxID_ANY;
-    m_handler      = nullptr;
-    m_clientData   = nullptr;
+    m_handler      = NULL;
+    m_clientData   = NULL;
     m_notify       = false;
     m_eventmask    =
     m_eventsgot    = 0;
@@ -981,7 +981,7 @@ wxUint32 wxSocketBase::DoRead(void* buffer_, wxUint32 nbytes)
 
     // We use pointer arithmetic here which doesn't work with void pointers.
     char *buffer = static_cast<char *>(buffer_);
-    wxCHECK_MSG( buffer, 0, "null buffer" );
+    wxCHECK_MSG( buffer, 0, "NULL buffer" );
 
     // Try the push back buffer first, even before checking whether the socket
     // is valid to allow reading previously pushed back data from an already
@@ -1203,7 +1203,7 @@ wxUint32 wxSocketBase::DoWrite(const void *buffer_, wxUint32 nbytes)
     wxCHECK_MSG( m_impl, 0, "socket must be valid" );
 
     const char *buffer = static_cast<const char *>(buffer_);
-    wxCHECK_MSG( buffer, 0, "null buffer" );
+    wxCHECK_MSG( buffer, 0, "NULL buffer" );
 
     wxUint32 total = 0;
     while ( nbytes )
@@ -1354,10 +1354,10 @@ wxSocketEventFlags wxSocketImpl::Select(wxSocketEventFlags flags,
     else
         tv.tv_sec = tv.tv_usec = 0;
 
-    // prepare the FD sets, passing nullptr for the one(s) we don't use
+    // prepare the FD sets, passing NULL for the one(s) we don't use
     fd_set
-        readfds, *preadfds = nullptr,
-        writefds, *pwritefds = nullptr,
+        readfds, *preadfds = NULL,
+        writefds, *pwritefds = NULL,
         exceptfds;                      // always want to know about errors
 
     if ( flags & wxSOCKET_INPUT_FLAG )
@@ -1496,7 +1496,7 @@ wxSocketBase::DoWait(long timeout, wxSocketEventFlags flags)
     else // in worker thread
     {
         // We never dispatch messages from threads other than the main one.
-        eventLoop = nullptr;
+        eventLoop = NULL;
     }
 
     // Make sure the events we're interested in are enabled before waiting for
@@ -1819,7 +1819,7 @@ void wxSocketBase::Pushback(const void *buffer, wxUint32 size)
 {
     if (!size) return;
 
-    if (m_unread == nullptr)
+    if (m_unread == NULL)
         m_unread = malloc(size);
     else
     {
@@ -1839,7 +1839,7 @@ void wxSocketBase::Pushback(const void *buffer, wxUint32 size)
 
 wxUint32 wxSocketBase::GetPushback(void *buffer, wxUint32 size, bool peek)
 {
-    wxCHECK_MSG( buffer, 0, "null buffer" );
+    wxCHECK_MSG( buffer, 0, "NULL buffer" );
 
     if (!m_unrd_size)
         return 0;
@@ -1855,7 +1855,7 @@ wxUint32 wxSocketBase::GetPushback(void *buffer, wxUint32 size, bool peek)
         if (m_unrd_size == m_unrd_cur)
         {
             free(m_unread);
-            m_unread = nullptr;
+            m_unread = NULL;
             m_unrd_size = 0;
             m_unrd_cur  = 0;
         }
@@ -1880,7 +1880,7 @@ wxSocketServer::wxSocketServer(const wxSockAddress& addr,
     wxLogTrace( wxTRACE_Socket, wxT("Opening wxSocketServer") );
 
     wxSocketManager * const manager = wxSocketManager::Get();
-    m_impl = manager ? manager->CreateSocket(*this) : nullptr;
+    m_impl = manager ? manager->CreateSocket(*this) : NULL;
 
     if (!m_impl)
     {
@@ -1966,7 +1966,7 @@ wxSocketBase *wxSocketServer::Accept(bool wait)
     if (!AcceptWith(*sock, wait))
     {
         sock->Destroy();
-        sock = nullptr;
+        sock = NULL;
     }
 
     return sock;
@@ -2059,7 +2059,7 @@ bool wxSocketClient::DoConnect(const wxSockAddress& remote,
 
     // Create and set up the new one
     wxSocketManager * const manager = wxSocketManager::Get();
-    m_impl = manager ? manager->CreateSocket(*this) : nullptr;
+    m_impl = manager ? manager->CreateSocket(*this) : NULL;
     if ( !m_impl )
         return false;
 
@@ -2104,7 +2104,7 @@ bool wxSocketClient::DoConnect(const wxSockAddress& remote,
 
 bool wxSocketClient::Connect(const wxSockAddress& remote, bool wait)
 {
-    return DoConnect(remote, nullptr, wait);
+    return DoConnect(remote, NULL, wait);
 }
 
 bool wxSocketClient::Connect(const wxSockAddress& remote,
@@ -2142,7 +2142,7 @@ wxDatagramSocket::wxDatagramSocket( const wxSockAddress& addr,
 {
     // Create the socket
     wxSocketManager * const manager = wxSocketManager::Get();
-    m_impl = manager ? manager->CreateSocket(*this) : nullptr;
+    m_impl = manager ? manager->CreateSocket(*this) : NULL;
 
     if (!m_impl)
         return;
@@ -2200,14 +2200,14 @@ wxDatagramSocket& wxDatagramSocket::SendTo( const wxSockAddress& addr,
 class wxSocketModule : public wxModule
 {
 public:
-    virtual bool OnInit() override
+    virtual bool OnInit() wxOVERRIDE
     {
         // wxSocketBase will call Initialize() itself only if sockets are
         // really used, don't do it from here
         return true;
     }
 
-    virtual void OnExit() override
+    virtual void OnExit() wxOVERRIDE
     {
         if ( wxSocketBase::IsInitialized() )
             wxSocketBase::Shutdown();

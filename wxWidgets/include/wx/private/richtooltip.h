@@ -33,12 +33,12 @@ public:
     virtual void SetTipKind(wxTipKind tipKind) = 0;
     virtual void SetTitleFont(const wxFont& font) = 0;
 
-    virtual void ShowFor(wxWindow* win, const wxRect* rect = nullptr) = 0;
+    virtual void ShowFor(wxWindow* win, const wxRect* rect = NULL) = 0;
 
-    virtual ~wxRichToolTipImpl() = default;
+    virtual ~wxRichToolTipImpl() { }
 
 protected:
-    wxRichToolTipImpl() = default;
+    wxRichToolTipImpl() { }
 };
 
 #endif // _WX_PRIVATE_RICHTOOLTIP_H_

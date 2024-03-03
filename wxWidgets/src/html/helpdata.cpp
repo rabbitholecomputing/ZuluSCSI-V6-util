@@ -40,7 +40,7 @@ WX_DEFINE_OBJARRAY(wxHtmlHelpDataItems)
 // static helper functions
 //-----------------------------------------------------------------------------
 
-// Reads one line, stores it into buf and returns pointer to new line or nullptr.
+// Reads one line, stores it into buf and returns pointer to new line or NULL.
 static const wxChar* ReadLine(const wxChar *line, wxChar *buf, size_t bufsize)
 {
     wxChar *writeptr = buf;
@@ -54,7 +54,7 @@ static const wxChar* ReadLine(const wxChar *line, wxChar *buf, size_t bufsize)
     while (*readptr == wxT('\r') || *readptr == wxT('\n'))
         readptr++;
     if (*readptr == 0)
-        return nullptr;
+        return NULL;
     else
         return readptr;
 }
@@ -67,9 +67,9 @@ wxHtmlHelpIndexCompareFunc(wxHtmlHelpDataItem **a, wxHtmlHelpDataItem **b)
     wxHtmlHelpDataItem *ia = *a;
     wxHtmlHelpDataItem *ib = *b;
 
-    if (ia == nullptr)
+    if (ia == NULL)
         return -1;
-    if (ib == nullptr)
+    if (ib == NULL)
         return 1;
 
     if (ia->parent == ib->parent)
@@ -118,10 +118,10 @@ public:
         GetEntitiesParser()->SetEncoding(wxFONTENCODING_ISO8859_1);
     }
 
-    wxObject* GetProduct() override { return nullptr; }
+    wxObject* GetProduct() wxOVERRIDE { return NULL; }
 
 protected:
-    virtual void AddText(const wxString& WXUNUSED(txt)) override {}
+    virtual void AddText(const wxString& WXUNUSED(txt)) wxOVERRIDE {}
 
     wxDECLARE_NO_COPY_CLASS(HP_Parser);
 };
@@ -146,22 +146,22 @@ class HP_TagHandler : public wxHtmlTagHandler
     public:
         HP_TagHandler(wxHtmlBookRecord *b) : wxHtmlTagHandler()
         {
-            m_data = nullptr;
+            m_data = NULL;
             m_book = b;
             m_level = 0;
             m_id = wxID_ANY;
             m_count = 0;
-            m_parentItem = nullptr;
+            m_parentItem = NULL;
         }
-        wxString GetSupportedTags() override { return wxT("UL,OBJECT,PARAM"); }
-        bool HandleTag(const wxHtmlTag& tag) override;
+        wxString GetSupportedTags() wxOVERRIDE { return wxT("UL,OBJECT,PARAM"); }
+        bool HandleTag(const wxHtmlTag& tag) wxOVERRIDE;
 
         void Reset(wxHtmlHelpDataItems& data)
         {
             m_data = &data;
             m_count = 0;
             m_level = 0;
-            m_parentItem = nullptr;
+            m_parentItem = NULL;
         }
 
     wxDECLARE_NO_COPY_CLASS(HP_TagHandler);
@@ -174,7 +174,7 @@ bool HP_TagHandler::HandleTag(const wxHtmlTag& tag)
     {
         wxHtmlHelpDataItem *oldparent = m_parentItem;
         m_level++;
-        m_parentItem = (m_count > 0) ? &(*m_data)[m_data->size()-1] : nullptr;
+        m_parentItem = (m_count > 0) ? &(*m_data)[m_data->size()-1] : NULL;
         ParseInner(tag);
         m_level--;
         m_parentItem = oldparent;
@@ -282,7 +282,7 @@ bool wxHtmlHelpData::LoadMSProject(wxHtmlBookRecord *book, wxFileSystem& fsys,
     HP_TagHandler *handler = new HP_TagHandler(book);
     parser.AddTagHandler(handler);
 
-    f = ( contentsfile.empty() ? nullptr : fsys.OpenFile(contentsfile) );
+    f = ( contentsfile.empty() ? NULL : fsys.OpenFile(contentsfile) );
     if (f)
     {
         buf.clear();
@@ -296,7 +296,7 @@ bool wxHtmlHelpData::LoadMSProject(wxHtmlBookRecord *book, wxFileSystem& fsys,
         wxLogError(_("Cannot open contents file: %s"), contentsfile);
     }
 
-    f = ( indexfile.empty() ? nullptr : fsys.OpenFile(indexfile) );
+    f = ( indexfile.empty() ? NULL : fsys.OpenFile(indexfile) );
     if (f)
     {
         buf.clear();
@@ -344,7 +344,8 @@ inline static wxString CacheReadString(wxInputStream *f)
 #define CURRENT_CACHED_BOOK_VERSION     5
 
 // Additional flags to detect incompatibilities of the runtime environment:
-#define CACHED_BOOK_FORMAT_FLAGS 1
+#define CACHED_BOOK_FORMAT_FLAGS \
+                     (wxUSE_UNICODE << 0)
 
 
 bool wxHtmlHelpData::LoadCachedBook(wxHtmlBookRecord *book, wxInputStream *f)
@@ -443,7 +444,7 @@ bool wxHtmlHelpData::SaveCachedBook(wxHtmlBookRecord *book, wxOutputStream *f)
         CacheWriteString(f, m_index[i].page);
         CacheWriteInt32(f, m_index[i].level);
         // save distance to parent item, if any:
-        if (m_index[i].parent == nullptr)
+        if (m_index[i].parent == NULL)
         {
             CacheWriteInt32(f, 0);
         }
@@ -498,8 +499,13 @@ bool wxHtmlHelpData::AddBookParam(const wxFSFile& bookfile,
                                   const wxString& indexfile, const wxString& deftopic,
                                   const wxString& path)
 {
+#if wxUSE_UNICODE
     #define CORRECT_STR(str, conv) \
         str = wxString((str).mb_str(wxConvISO8859_1), conv)
+#else
+    #define CORRECT_STR(str, conv) \
+        str = wxString((str).wc_str(conv), wxConvLocal)
+#endif
 
     wxFileSystem fsys;
     wxFSFile *fi;
@@ -548,15 +554,15 @@ bool wxHtmlHelpData::AddBookParam(const wxFSFile& bookfile,
 
     fi = fsys.OpenFile(bookfile.GetLocation() + wxT(".cached"));
 
-    if (fi == nullptr ||
+    if (fi == NULL ||
 #if wxUSE_DATETIME
           fi->GetModificationTime() < bookfile.GetModificationTime() ||
 #endif // wxUSE_DATETIME
           !LoadCachedBook(bookr, fi->GetStream()))
     {
-        if (fi != nullptr) delete fi;
+        if (fi != NULL) delete fi;
         fi = fsys.OpenFile(m_tempPath + wxFileNameFromPath(bookfile.GetLocation()) + wxT(".cached"));
-        if (m_tempPath.empty() || fi == nullptr ||
+        if (m_tempPath.empty() || fi == NULL ||
 #if wxUSE_DATETIME
             fi->GetModificationTime() < bookfile.GetModificationTime() ||
 #endif // wxUSE_DATETIME
@@ -573,7 +579,7 @@ bool wxHtmlHelpData::AddBookParam(const wxFSFile& bookfile,
         }
     }
 
-    if (fi != nullptr) delete fi;
+    if (fi != NULL) delete fi;
 
     // Now store the contents range
     bookr->SetContentsRange(cont_start, m_contents.size());
@@ -649,7 +655,7 @@ bool wxHtmlHelpData::AddBook(const wxString& book)
              charset;
 
     fi = fsys.OpenFile(book);
-    if (fi == nullptr)
+    if (fi == NULL)
     {
         wxLogError(_("Cannot open HTML help book: %s"), book);
         return false;
@@ -683,7 +689,7 @@ bool wxHtmlHelpData::AddBook(const wxString& book)
             contents = linebuf + wxStrlen(wxT("contents file="));
         if (wxStrstr(linebuf, wxT("charset=")) == linebuf)
             charset = linebuf + wxStrlen(wxT("charset="));
-    } while (lineptr != nullptr);
+    } while (lineptr != NULL);
 
     wxFontEncoding enc = wxFONTENCODING_SYSTEM;
 #if wxUSE_FONTMAP
@@ -793,7 +799,7 @@ wxHtmlSearchStatus::wxHtmlSearchStatus(wxHtmlHelpData* data, const wxString& key
     : m_Keyword(keyword)
 {
     m_Data = data;
-    wxHtmlBookRecord* bookr = nullptr;
+    wxHtmlBookRecord* bookr = NULL;
     if (!book.empty())
     {
         // we have to search in a specific book. Find it first
@@ -834,7 +840,7 @@ bool wxHtmlSearchStatus::Search()
     }
 
     m_Name.clear();
-    m_CurItem = nullptr;
+    m_CurItem = NULL;
     thepage = m_Data->m_contents[i].page;
 
     m_Active = (++m_CurIndex < m_MaxIndex);
@@ -885,7 +891,7 @@ void wxHtmlSearchEngine::LookFor(const wxString& keyword, bool case_sensitive, b
     m_Keyword = keyword;
 
     if (!m_CaseSensitive)
-        m_Keyword.MakeLower();
+        m_Keyword.LowerCase();
 }
 
 
@@ -931,7 +937,7 @@ bool wxHtmlSearchEngine::Scan(const wxFSFile& file)
     wxString bufStr = filter.ReadFile(file);
 
     if (!m_CaseSensitive)
-        bufStr.MakeLower();
+        bufStr.LowerCase();
 
     {   // remove html tags
         wxString bufStrCopy;

@@ -50,7 +50,7 @@ static const double DEG2RAD  = M_PI / 180.0;
 // Map wxPaperSize to GtkPaperSize names
 // Ordering must be the same as wxPaperSize enum
 static const char* const gs_paperList[] = {
-    nullptr, // wxPAPER_NONE
+    NULL, // wxPAPER_NONE
     "na_letter", // wxPAPER_LETTER
     "na_legal", // wxPAPER_LEGAL
     "iso_a4", // wxPAPER_A4
@@ -187,12 +187,12 @@ static GtkPaperSize* wxGetGtkPaperSize(wxPaperSize paperId, const wxSize& size)
         // look for a size match in GTK's GtkPaperSize list
         const double w = size.x;
         const double h = size.y;
-        GtkPaperSize* paperSize = nullptr;
+        GtkPaperSize* paperSize = NULL;
         GList* list = gtk_paper_size_get_paper_sizes(true);
         for (GList* p = list; p; p = p->next)
         {
             GtkPaperSize* paperSize2 = static_cast<GtkPaperSize*>(p->data);
-            if (paperSize == nullptr &&
+            if (paperSize == NULL &&
                 fabs(w - gtk_paper_size_get_width(paperSize2, GTK_UNIT_MM)) < 1 &&
                 fabs(h - gtk_paper_size_get_height(paperSize2, GTK_UNIT_MM)) < 1)
             {
@@ -228,8 +228,8 @@ public:
     wxGtkPrintModule()
     {
     }
-    bool OnInit() override;
-    void OnExit() override {}
+    bool OnInit() wxOVERRIDE;
+    void OnExit() wxOVERRIDE {}
 
 private:
     wxDECLARE_DYNAMIC_CLASS(wxGtkPrintModule);
@@ -296,7 +296,7 @@ wxDialog *
 wxGtkPrintFactory::CreatePrintSetupDialog(wxWindow * WXUNUSED(parent),
                                           wxPrintData * WXUNUSED(data))
 {
-    return nullptr;
+    return NULL;
 }
 
 wxDCImpl* wxGtkPrintFactory::CreatePrinterDCImpl( wxPrinterDC *owner, const wxPrintData& data )
@@ -383,8 +383,8 @@ wxIMPLEMENT_CLASS(wxGtkPrintNativeData, wxPrintNativeDataBase);
 wxGtkPrintNativeData::wxGtkPrintNativeData()
 {
     m_config = gtk_print_settings_new();
-    m_job = nullptr;
-    m_context = nullptr;
+    m_job = NULL;
+    m_context = NULL;
 }
 
 wxGtkPrintNativeData::~wxGtkPrintNativeData()
@@ -594,7 +594,7 @@ GtkPageSetup* GetPageSetupFromSettings(GtkPrintSettings* settings)
     gtk_page_setup_set_orientation (page_setup, gtk_print_settings_get_orientation (settings));
 
     GtkPaperSize *paper_size = gtk_print_settings_get_paper_size (settings);
-    if (paper_size != nullptr)
+    if (paper_size != NULL)
     {
         gtk_page_setup_set_paper_size_and_default_margins (page_setup, paper_size);
         gtk_paper_size_free(paper_size);
@@ -662,7 +662,7 @@ wxGtkPrintDialog::~wxGtkPrintDialog()
         static_cast<wxGtkPrintNativeData*>(printData.GetNativeData());
     GtkPrintOperation* printOp = native->GetPrintJob();
     g_object_unref(printOp);
-    native->SetPrintJob(nullptr);
+    native->SetPrintJob(NULL);
 }
 
 // This is called even if we actually don't want the dialog to appear.
@@ -696,7 +696,7 @@ int wxGtkPrintDialog::ShowModal()
     GtkPrintOperation * const printOp = native->GetPrintJob();
 
     // If the settings are OK, we restore it.
-    if (settings != nullptr)
+    if (settings != NULL)
         gtk_print_operation_set_print_settings (printOp, settings);
     GtkPageSetup* pgSetup = GetPageSetupFromSettings(settings);
     gtk_print_operation_set_default_page_setup (printOp, pgSetup);
@@ -708,7 +708,7 @@ int wxGtkPrintDialog::ShowModal()
     gtk_print_operation_set_use_full_page(printOp, TRUE);
 
     // Show the dialog if needed.
-    GError* gError = nullptr;
+    GError* gError = NULL;
     GtkPrintOperationResult response = gtk_print_operation_run
                                        (
                                            printOp,
@@ -717,7 +717,7 @@ int wxGtkPrintDialog::ShowModal()
                                             : GTK_PRINT_OPERATION_ACTION_PRINT,
                                            m_parent
                                             ? GTK_WINDOW(gtk_widget_get_toplevel(m_parent->m_widget))
-                                            : nullptr,
+                                            : NULL,
                                            &gError
                                        );
 
@@ -740,8 +740,8 @@ int wxGtkPrintDialog::ShowModal()
     // the settings such as the paper size and orientation there are not
     // reflected in the print settings, but must be retrieved from the page
     // setup struct itself separately.
-    GtkPageSetup* defPageSetup = nullptr;
-    g_object_get(printOp, "default-page-setup", &defPageSetup, nullptr);
+    GtkPageSetup* defPageSetup = NULL;
+    g_object_get(printOp, "default-page-setup", &defPageSetup, NULL);
     if ( defPageSetup )
     {
         SetPageSetupToSettings(newSettings, defPageSetup);
@@ -855,7 +855,7 @@ int wxGtkPageSetupDialog::ShowModal()
         dlg = gtk_page_setup_unix_dialog_new(title.utf8_str(),
                                              m_parent
                                                 ? GTK_WINDOW(m_parent->m_widget)
-                                                : nullptr);
+                                                : NULL);
 
     gtk_page_setup_unix_dialog_set_print_settings(
         GTK_PAGE_SETUP_UNIX_DIALOG(dlg), nativeData);
@@ -931,8 +931,8 @@ wxIMPLEMENT_CLASS(wxGtkPrinter, wxPrinterBase);
 wxGtkPrinter::wxGtkPrinter( wxPrintDialogData *data ) :
     wxPrinterBase( data )
 {
-    m_gpc = nullptr;
-    m_dc = nullptr;
+    m_gpc = NULL;
+    m_dc = NULL;
 
     if (data)
         m_printDialogData = *data;
@@ -1002,7 +1002,7 @@ bool wxGtkPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt )
     // doesn't necessarily show
     int ret = dialog.ShowModal();
 
-    printout->SetDC(nullptr);
+    printout->SetDC(NULL);
     wxDELETE(m_dc);
 
     if (ret == wxID_CANCEL)
@@ -1126,7 +1126,7 @@ void wxGtkPrinter::DrawPage(wxPrintout *printout,
     switch (gtk_print_settings_get_print_pages(settings))
     {
         case GTK_PRINT_PAGES_CURRENT:
-            g_object_get(G_OBJECT(operation), "current-page", &startPage, nullptr);
+            g_object_get(G_OBJECT(operation), "current-page", &startPage, NULL);
             endPage = startPage;
             break;
         case GTK_PRINT_PAGES_RANGES:
@@ -1187,12 +1187,12 @@ wxDC* wxGtkPrinter::PrintDialog( wxWindow *parent )
     if (ret == wxID_CANCEL)
     {
         sm_lastError = wxPRINTER_CANCELLED;
-        return nullptr;
+        return NULL;
     }
     if (ret == wxID_NO)
     {
         sm_lastError = wxPRINTER_ERROR;
-        return nullptr;
+        return NULL;
     }
 
     wxDC* dc = dialog.GetPrintDC();
@@ -1282,7 +1282,7 @@ wxGtkPrinterDCImpl::~wxGtkPrinterDCImpl()
 
 bool wxGtkPrinterDCImpl::IsOk() const
 {
-    return m_gpc != nullptr;
+    return m_gpc != NULL;
 }
 
 void* wxGtkPrinterDCImpl::GetCairoContext() const
@@ -1714,7 +1714,7 @@ void wxGtkPrinterDCImpl::DoDrawEllipse(wxCoord x, wxCoord y, wxCoord width, wxCo
 #if wxUSE_SPLINES
 void wxGtkPrinterDCImpl::DoDrawSpline(const wxPointList *points)
 {
-    wxCHECK_RET(points, "null pointer to spline points?");
+    wxCHECK_RET(points, "NULL pointer to spline points?");
     wxCHECK_RET(points->GetCount() >= 2, "incomplete list of spline points?");
 
     SetPen (m_pen);
@@ -1814,7 +1814,7 @@ void wxGtkPrinterDCImpl::DoDrawBitmap( const wxBitmap& bitmap, wxCoord x, wxCoor
 #ifndef __WXGTK3__
     wxBitmap bmpSource = bitmap;  // we need a non-const instance.
     if (!useMask && !bitmap.HasPixbuf() && bitmap.GetMask())
-        bmpSource.SetMask(nullptr);
+        bmpSource.SetMask(NULL);
 #endif
 
     cairo_save(m_cairo);
@@ -1923,7 +1923,7 @@ void wxGtkPrinterDCImpl::DoDrawRotatedText(const wxString& text, wxCoord x, wxCo
     if (setAttrs)
     {
         // Undo underline attributes setting
-        pango_layout_set_attributes(m_layout, nullptr);
+        pango_layout_set_attributes(m_layout, NULL);
     }
 
     CalcBoundingBox(wxPoint(x, y), wxSize(w, h));
@@ -2000,7 +2000,7 @@ void wxGtkPrinterDCImpl::SetPen( const wxPen& pen )
         break;
         case wxPENSTYLE_SOLID:
         case wxPENSTYLE_TRANSPARENT:
-        default:              cairo_set_dash( m_cairo, nullptr, 0, 0 );   break;
+        default:              cairo_set_dash( m_cairo, NULL, 0, 0 );   break;
     }
 
     switch (m_pen.GetCap())
@@ -2313,7 +2313,7 @@ bool wxGtkPrinterDCImpl::DoGetPartialTextExtents(const wxString& text, wxArrayIn
         do
         {
             PangoRectangle rect;
-            pango_layout_iter_get_cluster_extents(iter, nullptr, &rect);
+            pango_layout_iter_get_cluster_extents(iter, NULL, &rect);
             w += rect.width;
             widths.Add(PANGO_PIXELS(w));
         } while (pango_layout_iter_next_cluster(iter));
@@ -2385,7 +2385,7 @@ void wxGtkPrintPreview::Init(wxPrintout * WXUNUSED(printout),
                              wxPrintout * WXUNUSED(printoutForPrinting),
                              wxPrintData *data)
 {
-    // convert wxPrintQuality to resolution (input pointer can be null)
+    // convert wxPrintQuality to resolution (input pointer can be NULL)
     wxPrintQuality quality = data ? data->GetQuality() : wxPRINT_QUALITY_MEDIUM;
     switch ( quality )
     {
@@ -2410,7 +2410,7 @@ void wxGtkPrintPreview::Init(wxPrintout * WXUNUSED(printout),
             }
 
             wxFAIL_MSG( "unknown print quality" );
-            wxFALLTHROUGH;
+            // fall through
 
         case wxPRINT_QUALITY_MEDIUM:
             m_resolution = 600;
@@ -2426,7 +2426,7 @@ wxGtkPrintPreview::wxGtkPrintPreview(wxPrintout *printout,
                                      wxPrintDialogData *data)
                  : wxPrintPreviewBase(printout, printoutForPrinting, data)
 {
-    Init(printout, printoutForPrinting, data ? &data->GetPrintData() : nullptr);
+    Init(printout, printoutForPrinting, data ? &data->GetPrintData() : NULL);
 }
 
 wxGtkPrintPreview::wxGtkPrintPreview(wxPrintout *printout,

@@ -2,6 +2,7 @@
 // Name:        src/osx/carbon/font.cpp
 // Purpose:     wxFont class
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -296,7 +297,7 @@ void wxFontRefData::SetFont(CTFontRef font)
 
     m_ctFontAttributes = dict;
 
-    m_cgFont = CTFontCopyGraphicsFont(m_ctFont, nullptr);
+    m_cgFont = CTFontCopyGraphicsFont(m_ctFont, NULL);
 }
 
 static const CGAffineTransform kSlantTransform = CGAffineTransformMake(1, 0, tan(wxDegToRad(11)), 1, 0, 0);
@@ -348,10 +349,10 @@ void wxFontRefData::Alloc()
         CachedFontEntry& entryNoSize = fontcache[lookupnameNoSize];
         if ( entryNoSize.used )
         {
-            m_ctFont = CTFontCreateCopyWithAttributes(entryNoSize.font, m_info.GetFractionalPointSize(), nullptr, nullptr);
+            m_ctFont = CTFontCreateCopyWithAttributes(entryNoSize.font, m_info.GetFractionalPointSize(), NULL, NULL);
             m_ctFontAttributes = entryNoSize.fontAttributes.CreateCopy();
             m_ctFontAttributes.SetValue(kCTFontAttributeName,m_ctFont.get());
-            m_cgFont = CTFontCopyGraphicsFont(m_ctFont, nullptr);
+            m_cgFont = CTFontCopyGraphicsFont(m_ctFont, NULL);
             entryWithSize.font = m_ctFont;
             entryWithSize.cgFont = m_cgFont;
             entryWithSize.fontAttributes = m_ctFontAttributes;
@@ -361,7 +362,7 @@ void wxFontRefData::Alloc()
         {
             // emulate slant if necessary, the font descriptor itself carries that information,
             // while the weight can only be determined properly from the generated font itself
-            const CGAffineTransform* remainingTransform = nullptr;
+            const CGAffineTransform* remainingTransform = NULL;
             if ( m_info.GetStyle() != wxFONTSTYLE_NORMAL && m_info.GetCTSlant(m_info.GetCTFontDescriptor()) < 0.01 )
                 remainingTransform = &kSlantTransform;
 
@@ -409,7 +410,7 @@ void wxFontRefData::Alloc()
             entryNoSize.used = true;
          }
     }
-    m_cgFont.reset(CTFontCopyGraphicsFont(m_ctFont, nullptr));
+    m_cgFont.reset(CTFontCopyGraphicsFont(m_ctFont, NULL));
 }
 
 bool wxFontRefData::IsFixedWidth() const
@@ -464,7 +465,7 @@ class wxOSXSystemFontsCacheModule : public wxModule
 public:
     wxOSXSystemFontsCacheModule() { }
 
-    bool OnInit() override
+    bool OnInit() wxOVERRIDE
     {
         for ( auto& p: ms_systemFontsCache )
             p = nullptr;
@@ -472,7 +473,7 @@ public:
         return true;
     }
 
-    void OnExit() override
+    void OnExit() wxOVERRIDE
     {
         for ( auto& p: ms_systemFontsCache )
         {
@@ -531,7 +532,7 @@ public:
                 // Remember to update Cache array size when adding new cases to
                 // this switch statement!
             }
-            wxCFRef<CTFontRef> ctfont(CTFontCreateUIFontForLanguage(uifont, 0.0, nullptr));
+            wxCFRef<CTFontRef> ctfont(CTFontCreateUIFontForLanguage(uifont, 0.0, NULL));
             cached = new wxFontRefData(ctfont);
         }
 
@@ -623,6 +624,10 @@ bool wxFont::Create(int pointSize,
     return true;
 }
 
+wxFont::~wxFont()
+{
+}
+
 void wxFont::DoSetNativeFontInfo(const wxNativeFontInfo& info)
 {
     UnRef();
@@ -707,7 +712,7 @@ void wxFont::SetStrikethrough(bool strikethrough)
 // accessors
 // ----------------------------------------------------------------------------
 
-// TODO: insert checks everywhere for M_FONTDATA == nullptr!
+// TODO: insert checks everywhere for M_FONTDATA == NULL!
 
 double wxFont::GetFractionalPointSize() const
 {
@@ -720,10 +725,10 @@ wxSize wxFont::GetPixelSize() const
 {
 #if wxUSE_GRAPHICS_CONTEXT
     // TODO: consider caching the value
-    wxGraphicsContext* dc = wxGraphicsContext::CreateFromNative((CGContextRef)nullptr);
+    wxGraphicsContext* dc = wxGraphicsContext::CreateFromNative((CGContextRef)NULL);
     dc->SetFont(*this, *wxBLACK);
     wxDouble width, height = 0;
-    dc->GetTextExtent(wxT("g"), &width, &height, nullptr, nullptr);
+    dc->GetTextExtent(wxT("g"), &width, &height, NULL, NULL);
     delete dc;
     return wxSize(wxRound(width), wxRound(height));
 #else
@@ -790,13 +795,13 @@ wxFontEncoding wxFont::GetEncoding() const
 
 CTFontRef wxFont::OSXGetCTFont() const
 {
-    wxCHECK_MSG(IsOk(), nullptr, wxT("invalid font"));
+    wxCHECK_MSG(IsOk(), 0, wxT("invalid font"));
     return M_FONTDATA->OSXGetCTFont();
 }
 
 CFDictionaryRef wxFont::OSXGetCTFontAttributes() const
 {
-    wxCHECK_MSG(IsOk(), nullptr, wxT("invalid font"));
+    wxCHECK_MSG(IsOk(), 0, wxT("invalid font"));
     return M_FONTDATA->OSXGetCTFontAttributes();
 }
 
@@ -804,7 +809,7 @@ CFDictionaryRef wxFont::OSXGetCTFontAttributes() const
 
 CGFontRef wxFont::OSXGetCGFont() const
 {
-    wxCHECK_MSG(IsOk(), nullptr, wxT("invalid font"));
+    wxCHECK_MSG(IsOk(), 0, wxT("invalid font"));
     return M_FONTDATA->OSXGetCGFont();
 }
 
@@ -812,7 +817,7 @@ CGFontRef wxFont::OSXGetCGFont() const
 
 const wxNativeFontInfo* wxFont::GetNativeFontInfo() const
 {
-    return IsOk() ? &(M_FONTDATA->GetNativeFontInfo()) : nullptr;
+    return IsOk() ? &(M_FONTDATA->GetNativeFontInfo()) : NULL;
 }
 
 // ----------------------------------------------------------------------------
@@ -932,7 +937,7 @@ void wxNativeFontInfo::RealizeResource() const
 
 void wxNativeFontInfo::CreateCTFontDescriptor()
 {
-    CTFontDescriptorRef descriptor = nullptr;
+    CTFontDescriptorRef descriptor = NULL;
     wxCFMutableDictionaryRef attributes;
 
     // build all attributes that define our font.
@@ -973,7 +978,7 @@ void wxNativeFontInfo::CreateCTFontDescriptor()
 
     // Create the font descriptor with our attributes
     descriptor = CTFontDescriptorCreateWithAttributes(attributes);
-    wxASSERT(descriptor != nullptr);
+    wxASSERT(descriptor != NULL);
 
     m_descriptor = descriptor;
     
@@ -981,7 +986,7 @@ void wxNativeFontInfo::CreateCTFontDescriptor()
 
 #if wxDEBUG_LEVEL >= 2
     // for debugging: show all different font names
-    wxCFRef<CTFontRef> font = CTFontCreateWithFontDescriptor(m_descriptor, 12, nullptr);
+    wxCFRef<CTFontRef> font = CTFontCreateWithFontDescriptor(m_descriptor, 12, NULL);
     wxString familyname;
     wxCFTypeRef(CTFontDescriptorCopyAttribute(m_descriptor, kCTFontFamilyNameAttribute)).GetValue(familyname);
     wxLogTrace(TRACE_CTFONT,"****** CreateCTFontDescriptor ******");
@@ -1163,11 +1168,11 @@ bool wxNativeFontInfo::FromString(const wxString& s)
         xml = GetPListPrefix()+xml;
         wxCFStringRef plist(xml);
         wxCFDataRef listData(CFStringCreateExternalRepresentation(kCFAllocatorDefault,plist,kCFStringEncodingUTF8,0));
-        wxCFDictionaryRef attributes((CFDictionaryRef) CFPropertyListCreateWithData(kCFAllocatorDefault, listData, 0, nullptr, nullptr));
-        CTFontDescriptorRef descriptor = nullptr;
-        if (attributes != nullptr)
+        wxCFDictionaryRef attributes((CFDictionaryRef) CFPropertyListCreateWithData(kCFAllocatorDefault, listData, 0, NULL, NULL));
+        CTFontDescriptorRef descriptor = NULL;
+        if (attributes != NULL)
             descriptor = CTFontDescriptorCreateWithAttributes(attributes);
-        if (descriptor != nullptr)
+        if (descriptor != NULL)
         {
             InitFromFontDescriptor(descriptor);
             CFRelease(descriptor);
@@ -1193,12 +1198,12 @@ wxString wxNativeFontInfo::ToString() const
     // the slant-ness has to be emulated in the font's transform
     wxCFDictionaryRef attributes(CTFontDescriptorCopyAttributes(GetCTFontDescriptor()));
 
-    if (attributes != nullptr)
+    if (attributes != NULL)
     {
         CFPropertyListFormat format = kCFPropertyListXMLFormat_v1_0;
         if (CFPropertyListIsValid(attributes, format))
         {
-            wxCFDataRef listData(CFPropertyListCreateData(kCFAllocatorDefault, attributes, format, 0, nullptr));
+            wxCFDataRef listData(CFPropertyListCreateData(kCFAllocatorDefault, attributes, format, 0, NULL));
             wxCFStringRef cfString( CFStringCreateFromExternalRepresentation( kCFAllocatorDefault, listData, kCFStringEncodingUTF8) );
             wxString xml = cfString.AsString();
             xml.Replace("\r",wxEmptyString,true);

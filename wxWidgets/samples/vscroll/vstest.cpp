@@ -55,7 +55,7 @@ class VarScrollApp : public wxApp
 {
 public:
     // create our main window
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 // Define a new frame type: this is going to be our main frame
@@ -167,7 +167,7 @@ public:
         event.Skip();
     }
 
-    virtual wxCoord OnGetRowHeight(size_t n) const override
+    virtual wxCoord OnGetRowHeight(size_t n) const wxOVERRIDE
     {
         wxASSERT( n < GetRowCount() );
 
@@ -264,7 +264,7 @@ public:
         event.Skip();
     }
 
-    virtual wxCoord OnGetColumnWidth(size_t n) const override
+    virtual wxCoord OnGetColumnWidth(size_t n) const wxOVERRIDE
     {
         wxASSERT( n < GetColumnCount() );
 
@@ -384,14 +384,14 @@ public:
         event.Skip();
     }
 
-    virtual wxCoord OnGetRowHeight(size_t n) const override
+    virtual wxCoord OnGetRowHeight(size_t n) const wxOVERRIDE
     {
         wxASSERT( n < GetRowCount() );
 
         return m_heights[n];
     }
 
-    virtual wxCoord OnGetColumnWidth(size_t n) const override
+    virtual wxCoord OnGetColumnWidth(size_t n) const wxOVERRIDE
     {
         wxASSERT( n < GetColumnCount() );
 
@@ -431,7 +431,7 @@ enum
     // (where it is special and put into the "Apple" menu)
     VScroll_About = wxID_ABOUT,
 
-    VScroll_VScrollMode = wxID_HIGHEST,
+    VScroll_VScrollMode = wxID_HIGHEST + 1,
     VScroll_HScrollMode,
     VScroll_HVScrollMode
 };
@@ -490,12 +490,12 @@ bool VarScrollApp::OnInit()
 
 // frame constructor
 VarScrollFrame::VarScrollFrame()
-               : wxFrame(nullptr,
+               : wxFrame(NULL,
                          wxID_ANY,
                          "VScroll wxWidgets Sample",
                          wxDefaultPosition,
                          wxSize(400, 350)),
-                 m_scrollWindow(nullptr)
+                 m_scrollWindow(NULL)
 {
     // set the frame icon
     SetIcon(wxICON(sample));

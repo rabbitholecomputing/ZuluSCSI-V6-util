@@ -129,8 +129,8 @@ function(wx_set_common_target_properties target_name)
             -Woverloaded-virtual
         )
 
-        if(WXOSX_COCOA)
-            # when building using Cocoa we currently get tons of deprecation
+        if(WXOSX_COCOA OR WXGTK3)
+            # when building using GTK+ 3 or Cocoa we currently get tons of deprecation
             # warnings from the standard headers -- disable them as we already know
             # that they're deprecated but we still have to use them to support older
             # toolkit versions and leaving this warning enabled prevents seeing any
@@ -154,14 +154,10 @@ function(wx_set_common_target_properties target_name)
             )
         endif()
 
-        # Using $<COMPILE_LANGUAGE:CXX> breaks cotire:
-        # Evaluation file to be written multiple times with different content.
-        if(NOT USE_COTIRE)
-            target_compile_options(${target_name} PRIVATE
-                ${common_gcc_clang_compile_options}
-                $<$<COMPILE_LANGUAGE:CXX>:${common_gcc_clang_cpp_compile_options}>
-            )
-        endif()
+        target_compile_options(${target_name} PRIVATE
+            ${common_gcc_clang_compile_options}
+            $<$<COMPILE_LANGUAGE:CXX>:${common_gcc_clang_cpp_compile_options}>
+        )
     endif()
 
     if(wxUSE_NO_RTTI)
@@ -177,9 +173,12 @@ function(wx_set_common_target_properties target_name)
         target_compile_definitions(${target_name} PUBLIC "-D_FILE_OFFSET_BITS=64")
     endif()
 
-    if(CMAKE_THREAD_LIBS_INIT)
-        target_compile_options(${target_name} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-        target_link_libraries(${target_name} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+    if(CMAKE_USE_PTHREADS_INIT)
+        target_compile_options(${target_name} PRIVATE "-pthread")
+        # clang++.exe: warning: argument unused during compilation: '-pthread' [-Wunused-command-line-argument]
+        if(NOT (WIN32 AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang"))
+            set_target_properties(${target_name} PROPERTIES LINK_FLAGS "-pthread")
+        endif()
     endif()
     wx_set_source_groups()
 endfunction()
@@ -212,7 +211,9 @@ function(wx_set_target_properties target_name)
     endif()
 
     set(lib_unicode)
-    set(lib_unicode "u")
+    if(wxUSE_UNICODE)
+        set(lib_unicode "u")
+    endif()
 
     set(lib_rls)
     set(lib_dbg)
@@ -233,12 +234,6 @@ function(wx_set_target_properties target_name)
     set(dll_suffix "${lib_suffix}")
     if(wxCOMPILER_PREFIX)
         wx_string_append(dll_suffix "_${wxCOMPILER_PREFIX}")
-    endif()
-    # For compatibility with MSVS project files and makefile.vc, use arch
-    # suffix for non-x86 (including x86_64) DLLs.
-    if(MSVC AND wxARCH_SUFFIX)
-        # This one already includes the leading underscore, so don't add another one.
-        wx_string_append(dll_suffix "${wxARCH_SUFFIX}")
     endif()
     if(wxBUILD_VENDOR)
         wx_string_append(dll_suffix "_${wxBUILD_VENDOR}")
@@ -311,6 +306,13 @@ function(wx_set_target_properties target_name)
         target_compile_definitions(${target_name} PRIVATE wxUSE_GUI=1 wxUSE_BASE=0)
     endif()
 
+    if(wxUSE_UNICODE)
+        if(WIN32)
+            target_compile_definitions(${target_name} PUBLIC UNICODE)
+        endif()
+        target_compile_definitions(${target_name} PUBLIC _UNICODE)
+    endif()
+
     if(WIN32 AND MSVC)
         # Suppress deprecation warnings for standard library calls
         target_compile_definitions(${target_name} PRIVATE
@@ -320,11 +322,6 @@ function(wx_set_target_properties target_name)
             _WINSOCK_DEPRECATED_NO_WARNINGS=1
             )
     endif()
-
-    if(WIN32)
-        target_compile_definitions(${target_name} PUBLIC UNICODE)
-    endif()
-    target_compile_definitions(${target_name} PUBLIC _UNICODE)
 
     file(RELATIVE_PATH wxSETUP_HEADER_REL ${wxOUTPUT_DIR} ${wxSETUP_HEADER_PATH})
     target_include_directories(${target_name}
@@ -534,7 +531,7 @@ endmacro()
 # Set common properties for a builtin third party library
 function(wx_set_builtin_target_properties target_name)
     set(lib_unicode)
-    if(target_name STREQUAL "wxregex")
+    if(wxUSE_UNICODE AND target_name STREQUAL "wxregex")
         set(lib_unicode "u")
     endif()
 
@@ -556,6 +553,13 @@ function(wx_set_builtin_target_properties target_name)
         OUTPUT_NAME_DEBUG "${target_name}${lib_unicode}${lib_dbg}${lib_flavour}${lib_version}"
     )
 
+    if(wxUSE_UNICODE)
+        if(WIN32)
+            target_compile_definitions(${target_name} PUBLIC UNICODE)
+        endif()
+        target_compile_definitions(${target_name} PUBLIC _UNICODE)
+    endif()
+
     if(MSVC)
         # we're not interested in deprecation warnings about the use of
         # standard C functions in the 3rd party libraries (these warnings
@@ -565,12 +569,6 @@ function(wx_set_builtin_target_properties target_name)
             _CRT_SECURE_NO_DEPRECATE=1
             _SCL_SECURE_NO_WARNINGS=1
         )
-    endif()
-
-    if(WIN32)
-        # not needed for wxWidgets anymore (it is always built with unicode)
-        # but keep it here so applications linking to wxWidgets will inherit it
-        target_compile_definitions(${target_name} PUBLIC UNICODE _UNICODE)
     endif()
 
     target_include_directories(${target_name} BEFORE PRIVATE ${wxSETUP_HEADER_PATH})
@@ -590,12 +588,6 @@ endfunction()
 # Add a third party builtin library
 function(wx_add_builtin_library name)
     wx_list_add_prefix(src_list "${wxSOURCE_DIR}/" ${ARGN})
-
-    list(GET src_list 0 src_file)
-    if(NOT EXISTS "${src_file}")
-        message(FATAL_ERROR "${name} file does not exist: \"${src_file}\".\
-        Make sure you checkout the git submodules.")
-    endif()
 
     if(${name} MATCHES "wx.*")
         string(SUBSTRING ${name} 2 -1 name_short)
@@ -841,7 +833,7 @@ function(wx_add name group)
         target_include_directories(${target_name} PRIVATE ${wxSOURCE_DIR}/samples)
     elseif(group STREQUAL Tests)
         target_include_directories(${target_name} PRIVATE ${wxSOURCE_DIR}/tests)
-        target_include_directories(${target_name} PRIVATE ${wxSOURCE_DIR}/3rdparty/catch/single_include)
+        target_include_directories(${target_name} PRIVATE ${wxSOURCE_DIR}/3rdparty/catch/include)
         target_include_directories(${target_name} PRIVATE ${wxTOOLKIT_INCLUDE_DIRS})
     endif()
 

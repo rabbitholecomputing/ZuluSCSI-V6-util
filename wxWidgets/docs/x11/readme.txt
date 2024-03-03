@@ -61,6 +61,7 @@ Some remaining issues:
 - wxToggleButton implementation missing
 - wxSpinCtrl implementation missing
 - tooltips implementation missing
+- code common to the Motif and X11 ports needs to be merged
 - need thread safety in event loop
 
   Regards,

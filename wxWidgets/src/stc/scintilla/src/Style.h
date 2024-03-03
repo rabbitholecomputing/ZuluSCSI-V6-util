@@ -8,7 +8,9 @@
 #ifndef STYLE_H
 #define STYLE_H
 
+#ifdef SCI_NAMESPACE
 namespace Scintilla {
+#endif
 
 struct FontSpecification {
 	const char *fontName;
@@ -17,41 +19,38 @@ struct FontSpecification {
 	int size;
 	int characterSet;
 	int extraFontFlag;
-	FontSpecification() noexcept :
-		fontName(nullptr),
+	FontSpecification() :
+		fontName(0),
 		weight(SC_WEIGHT_NORMAL),
 		italic(false),
 		size(10 * SC_FONT_SIZE_MULTIPLIER),
 		characterSet(0),
 		extraFontFlag(0) {
 	}
-	bool operator==(const FontSpecification &other) const noexcept;
-	bool operator<(const FontSpecification &other) const noexcept;
+	bool operator==(const FontSpecification &other) const;
+	bool operator<(const FontSpecification &other) const;
 };
 
 // Just like Font but only has a copy of the FontID so should not delete it
 class FontAlias : public Font {
+	// Private so FontAlias objects can not be assigned except for intiialization
+	FontAlias &operator=(const FontAlias &);
 public:
-	FontAlias() noexcept;
-	// FontAlias objects can be copy or move constructed but not be assigned
-	FontAlias(const FontAlias &) noexcept;
-	FontAlias(FontAlias &&) noexcept;
-	FontAlias &operator=(const FontAlias &) = delete;
-	FontAlias &operator=(FontAlias &&) = delete;
-	~FontAlias() override;
-	void MakeAlias(const Font &fontOrigin) noexcept;
-	void ClearFont() noexcept;
+	FontAlias();
+	FontAlias(const FontAlias &);
+	virtual ~FontAlias();
+	void MakeAlias(Font &fontOrigin);
+	void ClearFont();
 };
 
 struct FontMeasurements {
 	unsigned int ascent;
 	unsigned int descent;
-	XYPOSITION capitalHeight;	// Top of capital letter to baseline: ascent - internal leading
 	XYPOSITION aveCharWidth;
 	XYPOSITION spaceWidth;
 	int sizeZoomed;
-	FontMeasurements() noexcept;
-	void ClearMeasurements() noexcept;
+	FontMeasurements();
+	void Clear();
 };
 
 /**
@@ -71,22 +70,22 @@ public:
 	FontAlias font;
 
 	Style();
-	Style(const Style &source) noexcept;
-	Style(Style &&) noexcept = default;
+	Style(const Style &source);
 	~Style();
-	Style &operator=(const Style &source) noexcept;
-	Style &operator=(Style &&) = delete;
+	Style &operator=(const Style &source);
 	void Clear(ColourDesired fore_, ColourDesired back_,
 	           int size_,
 	           const char *fontName_, int characterSet_,
 	           int weight_, bool italic_, bool eolFilled_,
 	           bool underline_, ecaseForced caseForce_,
-	           bool visible_, bool changeable_, bool hotspot_) noexcept;
-	void ClearTo(const Style &source) noexcept;
-	void Copy(const Font &font_, const FontMeasurements &fm_) noexcept;
-	bool IsProtected() const noexcept { return !(changeable && visible);}
+	           bool visible_, bool changeable_, bool hotspot_);
+	void ClearTo(const Style &source);
+	void Copy(Font &font_, const FontMeasurements &fm_);
+	bool IsProtected() const { return !(changeable && visible);}
 };
 
+#ifdef SCI_NAMESPACE
 }
+#endif
 
 #endif

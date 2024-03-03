@@ -31,31 +31,31 @@ public:
     // inherited methods from wxDataViewRendererBase
     // ---------------------------------------------
 
-    virtual int GetAlignment() const override
+    virtual int GetAlignment() const wxOVERRIDE
     {
         return m_alignment;
     }
-    virtual wxDataViewCellMode GetMode() const override
+    virtual wxDataViewCellMode GetMode() const wxOVERRIDE
     {
         return m_mode;
     }
-    virtual bool GetValue(wxVariant& value) const override
+    virtual bool GetValue(wxVariant& value) const wxOVERRIDE
     {
         value = m_value;
         return true;
     }
 
     // NB: in Carbon this is always identical to the header alignment
-    virtual void SetAlignment(int align) override;
-    virtual void SetMode(wxDataViewCellMode mode) override;
-    virtual bool SetValue(const wxVariant& newValue) override
+    virtual void SetAlignment(int align) wxOVERRIDE;
+    virtual void SetMode(wxDataViewCellMode mode) wxOVERRIDE;
+    virtual bool SetValue(const wxVariant& newValue) wxOVERRIDE
     {
         m_value = newValue;
         return true;
     }
 
-    virtual void EnableEllipsize(wxEllipsizeMode mode = wxELLIPSIZE_MIDDLE) override;
-    virtual wxEllipsizeMode GetEllipsizeMode() const override;
+    virtual void EnableEllipsize(wxEllipsizeMode mode = wxELLIPSIZE_MIDDLE) wxOVERRIDE;
+    virtual wxEllipsizeMode GetEllipsizeMode() const wxOVERRIDE;
 
     // implementation
     // --------------
@@ -85,15 +85,15 @@ public:
                                   unsigned col);
 
 protected:
-    virtual void SetAttr(const wxDataViewItemAttr& attr) override;
-    virtual void SetEnabled(bool enabled) override;
+    virtual void SetAttr(const wxDataViewItemAttr& attr) wxOVERRIDE;
+    virtual void SetEnabled(bool enabled) wxOVERRIDE;
 #else
 protected:
-    void SetAttr(const wxDataViewItemAttr& WXUNUSED(attr)) override { };
-    void SetEnabled(bool WXUNUSED(enabled)) override { };
+    void SetAttr(const wxDataViewItemAttr& WXUNUSED(attr)) wxOVERRIDE { };
+    void SetEnabled(bool WXUNUSED(enabled)) wxOVERRIDE { };
 #endif
 
-    virtual bool IsHighlighted() const override;
+    virtual bool IsHighlighted() const wxOVERRIDE;
 
 private:
     // contains the alignment flags

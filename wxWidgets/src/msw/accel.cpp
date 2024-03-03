@@ -2,6 +2,7 @@
 // Name:        src/msw/accel.cpp
 // Purpose:     wxAcceleratorTable
 // Author:      Julian Smart
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -29,8 +30,6 @@
 
 #include "wx/msw/private.h"
 #include "wx/msw/private/keyboard.h"
-
-#include <vector>
 
 wxIMPLEMENT_DYNAMIC_CLASS(wxAcceleratorTable, wxObject);
 
@@ -96,7 +95,7 @@ wxAcceleratorTable::wxAcceleratorTable(int n, const wxAcceleratorEntry entries[]
 {
     m_refData = new wxAcceleratorRefData;
 
-    std::vector<ACCEL> arr(n);
+    ACCEL* arr = new ACCEL[n];
     for ( int i = 0; i < n; i++ )
     {
         int flags = entries[i].GetFlags();
@@ -116,7 +115,8 @@ wxAcceleratorTable::wxAcceleratorTable(int n, const wxAcceleratorEntry entries[]
         arr[i].cmd = (WORD)entries[i].GetCommand();
     }
 
-    M_ACCELDATA->m_hAccel = ::CreateAcceleratorTable(&arr[0], n);
+    M_ACCELDATA->m_hAccel = ::CreateAcceleratorTable(arr, n);
+    delete[] arr;
 
     M_ACCELDATA->m_ok = (M_ACCELDATA->m_hAccel != 0);
 }

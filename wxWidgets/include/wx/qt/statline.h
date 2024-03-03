@@ -29,7 +29,7 @@ public:
                  long style = wxLI_HORIZONTAL,
                  const wxString &name = wxASCII_STR(wxStaticLineNameStr) );
 
-    virtual QWidget *GetHandle() const override;
+    virtual QWidget *GetHandle() const wxOVERRIDE;
 
 private:
     QFrame *m_qtFrame;

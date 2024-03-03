@@ -76,8 +76,8 @@ struct wxMarkupSpanAttributes
 class wxMarkupParserOutput
 {
 public:
-    wxMarkupParserOutput() = default;
-    virtual ~wxMarkupParserOutput() = default;
+    wxMarkupParserOutput() { }
+    virtual ~wxMarkupParserOutput() { }
 
     // Virtual functions called by wxMarkupParser while parsing the markup.
 

@@ -75,6 +75,11 @@ wxBrush::wxBrush( const wxBitmap &stippleBitmap )
     M_BRUSHDATA->m_stipple = stippleBitmap;
 }
 
+wxBrush::~wxBrush()
+{
+    // m_refData unrefed in ~wxObject
+}
+
 wxGDIRefData *wxBrush::CreateGDIRefData() const
 {
     return new wxBrushRefData;
@@ -110,7 +115,7 @@ wxColour wxBrush::GetColour() const
 
 wxBitmap *wxBrush::GetStipple() const
 {
-    wxCHECK_MSG( IsOk(), nullptr, wxT("invalid brush") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid brush") );
 
     return &M_BRUSHDATA->m_stipple;
 }

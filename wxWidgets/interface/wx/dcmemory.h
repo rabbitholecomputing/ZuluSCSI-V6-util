@@ -82,10 +82,6 @@ public:
         dc in wxMSW, the argument is ignored in the other ports. If @a dc is
         @NULL, a device context compatible with the screen is created, just as
         with the default constructor.
-
-        Note that the DPI scaling factor is @e not inherited from @a dc, but
-        is determined by the scaling factor of the bitmap selected into this
-        device context later.
      */
     wxMemoryDC(wxDC *dc);
 
@@ -112,10 +108,6 @@ public:
         If the bitmap is already selected in this device context, nothing is
         done. If it is selected in another context, the function asserts and
         drawing on the bitmap won't work correctly.
-
-        Note that this function changes the scale factor of this device context
-        (as returned by wxDC::GetContentScaleFactor()) to be the same as the
-        bitmap scale factor (as returned by wxBitmap::GetScaleFactor()).
     */
     void SelectObject(wxBitmap& bitmap);
 

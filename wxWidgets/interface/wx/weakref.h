@@ -66,7 +66,7 @@ public:
     wnd->Destroy();
     // Now the weak ref has been reset, so we don't risk accessing
     // a dangling pointer:
-    wxASSERT( wr==nullptr );
+    wxASSERT( wr==NULL );
     @endcode
 
     wxWeakRef<T> works for any objects that are derived from wxTrackable.
@@ -107,7 +107,7 @@ public:
     /**
         Constructor. The weak reference is initialized to @e pobj.
     */
-    wxWeakRef(T* pobj = nullptr);
+    wxWeakRef(T* pobj = NULL);
 
     /**
         Copy constructor.

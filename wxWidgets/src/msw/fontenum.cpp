@@ -140,7 +140,7 @@ bool wxFontEnumeratorHelper::SetEncoding(wxFontEncoding encoding)
 
 void wxFontEnumeratorHelper::DoEnumerate()
 {
-    HDC hDC = ::GetDC(nullptr);
+    HDC hDC = ::GetDC(NULL);
 
     LOGFONT lf;
     lf.lfCharSet = (BYTE)m_charset;
@@ -149,7 +149,7 @@ void wxFontEnumeratorHelper::DoEnumerate()
     ::EnumFontFamiliesEx(hDC, &lf, (FONTENUMPROC)wxFontEnumeratorProc,
                          (LPARAM)this, wxRESERVED_PARAM) ;
 
-    ::ReleaseDC(nullptr, hDC);
+    ::ReleaseDC(NULL, hDC);
 }
 
 bool wxFontEnumeratorHelper::OnFont(const LPLOGFONT lf,

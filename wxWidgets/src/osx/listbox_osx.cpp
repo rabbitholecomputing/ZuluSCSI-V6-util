@@ -2,6 +2,7 @@
 // Name:        src/osx/listbox_osx.cpp
 // Purpose:     wxListBox
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -107,14 +108,14 @@ wxListBox::~wxListBox()
     m_blockEvents = false;
 
     // make sure no native events get sent to a object in destruction
-    SetPeer(nullptr);
+    SetPeer(NULL);
 
     if ( IsSorted() )
         delete m_strings.sorted;
     else
         delete m_strings.unsorted;
 
-    m_strings.sorted = nullptr;
+    m_strings.sorted = NULL;
 }
 
 void wxListBox::FreeData()
@@ -376,9 +377,9 @@ int wxListBox::DoInsertItems(const wxArrayStringsAdapter& items,
     {
         const wxString& item = items[i];
         idx = IsSorted() ? m_strings.sorted->Add(item)
-                         : ((void)m_strings.unsorted->Insert(item, pos), pos++);
+                         : (m_strings.unsorted->Insert(item, pos), pos++);
 
-        m_itemsClientData.Insert(nullptr, idx);
+        m_itemsClientData.Insert(NULL, idx);
         AssignNewItemClientData(idx, clientData, i, type);
 
         GetListPeer()->ListInsert(startpos+i);

@@ -34,13 +34,10 @@
     #include "wx/menu.h"
     #include "wx/log.h"
     #include "wx/dataobj.h"
-    #include "wx/settings.h"
 #endif
 
 #include "wx/clipbrd.h"
 #include "wx/renderer.h"
-
-#include "wx/private/hyperlink.h"
 
 // ============================================================================
 // implementation
@@ -110,7 +107,7 @@ void wxGenericHyperlinkCtrl::Init()
     m_visited = false;
 
     // colours
-    m_normalColour = wxPrivate::GetLinkColour();
+    m_normalColour = *wxBLUE;
     m_hoverColour = *wxRED;
     m_visitedColour = wxColour("#551a8b");
 }
@@ -127,20 +124,6 @@ wxSize wxGenericHyperlinkCtrl::DoGetBestClientSize() const
 {
     wxClientDC dc(const_cast<wxGenericHyperlinkCtrl*>(this));
     return dc.GetTextExtent(GetLabel());
-}
-
-wxVisualAttributes wxGenericHyperlinkCtrl::GetDefaultAttributes() const
-{
-    return GetClassDefaultAttributes(GetWindowVariant());
-}
-
-/* static */
-wxVisualAttributes
-wxGenericHyperlinkCtrl::GetClassDefaultAttributes(wxWindowVariant variant)
-{
-    auto attrs = wxHyperlinkCtrlBase::GetClassDefaultAttributes(variant);
-    attrs.colFg = wxPrivate::GetLinkColour();
-    return attrs;
 }
 
 

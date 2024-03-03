@@ -2,6 +2,7 @@
 // Name:        virtual.cpp
 // Purpose:     wxHtml sample: demonstrates virtual file systems feature
 // Author:      ?
+// Modified by:
 // Created:     ?
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
@@ -38,8 +39,8 @@ class MyVFS : public wxFileSystemHandler
 public:
     MyVFS() : wxFileSystemHandler() {}
 
-    wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location) override;
-    bool CanOpen(const wxString& location) override;
+    wxFSFile* OpenFile(wxFileSystem& fs, const wxString& location) wxOVERRIDE;
+    bool CanOpen(const wxString& location) wxOVERRIDE;
 };
 
 bool MyVFS::CanOpen(const wxString& location)
@@ -90,7 +91,7 @@ public:
     // this one is called on application startup and is a good place for the app
     // initialization (doing it here and not in the ctor allows to have an error
     // return: if OnInit() returns false, the application terminates)
-    virtual bool OnInit() override;
+    virtual bool OnInit() wxOVERRIDE;
 };
 
 // Define a new frame type: this is going to be our main frame
@@ -183,7 +184,7 @@ wxHtmlWindow *html;
 
 // frame constructor
 MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-    : wxFrame(nullptr, wxID_ANY, title, pos, size)
+    : wxFrame((wxFrame *)NULL, wxID_ANY, title, pos, size)
 {
     SetIcon(wxICON(sample));
 

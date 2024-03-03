@@ -8,15 +8,18 @@
 #ifndef TWOBLUECUBES_CATCH_INTERFACES_TESTCASE_H_INCLUDED
 #define TWOBLUECUBES_CATCH_INTERFACES_TESTCASE_H_INCLUDED
 
+#include "catch_ptr.hpp"
+
 #include <vector>
 
 namespace Catch {
 
     class TestSpec;
 
-    struct ITestInvoker {
+    struct ITestCase : IShared {
         virtual void invoke () const = 0;
-        virtual ~ITestInvoker();
+    protected:
+        virtual ~ITestCase();
     };
 
     class TestCase;
@@ -28,7 +31,6 @@ namespace Catch {
         virtual std::vector<TestCase> const& getAllTestsSorted( IConfig const& config ) const = 0;
     };
 
-    bool isThrowSafe( TestCase const& testCase, IConfig const& config );
     bool matchTest( TestCase const& testCase, TestSpec const& testSpec, IConfig const& config );
     std::vector<TestCase> filterTests( std::vector<TestCase> const& testCases, TestSpec const& testSpec, IConfig const& config );
     std::vector<TestCase> const& getAllTestCasesSorted( IConfig const& config );

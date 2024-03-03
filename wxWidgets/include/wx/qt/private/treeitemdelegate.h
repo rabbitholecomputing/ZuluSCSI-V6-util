@@ -23,13 +23,13 @@ class wxQTTreeItemDelegate : public QStyledItemDelegate
 public:
     explicit wxQTTreeItemDelegate(wxWindow* parent)
         : m_parent(parent),
-        m_textCtrl(nullptr)
+        m_textCtrl(NULL)
     {
     }
 
-    QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &WXUNUSED(option), const QModelIndex &index) const override
+    QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &WXUNUSED(option), const QModelIndex &index) const wxOVERRIDE
     {
-        if ( m_textCtrl != nullptr )
+        if ( m_textCtrl != NULL )
             destroyEditor(m_textCtrl->GetHandle(), m_currentModelIndex);
 
         m_currentModelIndex = index;
@@ -38,17 +38,17 @@ public:
         return m_textCtrl->GetHandle();
     }
 
-    void destroyEditor(QWidget *WXUNUSED(editor), const QModelIndex &WXUNUSED(index)) const override
+    void destroyEditor(QWidget *WXUNUSED(editor), const QModelIndex &WXUNUSED(index)) const wxOVERRIDE
     {
-        if ( m_textCtrl != nullptr )
+        if ( m_textCtrl != NULL )
         {
             m_currentModelIndex = QModelIndex(); // invalidate the index
             wxTheApp->ScheduleForDestruction(m_textCtrl);
-            m_textCtrl = nullptr;
+            m_textCtrl = NULL;
         }
     }
 
-    void setModelData(QWidget *WXUNUSED(editor), QAbstractItemModel *WXUNUSED(model), const QModelIndex &WXUNUSED(index)) const override
+    void setModelData(QWidget *WXUNUSED(editor), QAbstractItemModel *WXUNUSED(model), const QModelIndex &WXUNUSED(index)) const wxOVERRIDE
     {
         // Don't set model data until wx has had a chance to send out events
     }

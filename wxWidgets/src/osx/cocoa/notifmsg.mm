@@ -70,12 +70,12 @@ public:
 
     virtual ~wxUserNotificationMsgImpl()
     {
-        ms_activeNotifications[m_id] = nullptr;
+        ms_activeNotifications[m_id] = NULL;
         ReleaseHandler();
         [m_notif release];
     }
 
-    virtual bool Show(int WXUNUSED(timeout)) override
+    virtual bool Show(int WXUNUSED(timeout)) wxOVERRIDE
     {
         NSUserNotificationCenter* nc = [NSUserNotificationCenter defaultUserNotificationCenter];
         [nc deliverNotification:m_notif];
@@ -83,7 +83,7 @@ public:
         return true;
     }
     
-    virtual bool Close() override
+    virtual bool Close() wxOVERRIDE
     {
         NSUserNotificationCenter* nc = [NSUserNotificationCenter defaultUserNotificationCenter];
         [nc removeDeliveredNotification:m_notif];
@@ -91,34 +91,34 @@ public:
         return true;
     }
     
-    virtual void SetTitle(const wxString& title) override
+    virtual void SetTitle(const wxString& title) wxOVERRIDE
     {
         wxCFStringRef cftitle(title);
         m_notif.title = cftitle.AsNSString();
     }
     
-    virtual void SetMessage(const wxString& message) override
+    virtual void SetMessage(const wxString& message) wxOVERRIDE
     {
         wxCFStringRef cfmsg(message);
         m_notif.informativeText = cfmsg.AsNSString();
     }
     
-    virtual void SetParent(wxWindow *WXUNUSED(parent)) override
+    virtual void SetParent(wxWindow *WXUNUSED(parent)) wxOVERRIDE
     {
     }
     
-    virtual void SetFlags(int WXUNUSED(flags)) override
+    virtual void SetFlags(int WXUNUSED(flags)) wxOVERRIDE
     {
         // On OS X we do not add an icon based on the flags,
         // as this is primarily meant for custom icons
     }
     
-    virtual void SetIcon(const wxIcon& icon) override
+    virtual void SetIcon(const wxIcon& icon) wxOVERRIDE
     {
         m_notif.contentImage = icon.GetNSImage();
     }
     
-    virtual bool AddAction(wxWindowID actionid, const wxString &label) override
+    virtual bool AddAction(wxWindowID actionid, const wxString &label) wxOVERRIDE
     {
         if (m_actions.size() >= 1) // Currently only 1 actions are supported
             return false;

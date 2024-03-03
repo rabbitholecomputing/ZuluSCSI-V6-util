@@ -2,6 +2,7 @@
 // Name:        wx/volume.h
 // Purpose:     wxFSVolume - encapsulates system volume information
 // Author:      George Policello
+// Modified by:
 // Created:     28 Jan 02
 // Copyright:   (c) 2002 George Policello
 // Licence:     wxWindows licence
@@ -105,8 +106,7 @@ protected:
 #if wxUSE_GUI
 
 #include "wx/icon.h"
-
-#include <vector>
+#include "wx/iconbndl.h" // only for wxIconArray
 
 enum wxFSIconType
 {
@@ -130,7 +130,7 @@ private:
     void InitIcons();
 
     // the different icons for this volume (created on demand)
-    std::vector<wxIcon> m_icons;
+    wxIconArray m_icons;
 };
 
 #else // !wxUSE_GUI

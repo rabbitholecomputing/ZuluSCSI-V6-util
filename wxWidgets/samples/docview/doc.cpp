@@ -246,7 +246,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(TextEditDocument, wxDocument);
 wxTextCtrl* TextEditDocument::GetTextCtrl() const
 {
     wxView* view = GetFirstView();
-    return view ? wxStaticCast(view, TextEditView)->GetText() : nullptr;
+    return view ? wxStaticCast(view, TextEditView)->GetText() : NULL;
 }
 
 // ----------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 // Name:        wx/generic/filepickerg.h
 // Purpose:     wxGenericFileDirButton, wxGenericFileButton, wxGenericDirButton
 // Author:      Francesco Montorsi
+// Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
@@ -45,7 +46,7 @@ public:
                pos, size, style, validator, name);
     }
 
-    virtual wxControl *AsControl() override { return this; }
+    virtual wxControl *AsControl() wxOVERRIDE { return this; }
 
 public:     // overridable
 
@@ -56,7 +57,7 @@ public:     // overridable
 
     virtual wxEventType GetEventType() const = 0;
 
-    virtual void SetInitialDirectory(const wxString& dir) override;
+    virtual void SetInitialDirectory(const wxString& dir) wxOVERRIDE;
 
 public:
 
@@ -100,7 +101,7 @@ private:
 class WXDLLIMPEXP_CORE wxGenericFileButton : public wxGenericFileDirButton
 {
 public:
-    wxGenericFileButton() = default;
+    wxGenericFileButton() {}
     wxGenericFileButton(wxWindow *parent,
                         wxWindowID id,
                         const wxString& label = wxASCII_STR(wxFilePickerWidgetLabel),
@@ -143,15 +144,15 @@ public:     // overridable
         return filedlgstyle;
     }
 
-    virtual wxDialog *CreateDialog() override;
+    virtual wxDialog *CreateDialog() wxOVERRIDE;
 
-    wxEventType GetEventType() const override
+    wxEventType GetEventType() const wxOVERRIDE
         { return wxEVT_FILEPICKER_CHANGED; }
 
 protected:
-    void UpdateDialogPath(wxDialog *p) override
+    void UpdateDialogPath(wxDialog *p) wxOVERRIDE
         { wxStaticCast(p, wxFileDialog)->SetPath(m_path); }
-    void UpdatePathFromDialog(wxDialog *p) override
+    void UpdatePathFromDialog(wxDialog *p) wxOVERRIDE
         { m_path = wxStaticCast(p, wxFileDialog)->GetPath(); }
 
 private:
@@ -168,7 +169,7 @@ private:
 class WXDLLIMPEXP_CORE wxGenericDirButton : public wxGenericFileDirButton
 {
 public:
-    wxGenericDirButton() = default;
+    wxGenericDirButton() {}
     wxGenericDirButton(wxWindow *parent,
                        wxWindowID id,
                        const wxString& label = wxASCII_STR(wxDirPickerWidgetLabel),
@@ -198,15 +199,15 @@ public:     // overridable
         return dirdlgstyle;
     }
 
-    virtual wxDialog *CreateDialog() override;
+    virtual wxDialog *CreateDialog() wxOVERRIDE;
 
-    wxEventType GetEventType() const override
+    wxEventType GetEventType() const wxOVERRIDE
         { return wxEVT_DIRPICKER_CHANGED; }
 
 protected:
-    void UpdateDialogPath(wxDialog *p) override
+    void UpdateDialogPath(wxDialog *p) wxOVERRIDE
         { wxStaticCast(p, wxDirDialog)->SetPath(m_path); }
-    void UpdatePathFromDialog(wxDialog *p) override
+    void UpdatePathFromDialog(wxDialog *p) wxOVERRIDE
         { m_path = wxStaticCast(p, wxDirDialog)->GetPath(); }
 
 private:

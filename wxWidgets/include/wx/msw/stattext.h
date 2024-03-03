@@ -2,6 +2,7 @@
 // Name:        wx/msw/stattext.h
 // Purpose:     wxStaticText class
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -13,7 +14,7 @@
 class WXDLLIMPEXP_CORE wxStaticText : public wxStaticTextBase
 {
 public:
-    wxStaticText() = default;
+    wxStaticText() { }
 
     wxStaticText(wxWindow *parent,
                  wxWindowID id,
@@ -35,24 +36,19 @@ public:
                 const wxString& name = wxASCII_STR(wxStaticTextNameStr));
 
     // override some methods to resize the window properly
-    virtual void SetLabel(const wxString& label) override;
-    virtual bool SetFont( const wxFont &font ) override;
+    virtual void SetLabel(const wxString& label) wxOVERRIDE;
+    virtual bool SetFont( const wxFont &font ) wxOVERRIDE;
 
-    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = nullptr) const override;
+    virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const wxOVERRIDE;
 
 protected:
     // implement/override some base class virtuals
     virtual void DoSetSize(int x, int y, int w, int h,
-                           int sizeFlags = wxSIZE_AUTO) override;
-    virtual wxSize DoGetBestClientSize() const override;
+                           int sizeFlags = wxSIZE_AUTO) wxOVERRIDE;
+    virtual wxSize DoGetBestClientSize() const wxOVERRIDE;
 
-    virtual bool MSWHandleMessage(WXLRESULT *result,
-                                  WXUINT message,
-                                  WXWPARAM wParam,
-                                  WXLPARAM lParam) override;
-
-    virtual wxString WXGetVisibleLabel() const override;
-    virtual void WXSetVisibleLabel(const wxString& str) override;
+    virtual wxString WXGetVisibleLabel() const wxOVERRIDE;
+    virtual void WXSetVisibleLabel(const wxString& str) wxOVERRIDE;
 
     wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxStaticText);
 };

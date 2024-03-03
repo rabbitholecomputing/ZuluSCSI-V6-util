@@ -139,7 +139,7 @@
  *                        W: any char except alphanumeric & underscore (see above)
  *
  *      [12]    \xHH    a backslash followed by x and two hexa digits,
- *                      becomes the character whose ASCII code is equal
+ *                      becomes the character whose Ascii code is equal
  *                      to these digits. If not followed by two digits,
  *                      it is 'x' char itself.
  *
@@ -200,23 +200,19 @@
  *  matches:    foo-foo fo-fo fob-fob foobar-foobar ...
  */
 
-#include <cstddef>
-#include <cstdlib>
+#include <stdlib.h>
 
 #include <stdexcept>
 #include <string>
 #include <algorithm>
-#include <iterator>
 
 #include "Position.h"
 #include "CharClassify.h"
 #include "RESearch.h"
 
-#if defined(__GNUC__) && (__GNUC__ >= 7)
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
-#endif
-
+#ifdef SCI_NAMESPACE
 using namespace Scintilla;
+#endif
 
 #define OKP     1
 #define NOP     0
@@ -244,7 +240,7 @@ using namespace Scintilla;
 #define BLKIND  0370
 #define BITIND  07
 
-static const char bitarr[] = { 1, 2, 4, 8, 16, 32, 64, '\200' };
+const char bitarr[] = { 1, 2, 4, 8, 16, 32, 64, '\200' };
 
 #define badpat(x)	(*nfa = END, x)
 
@@ -260,10 +256,9 @@ RESearch::RESearch(CharClassify *charClassTable) {
 	charClass = charClassTable;
 	sta = NOP;                  /* status of lastpat */
 	bol = 0;
-	constexpr unsigned char nul = 0;
-	std::fill(bittab, std::end(bittab), nul);
-	std::fill(tagstk, std::end(tagstk), 0);
-	std::fill(nfa, std::end(nfa), '\0');
+	std::fill(bittab, bittab + BITBLK, 0);
+	std::fill(tagstk, tagstk + MAXTAG, 0);
+	std::fill(nfa, nfa + MAXNFA, 0);
 	Clear();
 }
 
@@ -271,7 +266,7 @@ RESearch::~RESearch() {
 	Clear();
 }
 
-void RESearch::Clear() noexcept {
+void RESearch::Clear() {
 	for (int i = 0; i < MAXTAG; i++) {
 		pat[i].clear();
 		bopat[i] = NOTFOUND;
@@ -279,33 +274,38 @@ void RESearch::Clear() noexcept {
 	}
 }
 
-void RESearch::GrabMatches(const CharacterIndexer &ci) {
+void RESearch::GrabMatches(CharacterIndexer &ci) {
 	for (unsigned int i = 0; i < MAXTAG; i++) {
 		if ((bopat[i] != NOTFOUND) && (eopat[i] != NOTFOUND)) {
-			const Sci::Position len = eopat[i] - bopat[i];
+			unsigned int len = eopat[i] - bopat[i];
 			pat[i].resize(len);
-			for (Sci::Position j = 0; j < len; j++)
+			for (unsigned int j = 0; j < len; j++)
 				pat[i][j] = ci.CharAt(bopat[i] + j);
 		}
 	}
 }
 
-void RESearch::ChSet(unsigned char c) noexcept {
+void RESearch::ChSet(unsigned char c) {
 	bittab[((c) & BLKIND) >> 3] |= bitarr[(c) & BITIND];
 }
 
-void RESearch::ChSetWithCase(unsigned char c, bool caseSensitive) noexcept {
-	ChSet(c);
-	if (!caseSensitive) {
+void RESearch::ChSetWithCase(unsigned char c, bool caseSensitive) {
+	if (caseSensitive) {
+		ChSet(c);
+	} else {
 		if ((c >= 'a') && (c <= 'z')) {
-			ChSet(c - 'a' + 'A');
+			ChSet(c);
+			ChSet(static_cast<unsigned char>(c - 'a' + 'A'));
 		} else if ((c >= 'A') && (c <= 'Z')) {
-			ChSet(c - 'A' + 'a');
+			ChSet(c);
+			ChSet(static_cast<unsigned char>(c - 'A' + 'a'));
+		} else {
+			ChSet(c);
 		}
 	}
 }
 
-static unsigned char escapeValue(unsigned char ch) noexcept {
+static unsigned char escapeValue(unsigned char ch) {
 	switch (ch) {
 	case 'a':	return '\a';
 	case 'b':	return '\b';
@@ -318,7 +318,7 @@ static unsigned char escapeValue(unsigned char ch) noexcept {
 	return 0;
 }
 
-static int GetHexaChar(unsigned char hd1, unsigned char hd2) noexcept {
+static int GetHexaChar(unsigned char hd1, unsigned char hd2) {
 	int hexValue = 0;
 	if (hd1 >= '0' && hd1 <= '9') {
 		hexValue += 16 * (hd1 - '0');
@@ -351,14 +351,14 @@ static int GetHexaChar(unsigned char hd1, unsigned char hd2) noexcept {
  */
 int RESearch::GetBackslashExpression(
     const char *pattern,
-    int &incr) noexcept {
+    int &incr) {
 	// Since error reporting is primitive and messages are not used anyway,
 	// I choose to interpret unexpected syntax in a logical way instead
-	// of reporting errors. Otherwise, we can stick on, eg., PCRE behaviour.
+	// of reporting errors. Otherwise, we can stick on, eg., PCRE behavior.
 	incr = 0;	// Most of the time, will skip the char "naturally".
 	int c;
 	int result = -1;
-	const unsigned char bsc = *pattern;
+	unsigned char bsc = *pattern;
 	if (!bsc) {
 		// Avoid overrun
 		result = '\\';	// \ at end of pattern, take it literally
@@ -376,9 +376,9 @@ int RESearch::GetBackslashExpression(
 		result = escapeValue(bsc);
 		break;
 	case 'x': {
-			const unsigned char hd1 = *(pattern + 1);
-			const unsigned char hd2 = *(pattern + 2);
-			const int hexValue = GetHexaChar(hd1, hd2);
+			unsigned char hd1 = *(pattern + 1);
+			unsigned char hd2 = *(pattern + 2);
+			int hexValue = GetHexaChar(hd1, hd2);
 			if (hexValue >= 0) {
 				result = hexValue;
 				incr = 2;	// Must skip the digits
@@ -434,7 +434,7 @@ int RESearch::GetBackslashExpression(
 	return result;
 }
 
-const char *RESearch::Compile(const char *pattern, Sci::Position length, bool caseSensitive, bool posix) noexcept {
+const char *RESearch::Compile(const char *pattern, int length, bool caseSensitive, bool posix) {
 	char *mp=nfa;          /* nfa pointer       */
 	char *lp;              /* saved pointer     */
 	char *sp=nfa;          /* another one       */
@@ -449,7 +449,7 @@ const char *RESearch::Compile(const char *pattern, Sci::Position length, bool ca
 
 	if (!pattern || !length) {
 		if (sta)
-			return nullptr;
+			return 0;
 		else
 			return badpat("No previous regular expression");
 	}
@@ -560,7 +560,7 @@ const char *RESearch::Compile(const char *pattern, Sci::Position length, bool ca
 					i++;
 					p++;
 					int incr;
-					const int c = GetBackslashExpression(p, incr);
+					int c = GetBackslashExpression(p, incr);
 					i += incr;
 					p += incr;
 					if (c >= 0) {
@@ -648,7 +648,7 @@ const char *RESearch::Compile(const char *pattern, Sci::Position length, bool ca
 				if (tagi > 0 && tagstk[tagi] == n)
 					return badpat("Cyclical reference");
 				if (tagc > n) {
-					*mp++ = REF;
+					*mp++ = static_cast<char>(REF);
 					*mp++ = static_cast<char>(n);
 				} else {
 					return badpat("Undetermined reference");
@@ -667,7 +667,7 @@ const char *RESearch::Compile(const char *pattern, Sci::Position length, bool ca
 					if (*sp == BOT)
 						return badpat("Null pattern inside \\(\\)");
 					if (tagi > 0) {
-						*mp++ = EOT;
+						*mp++ = static_cast<char>(EOT);
 						*mp++ = static_cast<char>(tagstk[tagi--]);
 					} else {
 						return badpat("Unmatched \\)");
@@ -703,7 +703,7 @@ const char *RESearch::Compile(const char *pattern, Sci::Position length, bool ca
 				if (*sp == BOT)
 					return badpat("Null pattern inside ()");
 				if (tagi > 0) {
-					*mp++ = EOT;
+					*mp++ = static_cast<char>(EOT);
 					*mp++ = static_cast<char>(tagstk[tagi--]);
 				} else {
 					return badpat("Unmatched )");
@@ -731,7 +731,7 @@ const char *RESearch::Compile(const char *pattern, Sci::Position length, bool ca
 		return badpat((posix ? "Unmatched (" : "Unmatched \\("));
 	*mp = END;
 	sta = OKP;
-	return nullptr;
+	return 0;
 }
 
 /*
@@ -755,9 +755,9 @@ const char *RESearch::Compile(const char *pattern, Sci::Position length, bool ca
  *  respectively.
  *
  */
-int RESearch::Execute(const CharacterIndexer &ci, Sci::Position lp, Sci::Position endp) {
+int RESearch::Execute(CharacterIndexer &ci, int lp, int endp) {
 	unsigned char c;
-	Sci::Position ep = NOTFOUND;
+	int ep = NOTFOUND;
 	char *ap = nfa;
 
 	bol = lp;
@@ -834,9 +834,7 @@ int RESearch::Execute(const CharacterIndexer &ci, Sci::Position lp, Sci::Positio
 
 extern void re_fail(char *,char);
 
-static inline int isinset(const char *ap, unsigned char c) noexcept {
-	return ap[(c & BLKIND) >> 3] & bitarr[c & BITIND];
-}
+#define isinset(x,y)	((x)[((y)&BLKIND)>>3] & bitarr[(y)&BITIND])
 
 /*
  * skip values for CLO XXX to skip past the closure
@@ -846,13 +844,13 @@ static inline int isinset(const char *ap, unsigned char c) noexcept {
 #define CHRSKIP 3	/* [CLO] CHR chr END      */
 #define CCLSKIP 34	/* [CLO] CCL 32 bytes END */
 
-Sci::Position RESearch::PMatch(const CharacterIndexer &ci, Sci::Position lp, Sci::Position endp, char *ap) {
+int RESearch::PMatch(CharacterIndexer &ci, int lp, int endp, char *ap) {
 	int op, c, n;
-	Sci::Position e;		/* extra pointer for CLO  */
-	Sci::Position bp;		/* beginning of subpat... */
-	Sci::Position ep;		/* ending of subpat...    */
-	Sci::Position are;	/* to save the line ptr.  */
-	Sci::Position llp;	/* lazy lp for LCLO       */
+	int e;		/* extra pointer for CLO  */
+	int bp;		/* beginning of subpat... */
+	int ep;		/* ending of subpat...    */
+	int are;	/* to save the line ptr.  */
+	int llp;	/* lazy lp for LCLO       */
 
 	while ((op = *ap++) != END)
 		switch (op) {
@@ -868,7 +866,8 @@ Sci::Position RESearch::PMatch(const CharacterIndexer &ci, Sci::Position lp, Sci
 		case CCL:
 			if (lp >= endp)
 				return NOTFOUND;
-			if (!isinset(ap, ci.CharAt(lp++)))
+			c = ci.CharAt(lp++);
+			if (!isinset(ap,c))
 				return NOTFOUND;
 			ap += BITBLK;
 			break;
@@ -927,7 +926,7 @@ Sci::Position RESearch::PMatch(const CharacterIndexer &ci, Sci::Position lp, Sci
 				n = CHRSKIP;
 				break;
 			case CCL:
-				while ((lp < endp) && isinset(ap+1, ci.CharAt(lp)))
+				while ((lp < endp) && isinset(ap+1,ci.CharAt(lp)))
 					lp++;
 				n = CCLSKIP;
 				break;
@@ -941,7 +940,7 @@ Sci::Position RESearch::PMatch(const CharacterIndexer &ci, Sci::Position lp, Sci
 			llp = lp;
 			e = NOTFOUND;
 			while (llp >= are) {
-				Sci::Position q;
+				int q;
 				if ((q = PMatch(ci, llp, endp, ap)) != NOTFOUND) {
 					e = q;
 					lp = llp;

@@ -2,6 +2,7 @@
 // Name:        text.cpp
 // Purpose:     TextCtrl wxWidgets sample
 // Author:      Robert Roebling
+// Modified by:
 // Copyright:   (c) Robert Roebling, Julian Smart, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -51,7 +52,7 @@
 class MyApp: public wxApp
 {
 public:
-    bool OnInit() override;
+    bool OnInit() wxOVERRIDE;
 };
 
 // a text ctrl which allows to call different wxTextCtrl functions
@@ -154,7 +155,7 @@ public:
 private:
     // get the currently focused text control or return the default one
     // (m_multitext) is no text ctrl has focus -- in any case, returns
-    // something non null
+    // something non NULL
     wxTextCtrl *GetFocusedText() const;
 };
 
@@ -716,7 +717,9 @@ void MyTextCtrl::LogKeyEvent(const wxString& name, wxKeyEvent& event) const
         }
     }
 
+#if wxUSE_UNICODE
     key += wxString::Format(" (Unicode: %#04x)", event.GetUnicodeKey());
+#endif // wxUSE_UNICODE
 
     wxLogMessage( "%s event: %s (flags = %c%c%c%c)",
                   name,
@@ -1181,7 +1184,11 @@ MyPanel::MyPanel( wxFrame *frame, int x, int y, int w, int h )
                 m_horizontal->SetFont(wxFontInfo(18)
                                         .Family(wxFONTFAMILY_SWISS)
                                         .Encoding(wxFONTENCODING_CP1251));
+#if wxUSE_UNICODE
                 m_horizontal->AppendText(L"\x0412\x0430\x0434\x0438\x043c \x0426");
+#else
+                m_horizontal->AppendText("\313\301\326\305\324\323\321 \325\304\301\336\316\331\315");
+#endif
         }
     }
     else
@@ -1304,7 +1311,7 @@ wxTextCtrl *MyPanel::GetFocusedText() const
 {
     wxWindow *win = FindFocus();
 
-    wxTextCtrl *text = win ? wxDynamicCast(win, wxTextCtrl) : nullptr;
+    wxTextCtrl *text = win ? wxDynamicCast(win, wxTextCtrl) : NULL;
     return text ? text : m_multitext;
 }
 
@@ -1431,7 +1438,6 @@ void MyPanel::DoMoveToEndOfText()
 
 void MyPanel::DoGetWindowCoordinates()
 {
-#if wxUSE_LOG
     wxTextCtrl * const text = GetFocusedText();
 
     const wxPoint pt0 = text->PositionToCoords(0);
@@ -1440,7 +1446,6 @@ void MyPanel::DoGetWindowCoordinates()
               "(" << ptCur.x << ", "  << ptCur.y << "), "
               "first position coordinates: "
               "(" << pt0.x << ", "  << pt0.y << ")\n";
-#endif // wxUSE_LOG
 }
 
 void MyPanel::DoMoveToEndOfEntry()
@@ -1526,7 +1531,7 @@ wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
 wxEND_EVENT_TABLE()
 
 MyFrame::MyFrame(const wxString& title, int x, int y)
-       : wxFrame(nullptr, wxID_ANY, title, wxPoint(x, y))
+       : wxFrame(NULL, wxID_ANY, title, wxPoint(x, y))
 {
     SetIcon(wxICON(sample));
 
@@ -1665,7 +1670,7 @@ void MyFrame::OnRichTextTest(wxCommandEvent& WXUNUSED(event))
 void MyFrame::OnIdle( wxIdleEvent& event )
 {
     // track the window which has the focus in the status bar
-    static wxWindow *s_windowFocus = nullptr;
+    static wxWindow *s_windowFocus = (wxWindow *)NULL;
     wxWindow *focus = wxWindow::FindFocus();
     if ( focus && (focus != s_windowFocus) )
     {

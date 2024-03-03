@@ -17,8 +17,8 @@
 class wxUIActionSimulatorImpl
 {
 public:
-    wxUIActionSimulatorImpl() = default;
-    virtual ~wxUIActionSimulatorImpl() = default;
+    wxUIActionSimulatorImpl() { }
+    virtual ~wxUIActionSimulatorImpl() { }
 
     // Low level mouse methods which must be implemented in the derived class.
     virtual bool MouseMove(long x, long y) = 0;

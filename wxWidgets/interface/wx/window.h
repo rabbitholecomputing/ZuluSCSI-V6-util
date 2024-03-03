@@ -209,8 +209,8 @@ enum wxWindowVariant
     @style{wxBORDER_DOUBLE}
            This style is obsolete and should not be used.
     @style{wxTRANSPARENT_WINDOW}
-           This style is obsolete and doesn't do anything. See
-           wxWindow::SetTransparent().
+           The window is transparent, that is, it will not receive paint
+           events. Windows only.
     @style{wxTAB_TRAVERSAL}
            This style is used by wxWidgets for the windows supporting TAB
            navigation among their children, such as wxDialog and wxPanel. It
@@ -593,30 +593,6 @@ public:
     virtual void AddChild(wxWindow* child);
 
     /**
-        Invoke the given functor for all children of the given window
-        recursively.
-
-        This function calls @a functor for the window itself and then for all
-        of its children, recursively.
-
-        Example of using it for implementing a not very smart translation
-        function:
-        @code
-        void MyFrame::OnTranslate(wxCommandEvent&) {
-            CallForEachChild([](wxWindow* win) {
-                wxString rest;
-                if ( win->GetLabel().StartsWith("Hello ", &rest) )
-                    win->SetLabel("Bonjour " + rest);
-            });
-        }
-        @endcode
-
-        @since 3.3.0
-     */
-    template <typename T>
-    void CallForEachChild(const T& functor);
-
-    /**
         Destroys all children of a window. Called automatically by the destructor.
     */
     bool DestroyChildren();
@@ -859,7 +835,7 @@ public:
                  function directly.
     */
     virtual void ScrollWindow(int dx, int dy,
-                              const wxRect* rect = nullptr);
+                              const wxRect* rect = NULL);
 
     /**
         Same as #ScrollLines (-1).
@@ -1142,7 +1118,7 @@ public:
         Using these methods is discouraged as passing @NULL will prevent your
         application from correctly supporting monitors with different
         resolutions even in the future wxWidgets versions which will add
-        support for them, and passing non-null window is just a less
+        support for them, and passing non-@NULL window is just a less
         convenient way of calling the non-static FromDIP() method.
 
         @since 3.1.0
@@ -1209,7 +1185,7 @@ public:
     Using these methods is discouraged as passing @NULL will prevent your
     application from correctly supporting monitors with different
     resolutions even in the future wxWidgets versions which will add
-    support for them, and passing non-null window is just a less
+    support for them, and passing non-@NULL window is just a less
     convenient way of calling the non-static ToDIP() method.
 
     @since 3.1.0
@@ -1917,9 +1893,9 @@ public:
         for the child windows or relative to the display origin for the top level windows.
 
         @param x
-            Receives the x position of the window if non-null.
+            Receives the x position of the window if non-@NULL.
         @param y
-            Receives the y position of the window if non-null.
+            Receives the y position of the window if non-@NULL.
 
         @beginWxPerlOnly
         In wxPerl this method is implemented as GetPositionXY() returning
@@ -1950,9 +1926,9 @@ public:
         child window or a top level one.
 
         @param x
-            Receives the x position of the window on the screen if non-null.
+            Receives the x position of the window on the screen if non-@NULL.
         @param y
-            Receives the y position of the window on the screen if non-null.
+            Receives the y position of the window on the screen if non-@NULL.
 
         @see GetPosition()
     */
@@ -2288,9 +2264,9 @@ public:
     */
     void GetTextExtent(const wxString& string,
                        int* w, int* h,
-                       int* descent = nullptr,
-                       int* externalLeading = nullptr,
-                       const wxFont* font = nullptr) const;
+                       int* descent = NULL,
+                       int* externalLeading = NULL,
+                       const wxFont* font = NULL) const;
 
     /**
         Gets the dimensions of the string as it would be drawn on the
@@ -2331,12 +2307,12 @@ public:
             If @true, the background will be erased too. Note that in non-MSW
             ports background is always erased.
         @param rect
-            If non-null, only the given rectangle will be treated as damaged.
+            If non-@NULL, only the given rectangle will be treated as damaged.
 
         @see RefreshRect()
     */
     virtual void Refresh(bool eraseBackground = true,
-                         const wxRect* rect = nullptr);
+                         const wxRect* rect = NULL);
 
     /**
         Redraws the contents of the given rectangle: only the area inside it will be
@@ -2420,12 +2396,12 @@ public:
         problem.
 
 
-        Under wxGTK, wxOSX and wxMSW, you can use ::wxBG_STYLE_TRANSPARENT to obtain
+        Under wxGTK and wxOSX, you can use ::wxBG_STYLE_TRANSPARENT to obtain
         full transparency of the window background. Note that wxGTK supports
         this only since GTK 2.12 with a compositing manager enabled, call
         IsTransparentBackgroundSupported() to check whether this is the case,
         see the example of doing it in @ref page_samples_shaped "the shaped
-        sample". Under wxMSW this is supported since 3.3.0.
+        sample".
 
         Also, in order for @c SetBackgroundStyle(wxBG_STYLE_TRANSPARENT) to
         work, it must be called before Create(). If you're using your own
@@ -2470,7 +2446,7 @@ public:
 
         @since 2.9.4
     */
-    virtual bool IsTransparentBackgroundSupported(wxString *reason = nullptr) const;
+    virtual bool IsTransparentBackgroundSupported(wxString *reason = NULL) const;
 
     /**
         Sets the font for this window. This function should not be called for the
@@ -2750,7 +2726,7 @@ public:
         See wxEvtHandler::Unlink() for more info.
 
         @param handler
-            The event handler to remove, must be non-null and
+            The event handler to remove, must be non-@NULL and
             must be present in this windows event handlers stack.
 
         @return Returns @true if it was found and @false otherwise (this also
@@ -3462,17 +3438,6 @@ public:
     */
     void SetAccessible(wxAccessible* accessible);
 
-    /**
-        Override to create a specific accessible object.
-    */
-    virtual wxAccessible* CreateAccessible();
-
-    /**
-        Returns the accessible object, calling CreateAccessible if necessary.
-        May return @NULL, in which case system-provide accessible is used.
-    */
-    wxAccessible* GetOrCreateAccessible();
-
     ///@}
 
 
@@ -3607,7 +3572,7 @@ public:
         window, it will be deleted if the @a deleteOld parameter is @true.
 
         Note that this function will also call SetAutoLayout() implicitly with @true
-        parameter if the @a sizer is non-null and @false otherwise so that the
+        parameter if the @a sizer is non-@NULL and @false otherwise so that the
         sizer will be effectively used to layout the window children whenever
         it is resized.
 
@@ -3784,9 +3749,6 @@ public:
               applications (and probably avoid using it under the other
               platforms without good reason as well).
 
-        @note This function does nothing when using wxGTK with Wayland because
-              Wayland intentionally doesn't provide the required functionality.
-
         @param x
             The new x position for the cursor.
         @param y
@@ -3881,7 +3843,7 @@ public:
     /**
         Returns the platform-specific handle of the physical window.
         Cast it to an appropriate handle, such as @b HWND for Windows,
-        or @b GtkWidget for GTK.
+        @b Widget for Motif or @b GtkWidget for GTK.
 
         @beginWxPerlOnly
         This method will return an integer in wxPerl.
@@ -4119,7 +4081,7 @@ public:
         Find the first window with the given @e id.
 
         If @a parent is @NULL, the search will start from all top-level frames
-        and dialog boxes; if non-null, the search will be limited to the given
+        and dialog boxes; if non-@NULL, the search will be limited to the given
         window hierarchy.
         The search is recursive in both cases.
 
@@ -4134,7 +4096,7 @@ public:
 
         Depending on the type of window, the label may be a window title
         or panel item label. If @a parent is @NULL, the search will start from all
-        top-level frames and dialog boxes; if non-null, the search will be
+        top-level frames and dialog boxes; if non-@NULL, the search will be
         limited to the given window hierarchy.
 
         The search is recursive in both cases and, unlike with FindWindow(),
@@ -4152,7 +4114,7 @@ public:
         function call).
 
         If @a parent is @NULL, the search will start from all top-level frames
-        and dialog boxes; if non-null, the search will be limited to the given
+        and dialog boxes; if non-@NULL, the search will be limited to the given
         window hierarchy.
 
         The search is recursive in both cases and, unlike FindWindow(),
@@ -4211,39 +4173,6 @@ public:
     ///@}
 
 
-    /**
-        Disable the use native double buffering in wxMSW.
-
-        This MSW-specific function can be used to disable the use of
-        `WS_EX_COMPOSITED` for this window and all of its parents and so allow
-        using wxClientDC with it.
-
-        `WS_EX_COMPOSITED` style is turned on by default when creating the
-        windows and it is strongly recommended @e not to use this functions to
-        remove it, but to instead change the drawing code to avoid using
-        wxClientDC.
-
-        If you do need to use it, please note that this function doesn't exist
-        in the other ports and has to be explicitly bracketed by the checks for
-        wxMSW, e.g.
-        @code
-        MyFrame::MyFrame(...)
-        {
-            auto p = new wxPanel(this);
-        #ifdef __WXMSW__
-            p->MSWDisableComposited();
-        #endif
-
-            // Using wxClientDC will work now with this panel in wxMSW --
-            // although it still won't with wxOSX nor wxGTK under Wayland.
-        }
-        @endcode
-
-        @see wxClientDC
-
-        @since 3.3.0
-     */
-    void MSWDisableComposited();
 
 protected:
 

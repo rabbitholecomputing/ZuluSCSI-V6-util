@@ -29,7 +29,7 @@ public:
     }
 
 protected:
-    virtual ~wxRefCounterMT() = default;
+    virtual ~wxRefCounterMT() { }
 
 private:
     // Ref count is atomic to allow IncRef() and DecRef() to be concurrently

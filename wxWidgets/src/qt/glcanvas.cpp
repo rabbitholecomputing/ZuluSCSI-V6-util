@@ -16,26 +16,42 @@
 #include <QtWidgets/QGestureRecognizer>
 #include <QtWidgets/QGestureEvent>
 
+#if defined(__VISUALC__)
+    #pragma message("OpenGL support is not implemented in wxQt")
+#else
+    #warning "OpenGL support is not implemented in wxQt"
+#endif
 wxGCC_WARNING_SUPPRESS(unused-parameter)
 
 class wxQtGLWidget : public wxQtEventSignalHandler< QGLWidget, wxGLCanvas >
 {
 public:
     wxQtGLWidget(wxWindow *parent, wxGLCanvas *handler, QGLFormat format)
-        : wxQtEventSignalHandler<QGLWidget, wxGLCanvas>(parent, handler)
-    {
-        setFormat(format);
-        setAutoBufferSwap(false);
-        setFocusPolicy(Qt::StrongFocus);
-    }
+        : wxQtEventSignalHandler<QGLWidget,wxGLCanvas>(parent, handler)
+        {
+            setFormat(format);
+            setAutoBufferSwap( false );
+        }
 
 protected:
-    virtual void resizeEvent ( QResizeEvent * event ) override;
-    virtual void paintEvent ( QPaintEvent * event ) override;
+    virtual void showEvent ( QShowEvent * event ) wxOVERRIDE;
+    virtual void hideEvent ( QHideEvent * event ) wxOVERRIDE;
+    virtual void resizeEvent ( QResizeEvent * event ) wxOVERRIDE;
+    virtual void paintEvent ( QPaintEvent * event ) wxOVERRIDE;
 
-    virtual void resizeGL(int w, int h) override;
-    virtual void paintGL() override;
+    virtual void resizeGL(int w, int h) wxOVERRIDE;
+    virtual void paintGL() wxOVERRIDE;
 };
+
+void wxQtGLWidget::showEvent ( QShowEvent * event )
+{
+    QGLWidget::showEvent( event );
+}
+
+void wxQtGLWidget::hideEvent ( QHideEvent * event )
+{
+    QGLWidget::hideEvent( event );
+}
 
 void wxQtGLWidget::resizeEvent ( QResizeEvent * event )
 {
@@ -68,7 +84,6 @@ wxGLContextAttrs& wxGLContextAttrs::CoreProfile()
 {
 //    AddAttribBits(GLX_CONTEXT_PROFILE_MASK_ARB,
 //                  GLX_CONTEXT_CORE_PROFILE_BIT_ARB);
-    AddAttribute(wx_GL_COMPAT_PROFILE);
     SetNeedsARB();
     return *this;
 }
@@ -77,9 +92,6 @@ wxGLContextAttrs& wxGLContextAttrs::MajorVersion(int val)
 {
     if ( val > 0 )
     {
-        AddAttribute(WX_GL_MAJOR_VERSION);
-        AddAttribute(val);
-
         if ( val >= 3 )
             SetNeedsARB();
     }
@@ -90,15 +102,12 @@ wxGLContextAttrs& wxGLContextAttrs::MinorVersion(int val)
 {
     if ( val >= 0 )
     {
-        AddAttribute(WX_GL_MINOR_VERSION);
-        AddAttribute(val);
     }
     return *this;
 }
 
 wxGLContextAttrs& wxGLContextAttrs::CompatibilityProfile()
 {
-    AddAttribute(wx_GL_COMPAT_PROFILE);
     SetNeedsARB();
     return *this;
 }
@@ -159,7 +168,7 @@ wxGLContextAttrs& wxGLContextAttrs::PlatformDefaults()
 
 void wxGLContextAttrs::EndList()
 {
-    AddAttribute(0);
+//    AddAttribute(None);
 }
 
 // ----------------------------------------------------------------------------
@@ -181,7 +190,6 @@ void wxGLContextAttrs::EndList()
 
 wxGLAttributes& wxGLAttributes::RGBA()
 {
-    AddAttribute(WX_GL_RGBA);
     return *this;
 }
 
@@ -189,28 +197,24 @@ wxGLAttributes& wxGLAttributes::BufferSize(int val)
 {
     if ( val >= 0 )
     {
-        AddAttribute(WX_GL_BUFFER_SIZE);
-        AddAttribute(val);
     }
     return *this;
 }
 
 wxGLAttributes& wxGLAttributes::Level(int val)
 {
-    AddAttribute(WX_GL_LEVEL);
+//    AddAttribute(GLX_LEVEL);
     AddAttribute(val);
     return *this;
 }
 
 wxGLAttributes& wxGLAttributes::DoubleBuffer()
 {
-    AddAttribute(WX_GL_DOUBLEBUFFER);
     return *this;
 }
 
 wxGLAttributes& wxGLAttributes::Stereo()
 {
-    AddAttribute(WX_GL_STEREO);
     return *this;
 }
 
@@ -218,8 +222,6 @@ wxGLAttributes& wxGLAttributes::AuxBuffers(int val)
 {
     if ( val >= 0 )
     {
-        AddAttribute(WX_GL_AUX_BUFFERS);
-        AddAttribute(val);
     }
     return *this;
 }
@@ -228,23 +230,15 @@ wxGLAttributes& wxGLAttributes::MinRGBA(int mRed, int mGreen, int mBlue, int mAl
 {
     if ( mRed >= 0)
     {
-        AddAttribute(WX_GL_MIN_RED);
-        AddAttribute(mRed);
     }
     if ( mGreen >= 0)
     {
-        AddAttribute(WX_GL_MIN_GREEN);
-        AddAttribute(mGreen);
     }
     if ( mBlue >= 0)
     {
-        AddAttribute(WX_GL_MIN_BLUE);
-        AddAttribute(mBlue);
     }
     if ( mAlpha >= 0)
     {
-        AddAttribute(WX_GL_MIN_ALPHA);
-        AddAttribute(mAlpha);
     }
     return *this;
 }
@@ -253,8 +247,6 @@ wxGLAttributes& wxGLAttributes::Depth(int val)
 {
     if ( val >= 0 )
     {
-        AddAttribute(WX_GL_DEPTH_SIZE);
-        AddAttribute(val);
     }
     return *this;
 }
@@ -263,8 +255,6 @@ wxGLAttributes& wxGLAttributes::Stencil(int val)
 {
     if ( val >= 0 )
     {
-        AddAttribute(WX_GL_DEPTH_SIZE);
-        AddAttribute(val);
     }
     return *this;
 }
@@ -273,44 +263,40 @@ wxGLAttributes& wxGLAttributes::MinAcumRGBA(int mRed, int mGreen, int mBlue, int
 {
     if ( mRed >= 0)
     {
-        AddAttribute(WX_GL_MIN_ACCUM_RED);
-        AddAttribute(mRed);
     }
     if ( mGreen >= 0)
     {
-        AddAttribute(WX_GL_MIN_ACCUM_GREEN);
-        AddAttribute(mGreen);
     }
     if ( mBlue >= 0)
     {
-        AddAttribute(WX_GL_MIN_ACCUM_BLUE);
-        AddAttribute(mBlue);
     }
     if ( mAlpha >= 0)
     {
-        AddAttribute(WX_GL_MIN_ACCUM_ALPHA);
-        AddAttribute(mAlpha);
     }
     return *this;
 }
 
 wxGLAttributes& wxGLAttributes::SampleBuffers(int val)
 {
-    if ( val >= 0 )
+#ifdef GLX_SAMPLE_BUFFERS_ARB
+    if ( val >= 0 && wxGLCanvasX11::IsGLXMultiSampleAvailable() )
     {
-        AddAttribute(WX_GL_SAMPLE_BUFFERS);
+        AddAttribute(GLX_SAMPLE_BUFFERS_ARB);
         AddAttribute(val);
     }
+#endif
     return *this;
 }
 
 wxGLAttributes& wxGLAttributes::Samplers(int val)
 {
-    if ( val >= 0 )
+#ifdef GLX_SAMPLES_ARB
+    if ( val >= 0 && wxGLCanvasX11::IsGLXMultiSampleAvailable() )
     {
-        AddAttribute(WX_GL_SAMPLES);
+        AddAttribute(GLX_SAMPLES_ARB);
         AddAttribute(val);
     }
+#endif
     return *this;
 }
 
@@ -323,15 +309,28 @@ wxGLAttributes& wxGLAttributes::FrameBuffersRGB()
 
 void wxGLAttributes::EndList()
 {
-    AddAttribute(0);
 }
 
 wxGLAttributes& wxGLAttributes::PlatformDefaults()
 {
-    // No Qt specific values
+    // No GLX specific values
     return *this;
 }
 
+wxGLAttributes& wxGLAttributes::Defaults()
+{
+    RGBA().DoubleBuffer();
+//    if ( wxGLCanvasX11::GetGLXVersion() < 13 )
+//        Depth(1).MinRGBA(1, 1, 1, 0);
+//    else
+        Depth(16).SampleBuffers(1).Samplers(4);
+    return *this;
+}
+
+void wxGLAttributes::AddDefaultsForWXBefore31()
+{
+    Defaults();
+}
 
 //---------------------------------------------------------------------------
 // wxGlContext
@@ -339,33 +338,15 @@ wxGLAttributes& wxGLAttributes::PlatformDefaults()
 
 wxIMPLEMENT_CLASS(wxGLContext, wxWindow);
 
-wxGLContext::wxGLContext(wxGLCanvas *win,
-                         const wxGLContext *other,
-                         const wxGLContextAttrs *ctxAttrs)
+wxGLContext::wxGLContext(wxGLCanvas *WXUNUSED(win), const wxGLContext* WXUNUSED(other), const wxGLContextAttrs *WXUNUSED(ctxAttrs))
 {
-    QGLWidget *qglWidget = static_cast<QGLWidget *>(win->GetHandle());
-    m_glContext = qglWidget->context();
-
-    if (m_glContext != nullptr)
-    {
-        m_isOk = true;
-    }
 }
 
-bool wxGLContext::SetCurrent(const wxGLCanvas& win) const
+bool wxGLContext::SetCurrent(const wxGLCanvas&) const
 {
-    QGLWidget *qglWidget = static_cast<QGLWidget *>(win.GetHandle());
-    QGLContext *context = qglWidget->context();
-
-    if (context != m_glContext)
-    {
-        // I think I must destroy and recreate the QGLWidget to change the context?
-        wxLogDebug("Calling wxGLContext::SetCurrent with a different canvas is not supported in wxQt");
-        return false;
-    }
-
-    qglWidget->makeCurrent();
-    return true;
+// I think I must destroy and recreate the QGLWidget to change the context?
+//    win->GetHandle()->makeCurrent();
+    return false;
 }
 
 //---------------------------------------------------------------------------
@@ -436,11 +417,8 @@ bool wxGLCanvas::Create(wxWindow *parent,
                         const wxString& name,
                         const wxPalette& palette)
 {
-    const int* attrsList = dispAttrs.GetGLAttrs();
-
-    wxCHECK_MSG(attrsList, false, "wxGLAttributes object is empty.");
-
-    return Create(parent, id, pos, size, style, name, attrsList, palette);
+    wxLogError("Missing implementation of " + wxString(__FUNCTION__));
+    return false;
 }
 
 bool wxGLCanvas::Create(wxWindow *parent,
@@ -457,22 +435,9 @@ bool wxGLCanvas::Create(wxWindow *parent,
 #endif // wxUSE_PALETTE
     wxUnusedVar(palette); // Unused when wxDEBUG_LEVEL==0
 
-    // Separate display/context attributes, set defaults.
-    wxGLAttributes dispAttrs;
-    wxGLContextAttrs ctxAttrs;
-    if (!ParseAttribList(attribList, dispAttrs, &ctxAttrs))
-        return false;
-
     QGLFormat format;
-    if (!wxGLCanvas::ConvertWXAttrsToQtGL(dispAttrs, ctxAttrs, format))
+    if (!wxGLCanvas::ConvertWXAttrsToQtGL(attribList, format))
         return false;
-
-    // Return false if any attribute is unsupported
-    if ( !IsDisplaySupported(attribList) )
-    {
-        wxFAIL_MSG("Can't find a pixel format for the requested attributes");
-        return false;
-    }
 
     m_qtWindow = new wxQtGLWidget(parent, this, format);
 
@@ -480,12 +445,7 @@ bool wxGLCanvas::Create(wxWindow *parent,
     QGestureRecognizer* pPanRecognizer = new PanGestureRecognizer();
     QGestureRecognizer::registerRecognizer(pPanRecognizer);
 
-    if ( !wxWindow::Create( parent, id, pos, size, style, name ) )
-        return false;
-
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
-
-    return true;
+    return wxWindow::Create( parent, id, pos, size, style, name );
 }
 
 bool wxGLCanvas::SwapBuffers()
@@ -494,16 +454,11 @@ bool wxGLCanvas::SwapBuffers()
     return true;
 }
 
-bool wxGLCanvas::QtCanPaintWithoutActivePainter() const
-{
-    return true;
-}
-
 /* static */
-bool wxGLCanvas::ConvertWXAttrsToQtGL(const wxGLAttributes &wxGLAttrs, const wxGLContextAttrs wxCtxAttrs, QGLFormat &format)
+bool wxGLCanvas::ConvertWXAttrsToQtGL(const int *wxattrs, QGLFormat &format)
 {
-    const int *glattrs = wxGLAttrs.GetGLAttrs();
-    const int *ctxattrs = wxCtxAttrs.GetGLAttrs();
+    if (!wxattrs)
+        return true;
 
     // set default parameters to false
     format.setDoubleBuffer(false);
@@ -511,16 +466,14 @@ bool wxGLCanvas::ConvertWXAttrsToQtGL(const wxGLAttributes &wxGLAttrs, const wxG
     format.setAlpha(false);
     format.setStencil(false);
 
-    for (int arg = 0; glattrs && glattrs[arg] != 0; arg++)
+    for ( int arg = 0; wxattrs[arg] != 0; arg++ )
     {
         // indicates whether we have a boolean attribute
         bool isBoolAttr = false;
 
-        int v = glattrs[arg+1];
-        switch ( glattrs[arg] )
+        int v = wxattrs[arg+1];
+        switch ( wxattrs[arg] )
         {
-            // Pixel format attributes
-
             case WX_GL_BUFFER_SIZE:
                 format.setRgba(false);
                 // I do not know how to set the buffer size, so fail
@@ -550,7 +503,7 @@ bool wxGLCanvas::ConvertWXAttrsToQtGL(const wxGLAttributes &wxGLAttrs, const wxG
                 return false;
 
             case WX_GL_MIN_RED:
-                format.setRedBufferSize(v);
+                format.setRedBufferSize(v*8);
                 break;
 
             case WX_GL_MIN_GREEN:
@@ -593,54 +546,17 @@ bool wxGLCanvas::ConvertWXAttrsToQtGL(const wxGLAttributes &wxGLAttrs, const wxG
                 // can we somehow indicate if it's not supported?
                 break;
 
-            default:
-                wxLogDebug(wxT("Unsupported OpenGL attribute %d"),
-                           glattrs[arg]);
-                continue;
-        }
-
-        if ( !isBoolAttr )
-        {
-            if ( !v )
-                return false; // zero parameter
-            arg++;
-        }
-    }
-
-    for (int arg = 0; ctxattrs && ctxattrs[arg] != 0; arg++)
-    {
-        // indicates whether we have a boolean attribute
-        bool isBoolAttr = false;
-
-        int v = ctxattrs[arg+1];
-        switch ( ctxattrs[arg] )
-        {
-            // Context attributes
-
             case WX_GL_MAJOR_VERSION:
-                format.setVersion ( v, format.minorVersion() );
-                break;
-
-            case WX_GL_MINOR_VERSION:
-                format.setVersion ( format.majorVersion(), v );
-                break;
-
-            case WX_GL_CORE_PROFILE:
-                format.setProfile(QGLFormat::CoreProfile);
-                break;
-
-            case wx_GL_COMPAT_PROFILE:
-                format.setProfile(QGLFormat::CompatibilityProfile);
-                break;
+                 format.setVersion ( v,0 );
+                 break;
 
             default:
                 wxLogDebug(wxT("Unsupported OpenGL attribute %d"),
-                           ctxattrs[arg]);
+                           wxattrs[arg]);
                 continue;
         }
 
-        if ( !isBoolAttr )
-        {
+        if ( !isBoolAttr ) {
             if ( !v )
                 return false; // zero parameter
             arg++;
@@ -651,29 +567,23 @@ bool wxGLCanvas::ConvertWXAttrsToQtGL(const wxGLAttributes &wxGLAttrs, const wxG
 }
 
 /* static */
-bool wxGLCanvasBase::IsDisplaySupported(const wxGLAttributes& dispAttrs)
+bool
+wxGLCanvasBase::IsDisplaySupported(const int *attribList)
 {
-    const int* attrsList = dispAttrs.GetGLAttrs();
-
-    wxCHECK_MSG(attrsList, false, "wxGLAttributes object is empty.");
-
-    return IsDisplaySupported(attrsList);
-}
-
-/* static */
-bool wxGLCanvasBase::IsDisplaySupported(const int *attribList)
-{
-    // Separate display/context attributes, set defaults.
-    wxGLAttributes dispAttrs;
-    wxGLContextAttrs ctxAttrs;
-    if (!ParseAttribList(attribList, dispAttrs, &ctxAttrs))
-        return false;
-
     QGLFormat format;
-    if (!wxGLCanvas::ConvertWXAttrsToQtGL(dispAttrs, ctxAttrs, format))
+
+    if (!wxGLCanvas::ConvertWXAttrsToQtGL(attribList, format))
         return false;
 
     return QGLWidget(format).isValid();
+}
+
+/* static */
+bool
+wxGLCanvasBase::IsDisplaySupported(const wxGLAttributes& dispAttrs)
+{
+    wxLogError("Missing implementation of " + wxString(__FUNCTION__));
+    return false;
 }
 
 // ----------------------------------------------------------------------------

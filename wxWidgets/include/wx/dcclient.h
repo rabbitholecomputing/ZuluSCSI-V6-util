@@ -36,8 +36,6 @@ class WXDLLIMPEXP_CORE wxClientDC : public wxWindowDC
 public:
     wxClientDC(wxWindow *win);
 
-    static bool CanBeUsedForDrawing(const wxWindow* window);
-
 protected:
     wxClientDC(wxDCImpl *impl) : wxWindowDC(impl) { }
 

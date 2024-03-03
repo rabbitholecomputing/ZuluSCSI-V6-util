@@ -8,7 +8,9 @@
 #ifndef CASEFOLDER_H
 #define CASEFOLDER_H
 
+#ifdef SCI_NAMESPACE
 namespace Scintilla {
+#endif
 
 class CaseFolder {
 public:
@@ -20,11 +22,11 @@ class CaseFolderTable : public CaseFolder {
 protected:
 	char mapping[256];
 public:
-	CaseFolderTable() noexcept;
-	~CaseFolderTable() override;
-	size_t Fold(char *folded, size_t sizeFolded, const char *mixed, size_t lenMixed) override;
-	void SetTranslation(char ch, char chTranslation) noexcept;
-	void StandardASCII() noexcept;
+	CaseFolderTable();
+	virtual ~CaseFolderTable();
+	virtual size_t Fold(char *folded, size_t sizeFolded, const char *mixed, size_t lenMixed);
+	void SetTranslation(char ch, char chTranslation);
+	void StandardASCII();
 };
 
 class ICaseConverter;
@@ -33,9 +35,11 @@ class CaseFolderUnicode : public CaseFolderTable {
 	ICaseConverter *converter;
 public:
 	CaseFolderUnicode();
-	size_t Fold(char *folded, size_t sizeFolded, const char *mixed, size_t lenMixed) override;
+	virtual size_t Fold(char *folded, size_t sizeFolded, const char *mixed, size_t lenMixed);
 };
 
+#ifdef SCI_NAMESPACE
 }
+#endif
 
 #endif

@@ -2,6 +2,7 @@
 // Name:        src/gtk/artgtk.cpp
 // Purpose:     stock wxArtProvider instance with native GTK+ stock icons
 // Author:      Vaclav Slavik
+// Modified by:
 // Created:     2004-08-22
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
@@ -31,9 +32,9 @@ class wxGTK2ArtProvider : public wxArtProvider
 {
 protected:
     virtual wxBitmap CreateBitmap(const wxArtID& id, const wxArtClient& client,
-                                  const wxSize& size) override;
+                                  const wxSize& size) wxOVERRIDE;
     virtual wxIconBundle CreateIconBundle(const wxArtID& id,
-                                          const wxArtClient& client) override;
+                                          const wxArtClient& client) wxOVERRIDE;
 };
 
 /*static*/ void wxArtProvider::InitNativeProvider()
@@ -220,7 +221,7 @@ GdkPixbuf *CreateStockIcon(const char *stockid, GtkIconSize size)
     wxGCC_WARNING_SUPPRESS(deprecated-declarations)
     GtkStyleContext* sc = gtk_widget_get_style_context(widget);
     GtkIconSet* iconset = gtk_style_context_lookup_icon_set(sc, stockid);
-    GdkPixbuf* pixbuf = nullptr;
+    GdkPixbuf* pixbuf = NULL;
     if (iconset)
         pixbuf = gtk_icon_set_render_icon_pixbuf(iconset, sc, size);
     return pixbuf;
@@ -230,11 +231,11 @@ GdkPixbuf *CreateStockIcon(const char *stockid, GtkIconSize size)
     GtkIconSet* iconset = gtk_style_lookup_icon_set(style, stockid);
 
     if (!iconset)
-        return nullptr;
+        return NULL;
 
     return gtk_icon_set_render_icon(iconset, style,
                                     gtk_widget_get_default_direction(),
-                                    GTK_STATE_NORMAL, size, nullptr, nullptr);
+                                    GTK_STATE_NORMAL, size, NULL, NULL);
 #endif
 }
 #endif // !__WXGTK4__
@@ -247,7 +248,7 @@ GdkPixbuf *CreateThemeIcon(const char *iconname, int size)
                iconname,
                size,
                (GtkIconLookupFlags)0,
-               nullptr
+               NULL
            );
 }
 

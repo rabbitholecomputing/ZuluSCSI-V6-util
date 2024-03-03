@@ -2,6 +2,7 @@
 // Name:        src/x11/utils.cpp
 // Purpose:     Various utilities
 // Author:      Julian Smart
+// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart
 //              (c) 2013 Rob Bresalier
@@ -150,8 +151,8 @@ wxWindow* wxFindWindowAtPoint(const wxPoint& pt)
 }
 
 
-// Configurable display in wxX11
-static Display *gs_currentDisplay = nullptr;
+// Configurable display in wxX11 and wxMotif
+static Display *gs_currentDisplay = NULL;
 static wxString gs_displayName;
 
 WXDisplay *wxGetDisplay()
@@ -170,7 +171,7 @@ void wxCloseDisplay()
                          gs_displayName);
         }
 
-        gs_currentDisplay = nullptr;
+        gs_currentDisplay = NULL;
         gs_displayName.clear();
     }
 }
@@ -179,7 +180,7 @@ bool wxSetDisplay(const wxString& displayName)
 {
     Display *dpy = XOpenDisplay
                    (
-                    displayName.empty() ? nullptr
+                    displayName.empty() ? NULL
                                         : (const char *)displayName.mb_str()
                    );
 
@@ -369,7 +370,7 @@ public:
     {
         wxFAIL_MSG("Monitoring FDs in the main loop is not implemented in wxX11");
 
-        return nullptr;
+        return NULL;
     }
 };
 

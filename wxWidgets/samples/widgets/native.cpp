@@ -95,7 +95,7 @@ public:
                         TEXT("Press me to do it"),
                         WS_CHILD | WS_VISIBLE | BS_SPLITBUTTON,
                         0, 0, size.x, size.y,
-                        (HWND)parent->GetHWND(), 0, nullptr, nullptr
+                        (HWND)parent->GetHWND(), 0, NULL, NULL
                       );
         if ( !hwnd )
         {
@@ -122,7 +122,7 @@ protected:
     // shows how to handle a native event in MSW (for the specific case of
     // WM_NOTIFY, more generally MSWHandleMessage() could be overridden).
     virtual bool
-    MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result) override
+    MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result) wxOVERRIDE
     {
         const NMHDR* hdr = reinterpret_cast<NMHDR*>(lParam);
         if ( hdr->code != BCN_DROPDOWN )
@@ -170,9 +170,7 @@ public:
         );
 #endif // GTK+ 3.6/earlier
 
-        wxGCC_WARNING_SUPPRESS(ignored-qualifiers)
         g_object_ref_sink(widget);
-        wxGCC_WARNING_RESTORE(ignored-qualifiers)
 
         (void)Create(parent, wxID_ANY, widget);
     }
@@ -252,11 +250,11 @@ class NativeWidgetsPage : public WidgetsPage
 public:
     NativeWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist);
 
-    virtual wxWindow *GetWidget() const override { return m_nativeWindow; }
-    virtual void RecreateWidget() override;
+    virtual wxWindow *GetWidget() const wxOVERRIDE { return m_nativeWindow; }
+    virtual void RecreateWidget() wxOVERRIDE;
 
     // lazy creation of the content
-    virtual void CreateContent() override;
+    virtual void CreateContent() wxOVERRIDE;
 
 private:
     void OnCheckExpand(wxCommandEvent& event);
@@ -278,7 +276,7 @@ IMPLEMENT_WIDGETS_PAGE(NativeWidgetsPage, "Native", NATIVE_CTRLS);
 NativeWidgetsPage::NativeWidgetsPage(WidgetsBookCtrl *book, wxImageList *imaglist)
                  : WidgetsPage(book, imaglist, native_xpm)
 {
-    m_nativeWindow = nullptr;
+    m_nativeWindow = NULL;
 }
 
 void NativeWidgetsPage::CreateContent()
@@ -307,8 +305,6 @@ void NativeWidgetsPage::RecreateWidget()
 {
     delete m_nativeWindow;
     m_nativeWindow = new NativeWindow(this);
-
-    NotifyWidgetRecreation(m_nativeWindow);
 
     m_sizerCtrl->Clear();
     if ( m_chkExpand->IsChecked() )

@@ -2,6 +2,7 @@
 // Name:        src/msw/stdpaths.cpp
 // Purpose:     wxStandardPaths implementation for Win32
 // Author:      Vadim Zeitlin
+// Modified by:
 // Created:     2004-10-19
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -66,7 +67,7 @@ struct ShellFunctions
 {
     ShellFunctions()
     {
-        pSHGetKnownFolderPath = nullptr;
+        pSHGetKnownFolderPath = NULL;
         initialized = false;
     }
 
@@ -86,6 +87,8 @@ ShellFunctions gs_shellFuncs;
 
 void ResolveShellFunctions()
 {
+#if wxUSE_DYNLIB_CLASS
+
     // start with the newest functions, fall back to the oldest ones
     // first check for SHGetFolderPath (shell32.dll 5.0)
     wxString shellDllName(wxT("shell32"));
@@ -107,6 +110,7 @@ void ResolveShellFunctions()
     // because we also link to it statically, so it's ok
 
     gs_shellFuncs.initialized = true;
+#endif
 }
 
 } // anonymous namespace
@@ -127,21 +131,27 @@ wxString wxStandardPaths::DoGetDirectory(int csidl)
 
     hr = ::SHGetFolderPath
             (
-            nullptr,               // parent window, not used
+            NULL,               // parent window, not used
             csidl,
-            nullptr,               // access token (current user)
+            NULL,               // access token (current user)
             SHGFP_TYPE_CURRENT, // current path, not just default value
             wxStringBuffer(dir, MAX_PATH)
             );
 
+    // somewhat incredibly, the error code in the Unicode version is
+    // different from the one in ASCII version for this function
+#if wxUSE_UNICODE
     if ( hr == E_FAIL )
+#else
+    if ( hr == S_FALSE )
+#endif
     {
         // directory doesn't exist, maybe we can get its default value?
         hr = ::SHGetFolderPath
                 (
-                nullptr,
+                NULL,
                 csidl,
-                nullptr,
+                NULL,
                 SHGFP_TYPE_DEFAULT,
                 wxStringBuffer(dir, MAX_PATH)
                 );
@@ -188,9 +198,6 @@ wxString wxStandardPaths::GetUserDir(Dir userDir) const
     {
         case Dir_Cache:
             csidl = CSIDL_LOCAL_APPDATA;
-            break;
-        case Dir_Config:
-            csidl = CSIDL_APPDATA;
             break;
         case Dir_Desktop:
             csidl = CSIDL_DESKTOPDIRECTORY;
@@ -261,7 +268,6 @@ void wxStandardPaths::IgnoreAppBuildSubDirs()
 #else // __WIN32__
     IgnoreAppSubDir("Win32");
     IgnoreAppSubDir("x86");
-    IgnoreAppSubDir("ARM");
 #endif // __WIN64__/__WIN32__
 
     wxString compilerPrefix;
@@ -346,12 +352,6 @@ wxStandardPaths::MakeConfigFileName(const wxString& basename,
     wxFileName fn(wxEmptyString, basename);
     fn.SetExt(wxT("ini"));
     return fn.GetFullName();
-}
-
-wxString wxStandardPaths::GetSharedLibrariesDir() const
-{
-    wxFileName fn( GetExecutablePath() );
-    return fn.GetPath();
 }
 
 // ============================================================================

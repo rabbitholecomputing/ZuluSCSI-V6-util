@@ -27,7 +27,7 @@ public:
     wxQtPushButton( wxWindow *parent, wxAnyButton *handler);
 
 private:
-    virtual bool event(QEvent* e) override;
+    virtual bool event(QEvent* e) wxOVERRIDE;
     void action(); // press, release
     void clicked(bool);
 };
@@ -78,7 +78,7 @@ bool wxQtPushButton::event(QEvent* e)
 }
 
 wxAnyButton::wxAnyButton() :
-    m_qtPushButton(nullptr)
+    m_qtPushButton(NULL)
 {
 }
 
@@ -101,7 +101,7 @@ void wxAnyButton::QtSetBitmap( const wxBitmapBundle &bitmapBundle )
 
     // load the bitmap and resize the button:
     QPixmap *pixmap = bitmap.GetHandle();
-    if ( pixmap != nullptr )
+    if ( pixmap != NULL )
     {
         m_qtPushButton->setIcon(QIcon(*pixmap));
         m_qtPushButton->setIconSize(pixmap->rect().size());
@@ -112,14 +112,7 @@ void wxAnyButton::QtSetBitmap( const wxBitmapBundle &bitmapBundle )
 
 void wxAnyButton::SetLabel( const wxString &label )
 {
-    wxAnyButtonBase::SetLabel( label );
-
     m_qtPushButton->setText( wxQtConvertString( label ));
-}
-
-wxString wxAnyButton::GetLabel() const
-{
-    return wxQtConvertString( m_qtPushButton->text() );
 }
 
 QWidget *wxAnyButton::GetHandle() const
@@ -160,7 +153,7 @@ wxAnyButton::State wxAnyButton::QtGetCurrentState() const
         return State_Pressed;
     }
 
-    if ( HasCapture() || m_qtPushButton->underMouse() )
+    if ( HasCapture() || m_qtPushButton->hasMouseTracking() || m_qtPushButton->underMouse() )
     {
         return State_Current;
     }

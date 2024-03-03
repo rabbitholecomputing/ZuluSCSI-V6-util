@@ -2,6 +2,7 @@
 // Name:        wx/x11/region.h
 // Purpose:     wxRegion class
 // Author:      Julian Smart
+// Modified by:
 // Created:     17/09/98
 // Copyright:   (c) Julian Smart, Robert Roebling
 // Licence:     wxWindows licence
@@ -19,7 +20,7 @@
 class WXDLLIMPEXP_CORE wxRegion : public wxRegionBase
 {
 public:
-    wxRegion() = default;
+    wxRegion() { }
 
     wxRegion( wxCoord x, wxCoord y, wxCoord w, wxCoord h )
     {

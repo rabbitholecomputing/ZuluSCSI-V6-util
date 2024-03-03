@@ -2,6 +2,7 @@
 // Name:        dragimag.h
 // Purpose:     wxDragImage sample
 // Author:      Julian Smart
+// Modified by:
 // Created:     28/2/2000
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -43,8 +44,8 @@ class MyApp: public wxApp
 {
 public:
     MyApp();
-    virtual bool OnInit() override;
-    virtual int OnExit() override;
+    virtual bool OnInit() wxOVERRIDE;
+    virtual int OnExit() wxOVERRIDE;
 
 //// Operations
 
@@ -180,7 +181,7 @@ public:
     // On some platforms, notably Mac OS X with Core Graphics, we can't blit from
     // a window, so we need to draw the background explicitly.
     virtual bool UpdateBackingFromWindow(wxDC& windowDC, wxMemoryDC& destDC, const wxRect& sourceRect,
-                    const wxRect& destRect) const override;
+                    const wxRect& destRect) const wxOVERRIDE;
 #endif
 
 protected:

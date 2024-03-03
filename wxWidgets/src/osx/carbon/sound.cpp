@@ -20,6 +20,7 @@
 #ifndef WX_PRECOMP
     #include "wx/object.h"
     #include "wx/string.h"
+    #include "wx/intl.h"
     #include "wx/log.h"
     #include "wx/timer.h"
 #endif
@@ -75,7 +76,7 @@ protected:
 };
 
 wxOSXSoundManagerSoundData::wxOSXSoundManagerSoundData(const wxString& fileName) :
-    m_pSndChannel(nullptr)
+    m_pSndChannel(NULL)
 {
     Str255 lpSnd ;
 
@@ -95,7 +96,7 @@ void wxOSXSoundManagerSoundData::DoStop()
     if ( m_pSndChannel )
     {
         SndDisposeChannel(m_pSndChannel, TRUE /* stop immediately, not after playing */);
-        m_pSndChannel = nullptr;
+        m_pSndChannel = NULL;
         wxSound::SoundStopped(this);
     }
 
@@ -116,7 +117,7 @@ bool wxOSXSoundManagerSoundData::Play(unsigned flags)
 
     SndNewChannel(&m_pSndChannel, sampledSynth,
                   initNoInterp
-                  + (data.numChannels == 1 ? initMono : initStereo), nullptr);
+                  + (data.numChannels == 1 ? initMono : initStereo), NULL);
 
     if(SndPlay(m_pSndChannel, (SndListHandle) m_hSnd, flags & wxSOUND_ASYNC ? 1 : 0) != noErr)
         return false;
@@ -201,13 +202,13 @@ protected:
 
 
 wxOSXQuickTimeSoundData::wxOSXQuickTimeSoundData(const wxString& fileName) :
-    m_movie(nullptr), m_soundHandle(nullptr)
+    m_movie(NULL), m_soundHandle(NULL)
 {
     m_sndname = fileName;
 }
 
 wxOSXQuickTimeSoundData::wxOSXQuickTimeSoundData(size_t size, const void* data) :
-    m_movie(nullptr)
+    m_movie(NULL)
 {
     m_soundHandle = NewHandleClear((Size)size);
     BlockMove(data, *m_soundHandle, size);
@@ -276,17 +277,17 @@ bool wxOSXQuickTimeSoundData::Play(unsigned flags)
     {
         OSErr err = noErr ;
 
-        Handle dataRef = nullptr;
+        Handle dataRef = NULL;
         OSType dataRefType;
 
-        err = QTNewDataReferenceFromFullPathCFString(wxCFStringRef(m_sndname),
+        err = QTNewDataReferenceFromFullPathCFString(wxCFStringRef(m_sndname,wxLocale::GetSystemEncoding()),
                                                      (UInt32)kQTNativeDefaultPathStyle, 0, &dataRef, &dataRefType);
 
         wxASSERT(err == noErr);
 
-        if (nullptr != dataRef || err != noErr)
+        if (NULL != dataRef || err != noErr)
         {
-            err = NewMovieFromDataRef( &m_movie, newMovieDontAskUnresolvedDataRefs , nullptr, dataRef, dataRefType );
+            err = NewMovieFromDataRef( &m_movie, newMovieDontAskUnresolvedDataRefs , NULL, dataRef, dataRefType );
             wxASSERT(err == noErr);
             DisposeHandle(dataRef);
         }
@@ -329,7 +330,7 @@ void wxOSXQuickTimeSoundData::DoStop()
     {
         StopMovie(m_movie);
         DisposeMovie(m_movie);
-        m_movie = nullptr;
+        m_movie = NULL;
         wxSound::SoundStopped(this);
         wxExitQT();
     }

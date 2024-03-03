@@ -17,7 +17,7 @@
 class wxMenuRadioItemsData
 {
 public:
-    wxMenuRadioItemsData() = default;
+    wxMenuRadioItemsData() { }
 
     // Default copy ctor, assignment operator and dtor are all ok.
 

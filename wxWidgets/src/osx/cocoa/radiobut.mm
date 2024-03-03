@@ -2,6 +2,7 @@
 // Name:        src/osx/cocoa/radiobut.mm
 // Purpose:     wxRadioButton
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     ??/??/98
 // Copyright:   (c) AUTHOR
 // Licence:     wxWindows licence

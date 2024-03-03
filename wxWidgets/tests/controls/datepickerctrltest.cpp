@@ -27,8 +27,8 @@ class DatePickerCtrlTestCase : public CppUnit::TestCase
 public:
     DatePickerCtrlTestCase() { }
 
-    void setUp() override;
-    void tearDown() override;
+    void setUp() wxOVERRIDE;
+    void tearDown() wxOVERRIDE;
 
 private:
     CPPUNIT_TEST_SUITE( DatePickerCtrlTestCase );
@@ -56,7 +56,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( DatePickerCtrlTestCase, "DatePickerCtrlTe
 void DatePickerCtrlTestCase::setUp()
 {
     m_datepicker = new wxDatePickerCtrl(wxTheApp->GetTopWindow(), wxID_ANY);
-    m_button = nullptr;
+    m_button = NULL;
 }
 
 void DatePickerCtrlTestCase::tearDown()

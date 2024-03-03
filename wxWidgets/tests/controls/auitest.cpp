@@ -21,12 +21,9 @@
 
 #include "wx/panel.h"
 
-#include "wx/aui/auibar.h"
 #include "wx/aui/auibook.h"
 
 #include "asserthelper.h"
-
-#include <memory>
 
 // ----------------------------------------------------------------------------
 // test fixtures
@@ -162,21 +159,10 @@ TEST_CASE_METHOD(AuiNotebookTestCase, "wxAuiNotebook::FindPage", "[aui]")
     REQUIRE( nb->AddPage(p1, "Page 1") );
     REQUIRE( nb->AddPage(p2, "Page 2") );
 
-    CHECK( nb->FindPage(nullptr) == wxNOT_FOUND );
+    CHECK( nb->FindPage(NULL) == wxNOT_FOUND );
     CHECK( nb->FindPage(p1) == 0 );
     CHECK( nb->FindPage(p2) == 1 );
     CHECK( nb->FindPage(p3) == wxNOT_FOUND );
-}
-
-TEST_CASE("wxAuiToolBar::Items", "[aui][toolbar]")
-{
-    std::unique_ptr<wxAuiToolBar> tbar{new wxAuiToolBar(wxTheApp->GetTopWindow())};
-
-    // Check that adding more toolbar elements doesn't invalidate the existing
-    // pointers.
-    auto first = tbar->AddLabel(wxID_ANY, "first");
-    tbar->AddLabel(wxID_ANY, "second");
-    CHECK( first->GetLabel() == "first" );
 }
 
 #endif

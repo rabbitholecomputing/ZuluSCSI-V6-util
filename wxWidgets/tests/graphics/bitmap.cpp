@@ -50,10 +50,10 @@
 typedef wxPixelFormat<unsigned char, 32, 2, 1, 0> wxNative32PixelFormat;
 typedef wxPixelData<wxBitmap, wxNative32PixelFormat> wxNative32PixelData;
 #endif // __WXMSW__
-#if defined(__WXOSX__) || defined(__WXQT__)
+#ifdef __WXOSX__
 // 32 bpp xRGB bitmaps are native ones
 typedef wxNativePixelData wxNative32PixelData;
-#endif // __WXOSX__ || __WXQT__
+#endif // __WXOSX__
 
 // ----------------------------------------------------------------------------
 // tests
@@ -82,8 +82,8 @@ TEST_CASE("BitmapTestCase::Monochrome", "[bitmap][monochrome]")
     REQUIRE(mono.IsOk());
     REQUIRE(mono.GetDepth() == 1);
 
-    // wxMonoPixelData only exists in wxMSW and wxQt
-#if defined(__WXMSW__) || defined(__WXQT__)
+    // wxMonoPixelData only exists in wxMSW
+#if defined(__WXMSW__)
     // draw lines on top and left, but leaving blank top and left lines
     {
         wxMonoPixelData data(mono);
@@ -103,8 +103,8 @@ TEST_CASE("BitmapTestCase::Monochrome", "[bitmap][monochrome]")
     }
     TempFile mono_lines_horse("mono_lines_horse.bmp");
     REQUIRE(mono.SaveFile(mono_lines_horse.GetName(), wxBITMAP_TYPE_BMP));
-#endif // __WXMSW__ || __WXQT__
-#endif // !__WXGTK__
+#endif      // __WXMSW__
+#endif      // !__WXGTK__
 }
 
 TEST_CASE("BitmapTestCase::Mask", "[bitmap][mask]")
@@ -126,7 +126,7 @@ TEST_CASE("BitmapTestCase::Mask", "[bitmap][mask]")
     REQUIRE(bmp.GetMask() == mask);
 
     // copying masks should work
-    wxMask *mask2 = nullptr;
+    wxMask *mask2 = NULL;
     REQUIRE_NOTHROW(mask2 = new wxMask(*mask));
     bmp.SetMask(mask2);
     REQUIRE(bmp.GetMask() == mask2);
@@ -145,7 +145,7 @@ TEST_CASE("BitmapTestCase::ToImage", "[bitmap][image][convertto]")
             dc.DrawRectangle(0, 0, bmp.GetWidth(), bmp.GetHeight());
         }
         REQUIRE_FALSE(bmp.HasAlpha());
-        REQUIRE(bmp.GetMask() == nullptr);
+        REQUIRE(bmp.GetMask() == NULL);
 
         wxImage image = bmp.ConvertToImage();
         REQUIRE_FALSE(image.HasAlpha());
@@ -198,7 +198,7 @@ TEST_CASE("BitmapTestCase::ToImage", "[bitmap][image][convertto]")
         }
         bmp.SetMask(new wxMask(bmask));
         REQUIRE_FALSE(bmp.HasAlpha());
-        REQUIRE(bmp.GetMask() != nullptr);
+        REQUIRE(bmp.GetMask() != NULL);
         const int numUnmaskedPixels = 8 * 8;
 
         wxImage image = bmp.ConvertToImage();
@@ -253,12 +253,12 @@ TEST_CASE("BitmapTestCase::ToImage", "[bitmap][image][convertto]")
             const wxColour clrBg(*wxGREEN);
             const unsigned char alpha = 92;
 
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
             // premultiplied values
             const wxColour clrFgAlpha(((clrFg.Red() * alpha) + 127) / 255, ((clrFg.Green() * alpha) + 127) / 255, ((clrFg.Blue() * alpha) + 127) / 255);
 #else
             const wxColour clrFgAlpha(clrFg);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
 
             wxAlphaPixelData data(bmp);
             REQUIRE(data);
@@ -288,7 +288,7 @@ TEST_CASE("BitmapTestCase::ToImage", "[bitmap][image][convertto]")
             }
         }
         REQUIRE(bmp.HasAlpha() == true);
-        REQUIRE(bmp.GetMask() == nullptr);
+        REQUIRE(bmp.GetMask() == NULL);
 
         wxImage image = bmp.ConvertToImage();
         REQUIRE(image.HasAlpha() == true);
@@ -306,13 +306,13 @@ TEST_CASE("BitmapTestCase::ToImage", "[bitmap][image][convertto]")
             {
                 wxColour bmpc(iBmp.Red(), iBmp.Green(), iBmp.Blue(), iBmp.Alpha());
                 wxColour imgc(image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), image.GetAlpha(x,y));
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
                 // Premultiplied values
                 unsigned char r = ((imgc.Red() * imgc.Alpha()) + 127) / 255;
                 unsigned char g = ((imgc.Green() * imgc.Alpha()) + 127) / 255;
                 unsigned char b = ((imgc.Blue() * imgc.Alpha()) + 127) / 255;
                 imgc.Set(r, g, b, imgc.Alpha());
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
                 CHECK_EQUAL_COLOUR_RGBA(imgc, bmpc);
             }
             rowStartBmp.OffsetY(dataBmp, 1);
@@ -330,12 +330,12 @@ TEST_CASE("BitmapTestCase::ToImage", "[bitmap][image][convertto]")
             const wxColour clrFg(*wxCYAN);
             const wxColour clrBg(*wxGREEN);
             const unsigned char alpha = 92;
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
             // premultiplied values
             const wxColour clrFgAlpha(((clrFg.Red() * alpha) + 127) / 255, ((clrFg.Green() * alpha) + 127) / 255, ((clrFg.Blue() * alpha) + 127) / 255);
 #else
             const wxColour clrFgAlpha(clrFg);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
 
             wxAlphaPixelData data(bmp);
             REQUIRE(data);
@@ -383,7 +383,7 @@ TEST_CASE("BitmapTestCase::ToImage", "[bitmap][image][convertto]")
         }
         bmp.SetMask(new wxMask(bmask));
         REQUIRE(bmp.HasAlpha() == true);
-        REQUIRE(bmp.GetMask() != nullptr);
+        REQUIRE(bmp.GetMask() != NULL);
         const int numUnmaskedPixels = 8 * 8;
 
         wxImage image = bmp.ConvertToImage();
@@ -412,13 +412,13 @@ TEST_CASE("BitmapTestCase::ToImage", "[bitmap][image][convertto]")
                 wxColour imgc(image.GetRed(x, y), image.GetGreen(x, y), image.GetBlue(x, y), image.GetAlpha(x,y));
                 if ( maskc == *wxWHITE )
                 {
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
                     // Premultiplied values
                     unsigned char r = ((imgc.Red() * imgc.Alpha()) + 127) / 255;
                     unsigned char g = ((imgc.Green() * imgc.Alpha()) + 127) / 255;
                     unsigned char b = ((imgc.Blue() * imgc.Alpha()) + 127) / 255;
                     imgc.Set(r, g, b, imgc.Alpha());
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX
                     CHECK_EQUAL_COLOUR_RGBA(imgc, bmpc);
                     unmaskedPixelsCount++;
                 }
@@ -452,7 +452,7 @@ TEST_CASE("BitmapTestCase::FromImage", "[bitmap][image][convertfrom]")
 
         wxBitmap bmp(img);
         REQUIRE_FALSE(bmp.HasAlpha());
-        REQUIRE(bmp.GetMask() == nullptr);
+        REQUIRE(bmp.GetMask() == NULL);
         REQUIRE(bmp.GetWidth() == img.GetWidth());
         REQUIRE(bmp.GetHeight() == img.GetHeight());
 
@@ -485,7 +485,7 @@ TEST_CASE("BitmapTestCase::FromImage", "[bitmap][image][convertfrom]")
 
         wxBitmap bmp(img);
         REQUIRE_FALSE(bmp.HasAlpha());
-        REQUIRE(bmp.GetMask() != nullptr);
+        REQUIRE(bmp.GetMask() != NULL);
         REQUIRE(bmp.GetWidth() == img.GetWidth());
         REQUIRE(bmp.GetHeight() == img.GetHeight());
 
@@ -531,7 +531,7 @@ TEST_CASE("BitmapTestCase::FromImage", "[bitmap][image][convertfrom]")
 
         wxBitmap bmp(img);
         REQUIRE(bmp.HasAlpha() == true);
-        REQUIRE(bmp.GetMask() == nullptr);
+        REQUIRE(bmp.GetMask() == NULL);
         REQUIRE(bmp.GetWidth() == img.GetWidth());
         REQUIRE(bmp.GetHeight() == img.GetHeight());
 
@@ -545,13 +545,13 @@ TEST_CASE("BitmapTestCase::FromImage", "[bitmap][image][convertfrom]")
             {
                 wxColour bmpc(iBmp.Red(), iBmp.Green(), iBmp.Blue(), iBmp.Alpha());
                 wxColour imgc(img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y), img.GetAlpha(x, y));
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
                 // Premultiplied values
                 unsigned char r = ((imgc.Red() * imgc.Alpha()) + 127) / 255;
                 unsigned char g = ((imgc.Green() * imgc.Alpha()) + 127) / 255;
                 unsigned char b = ((imgc.Blue() * imgc.Alpha()) + 127) / 255;
                 imgc.Set(r, g, b, imgc.Alpha());
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
                 CHECK_EQUAL_COLOUR_RGBA(bmpc, imgc);
             }
             rowStartBmp.OffsetY(dataBmp, 1);
@@ -576,7 +576,7 @@ TEST_CASE("BitmapTestCase::FromImage", "[bitmap][image][convertfrom]")
 
         wxBitmap bmp(img);
         REQUIRE(bmp.HasAlpha() == true);
-        REQUIRE(bmp.GetMask() != nullptr);
+        REQUIRE(bmp.GetMask() != NULL);
         REQUIRE(bmp.GetWidth() == img.GetWidth());
         REQUIRE(bmp.GetHeight() == img.GetHeight());
 
@@ -596,23 +596,23 @@ TEST_CASE("BitmapTestCase::FromImage", "[bitmap][image][convertfrom]")
                 wxColour bmpc(iBmp.Red(), iBmp.Green(), iBmp.Blue(), iBmp.Alpha());
                 wxColour maskc(iMask.Red(), iMask.Green(), iMask.Blue());
                 wxColour imgc(img.GetRed(x, y), img.GetGreen(x, y), img.GetBlue(x, y), img.GetAlpha(x, y));
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
                 // Premultiplied values
                 unsigned char r = ((imgc.Red() * imgc.Alpha()) + 127) / 255;
                 unsigned char g = ((imgc.Green() * imgc.Alpha()) + 127) / 255;
                 unsigned char b = ((imgc.Blue() * imgc.Alpha()) + 127) / 255;
                 imgc.Set(r, g, b, imgc.Alpha());
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
                 CHECK_EQUAL_COLOUR_RGBA(bmpc, imgc);
 
                 wxColour c = maskc == *wxWHITE ? fillCol : maskCol;
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
                 // Premultiplied values
                 r = ((c.Red() * imgc.Alpha()) + 127) / 255;
                 g = ((c.Green() * imgc.Alpha()) + 127) / 255;
                 b = ((c.Blue() * imgc.Alpha()) + 127) / 255;
                 c.Set(r, g, b);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
                 CHECK_EQUAL_COLOUR_RGB(bmpc, c);
             }
             rowStartBmp.OffsetY(dataBmp, 1);
@@ -634,7 +634,7 @@ TEST_CASE("BitmapTestCase::OverlappingBlit", "[bitmap][blit]")
         dc.DrawLine(0, 0, 10, 10);
         dc.DrawLine(10, 0, 0, 10);
     }
-    REQUIRE(bmp.GetMask() == nullptr);
+    REQUIRE(bmp.GetMask() == NULL);
 
     // Clear to white.
     {
@@ -737,10 +737,10 @@ TEST_CASE("BitmapTestCase::DrawNonAlphaWithMask", "[bitmap][draw][nonalpha][with
         dc.DrawRectangle(w / 2, 0, w / 2, h);
     }
     REQUIRE_FALSE(bmp.HasAlpha());
-    REQUIRE(bmp.GetMask() == nullptr);
+    REQUIRE(bmp.GetMask() == NULL);
     bmp.SetMask(new wxMask(bmask));
     REQUIRE_FALSE(bmp.HasAlpha());
-    REQUIRE(bmp.GetMask() != nullptr);
+    REQUIRE(bmp.GetMask() != NULL);
 
     // Drawing the bitmap using mask
     {
@@ -810,12 +810,12 @@ TEST_CASE("BitmapTestCase::DrawAlpha", "[bitmap][draw][alpha]")
     const wxColour clrBg(*wxGREEN);
     const unsigned char alpha = 92;
 
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
     // premultiplied values
     const wxColour clrFgAlpha(((clrFg.Red() * alpha) + 127) / 255, ((clrFg.Green() * alpha) + 127) / 255, ((clrFg.Blue() * alpha) + 127) / 255);
 #else
     const wxColour clrFgAlpha(clrFg);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
 
     // Bitmap to be drawn
     wxBitmap bmp(w, h, 32);
@@ -851,7 +851,7 @@ TEST_CASE("BitmapTestCase::DrawAlpha", "[bitmap][draw][alpha]")
         }
     }
     REQUIRE(bmp.HasAlpha());
-    REQUIRE(bmp.GetMask() == nullptr);
+    REQUIRE(bmp.GetMask() == NULL);
 
     // Drawing the bitmap on 24 bpp RGB target
     wxBitmap bmpOut24(w, h, 24);
@@ -873,7 +873,7 @@ TEST_CASE("BitmapTestCase::DrawAlpha", "[bitmap][draw][alpha]")
     p1.OffsetX(data24, w / 4); // left side is opaque
     ASSERT_EQUAL_COLOUR_RGB(p1, clrFg);
     p1.OffsetX(data24, w / 2); // right side is with alpha
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
     // premultiplied values
     ASSERT_EQUAL_RGB(p1, clrFgAlpha.Red() + (clrBg.Red() * (255 - alpha) + 127) / 255,
                          clrFgAlpha.Green() + (clrBg.Green() * (255 - alpha) + 127) / 255,
@@ -882,9 +882,9 @@ TEST_CASE("BitmapTestCase::DrawAlpha", "[bitmap][draw][alpha]")
     ASSERT_EQUAL_RGB(p1, (clrFg.Red() * alpha + clrBg.Red() * (255 - alpha) + 127) / 255,
                          (clrFg.Green() * alpha + clrBg.Green() * (255 - alpha) + 127) / 255,
                          (clrFg.Blue() * alpha + clrBg.Blue() * (255 - alpha) + 127) / 255);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
 
-#if defined(__WXMSW__) || defined(__WXOSX__) || defined(__WXQT__)
+#if defined(__WXMSW__) || defined(__WXOSX__)
     // Drawing the bitmap on 32 bpp xRGB target
     wxBitmap bmpOut32(w, h, 32);
     REQUIRE_FALSE(bmpOut32.HasAlpha());
@@ -906,17 +906,11 @@ TEST_CASE("BitmapTestCase::DrawAlpha", "[bitmap][draw][alpha]")
     p2.OffsetX(data32, w / 4); // left side is opaque
     ASSERT_EQUAL_COLOUR_RGB(p2, clrFg);
     p2.OffsetX(data32, w / 2); // right side is with alpha
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
     // premultiplied values
     ASSERT_EQUAL_RGB(p2, clrFgAlpha.Red() + (clrBg.Red() * (255 - alpha) + 127) / 255,
                          clrFgAlpha.Green() + (clrBg.Green() * (255 - alpha) + 127) / 255,
                          clrFgAlpha.Blue() + (clrBg.Blue() * (255 - alpha) + 127) / 255);
-#else
-    ASSERT_EQUAL_RGB(p2, (clrFg.Red() * alpha + clrBg.Red() * (255 - alpha) + 127) / 255,
-                         (clrFg.Green() * alpha + clrBg.Green() * (255 - alpha) + 127) / 255,
-                         (clrFg.Blue() * alpha + clrBg.Blue() * (255 - alpha) + 127) / 255);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
-#endif // __WXMSW__ || __WXOSX__ || __WXQT__
+#endif // __WXMSW__ || __WXOSX__
 }
 
 TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]")
@@ -931,12 +925,12 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
     const wxColour clrBg(*wxGREEN);
     const unsigned char alpha = 92;
 
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
      // premultiplied values
      const wxColour clrFgAlpha(((clrFg.Red() * alpha) + 127) / 255, ((clrFg.Green() * alpha) + 127) / 255, ((clrFg.Blue() * alpha) + 127) / 255);
 #else
      const wxColour clrFgAlpha(clrFg);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
 
      // Bitmap with mask to be drawn
      wxBitmap bmp(w, h, 32);
@@ -972,10 +966,10 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
         }
     }
     REQUIRE(bmp.HasAlpha());
-    REQUIRE(bmp.GetMask() == nullptr);
+    REQUIRE(bmp.GetMask() == NULL);
     bmp.SetMask(new wxMask(bmask));
     REQUIRE(bmp.HasAlpha());
-    REQUIRE(bmp.GetMask() != nullptr);
+    REQUIRE(bmp.GetMask() != NULL);
 
     // Drawing the bitmap on 24 bpp RGB target using mask
     {
@@ -999,7 +993,7 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
         p1.OffsetX(data24, w / 4); // drawn area - left side opaque
         ASSERT_EQUAL_COLOUR_RGB(p1, clrFg);
         p1.OffsetX(data24, w / 2); // drawn area - right side with alpha
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
         // premultiplied values
         ASSERT_EQUAL_RGB(p1, clrFgAlpha.Red() + (clrBg.Red() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Green() + (clrBg.Green() * (255 - alpha) + 127) / 255,
@@ -1008,7 +1002,7 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
         ASSERT_EQUAL_RGB(p1, (clrFg.Red() * alpha + clrBg.Red() * (255 - alpha) + 127) / 255,
                              (clrFg.Green() * alpha + clrBg.Green() * (255 - alpha) + 127) / 255,
                              (clrFg.Blue() * alpha + clrBg.Blue() * (255 - alpha) + 127) / 255);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
         p1 = rowStart1;
         p1.OffsetY(data24, h / 2);
         p1.OffsetX(data24, w / 4); // masked area - left side
@@ -1039,7 +1033,7 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
         p1.OffsetX(data24, w / 4); // left upper side opaque
         ASSERT_EQUAL_COLOUR_RGB(p1, clrFg);
         p1.OffsetX(data24, w / 2); // right upper side with alpha
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
         // premultiplied values
         ASSERT_EQUAL_RGB(p1, clrFgAlpha.Red() + (clrBg.Red() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Green() + (clrBg.Green() * (255 - alpha) + 127) / 255,
@@ -1048,13 +1042,13 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
         ASSERT_EQUAL_RGB(p1, (clrFg.Red() * alpha + clrBg.Red() * (255 - alpha) + 127) / 255,
                              (clrFg.Green() * alpha + clrBg.Green() * (255 - alpha) + 127) / 255,
                              (clrFg.Blue() * alpha + clrBg.Blue() * (255 - alpha) + 127) / 255);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
         p1 = rowStart1;
         p1.OffsetY(data24, h / 2);
         p1.OffsetX(data24, w / 4); // left lower side - same colour as upper
         ASSERT_EQUAL_COLOUR_RGB(p1, clrFg);
         p1.OffsetX(data24, w / 2); // right lower side - same colour as upper
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
          // premultiplied values
         ASSERT_EQUAL_RGB(p1, clrFgAlpha.Red() + (clrBg.Red() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Green() + (clrBg.Green() * (255 - alpha) + 127) / 255,
@@ -1063,10 +1057,10 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
         ASSERT_EQUAL_RGB(p1, (clrFg.Red() * alpha + clrBg.Red() * (255 - alpha) + 127) / 255,
                              (clrFg.Green() * alpha + clrBg.Green() * (255 - alpha) + 127) / 255,
                              (clrFg.Blue() * alpha + clrBg.Blue() * (255 - alpha) + 127) / 255);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
     }
 
-#if defined(__WXMSW__) || defined(__WXOSX__) || defined(__WXQT__)
+#if defined(__WXMSW__) || defined(__WXOSX__)
     // Drawing the bitmap on 32 bpp xRGB target using mask
     {
         wxBitmap bmpOut32(w, h, 32);
@@ -1090,16 +1084,10 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
         p2.OffsetX(data32, w / 4); // drawn area - left side opaque
         ASSERT_EQUAL_COLOUR_RGB(p2, clrFg);
         p2.OffsetX(data32, w / 2); // drawn area - right side with alpha
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
         // premultiplied values
         ASSERT_EQUAL_RGB(p2, clrFgAlpha.Red() + (clrBg.Red() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Green() + (clrBg.Green() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Blue() + (clrBg.Blue() * (255 - alpha) + 127) / 255);
-#else
-        ASSERT_EQUAL_RGB(p2, (clrFg.Red() * alpha + clrBg.Red() * (255 - alpha) + 127) / 255,
-                             (clrFg.Green() * alpha + clrBg.Green() * (255 - alpha) + 127) / 255,
-                             (clrFg.Blue() * alpha + clrBg.Blue() * (255 - alpha) + 127) / 255);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
         p2 = rowStart2;
         p2.OffsetY(data32, h / 2);
         p2.OffsetX(data32, w / 4); // masked area - left side
@@ -1131,33 +1119,21 @@ TEST_CASE("BitmapTestCase::DrawAlphaWithMask", "[bitmap][draw][alpha][withmask]"
         p2.OffsetX(data32, w / 4); // left upper side opaque
         ASSERT_EQUAL_COLOUR_RGB(p2, clrFg);
         p2.OffsetX(data32, w / 2); // right upper side with alpha
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
         // premultiplied values
         ASSERT_EQUAL_RGB(p2, clrFgAlpha.Red() + (clrBg.Red() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Green() + (clrBg.Green() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Blue() + (clrBg.Blue() * (255 - alpha) + 127) / 255);
-#else
-        ASSERT_EQUAL_RGB(p2, (clrFg.Red() * alpha + clrBg.Red() * (255 - alpha) + 127) / 255,
-                             (clrFg.Green() * alpha + clrBg.Green() * (255 - alpha) + 127) / 255,
-                             (clrFg.Blue() * alpha + clrBg.Blue() * (255 - alpha) + 127) / 255);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
         p2 = rowStart2;
         p2.OffsetY(data32, h / 2);
         p2.OffsetX(data32, w / 4); // left lower side - same colour as upper
         ASSERT_EQUAL_COLOUR_RGB(p2, clrFg);
         p2.OffsetX(data32, w / 2); // right lower side - same colour as upper
         // premultiplied values
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
         ASSERT_EQUAL_RGB(p2, clrFgAlpha.Red() + (clrBg.Red() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Green() + (clrBg.Green() * (255 - alpha) + 127) / 255,
                              clrFgAlpha.Blue() + (clrBg.Blue() * (255 - alpha) + 127) / 255);
-#else
-        ASSERT_EQUAL_RGB(p2, (clrFg.Red() * alpha + clrBg.Red() * (255 - alpha) + 127) / 255,
-                             (clrFg.Green() * alpha + clrBg.Green() * (255 - alpha) + 127) / 255,
-                             (clrFg.Blue() * alpha + clrBg.Blue() * (255 - alpha) + 127) / 255);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
     }
-#endif // __WXMSW__ || __WXOSX__ || __WXQT__
+#endif // __WXMSW__ || __WXOSX__
 }
 
 TEST_CASE("BitmapTestCase::SubBitmapNonAlpha", "[bitmap][subbitmap][nonalpha]")
@@ -1188,7 +1164,7 @@ TEST_CASE("BitmapTestCase::SubBitmapNonAlpha", "[bitmap][subbitmap][nonalpha]")
         dc.DrawRectangle(w / 2, h / 2, w / 2, h / 2);
     }
     REQUIRE_FALSE(bmp.HasAlpha());
-    REQUIRE(bmp.GetMask() == nullptr);
+    REQUIRE(bmp.GetMask() == NULL);
 
     // Get sub bitmap
     wxBitmap subBmp = bmp.GetSubBitmap(wxRect(w/4, h/4, w/2, h/2));
@@ -1197,7 +1173,7 @@ TEST_CASE("BitmapTestCase::SubBitmapNonAlpha", "[bitmap][subbitmap][nonalpha]")
     REQUIRE(subBmp.GetHeight() == h/2);
     REQUIRE(subBmp.GetDepth() == bmp.GetDepth());
     REQUIRE(subBmp.HasAlpha() == bmp.HasAlpha());
-    REQUIRE((subBmp.GetMask() == nullptr) == (bmp.GetMask() == nullptr));
+    REQUIRE((subBmp.GetMask() == NULL) == (bmp.GetMask() == NULL));
 
     const int w2 = w / 2;
     const int h2 = h / 2;
@@ -1250,10 +1226,10 @@ TEST_CASE("BitmapTestCase::SubBitmapNonAlphaWithMask", "[bitmap][subbitmap][nona
         dc.DrawRectangle(w / 2, h / 2, w / 2, h / 2);
     }
     REQUIRE_FALSE(bmp.HasAlpha());
-    REQUIRE(bmp.GetMask() == nullptr);
+    REQUIRE(bmp.GetMask() == NULL);
     bmp.SetMask(new wxMask(bmpMask));
     REQUIRE_FALSE(bmp.HasAlpha());
-    REQUIRE(bmp.GetMask() != nullptr);
+    REQUIRE(bmp.GetMask() != NULL);
 
     // Get sub bitmap
     wxBitmap subBmp = bmp.GetSubBitmap(wxRect(w/4, h/4, w/2, h/2));
@@ -1264,7 +1240,7 @@ TEST_CASE("BitmapTestCase::SubBitmapNonAlphaWithMask", "[bitmap][subbitmap][nona
     REQUIRE(subBmp.GetHeight() == h2);
     REQUIRE(subBmp.GetDepth() == bmp.GetDepth());
     REQUIRE(subBmp.HasAlpha() == bmp.HasAlpha());
-    REQUIRE((subBmp.GetMask() == nullptr) == (bmp.GetMask() == nullptr));
+    REQUIRE((subBmp.GetMask() == NULL) == (bmp.GetMask() == NULL));
 
     // Check sub bitmap pixels
     {
@@ -1316,8 +1292,8 @@ TEST_CASE("BitmapTestCase::SubBitmapNonAlphaWithMask", "[bitmap][subbitmap][nona
     CHECK(maskClrBottomLeft == *wxBLACK);
     CHECK(maskClrBottomRight == *wxBLACK);
 
-    // wxMonoPixelData only exists in wxMSW and wxQt
-#if defined(__WXMSW__) || defined(__WXQT__)
+    // wxMonoPixelData only exists in wxMSW
+#if defined(__WXMSW__)
     bool maskValueTopLeft;
     bool maskValueTopRight;
     bool maskValueBottomLeft;
@@ -1346,7 +1322,7 @@ TEST_CASE("BitmapTestCase::SubBitmapNonAlphaWithMask", "[bitmap][subbitmap][nona
     CHECK(maskValueTopRight == true);
     CHECK(maskValueBottomLeft == false);
     CHECK(maskValueBottomRight == false);
-#endif // __WXMSW__ || __WXQT__
+#endif      // __WXMSW__
 
     wxBitmap subBmpMask = subBmp.GetMask()->GetBitmap();
     // Check sub bitmap mask attributes
@@ -1376,8 +1352,8 @@ TEST_CASE("BitmapTestCase::SubBitmapNonAlphaWithMask", "[bitmap][subbitmap][nona
         ASSERT_EQUAL_COLOUR_RGB(p, maskClrBottomRight);
     }
 
-    // wxMonoPixelData only exists in wxMSW and wxQt
-#if defined(__WXMSW__) || defined(__WXQT__)
+    // wxMonoPixelData only exists in wxMSW
+#if defined(__WXMSW__)
     {
         REQUIRE(subBmpMask.GetDepth() == 1);
         wxMonoPixelData data(subBmpMask);
@@ -1397,7 +1373,7 @@ TEST_CASE("BitmapTestCase::SubBitmapNonAlphaWithMask", "[bitmap][subbitmap][nona
         CHECK(p.Pixel() == maskValueBottomRight);
     }
     REQUIRE(subBmpMask.GetDepth() == 1);
-#endif // __WXMSW__ || __WXQT__
+#endif      // __WXMSW__
 }
 
 TEST_CASE("BitmapTestCase::SubBitmapAlphaWithMask", "[bitmap][subbitmap][alpha][withmask]")
@@ -1412,12 +1388,12 @@ TEST_CASE("BitmapTestCase::SubBitmapAlphaWithMask", "[bitmap][subbitmap][alpha][
     const wxColour clrLeft(*wxCYAN);
     const unsigned char alpha = 92;
 
-#ifdef wxHAS_PREMULTIPLIED_ALPHA
+#if defined(__WXMSW__) || defined(__WXOSX__)
     // premultiplied values
     const wxColour clrRight(((clrLeft.Red() * alpha) + 127) / 255, ((clrLeft.Green() * alpha) + 127) / 255, ((clrLeft.Blue() * alpha) + 127) / 255, alpha);
 #else
     const wxColour clrRight(clrLeft.Red(), clrLeft.Green(), clrLeft.Blue(), alpha);
-#endif // wxHAS_PREMULTIPLIED_ALPHA
+#endif // __WXMSW__ || __WXOSX__
 
     wxBitmap bmp(w, h, 32);
 #if defined(__WXMSW__) || defined(__WXOSX__)
@@ -1466,7 +1442,7 @@ TEST_CASE("BitmapTestCase::SubBitmapAlphaWithMask", "[bitmap][subbitmap][alpha][
     REQUIRE(subBmp.GetHeight() == h2);
     REQUIRE(subBmp.GetDepth() == bmp.GetDepth());
     REQUIRE(subBmp.HasAlpha() == bmp.HasAlpha());
-    REQUIRE((subBmp.GetMask() == nullptr) == (bmp.GetMask() == nullptr));
+    REQUIRE((subBmp.GetMask() == NULL) == (bmp.GetMask() == NULL));
 
     // Check sub bitmap pixels
     {
@@ -1518,8 +1494,8 @@ TEST_CASE("BitmapTestCase::SubBitmapAlphaWithMask", "[bitmap][subbitmap][alpha][
     CHECK(maskClrBottomLeft == *wxBLACK);
     CHECK(maskClrBottomRight == *wxBLACK);
 
-    // wxMonoPixelData only exists in wxMSW and wxQt
-#if defined(__WXMSW__) || defined(__WXQT__)
+    // wxMonoPixelData only exists in wxMSW
+#if defined(__WXMSW__)
     bool maskValueTopLeft;
     bool maskValueTopRight;
     bool maskValueBottomLeft;
@@ -1548,7 +1524,7 @@ TEST_CASE("BitmapTestCase::SubBitmapAlphaWithMask", "[bitmap][subbitmap][alpha][
     CHECK(maskValueTopRight == true);
     CHECK(maskValueBottomLeft == false);
     CHECK(maskValueBottomRight == false);
-#endif // __WXMSW__ || __WXQT__
+#endif      // __WXMSW__
 
     wxBitmap subBmpMask = subBmp.GetMask()->GetBitmap();
     // Check sub bitmap mask attributes
@@ -1578,8 +1554,8 @@ TEST_CASE("BitmapTestCase::SubBitmapAlphaWithMask", "[bitmap][subbitmap][alpha][
         ASSERT_EQUAL_RGB(p, maskClrBottomRight.Red(), maskClrBottomRight.Green(), maskClrBottomRight.Blue());
     }
 
-    // wxMonoPixelData only exists in wxMSW and wxQt
-#if defined(__WXMSW__) || defined(__WXQT__)
+    // wxMonoPixelData only exists in wxMSW
+#if defined(__WXMSW__)
     {
         REQUIRE(subBmpMask.GetDepth() == 1);
         wxMonoPixelData data(subBmpMask);
@@ -1599,7 +1575,7 @@ TEST_CASE("BitmapTestCase::SubBitmapAlphaWithMask", "[bitmap][subbitmap][alpha][
         CHECK(p.Pixel() == maskValueBottomRight);
     }
     REQUIRE(subBmpMask.GetDepth() == 1);
-#endif // __WXMSW__ || __WXQT__
+#endif      // __WXMSW__
 }
 
 namespace Catch
@@ -1624,7 +1600,7 @@ public:
     {
     }
 
-    bool match(const wxBitmap& bmp) const override
+    bool match(const wxBitmap& bmp) const wxOVERRIDE
     {
         const wxImage img(bmp.ConvertToImage());
 
@@ -1641,7 +1617,7 @@ public:
         return true;
     }
 
-    std::string describe() const override
+    std::string describe() const wxOVERRIDE
     {
         return wxString::Format("doesn't have all %s pixels",
                                 m_col.GetAsString()).ToStdString();
@@ -1728,6 +1704,36 @@ TEST_CASE("Bitmap::DC", "[bitmap][dc]")
     CHECK( bmpFromImage.IsOk() );
 #endif // wxUSE_SVG
 }
+
+#if defined(wxHAS_DPI_INDEPENDENT_PIXELS) || defined(__WXMSW__)
+
+TEST_CASE("Bitmap::ScaleFactor", "[bitmap][dc][scale]")
+{
+    // Create a bitmap with scale factor != 1.
+    wxBitmap bmp;
+    bmp.CreateWithDIPSize(8, 8, 2);
+    REQUIRE( bmp.GetScaleFactor() == 2 );
+    CHECK( bmp.GetSize() == wxSize(16, 16) );
+
+    // wxMemoryDC should use the same scale factor as the bitmap.
+    wxMemoryDC dc(bmp);
+    CHECK( dc.GetContentScaleFactor() == 2 );
+
+    // A bitmap "compatible" with this DC should also use the same scale factor.
+    wxBitmap bmp2(4, 4, dc);
+    CHECK( bmp2.GetScaleFactor() == 2 );
+    CHECK( bmp2.GetSize() == wxSize(8, 8) );
+
+    // A compatible bitmap created from wxImage and this DC should also inherit
+    // the same scale factor, but its size should be still the same as that of
+    // the image.
+    wxImage img(16, 16);
+    wxBitmap bmp3(img, dc);
+    CHECK( bmp3.GetScaleFactor() == 2 );
+    CHECK( bmp3.GetSize() == wxSize(16, 16) );
+}
+
+#endif // ports with scaled bitmaps support
 
 #if wxUSE_GRAPHICS_CONTEXT
 
@@ -1821,80 +1827,3 @@ TEST_CASE("GC::DrawBitmap", "[bitmap][drawbitmap]")
 #endif //wxUSE_GRAPHICS_CONTEXT
 
 #endif //wxHAS_RAW_BITMAP
-
-#if defined(wxHAS_DPI_INDEPENDENT_PIXELS) || defined(__WXMSW__)
-
-TEST_CASE("Bitmap::ScaleFactor", "[bitmap][dc][scale]")
-{
-    // Create a bitmap with scale factor != 1.
-    wxBitmap bmp;
-    bmp.CreateWithDIPSize(8, 8, 2);
-    REQUIRE( bmp.GetScaleFactor() == 2 );
-    CHECK( bmp.GetSize() == wxSize(16, 16) );
-
-    // wxMemoryDC should use the same scale factor as the bitmap.
-    wxMemoryDC dc(bmp);
-    CHECK( dc.GetContentScaleFactor() == 2 );
-
-    // A bitmap "compatible" with this DC should also use the same scale factor.
-    wxBitmap bmp2(4, 4, dc);
-    CHECK( bmp2.GetScaleFactor() == 2 );
-    CHECK( bmp2.GetSize() == wxSize(8, 8) );
-
-    // A compatible bitmap created from wxImage and this DC should also inherit
-    // the same scale factor, but its size should be still the same as that of
-    // the image.
-    wxImage img(16, 16);
-    wxBitmap bmp3(img, dc);
-    CHECK( bmp3.GetScaleFactor() == 2 );
-    CHECK( bmp3.GetSize() == wxSize(16, 16) );
-
-    // And another way to create a bitmap with specified scale factor.
-    const wxSize sizeLog(10, 10);
-
-    wxBitmap bmp4;
-    bmp4.CreateWithLogicalSize(sizeLog, 2);
-    CHECK( bmp4.GetScaleFactor() == 2 );
-    CHECK( bmp4.GetLogicalSize() == sizeLog );
-
-#ifdef wxHAS_DPI_INDEPENDENT_PIXELS
-    CHECK( bmp4.GetSize() == 2*sizeLog );
-#else
-    CHECK( bmp4.GetSize() == sizeLog );
-#endif
-}
-
-TEST_CASE("wxBitmap::GetSubBitmap", "[bitmap]")
-{
-    // Make the logical size odd to test correct rounding.
-    const double scale = 1.5;
-    const wxSize sizeLog(15, 15);
-    const wxSize sizePhy(23, 23);
-
-    // Prepare the main bitmap.
-    wxBitmap bmp;
-    bmp.CreateWithDIPSize(sizeLog, scale);
-    CHECK( bmp.GetDIPSize() == sizeLog );
-    CHECK( bmp.GetSize() == sizePhy );
-    CHECK( bmp.GetScaleFactor() == scale );
-
-    // Extracting sub-bitmap of the entire bitmap size should return the bitmap
-    // of the same size.
-#ifdef wxHAS_DPI_INDEPENDENT_PIXELS
-    const wxRect rectAll(wxPoint(0, 0), sizeLog);
-#else
-    const wxRect rectAll(wxPoint(0, 0), sizePhy);
-#endif
-
-    const wxBitmap sub = bmp.GetSubBitmap(rectAll);
-    CHECK( sub.GetDIPSize() == sizeLog );
-    CHECK( sub.GetSize() == sizePhy );
-    CHECK( sub.GetScaleFactor() == scale );
-
-    // Using incorrect bounds should assert.
-    wxRect rectInvalid = rectAll;
-    rectInvalid.Offset(1, 0);
-    WX_ASSERT_FAILS_WITH_ASSERT( bmp.GetSubBitmap(rectInvalid) );
-}
-
-#endif // ports with scaled bitmaps support

@@ -3,6 +3,7 @@
 // Purpose:     wxSound class (loads and plays short Windows .wav files).
 //              Optional on non-Windows platforms.
 // Author:      Ryan Norton, Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Ryan Norton, Stefan Csomor
 // Licence:     wxWindows licence
@@ -51,7 +52,7 @@ public:
     // Create from data
     bool Create(size_t size, const void* data);
 
-    bool IsOk() const { return m_data != nullptr; }
+    bool IsOk() const { return m_data != NULL; }
 
     // Stop playing any sound
     static void Stop();
@@ -63,7 +64,7 @@ public:
     static void SoundStopped(const wxSoundData* data);
 
 protected:
-    bool    DoPlay(unsigned flags) const override;
+    bool    DoPlay(unsigned flags) const wxOVERRIDE;
     void    Init();
 
 private:

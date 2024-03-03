@@ -20,7 +20,7 @@ wx_option(wxBUILD_PRECOMP "Use precompiled headers" ON STRINGS ON OFF COTIRE)
 mark_as_advanced(wxBUILD_PRECOMP)
 wx_option(wxBUILD_INSTALL "Create install/uninstall target for wxWidgets")
 wx_option(wxBUILD_COMPATIBILITY
-    "enable compatibilty with earlier wxWidgets versions" 3.2 STRINGS 3.0 3.2 NONE)
+    "enable compatibilty with earlier wxWidgets versions" 3.0 STRINGS 2.8 3.0 3.1)
 mark_as_advanced(wxBUILD_COMPATIBILITY)
 # Allow user specified setup.h folder
 set(wxBUILD_CUSTOM_SETUP_HEADER_PATH "" CACHE PATH "Include path containing custom wx/setup.h")
@@ -43,14 +43,18 @@ if(MSVC)
     mark_as_advanced(wxBUILD_MSVC_MULTIPROC)
 endif()
 
-# support setting the C++ standard, present it an option to the user
-if(DEFINED CMAKE_CXX_STANDARD)
-    set(wxCXX_STANDARD_DEFAULT ${CMAKE_CXX_STANDARD})
-else()
-    set(wxCXX_STANDARD_DEFAULT COMPILER_DEFAULT)
+if(NOT MSVC OR MSVC_VERSION GREATER 1800)
+    # support setting the C++ standard, present it an option to the user
+    if(DEFINED CMAKE_CXX_STANDARD)
+        set(wxCXX_STANDARD_DEFAULT ${CMAKE_CXX_STANDARD})
+    elseif(APPLE)
+        set(wxCXX_STANDARD_DEFAULT 11)
+    else()
+        set(wxCXX_STANDARD_DEFAULT COMPILER_DEFAULT)
+    endif()
+    wx_option(wxBUILD_CXX_STANDARD "C++ standard used to build wxWidgets targets"
+              ${wxCXX_STANDARD_DEFAULT} STRINGS COMPILER_DEFAULT 98 11 14 17 20)
 endif()
-wx_option(wxBUILD_CXX_STANDARD "C++ standard used to build wxWidgets targets"
-          ${wxCXX_STANDARD_DEFAULT} STRINGS COMPILER_DEFAULT 11 14 17 20)
 
 if(UNIX)
     wx_option(wxBUILD_LARGEFILE_SUPPORT "support for large files")
@@ -77,16 +81,20 @@ mark_as_advanced(wxBUILD_PIC)
 wx_option(wxUSE_NO_RTTI "disable RTTI support" OFF)
 
 # STL options
-wx_option(wxUSE_STD_IOSTREAM "use standard C++ streams" ON)
-wx_option(wxUSE_STD_CONTAINERS "use standard C++ container classes" ON)
+wx_option(wxUSE_STL "use standard C++ classes for everything" OFF)
+set(wxTHIRD_PARTY_LIBRARIES ${wxTHIRD_PARTY_LIBRARIES} wxUSE_STL "use C++ STL classes")
+wx_dependent_option(wxUSE_STD_CONTAINERS "use standard C++ container classes" ON "wxUSE_STL" OFF)
 
-wx_option(wxUSE_UNICODE_UTF8 "use UTF-8 representation for strings" OFF)
-wx_dependent_option(wxUSE_UTF8_LOCALE_ONLY "only support UTF-8 locales in UTF-8 build" ON "wxUSE_UNICODE_UTF8" OFF)
+wx_option(wxUSE_UNICODE "compile with Unicode support (NOT RECOMMENDED to be turned off)")
+if(NOT WIN32)
+    wx_option(wxUSE_UNICODE_UTF8 "use UTF-8 representation for strings (Unix only)" OFF)
+    wx_dependent_option(wxUSE_UTF8_LOCALE_ONLY "only support UTF-8 locales in UTF-8 build (Unix only)" ON "wxUSE_UNICODE_UTF8" OFF)
+endif()
 
+wx_option(wxUSE_COMPILER_TLS "enable use of compiler TLS support")
 if(NOT WIN32)
     wx_option(wxUSE_VISIBILITY "use of ELF symbols visibility")
 endif()
-wx_option(wxUSE_STD_STRING_CONV_IN_WXSTRING "provide implicit conversions to std::wstring and std::string in wxString" OFF)
 wx_option(wxUSE_UNSAFE_WXSTRING_CONV "provide unsafe implicit conversions in wxString to const char* or std::string")
 wx_option(wxUSE_REPRODUCIBLE_BUILD "enable reproducable build" OFF)
 
@@ -94,7 +102,7 @@ wx_option(wxUSE_REPRODUCIBLE_BUILD "enable reproducable build" OFF)
 # external libraries
 # ---------------------------------------------------------------------------
 set(PCRE2_CODE_UNIT_WIDTH 8)
-if(NOT DEFINED wxUSE_UNICODE_UTF8 OR NOT wxUSE_UNICODE_UTF8)
+if(wxUSE_UNICODE AND (NOT DEFINED wxUSE_UNICODE_UTF8 OR NOT wxUSE_UNICODE_UTF8))
     # This is also checked in setup.cmake, but setup.cmake will run after options.cmake.
     include(CheckTypeSize)
     check_type_size(wchar_t SIZEOF_WCHAR_T)
@@ -166,8 +174,8 @@ else()
     set(wxUSE_DIALUP_MANAGER_DEFAULT ON)
 endif()
 wx_option(wxUSE_DIALUP_MANAGER "use dialup network classes" ${wxUSE_DIALUP_MANAGER_DEFAULT})
-wx_option(wxUSE_DYNLIB_CLASS "use wxDynamicLibrary class for DLL loading")
-wx_option(wxUSE_DYNAMIC_LOADER "use wxPluginLibrary and wxPluginManager classes")
+wx_option(wxUSE_DYNLIB_CLASS "use wxLibrary class for DLL loading")
+wx_option(wxUSE_DYNAMIC_LOADER "use (new) wxDynamicLibrary class")
 wx_option(wxUSE_EXCEPTIONS "build exception-safe library")
 wx_option(wxUSE_EXTENDED_RTTI "use extended RTTI (XTI)" OFF)
 wx_option(wxUSE_FFILE "use wxFFile class")
@@ -269,7 +277,6 @@ wx_option(wxUSE_AFM_FOR_POSTSCRIPT "in wxPostScriptDC class use AFM (adobe font 
 wx_option(wxUSE_PRINTING_ARCHITECTURE "use printing architecture")
 wx_option(wxUSE_SVG "use wxSVGFileDC device context")
 wx_option(wxUSE_WEBVIEW "use wxWebView library")
-wx_option(wxUSE_WEBVIEW_CHROMIUM "Enable CEF based wxWebViewChromium" OFF)
 
 # wxDC is implemented in terms of wxGraphicsContext in wxOSX so the latter
 # can't be disabled, don't even provide an option to do it
@@ -459,12 +466,13 @@ wx_option(wxUSE_ICO_CUR "use Windows ICO and CUR formats")
 # ---------------------------------------------------------------------------
 
 if(WIN32)
-    if(MSVC)
+    if(MSVC_VERSION GREATER 1600 AND NOT CMAKE_VS_PLATFORM_TOOLSET MATCHES "_xp$")
         set(wxUSE_WINRT_DEFAULT ON)
     else()
         set(wxUSE_WINRT_DEFAULT OFF)
     endif()
-    if(EXISTS "${wxSOURCE_DIR}/3rdparty/webview2")
+    if(MSVC_VERSION GREATER 1800 AND NOT CMAKE_VS_PLATFORM_TOOLSET MATCHES "_xp$" AND
+        EXISTS "${wxSOURCE_DIR}/3rdparty/webview2")
         set(wxUSE_WEBVIEW_EDGE_DEFAULT ON)
     else()
         set(wxUSE_WEBVIEW_EDGE_DEFAULT OFF)
@@ -480,7 +488,7 @@ if(WIN32)
     wx_option(wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW "use PS printing in wxMSW (Win32 only)")
     wx_option(wxUSE_TASKBARICON_BALLOONS "enable wxTaskBarIcon::ShowBalloon() method (Win32 only)")
     wx_option(wxUSE_UXTHEME "enable support for Windows XP themed look (Win32 only)")
-    wx_option(wxUSE_WEBVIEW_EDGE "use wxWebView Edge (Chromium) backend (Windows only)" ${wxUSE_WEBVIEW_EDGE_DEFAULT})
+    wx_option(wxUSE_WEBVIEW_EDGE "use wxWebView Edge (Chromium) backend (Windows 7+ only)" ${wxUSE_WEBVIEW_EDGE_DEFAULT})
     wx_option(wxUSE_WEBVIEW_EDGE_STATIC "use wxWebView Edge with static loader" OFF)
     wx_option(wxUSE_WEBVIEW_IE "use wxWebView IE backend (Win32 only)")
     wx_option(wxUSE_WINRT "enable WinRT support" ${wxUSE_WINRT_DEFAULT})

@@ -19,8 +19,7 @@
 
 #if wxUSE_GRAPHICS_CONTEXT
     #include "wx/graphics.h"
-
-    #include <memory>
+    #include "wx/scopedptr.h"
 #else
     #include "wx/image.h"
     #include "wx/math.h"
@@ -93,7 +92,7 @@ void wxGenericStaticBitmap::OnPaint(wxPaintEvent& WXUNUSED(event))
     wxDouble x = (drawSize.x - w) / 2;
     wxDouble y = (drawSize.y - h) / 2;
 #if wxUSE_GRAPHICS_CONTEXT
-    std::unique_ptr<wxGraphicsContext> const
+    wxScopedPtr<wxGraphicsContext> const
         gc(wxGraphicsRenderer::GetDefaultRenderer()->CreateContext(dc));
     gc->DrawBitmap(bitmap, x, y, w, h);
 #else

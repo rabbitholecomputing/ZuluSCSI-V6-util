@@ -2,6 +2,7 @@
 // Name:        src/generic/splitter.cpp
 // Purpose:     wxSplitterWindow implementation
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
@@ -69,15 +70,30 @@ wxBEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
 #endif // wxMSW
 wxEND_EVENT_TABLE()
 
-static wxBitmap wxPaneCreateStippleBitmap()
+static bool IsLive(wxSplitterWindow* wnd)
 {
-    // Notice that wxOverlay, under wxMSW, uses the wxBLACK colour i.e.(0,0,0)
-    // as the key colour for transparency. and using it for the stipple bitmap
-    // will make the sash feedback totaly invisible if the window's background
-    // colour is (192,192,192) or so. (1,1,1) is used instead.
-    unsigned char data[] = { 1,1,1,192,192,192, 192,192,192,1,1,1 };
-    wxImage img(2,2,data,true);
-    return wxBitmap(img);
+    // with wxSP_LIVE_UPDATE style the splitter windows are always resized
+    // following the mouse movement while it drags the sash, without it we only
+    // draw the sash at the new position but only resize the windows when the
+    // dragging is finished
+#if defined( __WXMAC__ ) && defined(TARGET_API_MAC_OSX) && TARGET_API_MAC_OSX == 1
+    return true; // Mac can't paint outside paint event - always need live mode
+#else
+    // wxClientDC doesn't work with Wayland either, so check if we're using it.
+    #if defined(__WXGTK3__) && defined(__UNIX__)
+        switch ( wxGetDisplayInfo().type )
+        {
+            case wxDisplayNone:
+            case wxDisplayX11:
+                break;
+
+            case wxDisplayWayland:
+                return true;
+        }
+    #endif // wxGTK3
+
+    return wnd->HasFlag(wxSP_LIVE_UPDATE);
+#endif
 }
 
 bool wxSplitterWindow::Create(wxWindow *parent, wxWindowID id,
@@ -106,9 +122,13 @@ bool wxSplitterWindow::Create(wxWindow *parent, wxWindowID id,
   #endif
 #endif
     {
+        // FIXME: with this line the background is not erased at all under GTK1,
+        //        so temporary avoid it there
+#if !defined(__WXGTK__) || defined(__WXGTK20__)
         // don't erase the splitter background, it's pointless as we overwrite it
         // anyhow
         SetBackgroundStyle(wxBG_STYLE_PAINT);
+#endif
     }
 
     return true;
@@ -118,8 +138,8 @@ void wxSplitterWindow::Init()
 {
     m_splitMode = wxSPLIT_VERTICAL;
     m_permitUnsplitAlways = true;
-    m_windowOne = nullptr;
-    m_windowTwo = nullptr;
+    m_windowOne = NULL;
+    m_windowTwo = NULL;
     m_dragMode = wxSPLIT_DRAG_NONE;
     m_oldX = 0;
     m_oldY = 0;
@@ -130,6 +150,7 @@ void wxSplitterWindow::Init()
     m_minimumPaneSize = 0;
     m_sashCursorWE = wxCursor(wxCURSOR_SIZEWE);
     m_sashCursorNS = wxCursor(wxCURSOR_SIZENS);
+    m_sashTrackerPen = new wxPen(*wxBLACK, 2, wxPENSTYLE_SOLID);
 
     m_needUpdating = false;
     m_isHot = false;
@@ -137,6 +158,7 @@ void wxSplitterWindow::Init()
 
 wxSplitterWindow::~wxSplitterWindow()
 {
+    delete m_sashTrackerPen;
 }
 
 // ----------------------------------------------------------------------------
@@ -230,11 +252,7 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
         return;
     }
 
-    // with wxSP_LIVE_UPDATE style the splitter windows are always resized
-    // following the mouse movement while it drags the sash, without it we only
-    // draw the sash at the new position but only resize the windows when the
-    // dragging is finished
-    const bool isLive = HasFlag(wxSP_LIVE_UPDATE);
+    bool isLive = IsLive(this);
 
     if (event.LeftDown())
     {
@@ -278,10 +296,10 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
             return;
         }
 
-        // Hide sash tracker
+        // Erase old tracker
         if ( !isLive )
         {
-            m_overlay.Reset();
+            DrawSashTracker(m_oldX, m_oldY);
         }
 
         // the position of the click doesn't exactly correspond to
@@ -304,7 +322,7 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
                 // We remove the first window from the view
                 wxWindow *removedWindow = m_windowOne;
                 m_windowOne = m_windowTwo;
-                m_windowTwo = nullptr;
+                m_windowTwo = NULL;
                 OnUnsplit(removedWindow);
                 wxSplitterEvent eventUnsplit(wxEVT_SPLITTER_UNSPLIT, this);
                 eventUnsplit.m_data.win = removedWindow;
@@ -315,7 +333,7 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
             {
                 // We remove the second window from the view
                 wxWindow *removedWindow = m_windowTwo;
-                m_windowTwo = nullptr;
+                m_windowTwo = NULL;
                 OnUnsplit(removedWindow);
                 wxSplitterEvent eventUnsplit(wxEVT_SPLITTER_UNSPLIT, this);
                 eventUnsplit.m_data.win = removedWindow;
@@ -359,6 +377,9 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
 
             m_sashPositionCurrent = posSashNew;
 
+            // Erase old tracker
+            DrawSashTracker(m_oldX, m_oldY);
+
             m_oldX = (m_splitMode == wxSPLIT_VERTICAL ? m_sashPositionCurrent : x);
             m_oldY = (m_splitMode != wxSPLIT_VERTICAL ? m_sashPositionCurrent : y);
 
@@ -375,6 +396,7 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
                 m_oldY = 0;
 #endif // __WXMSW__
 
+            // Draw new one
             DrawSashTracker(m_oldX, m_oldY);
         }
         else
@@ -408,10 +430,10 @@ void wxSplitterWindow::OnMouseCaptureLost(wxMouseCaptureLostEvent& WXUNUSED(even
 
     SetCursor(* wxSTANDARD_CURSOR);
 
-    // Erase sash tracker
-    if ( HasFlag(wxSP_LIVE_UPDATE) )
+    // Erase old tracker
+    if ( !IsLive(this) )
     {
-        m_overlay.Reset();
+        DrawSashTracker(m_oldX, m_oldY);
     }
 }
 
@@ -514,14 +536,9 @@ void wxSplitterWindow::OnSize(wxSizeEvent& event)
 
 void wxSplitterWindow::OnDPIChanged(wxDPIChangedEvent& event)
 {
-    // On platforms requiring scaling by DPI factor we need to do it whenever
-    // DPI changes, but elsewhere we shouldn't do it as the same logical
-    // coordinates are used irrespectively of the current DPI value.
-#ifndef wxHAS_DPI_INDEPENDENT_PIXELS
     m_minimumPaneSize = event.ScaleX(m_minimumPaneSize);
     m_sashPosition = event.ScaleX(m_sashPosition);
     m_lastSize = event.Scale(m_lastSize);
-#endif // !wxHAS_DPI_INDEPENDENT_PIXELS
 
     event.Skip();
 }
@@ -536,7 +553,7 @@ void wxSplitterWindow::SetSashGravity(double gravity)
 
 bool wxSplitterWindow::SashHitTest(int x, int y)
 {
-    if ( m_windowTwo == nullptr || m_sashPosition == 0)
+    if ( m_windowTwo == NULL || m_sashPosition == 0)
         return false; // No sash
 
     int z = m_splitMode == wxSPLIT_VERTICAL ? x : y;
@@ -600,37 +617,49 @@ void wxSplitterWindow::DrawSash(wxDC& dc)
 // Draw the sash tracker (for whilst moving the sash)
 void wxSplitterWindow::DrawSashTracker(int x, int y)
 {
-    // One of the components of this size will be modified below, the other one
-    // will stay unchanged as the tracker goes across the entire window.
-    wxSize sizeSash = GetClientSize();
+    int w, h;
+    GetClientSize(&w, &h);
 
-    // One of the components of this position will be modified below, the other
-    // one is always 0 as the tracker starts at the left/top of the window.
-    wxPoint posSash;
-
-    const int sashTrackerWidth = GetDefaultSashSize();
+    int x1, y1;
+    int x2, y2;
 
     if ( m_splitMode == wxSPLIT_VERTICAL )
     {
-        posSash.x = wxClip(x, 0, sizeSash.x);
-        sizeSash.x = sashTrackerWidth;
+        x1 = x2 = wxClip(x, 0, w) + m_sashTrackerPen->GetWidth()/2;
+        y1 = 2;
+        y2 = h-2;
     }
     else
     {
-        posSash.y = wxClip(y, 0, sizeSash.y);
-        sizeSash.y = sashTrackerWidth;
+        y1 = y2 = wxClip(y, 0, h) + m_sashTrackerPen->GetWidth()/2;
+        x1 = 2;
+        x2 = w-2;
     }
 
+#if defined(__WXGTK3__)
     wxClientDC dc(this);
-    wxDCOverlay overlaydc( m_overlay, &dc );
-    overlaydc.Clear();
 
-    wxBitmap stipple = wxPaneCreateStippleBitmap();
-    wxBrush brush(stipple);
-    dc.SetBrush(brush);
-    dc.SetPen(*wxTRANSPARENT_PEN);
+    // In the ports with wxGraphicsContext-based wxDC, such as wxGTK3 or wxOSX,
+    // wxINVERT only works for inverting the background when using white
+    // foreground (note that this code is not used anyhow for __WXMAC__ due to
+    // always using live-resizing there, see IsLive()).
+    dc.SetPen(*wxWHITE_PEN);
+#else
+    // We need to use wxScreenDC and not wxClientDC at least for wxMSW where
+    // drawing in this window itself would be hidden by its children windows,
+    // that cover it almost entirely.
+    wxScreenDC dc;
+    ClientToScreen(&x1, &y1);
+    ClientToScreen(&x2, &y2);
 
-    dc.DrawRectangle(posSash, sizeSash);
+    dc.SetPen(*m_sashTrackerPen);
+#endif
+
+    dc.SetLogicalFunction(wxINVERT);
+
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+
+    dc.DrawLine(x1, y1, x2, y2);
 }
 
 int wxSplitterWindow::GetWindowSize() const
@@ -793,7 +822,7 @@ void wxSplitterWindow::Initialize(wxWindow *window)
         window->Show();
 
     m_windowOne = window;
-    m_windowTwo = nullptr;
+    m_windowTwo = NULL;
     DoSetSashPosition(0);
 }
 
@@ -808,7 +837,7 @@ bool wxSplitterWindow::DoSplit(wxSplitMode mode,
         return false;
 
     wxCHECK_MSG( window1 && window2, false,
-                 wxT("cannot split with null window(s)") );
+                 wxT("cannot split with NULL window(s)") );
 
     wxCHECK_MSG( window1->GetParent() == this && window2->GetParent() == this, false,
                   wxT("windows in the splitter should have it as parent!") );
@@ -840,18 +869,6 @@ int wxSplitterWindow::ConvertSashPosition(int sashPosition) const
     }
     else // sashPosition == 0
     {
-        // Use last split position if we have it.
-        if ( m_splitMode == wxSPLIT_VERTICAL )
-        {
-            if ( m_lastSplitPosition.x )
-                return m_lastSplitPosition.x;
-        }
-        else if ( m_splitMode == wxSPLIT_HORIZONTAL )
-        {
-            if ( m_lastSplitPosition.y )
-                return m_lastSplitPosition.y;
-        }
-
         // default, put it in the centre
         return GetWindowSize() / 2;
     }
@@ -865,31 +882,22 @@ bool wxSplitterWindow::Unsplit(wxWindow *toRemove)
         return false;
 
     wxWindow *win;
-    if ( toRemove == nullptr || toRemove == m_windowTwo)
+    if ( toRemove == NULL || toRemove == m_windowTwo)
     {
         win = m_windowTwo ;
-        m_windowTwo = nullptr;
+        m_windowTwo = NULL;
     }
     else if ( toRemove == m_windowOne )
     {
         win = m_windowOne ;
         m_windowOne = m_windowTwo;
-        m_windowTwo = nullptr;
+        m_windowTwo = NULL;
     }
     else
     {
         wxFAIL_MSG(wxT("splitter: attempt to remove a non-existent window"));
 
         return false;
-    }
-
-    if (m_splitMode == wxSPLIT_VERTICAL)
-    {
-        m_lastSplitPosition.x = m_sashPosition;
-    }
-    else if (m_splitMode == wxSPLIT_HORIZONTAL)
-    {
-        m_lastSplitPosition.y = m_sashPosition;
     }
 
     OnUnsplit(win);
@@ -1106,17 +1114,6 @@ void wxSplitterWindow::OnUnsplit(wxWindow *winRemoved)
     // call this before calling the event handler which may delete the window
     winRemoved->Show(false);
 }
-
-wxPoint wxSplitterWindow::GetLastSplitPosition() const
-{
-    return m_lastSplitPosition;
-}
-
-void wxSplitterWindow::SetLastSplitPosition(const wxPoint& pos)
-{
-    m_lastSplitPosition = pos;
-}
-
 
 #if defined( __WXMSW__ ) || defined( __WXMAC__)
 

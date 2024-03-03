@@ -8,7 +8,7 @@
 #############################################################################
 
 wx_add_sample(access accesstest.cpp DEPENDS wxUSE_ACCESSIBILITY)
-wx_add_sample(animate anitest.cpp anitest.h DATA throbber.gif throbber_2x.gif hourglass.ani DEPENDS wxUSE_ANIMATIONCTRL)
+wx_add_sample(animate anitest.cpp anitest.h DATA throbber.gif hourglass.ani DEPENDS wxUSE_ANIMATIONCTRL)
 wx_add_sample(archive CONSOLE)
 wx_add_sample(artprov arttest.cpp artbrows.cpp artbrows.h)
 wx_add_sample(aui auidemo.cpp LIBRARIES wxaui wxhtml NAME auidemo DEPENDS wxUSE_AUI)
@@ -67,7 +67,7 @@ wx_add_sample(htlbox LIBRARIES wxhtml DEPENDS wxUSE_HTML)
 if(wxUSE_HTML)
     include(html.cmake)
 endif()
-wx_add_sample(image image.cpp canvas.cpp canvas.h RES image.rc
+wx_add_sample(image image.cpp canvas.cpp canvas.h cursor_png.c RES image.rc
     DATA horse.png horse.jpg horse.bmp horse.gif horse.pcx horse.pnm
     horse_ag.pnm horse_rg.pnm horse.tif horse.tga horse.xpm horse.cur
     horse.ico horse3.ani horse.svg smile.xbm toucan.png cmyk.jpg cursor.png
@@ -89,6 +89,9 @@ wx_add_sample(layout layout.cpp layout.h)
 wx_add_sample(listctrl listtest.cpp listtest.h RES listtest.rc DEPENDS wxUSE_LISTCTRL)
 wx_add_sample(mdi mdi.cpp mdi.h RES mdi.rc DEPENDS wxUSE_MDI wxUSE_DOC_VIEW_ARCHITECTURE wxUSE_MDI_ARCHITECTURE)
 wx_add_sample(mediaplayer LIBRARIES wxmedia DEPENDS wxUSE_MEDIACTRL)
+if(wxBUILD_DEBUG_LEVEL STREQUAL "Default" OR wxBUILD_DEBUG_LEVEL GREATER 0)
+    wx_add_sample(memcheck)
+endif()
 wx_add_sample(menu DEPENDS wxUSE_MENUS wxUSE_MENUBAR)
 wx_add_sample(minimal IMPORTANT)
 wx_add_sample(notebook notebook.cpp notebook.h LIBRARIES wxaui DEPENDS wxUSE_NOTEBOOK)
@@ -115,7 +118,7 @@ wx_add_sample(power)
 wx_add_sample(preferences DEPENDS wxUSE_PREFERENCES_EDITOR)
 wx_add_sample(printing printing.cpp printing.h DEPENDS wxUSE_PRINTING_ARCHITECTURE)
 wx_add_sample(propgrid propgrid.cpp propgrid_minimal.cpp sampleprops.cpp
-    sampleprops.h propgrid.h LIBRARIES wxpropgrid wxxrc NAME propgriddemo DEPENDS wxUSE_PROPGRID)
+    tests.cpp sampleprops.h propgrid.h LIBRARIES wxpropgrid NAME propgriddemo DEPENDS wxUSE_PROPGRID)
 wx_add_sample(render FOLDER render)
 wx_add_sample(render DLL renddll.cpp NAME renddll FOLDER render)
 wx_add_sample(ribbon ribbondemo.cpp LIBRARIES wxribbon NAME ribbondemo DEPENDS wxUSE_RIBBON)
@@ -151,8 +154,11 @@ wx_add_sample(typetest typetest.cpp typetest.h)
 wx_add_sample(uiaction DEPENDS wxUSE_UIACTIONSIMULATOR)
 wx_add_sample(validate validate.cpp validate.h DEPENDS wxUSE_VALIDATORS)
 wx_add_sample(vscroll vstest.cpp)
-if(wxUSE_WEBVIEW)
-    include(webview.cmake)
+wx_add_sample(webview LIBRARIES wxwebview
+    DATA ../help/doc.zip:doc.zip
+    NAME webviewsample DEPENDS wxUSE_WEBVIEW)
+if(TARGET webviewsample AND wxUSE_STC)
+    wx_exe_link_libraries(webviewsample wxstc)
 endif()
 wx_add_sample(webrequest LIBRARIES wxnet DEPENDS wxUSE_WEBREQUEST)
 # widgets Sample

@@ -2,6 +2,7 @@
 // Name:        src/osx/sound_osx.cpp
 // Purpose:     wxSound class common osx code
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     2009-09-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -87,7 +88,7 @@ wxSound::~wxSound()
 
 void wxSound::Init()
 {
-    m_data = nullptr;
+    m_data = NULL;
 }
 
 bool wxSound::DoPlay(unsigned flags) const

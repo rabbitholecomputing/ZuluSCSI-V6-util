@@ -21,7 +21,7 @@
 class wxDisplayFactory
 {
 public:
-    wxDisplayFactory() = default;
+    wxDisplayFactory() { }
     virtual ~wxDisplayFactory() { ClearImpls(); }
 
     // Create the display if necessary using CreateDisplay(), otherwise just
@@ -68,13 +68,9 @@ public:
     // return the display for the given point or wxNOT_FOUND
     virtual int GetFromPoint(const wxPoint& pt) = 0;
 
-    // return the display with biggest intersection with the given rectangle or
-    // wxNOT_FOUND
-    virtual int GetFromRect(const wxRect& rect);
-
     // return the display for the given window or wxNOT_FOUND
     //
-    // the window pointer must not be null (i.e. caller should check it)
+    // the window pointer must not be NULL (i.e. caller should check it)
     virtual int GetFromWindow(const wxWindow *window);
 
     // Trigger recreation of wxDisplayImpl when they're needed the next time.
@@ -83,7 +79,7 @@ public:
 protected:
     // create a new display object
     //
-    // it can return a null pointer if the display creation failed
+    // it can return a NULL pointer if the display creation failed
     virtual wxDisplayImpl *CreateDisplay(unsigned n) = 0;
 
 private:
@@ -104,7 +100,7 @@ class wxDisplayImpl
 {
 public:
     // virtual dtor for this base class
-    virtual ~wxDisplayImpl() = default;
+    virtual ~wxDisplayImpl() { }
 
 
     // return the full area of this display
@@ -173,17 +169,17 @@ public:
 #if wxUSE_DISPLAY
     // no video modes support for us, provide just the stubs
     virtual wxArrayVideoModes
-    GetModes(const wxVideoMode& WXUNUSED(mode)) const override
+    GetModes(const wxVideoMode& WXUNUSED(mode)) const wxOVERRIDE
     {
         return wxArrayVideoModes();
     }
 
-    virtual wxVideoMode GetCurrentMode() const override
+    virtual wxVideoMode GetCurrentMode() const wxOVERRIDE
     {
         return wxVideoMode();
     }
 
-    virtual bool ChangeMode(const wxVideoMode& WXUNUSED(mode)) override
+    virtual bool ChangeMode(const wxVideoMode& WXUNUSED(mode)) wxOVERRIDE
     {
         return false;
     }
@@ -206,11 +202,11 @@ public:
 class wxDisplayFactorySingle : public wxDisplayFactory
 {
 public:
-    virtual unsigned GetCount() override { return 1; }
-    virtual int GetFromPoint(const wxPoint& pt) override;
+    virtual unsigned GetCount() wxOVERRIDE { return 1; }
+    virtual int GetFromPoint(const wxPoint& pt) wxOVERRIDE;
 
 protected:
-    virtual wxDisplayImpl *CreateDisplay(unsigned n) override;
+    virtual wxDisplayImpl *CreateDisplay(unsigned n) wxOVERRIDE;
 
     virtual wxDisplayImpl *CreateSingleDisplay() = 0;
 };

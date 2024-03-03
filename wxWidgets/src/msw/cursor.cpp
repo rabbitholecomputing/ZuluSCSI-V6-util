@@ -2,6 +2,7 @@
 // Name:        src/msw/cursor.cpp
 // Purpose:     wxCursor class
 // Author:      Julian Smart
+// Modified by:
 // Created:     01/02/97
 // Copyright:   (c) 1997-2003 Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -51,7 +52,7 @@ public:
 
     virtual ~wxCursorRefData() { Free(); }
 
-    virtual void Free() override;
+    virtual void Free() wxOVERRIDE;
 
 
     // return the size of the standard cursor: notice that the system only
@@ -75,7 +76,7 @@ wxIMPLEMENT_DYNAMIC_CLASS(wxCursor, wxGDIObject);
 
 // Current cursor, in order to hang on to cursor handle when setting the cursor
 // globally
-static wxCursor *gs_globalCursor = nullptr;
+static wxCursor *gs_globalCursor = NULL;
 
 // ----------------------------------------------------------------------------
 // private classes
@@ -84,14 +85,14 @@ static wxCursor *gs_globalCursor = nullptr;
 class wxCursorModule : public wxModule
 {
 public:
-    virtual bool OnInit() override
+    virtual bool OnInit() wxOVERRIDE
     {
         gs_globalCursor = new wxCursor;
 
         return true;
     }
 
-    virtual void OnExit() override
+    virtual void OnExit() wxOVERRIDE
     {
         wxDELETE(gs_globalCursor);
     }
@@ -247,7 +248,7 @@ wxCursor::wxCursor(const wxString& filename,
         default:
             wxLogError( wxT("unknown cursor resource type '%d'"), kind );
 
-            hcursor = nullptr;
+            hcursor = NULL;
     }
 
     if ( hcursor )
@@ -291,7 +292,7 @@ HCURSOR CreateReverseCursor(HCURSOR cursor)
 {
     AutoIconInfo info;
     if ( !info.GetFrom(cursor) )
-        return nullptr;
+        return NULL;
 
     const unsigned displayID = (unsigned)wxDisplay::GetFromPoint(wxGetMousePosition());
     wxDisplay disp(displayID == 0u || displayID < wxDisplay::GetCount() ? displayID : 0u);
@@ -321,7 +322,7 @@ void wxCursor::InitFromStock(wxStockCursor idCursor)
         LPCTSTR name;
     } stdCursors[] =
     {
-        {  true, nullptr                        }, // wxCURSOR_NONE
+        {  true, NULL                        }, // wxCURSOR_NONE
         {  true, IDC_ARROW                   }, // wxCURSOR_ARROW
         { false, wxT("WXCURSOR_RIGHT_ARROW")  }, // wxCURSOR_RIGHT_ARROW
         { false, wxT("WXCURSOR_BULLSEYE")     }, // wxCURSOR_BULLSEYE
@@ -362,7 +363,7 @@ void wxCursor::InitFromStock(wxStockCursor idCursor)
     const StdCursor& stdCursor = stdCursors[idCursor];
     bool deleteLater = !stdCursor.isStd;
 
-    HCURSOR hcursor = ::LoadCursor(stdCursor.isStd ? nullptr : wxGetInstance(),
+    HCURSOR hcursor = ::LoadCursor(stdCursor.isStd ? NULL : wxGetInstance(),
                                    stdCursor.name);
 
     // IDC_HAND may not be available on some versions of Windows.
@@ -374,7 +375,7 @@ void wxCursor::InitFromStock(wxStockCursor idCursor)
 
     if ( !hcursor && idCursor == wxCURSOR_RIGHT_ARROW)
     {
-        hcursor = ::LoadCursor(nullptr, IDC_ARROW);
+        hcursor = ::LoadCursor(NULL, IDC_ARROW);
         if ( hcursor )
         {
             hcursor = CreateReverseCursor(hcursor);
@@ -399,6 +400,10 @@ void wxCursor::InitFromStock(wxStockCursor idCursor)
     {
         m_refData = new wxCursorRefData(hcursor, deleteLater);
     }
+}
+
+wxCursor::~wxCursor()
+{
 }
 
 // ----------------------------------------------------------------------------

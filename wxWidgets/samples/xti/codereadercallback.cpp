@@ -2,6 +2,7 @@
 // Name:        src/common/xtistrm.cpp
 // Purpose:     streaming runtime metadata information
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     27/07/03
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
@@ -38,7 +39,11 @@ using namespace std;
 
 struct wxObjectCodeReaderCallback::wxObjectCodeReaderCallbackInternal
 {
+#if wxUSE_UNICODE
     map<int,wstring> m_objectNames;
+#else
+    map<int,string> m_objectNames;
+#endif
 
     void SetObjectName(int objectID, const wxString &name )
     {

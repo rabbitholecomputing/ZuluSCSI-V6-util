@@ -2,6 +2,7 @@
 // Name:        src/osx/cocoa/stattext.mm
 // Purpose:     wxStaticText
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     04/01/98
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -90,11 +91,11 @@ public:
         m_lineBreak = lineBreak;
     }
 
-    virtual void SetLabel(const wxString& title) override
+    virtual void SetLabel(const wxString& title, wxFontEncoding encoding) wxOVERRIDE
     {
         wxMacAutoreleasePool autoreleasepool;
 
-        wxCFStringRef text( title );
+        wxCFStringRef text( title , encoding );
 
         NSMutableAttributedString *
             attrstring = [[NSMutableAttributedString alloc] initWithString:text.AsNSString()];
@@ -103,7 +104,7 @@ public:
     }
 
 #if wxUSE_MARKUP
-    virtual void SetLabelMarkup( const wxString& markup) override
+    virtual void SetLabelMarkup( const wxString& markup) wxOVERRIDE
     {
         wxMarkupToAttrString toAttr(GetWXPeer()->GetFont(), markup);
 

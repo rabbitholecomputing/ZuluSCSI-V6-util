@@ -23,7 +23,6 @@
 // Get operator<<(wxSize) so that wxSize values are shown correctly in case of
 // a failure of a CHECK() involving them.
 #include "asserthelper.h"
-#include "waitfor.h"
 
 class ButtonTestCase
 {
@@ -65,10 +64,7 @@ TEST_CASE_METHOD(ButtonTestCase, "Button::Click", "[button]")
     wxYield();
 
     sim.MouseClick();
-
-    // At least under wxMSW calling wxYield() just once doesn't always work, so
-    // try for a while.
-    WaitFor("button to be clicked", [&]() { return clicked.GetCount() != 0; });
+    wxYield();
 
     CHECK( clicked.GetCount() == 1 );
 }

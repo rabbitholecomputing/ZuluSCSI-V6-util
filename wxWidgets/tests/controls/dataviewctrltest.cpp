@@ -20,7 +20,7 @@
 #include "wx/uiaction.h"
 
 #ifdef __WXGTK__
-    #include "waitfor.h"
+    #include "wx/stopwatch.h"
 #endif // __WXGTK__
 
 #include "testableframe.h"
@@ -162,7 +162,7 @@ public:
     // Overridden wxDataViewModel methods.
 
     void GetValue(wxVariant &variant, const wxDataViewItem &item,
-                  unsigned int WXUNUSED(col)) const override
+                  unsigned int WXUNUSED(col)) const wxOVERRIDE
     {
         switch( GetItemID(item) )
         {
@@ -197,18 +197,18 @@ public:
 
     bool SetValue(const wxVariant &WXUNUSED(variant),
                   const wxDataViewItem &WXUNUSED(item),
-                  unsigned int WXUNUSED(col)) override
+                  unsigned int WXUNUSED(col)) wxOVERRIDE
     {
         return false;
     }
 
-    bool HasContainerColumns(const wxDataViewItem &WXUNUSED(item)) const override
+    bool HasContainerColumns(const wxDataViewItem &WXUNUSED(item)) const wxOVERRIDE
     {
         // Always display all the columns, even for the containers.
         return true;
     }
 
-    wxDataViewItem GetParent(const wxDataViewItem &item) const override
+    wxDataViewItem GetParent(const wxDataViewItem &item) const wxOVERRIDE
     {
         switch( GetItemID(item) )
         {
@@ -233,7 +233,7 @@ public:
         return wxDataViewItem();
     }
 
-    bool IsContainer(const wxDataViewItem &item) const override
+    bool IsContainer(const wxDataViewItem &item) const wxOVERRIDE
     {
         switch( GetItemID(item) )
         {
@@ -252,7 +252,7 @@ public:
     }
 
     unsigned int GetChildren(const wxDataViewItem &item,
-                           wxDataViewItemArray &children) const override
+                           wxDataViewItemArray &children) const wxOVERRIDE
     {
         switch( GetItemID(item) )
         {
@@ -328,7 +328,7 @@ public:
 private:
     wxTestItem GetItemID(const wxDataViewItem &dataViewItem) const
     {
-        if ( dataViewItem.GetID() == nullptr )
+        if ( dataViewItem.GetID() == NULL )
             return wxTEST_ITEM_NULL;
         return *static_cast<wxTestItem*>(dataViewItem.GetID());
     }
@@ -366,23 +366,31 @@ protected:
 #ifdef __WXGTK__
         // Unfortunately it's not enough to call wxYield() once, so wait up to
         // 0.5 sec.
-        WaitFor("wxDataViewCtrl upder", [this, item, existence]() {
+        wxStopWatch sw;
+        while ( true )
+        {
+            wxYield();
+
             const bool isItemRectEmpty = m_dvc->GetItemRect(item).IsEmpty();
             switch ( existence )
             {
                 case wxITEM_APPEAR:
                     if ( !isItemRectEmpty )
-                        return true;
+                        return;
                     break;
 
                 case wxITEM_DISAPPEAR:
                     if ( isItemRectEmpty )
-                        return true;
+                        return;
                     break;
             }
 
-            return false;
-        });
+            if ( sw.Time() > 500 )
+            {
+                WARN("Timed out waiting for wxDataViewCtrl");
+                break;
+            }
+        }
 #else // !__WXGTK__
         wxUnusedVar(item);
         wxUnusedVar(existence);
@@ -802,9 +810,16 @@ TEST_CASE_METHOD(SingleSelectDataViewCtrlTestCase,
 
 #ifdef __WXGTK__
     // Wait for the list control to be relaid out.
-    WaitFor("wxDataViewCtrl layout", [this]() {
-        return m_dvc->GetTopItem() != m_root;
-    });
+    wxStopWatch sw;
+    while ( m_dvc->GetTopItem() == m_root )
+    {
+        if ( sw.Time() > 500 )
+        {
+            WARN("Timed out waiting for wxDataViewCtrl layout");
+            break;
+        }
+        wxYield();
+    }
 #endif // __WXGTK__
 
     // Check that this was indeed the case.
@@ -843,9 +858,16 @@ TEST_CASE_METHOD(MultiColumnsDataViewCtrlTestCase,
 {
 #ifdef __WXGTK__
     // Wait for the list control to be realized.
-    WaitFor("wxDataViewCtrl to be realized", [this]() {
-        return m_firstColumn->GetWidth() != 0;
-    });
+    wxStopWatch sw;
+    while ( m_firstColumn->GetWidth() == 0 )
+    {
+        if ( sw.Time() > 500 )
+        {
+            WARN("Timed out waiting for wxDataViewListCtrl to be realized");
+            break;
+        }
+        wxYield();
+    }
 #endif
 
     // Check the width of the first column.
@@ -873,7 +895,6 @@ TEST_CASE_METHOD(SingleSelectDataViewCtrlTestCase,
     EventCounter keyEvents(m_dvc, wxEVT_KEY_DOWN);
 
     m_dvc->SetFocus();
-    wxYield();
 
     wxUIActionSimulator sim;
     sim.Char(WXK_DOWN);

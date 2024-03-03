@@ -11,23 +11,14 @@
     A static box is a rectangle drawn around other windows to denote
     a logical grouping of items.
 
-    Typically wxStaticBox is not used directly, but only via wxStaticBoxSizer
-    class which lays out its elements inside a box.
+    Note that while the previous versions required that windows appearing
+    inside a static box be created as its siblings (i.e. use the same parent as
+    the static box itself), since wxWidgets 2.9.1 it is possible to create
+    them as children of wxStaticBox itself and doing this is strongly
+    recommended and avoids several different repainting problems that could
+    happen when creating the other windows as siblings of the box.
 
-    If you do use it directly, please note that while the previous versions
-    required that windows appearing inside a static box be created as its
-    siblings (i.e. use the same parent as the static box itself), since
-    wxWidgets 2.9.1 it is strongly recommended to create them as children of
-    wxStaticBox itself, as doing this avoids problems with repainting that
-    could happen when creating the other windows as siblings of the box.
-    Notably, in wxMSW, siblings of the static box are not drawn at all inside
-    it when compositing is used, which is the case by default, and
-    wxWindow::MSWDisableComposited() must be explicitly called to fix this.
-    Creating windows located inside the static box as its children avoids this
-    problem and works well whether compositing is used or not.
-
-    To summarize, the correct way to create static box and the controls inside
-    it is:
+    So the recommended way to create static box and the controls inside it is:
     @code
         void MyFrame::CreateControls()
         {
@@ -38,6 +29,13 @@
             ...
         }
     @endcode
+
+    Creating the windows with the static box parent (i.e. @c panel in the
+    example above) as parent still works but can result in refresh and repaint
+    problems.
+
+    Also note that there is a specialized wxSizer class (wxStaticBoxSizer) which can
+    be used as an easier way to pack items into a static box.
 
     @library{wxcore}
     @category{ctrl}
@@ -169,7 +167,8 @@ public:
         checkbox stays enabled even if @c box->Enable(false) is called.
 
         However with the actual behaviour, implemented in this overridden
-        method, the following code:
+        method, the following code (shown using C++11 only for convenience,
+        this behaviour is not C++11-specific):
         @code
             auto check = new wxCheckBox(parent, wxID_ANY, "Use the box");
             auto box = new wxStaticBox(parent, wxID_ANY, check);

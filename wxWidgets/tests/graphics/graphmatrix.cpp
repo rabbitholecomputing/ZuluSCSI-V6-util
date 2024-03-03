@@ -6,6 +6,10 @@
 // Copyright:   (c) 2016 wxWidgets development team
 ///////////////////////////////////////////////////////////////////////////////
 
+// ----------------------------------------------------------------------------
+// headers
+// ----------------------------------------------------------------------------
+
 #include "testprec.h"
 
 
@@ -14,176 +18,216 @@
 #include "wx/graphics.h"
 #include "wx/dcmemory.h"
 
-#include <memory>
+// ----------------------------------------------------------------------------
+// Graphics matrix test classes
+// ----------------------------------------------------------------------------
 
-static void InitState(wxGraphicsContext* gc);
-static void InvertMatrix(wxGraphicsContext* gc);
-static void Concat1(wxGraphicsContext* gc);
-static void Concat2(wxGraphicsContext* gc);
-static void Concat3(wxGraphicsContext* gc);
-
-TEST_CASE("GraphicsMatrixTestCase::DefaultRenderer", "[graphmatrix][default]")
+class GraphicsMatrixTestCaseBase : public CppUnit::TestCase
 {
-    wxBitmap bmp(100, 100);
-    wxMemoryDC dc(bmp);
-    wxGraphicsRenderer* rend = wxGraphicsRenderer::GetDefaultRenderer();
-    REQUIRE(rend);
-    std::unique_ptr<wxGraphicsContext> gc(rend->CreateContext(dc));
-    REQUIRE(gc.get());
-
-    SECTION("InitState")
+public:
+    GraphicsMatrixTestCaseBase()
     {
-        InitState(gc.get());
+        m_bmp.Create(100, 100);
+        m_dc.SelectObject(m_bmp);
+        m_rend = NULL;
+        m_ctx = NULL;
     }
 
-    SECTION("InvertMatrix")
+    ~GraphicsMatrixTestCaseBase()
     {
-        InvertMatrix(gc.get());
+        m_dc.SelectObject(wxNullBitmap);
+        m_bmp = wxNullBitmap;
     }
 
-    SECTION("Concat1")
+    virtual void setUp() wxOVERRIDE
     {
-        Concat1(gc.get());
+        wxASSERT( m_rend );
+        m_ctx = m_rend->CreateContext(m_dc);
     }
 
-    SECTION("Concat2")
+    virtual void tearDown() wxOVERRIDE
     {
-        Concat2(gc.get());
+        delete m_ctx;
+        m_ctx = NULL;
     }
 
-    SECTION("Concat3")
-    {
-        Concat3(gc.get());
-    }
-}
+protected:
+    void InitState();
+    void InvertMatrix();
+    void Concat1();
+    void Concat2();
+    void Concat3();
+
+    wxGraphicsRenderer* m_rend;
+
+private:
+    void CheckMatrix(const wxGraphicsMatrix& m,
+                     double a, double b, double c, double d,
+                     double tx, double ty);
+
+    wxBitmap m_bmp;
+    wxMemoryDC m_dc;
+    wxGraphicsContext* m_ctx;
+
+    wxDECLARE_NO_COPY_CLASS(GraphicsMatrixTestCaseBase);
+};
+
+// ========================
+// wxGraphicsContext tests
+// ========================
 
 #ifdef __WXMSW__
+// GDI+ and Direct2D are available only under MSW.
 
 #if wxUSE_GRAPHICS_GDIPLUS
-TEST_CASE("GraphicsMatrixTestCase::GDIPlusRenderer", "[graphmatrix][gdiplus]")
+
+class GraphicsMatrixTestCaseGDIPlus : public GraphicsMatrixTestCaseBase
 {
-    wxBitmap bmp(100, 100);
-    wxMemoryDC dc(bmp);
-    wxGraphicsRenderer* rend = wxGraphicsRenderer::GetGDIPlusRenderer();
-    REQUIRE(rend);
-    std::unique_ptr<wxGraphicsContext> gc(rend->CreateContext(dc));
-    REQUIRE(gc.get());
-
-    SECTION("InitState")
+public:
+    GraphicsMatrixTestCaseGDIPlus()
     {
-        InitState(gc.get());
+        m_rend = wxGraphicsRenderer::GetGDIPlusRenderer();
     }
 
-    SECTION("InvertMatrix")
+    virtual ~GraphicsMatrixTestCaseGDIPlus()
     {
-        InvertMatrix(gc.get());
     }
 
-    SECTION("Concat1")
-    {
-        Concat1(gc.get());
-    }
+private:
+    CPPUNIT_TEST_SUITE( GraphicsMatrixTestCaseGDIPlus );
+        CPPUNIT_TEST( InitState );
+        CPPUNIT_TEST( InvertMatrix );
+        CPPUNIT_TEST( Concat1 );
+        CPPUNIT_TEST( Concat2 );
+        CPPUNIT_TEST( Concat3 );
+    CPPUNIT_TEST_SUITE_END();
 
-    SECTION("Concat2")
-    {
-        Concat2(gc.get());
-    }
+protected:
+    wxDECLARE_NO_COPY_CLASS(GraphicsMatrixTestCaseGDIPlus);
+};
 
-    SECTION("Concat3")
-    {
-        Concat3(gc.get());
-    }
-}
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( GraphicsMatrixTestCaseGDIPlus );
+
+// also include in it's own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( GraphicsMatrixTestCaseGDIPlus, "GraphicsMatrixTestCaseGDIPlus" );
+
 #endif // wxUSE_GRAPHICS_GDIPLUS
 
 #if wxUSE_GRAPHICS_DIRECT2D
-TEST_CASE("GraphicsMatrixTestCase::Direct2DRenderer", "[graphmatrix][direct2d]")
+
+class GraphicsMatrixTestCaseDirect2D : public GraphicsMatrixTestCaseBase
 {
-    wxBitmap bmp(100, 100);
-    wxMemoryDC dc(bmp);
-    wxGraphicsRenderer* rend = wxGraphicsRenderer::GetDirect2DRenderer();
-    REQUIRE(rend);
-    std::unique_ptr<wxGraphicsContext> gc(rend->CreateContext(dc));
-    REQUIRE(gc.get());
-
-    SECTION("InitState")
+public:
+    GraphicsMatrixTestCaseDirect2D()
     {
-        InitState(gc.get());
+        m_rend = wxGraphicsRenderer::GetDirect2DRenderer();
     }
 
-    SECTION("InvertMatrix")
+    virtual ~GraphicsMatrixTestCaseDirect2D()
     {
-        InvertMatrix(gc.get());
     }
 
-    SECTION("Concat1")
-    {
-        Concat1(gc.get());
-    }
+private:
+    CPPUNIT_TEST_SUITE( GraphicsMatrixTestCaseDirect2D );
+        CPPUNIT_TEST( InitState );
+        CPPUNIT_TEST( InvertMatrix );
+        CPPUNIT_TEST( Concat1 );
+        CPPUNIT_TEST( Concat2 );
+        CPPUNIT_TEST( Concat3 );
+    CPPUNIT_TEST_SUITE_END();
 
-    SECTION("Concat2")
-    {
-        Concat2(gc.get());
-    }
+protected:
+    wxDECLARE_NO_COPY_CLASS(GraphicsMatrixTestCaseDirect2D);
+};
 
-    SECTION("Concat3")
-    {
-        Concat3(gc.get());
-    }
-}
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( GraphicsMatrixTestCaseDirect2D );
+
+// also include in it's own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( GraphicsMatrixTestCaseDirect2D, "GraphicsMatrixTestCaseDirect2D" );
+
 #endif // wxUSE_GRAPHICS_DIRECT2D
 
 #endif // __WXMSW__
 
 #if wxUSE_CAIRO
-TEST_CASE("GraphicsMatrixTestCase::CairoRenderer", "[graphmatrix][cairo]")
+
+class GraphicsMatrixTestCaseCairo : public GraphicsMatrixTestCaseBase
 {
-    wxBitmap bmp(100, 100);
-    wxMemoryDC dc(bmp);
-    wxGraphicsRenderer* rend = wxGraphicsRenderer::GetCairoRenderer();
-    REQUIRE(rend);
-    std::unique_ptr<wxGraphicsContext> gc(rend->CreateContext(dc));
-    REQUIRE(gc.get());
-
-    SECTION("InitState")
+public:
+    GraphicsMatrixTestCaseCairo()
     {
-        InitState(gc.get());
+        m_rend = wxGraphicsRenderer::GetCairoRenderer();
     }
 
-    SECTION("InvertMatrix")
+    virtual ~GraphicsMatrixTestCaseCairo()
     {
-        InvertMatrix(gc.get());
     }
 
-    SECTION("Concat1")
-    {
-        Concat1(gc.get());
-    }
+private:
+    CPPUNIT_TEST_SUITE( GraphicsMatrixTestCaseCairo );
+        CPPUNIT_TEST( InitState );
+        CPPUNIT_TEST( InvertMatrix );
+        CPPUNIT_TEST( Concat1 );
+        CPPUNIT_TEST( Concat2 );
+        CPPUNIT_TEST( Concat3 );
+    CPPUNIT_TEST_SUITE_END();
 
-    SECTION("Concat2")
-    {
-        Concat2(gc.get());
-    }
+protected:
+    wxDECLARE_NO_COPY_CLASS(GraphicsMatrixTestCaseCairo);
+};
 
-    SECTION("Concat3")
-    {
-        Concat3(gc.get());
-    }
-}
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( GraphicsMatrixTestCaseCairo );
+
+// also include in it's own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( GraphicsMatrixTestCaseCairo, "GraphicsMatrixTestCaseCairo" );
+
 #endif // wxUSE_CAIRO
 
-// =====  Implementation  =====
+class GraphicsMatrixTestCaseDefault : public GraphicsMatrixTestCaseBase
+{
+public:
+    GraphicsMatrixTestCaseDefault()
+    {
+        m_rend = wxGraphicsRenderer::GetDefaultRenderer();
+    }
 
+    virtual ~GraphicsMatrixTestCaseDefault()
+    {
+    }
+
+private:
+    CPPUNIT_TEST_SUITE( GraphicsMatrixTestCaseDefault );
+        CPPUNIT_TEST( InitState );
+        CPPUNIT_TEST( InvertMatrix );
+        CPPUNIT_TEST( Concat1 );
+        CPPUNIT_TEST( Concat2 );
+        CPPUNIT_TEST( Concat3 );
+    CPPUNIT_TEST_SUITE_END();
+
+protected:
+    wxDECLARE_NO_COPY_CLASS(GraphicsMatrixTestCaseDefault);
+};
+
+// register in the unnamed registry so that these tests are run by default
+CPPUNIT_TEST_SUITE_REGISTRATION( GraphicsMatrixTestCaseDefault );
+
+// also include in it's own registry so that these tests can be run alone
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION( GraphicsMatrixTestCaseDefault, "GraphicsMatrixTestCaseDefault" );
+
+// =====  Implementation  =====
 static inline double RoundVal(double v)
 {
-    wxString s = wxString::Format("%g", v);
+    wxString s = wxString::Format(wxS("%g"), v);
     s.ToDouble(&v);
     return v;
 }
 
-static void CheckMatrix(const wxGraphicsMatrix& m,
-                        double a, double b, double c, double d,
-                        double tx, double ty)
+void GraphicsMatrixTestCaseBase::CheckMatrix(const wxGraphicsMatrix& m,
+                                  double a, double b, double c, double d,
+                                  double tx, double ty)
 {
     double cur_a, cur_b, cur_c, cur_d, cur_tx, cur_ty;
     m.Get(&cur_a, &cur_b, &cur_c, &cur_d, &cur_tx, &cur_ty);
@@ -194,9 +238,9 @@ static void CheckMatrix(const wxGraphicsMatrix& m,
     {
         if ( !msg.empty() )
         {
-            msg += "\n- ";
+            msg += wxS("\n- ");
         }
-        msg += wxString::Format("Invalid m11 value: Actual: %g  Expected: %g",
+        msg += wxString::Format(wxS("Invalid m11 value: Actual: %g  Expected: %g"),
                                 cur_a, a );
     }
 
@@ -204,9 +248,9 @@ static void CheckMatrix(const wxGraphicsMatrix& m,
     {
         if ( !msg.empty() )
         {
-            msg += "\n- ";
+            msg += wxS("\n- ");
         }
-        msg += wxString::Format("Invalid m12 value: Actual: %g  Expected: %g",
+        msg += wxString::Format(wxS("Invalid m12 value: Actual: %g  Expected: %g"),
                                 cur_b, b );
     }
 
@@ -214,9 +258,9 @@ static void CheckMatrix(const wxGraphicsMatrix& m,
     {
         if ( !msg.empty() )
         {
-            msg += "\n- ";
+            msg += wxS("\n- ");
         }
-        msg += wxString::Format("Invalid m21 value: Actual: %g  Expected: %g",
+        msg += wxString::Format(wxS("Invalid m21 value: Actual: %g  Expected: %g"),
                                 cur_c, c );
     }
 
@@ -224,9 +268,9 @@ static void CheckMatrix(const wxGraphicsMatrix& m,
     {
         if ( !msg.empty() )
         {
-            msg += "\n- ";
+            msg += wxS("\n- ");
         }
-        msg += wxString::Format("Invalid m22 value: Actual: %g  Expected: %g",
+        msg += wxString::Format(wxS("Invalid m22 value: Actual: %g  Expected: %g"),
                                 cur_d, d );
     }
 
@@ -234,9 +278,9 @@ static void CheckMatrix(const wxGraphicsMatrix& m,
     {
         if ( !msg.empty() )
         {
-            msg += "\n- ";
+            msg += wxS("\n- ");
         }
-        msg += wxString::Format("Invalid tx value: Actual: %g  Expected: %g",
+        msg += wxString::Format(wxS("Invalid tx value: Actual: %g  Expected: %g"),
                                 cur_tx, tx );
     }
 
@@ -244,56 +288,56 @@ static void CheckMatrix(const wxGraphicsMatrix& m,
     {
         if ( !msg.empty() )
         {
-            msg += "\n- ";
+            msg += wxS("\n- ");
         }
-        msg += wxString::Format("Invalid ty value: Actual: %g  Expected: %g",
+        msg += wxString::Format(wxS("Invalid ty value: Actual: %g  Expected: %g"),
                                 cur_ty, ty );
     }
 
     if( !msg.empty() )
     {
         wxCharBuffer buffer = msg.ToUTF8();
-        FAIL_CHECK( buffer.data() );
+        CPPUNIT_FAIL( buffer.data() );
     }
 }
 
-static void InitState(wxGraphicsContext* gc)
+void GraphicsMatrixTestCaseBase::InitState()
 {
-    wxGraphicsMatrix m = gc->CreateMatrix();
+    wxGraphicsMatrix m = m_ctx->CreateMatrix();
 
     CheckMatrix(m, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0);
 }
 
-static void InvertMatrix(wxGraphicsContext* gc)
+void GraphicsMatrixTestCaseBase::InvertMatrix()
 {
-    wxGraphicsMatrix m = gc->CreateMatrix(2.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+    wxGraphicsMatrix m = m_ctx->CreateMatrix(2.0, 1.0, 1.0, 1.0, 1.0, 1.0);
     m.Invert();
 
     CheckMatrix(m, 1.0, -1.0, -1.0, 2.0, 0.0, -1.0);
 }
 
-static void Concat1(wxGraphicsContext* gc)
+void GraphicsMatrixTestCaseBase::Concat1()
 {
-    wxGraphicsMatrix m1 = gc->CreateMatrix(0.9, 0.4, -0.4, 0.9, 0.0, 0.0);
-    wxGraphicsMatrix m2 = gc->CreateMatrix(1.0, 0.0, 0.0, 1.0, 3.0, 5.0);
+    wxGraphicsMatrix m1 = m_ctx->CreateMatrix(0.9, 0.4, -0.4, 0.9, 0.0, 0.0);
+    wxGraphicsMatrix m2 = m_ctx->CreateMatrix(1.0, 0.0, 0.0, 1.0, 3.0, 5.0);
     m1.Concat(m2);
 
     CheckMatrix(m1, 0.9, 0.4, -0.4, 0.9, 0.7, 5.7);
 }
 
-static void Concat2(wxGraphicsContext* gc)
+void GraphicsMatrixTestCaseBase::Concat2()
 {
-    wxGraphicsMatrix m1 = gc->CreateMatrix(0.9, 0.4, -0.4, 0.9, 0.0, 0.0);
-    wxGraphicsMatrix m2 = gc->CreateMatrix(1.0, 0.0, 0.0, 1.0, 3.0, 5.0);
+    wxGraphicsMatrix m1 = m_ctx->CreateMatrix(0.9, 0.4, -0.4, 0.9, 0.0, 0.0);
+    wxGraphicsMatrix m2 = m_ctx->CreateMatrix(1.0, 0.0, 0.0, 1.0, 3.0, 5.0);
     m2.Concat(m1);
 
     CheckMatrix(m2, 0.9, 0.4, -0.4, 0.9, 3.0, 5.0);
 }
 
-static void Concat3(wxGraphicsContext* gc)
+void GraphicsMatrixTestCaseBase::Concat3()
 {
-    wxGraphicsMatrix m1 = gc->CreateMatrix(0.9, 0.4, -0.4, 0.9, 0.0, 0.0);
-    wxGraphicsMatrix m2 = gc->CreateMatrix(1.0, 0.0, 0.0, 1.0, 3.0, 5.0);
+    wxGraphicsMatrix m1 = m_ctx->CreateMatrix(0.9, 0.4, -0.4, 0.9, 0.0, 0.0);
+    wxGraphicsMatrix m2 = m_ctx->CreateMatrix(1.0, 0.0, 0.0, 1.0, 3.0, 5.0);
     wxGraphicsMatrix m = m1;
     m.Concat(m2);
 

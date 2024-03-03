@@ -311,7 +311,7 @@ public:
         printing, and the address of an optional block of printer data, which will
         be copied to the print preview object's print data.
 
-        If @a printoutForPrinting is non-null, a @b "Print..." button will be placed on
+        If @a printoutForPrinting is non-@NULL, a @b "Print..." button will be placed on
         the preview frame so that the user can print directly from the preview interface.
 
         @remarks
@@ -322,8 +322,8 @@ public:
         Use IsOk() to check whether the wxPrintPreview object was created correctly.
     */
     wxPrintPreview(wxPrintout* printout,
-                   wxPrintout* printoutForPrinting = nullptr,
-                   wxPrintDialogData* data = nullptr);
+                   wxPrintout* printoutForPrinting = NULL,
+                   wxPrintDialogData* data = NULL);
     wxPrintPreview(wxPrintout* printout,
                    wxPrintout* printoutForPrinting,
                    wxPrintData* data);
@@ -471,7 +471,7 @@ public:
 
         @see wxPrintDialogData, wxPrintData
     */
-    wxPrinter(wxPrintDialogData* data = nullptr);
+    wxPrinter(wxPrintDialogData* data = NULL);
 
     /**
         Creates the default printing abort window, with a cancel button.
@@ -714,14 +714,6 @@ public:
         and maximum page values that the user can select, and the required page range to
         be printed.
 
-        If the user chose to print only selected pages in the MSW printing
-        dialog, then @a pageFrom and @a pageTo are used to limit the page range
-        and IsPageSelected() is called later to query whether the page is
-        selected and so should be printed.
-
-        If the user chose to print the current page, then @a pageFrom and
-        @a pageTo should be both set to the current page number.
-
         By default this returns (1, 32000) for the page minimum and maximum values, and
         (1, 1) for the required page range.
 
@@ -789,20 +781,6 @@ public:
         HasPage behaves as if the document has only one page.
     */
     virtual bool HasPage(int pageNum);
-
-    /**
-        Should be overridden to return @true if this page is selected, or @false
-        if not.
-
-        This function is called for all the pages in the valid range when the
-        user chooses "Selection" in the "Page Range" area of the printing
-        dialog under MSW. It is not currently called under the other platforms.
-
-        The default implementation always returns @false.
-
-        @since 3.3.0
-    */
-    virtual bool IsPageSelected(int pageNum);
 
     /**
         Returns @true if the printout is currently being used for previewing.

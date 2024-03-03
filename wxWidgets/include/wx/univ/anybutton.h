@@ -17,9 +17,9 @@
 class WXDLLIMPEXP_CORE wxAnyButton : public wxAnyButtonBase
 {
 public:
-    wxAnyButton() = default;
+    wxAnyButton() {}
 
-    virtual ~wxAnyButton() = default;
+    virtual ~wxAnyButton() {}
 
     // wxAnyButton actions
     virtual void Toggle();
@@ -29,22 +29,22 @@ public:
 
     virtual bool PerformAction(const wxControlAction& action,
                                long numArg = -1,
-                               const wxString& strArg = wxEmptyString) override;
+                               const wxString& strArg = wxEmptyString) wxOVERRIDE;
 
     static wxInputHandler *GetStdInputHandler(wxInputHandler *handlerDef);
-    virtual wxInputHandler *DoGetStdInputHandler(wxInputHandler *handlerDef) override
+    virtual wxInputHandler *DoGetStdInputHandler(wxInputHandler *handlerDef) wxOVERRIDE
     {
         return GetStdInputHandler(handlerDef);
     }
 
 protected:
     // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const override { return wxBORDER_STATIC; }
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE { return wxBORDER_STATIC; }
 
-    virtual wxSize DoGetBestClientSize() const override;
+    virtual wxSize DoGetBestClientSize() const wxOVERRIDE;
 
-    virtual bool DoDrawBackground(wxDC& dc) override;
-    virtual void DoDraw(wxControlRenderer *renderer) override;
+    virtual bool DoDrawBackground(wxDC& dc) wxOVERRIDE;
+    virtual void DoDraw(wxControlRenderer *renderer) wxOVERRIDE;
     // current state
     bool m_isPressed,
          m_isDefault;
@@ -70,17 +70,17 @@ public:
 
     virtual bool HandleKey(wxInputConsumer *consumer,
                            const wxKeyEvent& event,
-                           bool pressed) override;
+                           bool pressed) wxOVERRIDE;
     virtual bool HandleMouse(wxInputConsumer *consumer,
-                             const wxMouseEvent& event) override;
+                             const wxMouseEvent& event) wxOVERRIDE;
     virtual bool HandleMouseMove(wxInputConsumer *consumer,
-                                 const wxMouseEvent& event) override;
+                                 const wxMouseEvent& event) wxOVERRIDE;
     virtual bool HandleFocus(wxInputConsumer *consumer,
-                             const wxFocusEvent& event) override;
-    virtual bool HandleActivation(wxInputConsumer *consumer, bool activated) override;
+                             const wxFocusEvent& event) wxOVERRIDE;
+    virtual bool HandleActivation(wxInputConsumer *consumer, bool activated) wxOVERRIDE;
 
 private:
-    // the window (button) which has capture or nullptr and the flag telling if
+    // the window (button) which has capture or NULL and the flag telling if
     // the mouse is inside the button which captured it or not
     wxWindow *m_winCapture;
     bool      m_winHasMouse;

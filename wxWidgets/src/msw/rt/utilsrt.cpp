@@ -163,7 +163,7 @@ int RTCore::ms_isAvailable = -1;
 //
 
 TempStringRef::TempStringRef(const wxString &str)
-    : m_hstring(nullptr), m_header()
+    : m_hstring(NULL), m_header()
 {
     if ( !RTCore::IsAvailable() )
     {
@@ -235,12 +235,12 @@ public:
     {
     }
 
-    virtual bool OnInit() override
+    virtual bool OnInit() wxOVERRIDE
     {
         return true;
     }
 
-    virtual void OnExit() override
+    virtual void OnExit() wxOVERRIDE
     {
         RTCore::Uninitalize();
     }

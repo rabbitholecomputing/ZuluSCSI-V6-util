@@ -56,9 +56,9 @@ wxEND_EVENT_TABLE()
 
 void wxGenericCollapsiblePane::Init()
 {
-    m_pButton = nullptr;
-    m_pPane = nullptr;
-    m_sz = nullptr;
+    m_pButton = NULL;
+    m_pPane = NULL;
+    m_sz = NULL;
 }
 
 bool wxGenericCollapsiblePane::Create(wxWindow *parent,
@@ -78,7 +78,8 @@ bool wxGenericCollapsiblePane::Create(wxWindow *parent,
 
     // create children and lay them out using a wxBoxSizer
     // (so that we automatically get RTL features)
-    m_pButton = new wxCollapsibleHeaderCtrl(this, wxID_ANY, label, wxPoint(0, 0));
+    m_pButton = new wxCollapsibleHeaderCtrl(this, wxID_ANY, label, wxPoint(0, 0),
+                             wxDefaultSize);
 
     m_sz->Add(m_pButton, wxSizerFlags().Border(wxALL, GetBorder()));
 
@@ -101,7 +102,7 @@ bool wxGenericCollapsiblePane::Create(wxWindow *parent,
 wxGenericCollapsiblePane::~wxGenericCollapsiblePane()
 {
     if (m_pButton)
-        m_pButton->SetContainingSizer(nullptr);
+        m_pButton->SetContainingSizer(NULL);
 
     // our sizer is not deleted automatically since we didn't use SetSizer()!
     wxDELETE(m_sz);

@@ -3,6 +3,7 @@
 // Purpose:     Declaration of the wxToggleButton class, which implements a
 //              toggle button under wxMac.
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     08.02.01
 // Copyright:   (c) 2004 Stefan Csomor
 // Licence:     wxWindows licence
@@ -14,7 +15,7 @@
 class WXDLLIMPEXP_CORE wxToggleButton : public wxToggleButtonBase
 {
 public:
-    wxToggleButton() = default;
+    wxToggleButton() {}
     wxToggleButton(wxWindow *parent,
                    wxWindowID id,
                    const wxString& label,
@@ -36,15 +37,15 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxASCII_STR(wxCheckBoxNameStr));
 
-    virtual void SetValue(bool value) override;
-    virtual bool GetValue() const override;
+    virtual void SetValue(bool value) wxOVERRIDE;
+    virtual bool GetValue() const wxOVERRIDE;
 
-    virtual bool OSXHandleClicked( double timestampsec ) override;
+    virtual bool OSXHandleClicked( double timestampsec ) wxOVERRIDE;
 
-    virtual void Command(wxCommandEvent& event) override;
+    virtual void Command(wxCommandEvent& event) wxOVERRIDE;
 
 protected:
-    virtual wxBorder GetDefaultBorder() const override { return wxBORDER_NONE; }
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE { return wxBORDER_NONE; }
 
 private:
     wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxToggleButton);
@@ -54,7 +55,7 @@ private:
 class WXDLLIMPEXP_CORE wxBitmapToggleButton : public wxToggleButton
 {
 public:
-    wxBitmapToggleButton() = default;
+    wxBitmapToggleButton() {}
     wxBitmapToggleButton(wxWindow *parent,
                    wxWindowID id,
                    const wxBitmapBundle& label,

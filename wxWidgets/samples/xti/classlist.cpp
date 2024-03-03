@@ -2,6 +2,7 @@
 // Name:        classlist.cpp
 // Purpose:     ClassListDialog implementation
 // Author:      Francesco Montorsi
+// Modified by:
 // Created:     03/06/2007 14:49:55
 // Copyright:   (c) 2007 Francesco Montorsi
 // Licence:     wxWindows licence
@@ -79,11 +80,11 @@ ClassListDialog::~ClassListDialog()
 
 void ClassListDialog::Init()
 {
-    m_pClassCountText = nullptr;
-    m_pRawListBox = nullptr;
-    m_pParentTreeCtrl = nullptr;
-    m_pSizeListBox = nullptr;
-    m_pTextCtrl = nullptr;
+    m_pClassCountText = NULL;
+    m_pRawListBox = NULL;
+    m_pParentTreeCtrl = NULL;
+    m_pSizeListBox = NULL;
+    m_pTextCtrl = NULL;
 }
 
 void ClassListDialog::CreateControls()
@@ -266,7 +267,7 @@ bool ClassListDialog::IsToDiscard(const wxString &classname) const
     wxClassInfo *info = wxClassInfo::FindClass(classname);
     if (!info)
         return false;
-    if (info->GetFirstProperty() != nullptr || info->GetFirstHandler() != nullptr)
+    if (info->GetFirstProperty() != NULL || info->GetFirstHandler() != NULL)
         return false;       // has XTI info
     return true;            // no XTI info
 }
@@ -464,7 +465,7 @@ int DumpProperties(const wxClassInfo *info, wxString& infostr, bool recursive)
         const wxClassInfo **parent = info->GetParents();
         wxString str;
 
-        for (int i=0; parent[i] != nullptr; i++)
+        for (int i=0; parent[i] != NULL; i++)
         {
             int ppcount = DumpProperties(parent[i], str, recursive);
             if (ppcount)
@@ -499,7 +500,7 @@ int DumpHandlers(const wxClassInfo *info, wxString& infostr, bool recursive)
         const wxClassInfo **parent = info->GetParents();
         wxString str;
 
-        for (int i=0; parent[i] != nullptr; i++)
+        for (int i=0; parent[i] != NULL; i++)
         {
             int hhcount = DumpHandlers(parent[i], str, recursive);
             if (hhcount)

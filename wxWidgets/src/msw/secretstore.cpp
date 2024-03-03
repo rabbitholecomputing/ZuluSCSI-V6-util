@@ -59,7 +59,7 @@ public:
     virtual bool Save(const wxString& service,
                       const wxString& user,
                       const wxSecretValueImpl& secret,
-                      wxString& errmsg) override
+                      wxString& errmsg) wxOVERRIDE
     {
         CREDENTIAL cred;
         wxZeroMemory(cred);
@@ -89,9 +89,9 @@ public:
     virtual bool Load(const wxString& service,
                       wxString* user,
                       wxSecretValueImpl** secret,
-                      wxString& errmsg) const override
+                      wxString& errmsg) const wxOVERRIDE
     {
-        CREDENTIAL* pcred = nullptr;
+        CREDENTIAL* pcred = NULL;
         if ( !::CredRead(service.t_str(), CRED_TYPE_GENERIC, 0, &pcred) || !pcred )
         {
             // Not having the password for this service/user combination is not
@@ -112,7 +112,7 @@ public:
     }
 
     virtual bool Delete(const wxString& service,
-                        wxString& errmsg) override
+                        wxString& errmsg) wxOVERRIDE
     {
         if ( !::CredDelete(service.t_str(), CRED_TYPE_GENERIC, 0) )
         {
@@ -134,10 +134,7 @@ public:
 // ============================================================================
 
 /* static */
-wxSecretValueImpl*
-wxSecretValue::NewImpl(size_t size,
-                       const void *data,
-                       const char* WXUNUSED(contentType))
+wxSecretValueImpl* wxSecretValue::NewImpl(size_t size, const void *data)
 {
     return new wxSecretValueGenericImpl(size, data);
 }

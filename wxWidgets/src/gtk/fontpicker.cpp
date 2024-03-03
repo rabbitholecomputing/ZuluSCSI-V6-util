@@ -37,10 +37,7 @@ static void gtk_fontbutton_setfont_callback(GtkFontButton *widget,
 {
     // update the m_selectedFont member of the wxFontButton
     wxASSERT(p);
-
-    wxGCC_WARNING_SUPPRESS(deprecated-declarations)
     p->SetNativeFontInfo(gtk_font_button_get_font_name(widget));
-    wxGCC_WARNING_RESTORE(deprecated-declarations)
 
     // fire the colour-changed event
     wxFontPickerEvent event(p, p->GetId(), p->GetSelectedFont());
@@ -106,10 +103,7 @@ void wxFontButton::UpdateFont()
     wxASSERT_MSG( info, wxT("The fontbutton's internal font is not valid ?") );
 
     const wxString& fontname = info->ToString();
-
-    wxGCC_WARNING_SUPPRESS(deprecated-declarations)
-    gtk_font_button_set_font_name(GTK_FONT_BUTTON(m_widget), fontname.utf8_str());
-    wxGCC_WARNING_RESTORE(deprecated-declarations)
+    gtk_font_button_set_font_name(GTK_FONT_BUTTON(m_widget), wxGTK_CONV(fontname));
 }
 
 void wxFontButton::SetNativeFontInfo(const char* gtkdescription)

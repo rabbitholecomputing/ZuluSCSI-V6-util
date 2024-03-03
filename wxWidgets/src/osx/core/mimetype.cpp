@@ -2,6 +2,7 @@
 // Name:        src/osx/core/mimetype.cpp
 // Purpose:     Mac OS X implementation for wx MIME-related classes
 // Author:      Neil Perkins
+// Modified by:
 // Created:     2010-05-15
 // Copyright:   (C) 2010 Neil Perkins
 // Licence:     wxWindows licence
@@ -129,7 +130,7 @@ bool CheckDocTypeMatchesExt( CFDictionaryRef docType, CFStringRef requiredExt )
 CFDictionaryRef GetDocTypeForExt( CFTypeRef docTypeData, CFStringRef requiredExt )
 {
     if( !docTypeData )
-        return nullptr;
+        return NULL;
 
     if( CFGetTypeID( docTypeData ) == CFArrayGetTypeID() )
     {
@@ -160,7 +161,7 @@ CFDictionaryRef GetDocTypeForExt( CFTypeRef docTypeData, CFStringRef requiredExt
             return docType;
     }
 
-    return nullptr;
+    return NULL;
 }
 
 
@@ -169,7 +170,7 @@ CFDictionaryRef GetDocTypeForExt( CFTypeRef docTypeData, CFStringRef requiredExt
 // path to that icon. Returns the path, or an empty wxString on failure
 wxString GetPathForIconFile( CFBundleRef bundle, CFStringRef iconFile )
 {
-    // If either parameter is null there is no hope of success
+    // If either parameter is NULL there is no hope of success
     if( !bundle || !iconFile )
         return wxEmptyString;
 
@@ -214,7 +215,7 @@ wxString GetPathForIconFile( CFBundleRef bundle, CFStringRef iconFile )
     wxCFStringRef iconExt = CFStringCreateWithSubstring( kCFAllocatorDefault, iconFile, iconExtRange );
 
     // Now it is possible to query the URL for the icon as a resource
-    wxCFRef< CFURLRef > iconUrl = wxCFRef< CFURLRef >( CFBundleCopyResourceURL( bundle, iconName, iconExt, nullptr ) );
+    wxCFRef< CFURLRef > iconUrl = wxCFRef< CFURLRef >( CFBundleCopyResourceURL( bundle, iconName, iconExt, NULL ) );
 
     if( !iconUrl.get() )
         return wxEmptyString;
@@ -248,7 +249,7 @@ wxMimeTypesManagerImpl::~wxMimeTypesManagerImpl()
 //
 // If this behaviour really messes up your app, please feel free to implement
 // the trawling approach (perhaps with a configure switch?). A good place to
-// start would be CFBundleCreateBundlesFromDirectory( nullptr, "/Applications", "app" )
+// start would be CFBundleCreateBundlesFromDirectory( NULL, "/Applications", "app" )
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -310,7 +311,7 @@ void wxMimeTypesManagerImpl::ClearData()
 // One other point which may require consideration is handling of unrecognised
 // types. Using UTI these will be assigned a unique ID of dyn.xxx. This will
 // result in a wxFileType object being returned, although querying properties
-// on that object will fail. If it would be more helpful to return nullptr in this
+// on that object will fail. If it would be more helpful to return NULL in this
 // case a suitable check can be added.
 /////////////////////////////////////////////////////////////////////////////
 
@@ -321,11 +322,11 @@ wxFileType *wxMimeTypesManagerImpl::GetFileTypeFromExtension(const wxString& ext
 {
     wxString uti;
 
-    const auto extItr = m_extMap.find( ext );
+    const TagMap::const_iterator extItr = m_extMap.find( ext );
 
     if( extItr == m_extMap.end() )
     {
-        wxCFStringRef utiRef = UTTypeCreatePreferredIdentifierForTag( kUTTagClassFilenameExtension, wxCFStringRef( ext ), nullptr );
+        wxCFStringRef utiRef = UTTypeCreatePreferredIdentifierForTag( kUTTagClassFilenameExtension, wxCFStringRef( ext ), NULL );
         m_extMap[ ext ] = uti = utiRef.AsString();
     }
     else
@@ -341,11 +342,11 @@ wxFileType *wxMimeTypesManagerImpl::GetFileTypeFromMimeType(const wxString& mime
 {
     wxString uti;
 
-    const auto mimeItr = m_mimeMap.find( mimeType );
+    const TagMap::const_iterator mimeItr = m_mimeMap.find( mimeType );
 
     if( mimeItr == m_mimeMap.end() )
     {
-        wxCFStringRef utiRef = UTTypeCreatePreferredIdentifierForTag( kUTTagClassFilenameExtension, wxCFStringRef( mimeType ), nullptr );
+        wxCFStringRef utiRef = UTTypeCreatePreferredIdentifierForTag( kUTTagClassFilenameExtension, wxCFStringRef( mimeType ), NULL );
         m_mimeMap[ mimeType ] = uti = utiRef.AsString();
     }
     else
@@ -358,7 +359,7 @@ wxFileType *wxMimeTypesManagerImpl::GetFileTypeFromMimeType(const wxString& mime
 // If the requested extension is not know the OS is querried and the results saved
 wxFileType *wxMimeTypesManagerImpl::GetFileTypeFromUti(const wxString& uti)
 {
-    const auto utiItr = m_utiMap.find( uti );
+    UtiMap::const_iterator utiItr = m_utiMap.find( uti );
 
     if( utiItr == m_utiMap.end() )
     {
@@ -426,7 +427,7 @@ void wxMimeTypesManagerImpl::LoadDisplayDataForUti(const wxString& uti)
     wxCFStringRef ext = UTTypeCopyPreferredTagWithClass( cfuti, kUTTagClassFilenameExtension );
 
     // Look up the preferred application
-    wxCFRef<CFURLRef> appUrl = LSCopyDefaultApplicationURLForContentType( cfuti, kLSRolesAll, nullptr);
+    wxCFRef<CFURLRef> appUrl = LSCopyDefaultApplicationURLForContentType( cfuti, kLSRolesAll, NULL);
 
     if( !appUrl )
         return;
@@ -491,7 +492,7 @@ size_t wxMimeTypesManagerImpl::EnumAllFileTypes(wxArrayString& WXUNUSED(mimetype
 
 wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& WXUNUSED(ftInfo))
 {
-    return nullptr;
+    return 0;
 }
 
 bool wxMimeTypesManagerImpl::Unassociate(wxFileType *WXUNUSED(ft))
@@ -514,7 +515,7 @@ bool wxMimeTypesManagerImpl::Unassociate(wxFileType *WXUNUSED(ft))
 
 bool wxMimeTypesManagerImpl::GetExtensions(const wxString& uti, wxArrayString& extensions)
 {
-    const auto itr = m_utiMap.find( uti );
+    const UtiMap::const_iterator itr = m_utiMap.find( uti );
 
     if( itr == m_utiMap.end() || itr->second.extensions.GetCount() < 1 )
     {
@@ -528,7 +529,7 @@ bool wxMimeTypesManagerImpl::GetExtensions(const wxString& uti, wxArrayString& e
 
 bool wxMimeTypesManagerImpl::GetMimeType(const wxString& uti, wxString *mimeType)
 {
-    const auto itr = m_utiMap.find( uti );
+    const UtiMap::const_iterator itr = m_utiMap.find( uti );
 
     if( itr == m_utiMap.end() || itr->second.mimeTypes.GetCount() < 1 )
     {
@@ -542,7 +543,7 @@ bool wxMimeTypesManagerImpl::GetMimeType(const wxString& uti, wxString *mimeType
 
 bool wxMimeTypesManagerImpl::GetMimeTypes(const wxString& uti, wxArrayString& mimeTypes)
 {
-    const auto itr = m_utiMap.find( uti );
+    const UtiMap::const_iterator itr = m_utiMap.find( uti );
 
     if( itr == m_utiMap.end() || itr->second.mimeTypes.GetCount() < 1 )
     {
@@ -556,7 +557,7 @@ bool wxMimeTypesManagerImpl::GetMimeTypes(const wxString& uti, wxArrayString& mi
 
 bool wxMimeTypesManagerImpl::GetIcon(const wxString& uti, wxIconLocation *iconLoc)
 {
-    const auto itr = m_utiMap.find( uti );
+    const UtiMap::const_iterator itr = m_utiMap.find( uti );
 
     if( itr == m_utiMap.end() || !itr->second.iconLoc.IsOk() )
     {
@@ -570,7 +571,7 @@ bool wxMimeTypesManagerImpl::GetIcon(const wxString& uti, wxIconLocation *iconLo
 
 bool wxMimeTypesManagerImpl::GetDescription(const wxString& uti, wxString *desc)
 {
-    const auto itr = m_utiMap.find( uti );
+    const UtiMap::const_iterator itr = m_utiMap.find( uti );
 
     if( itr == m_utiMap.end() || itr->second.description.empty() )
     {
@@ -584,7 +585,7 @@ bool wxMimeTypesManagerImpl::GetDescription(const wxString& uti, wxString *desc)
 
 bool wxMimeTypesManagerImpl::GetApplication(const wxString& uti, wxString *command)
 {
-    const auto itr = m_utiMap.find( uti );
+    const UtiMap::const_iterator itr = m_utiMap.find( uti );
 
     if( itr == m_utiMap.end() )
     {

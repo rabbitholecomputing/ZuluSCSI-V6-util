@@ -18,6 +18,7 @@ endmacro()
 
 wx_buildfile_var(wxBUILD_MONOLITHIC)
 wx_buildfile_var(wxBUILD_SHARED)
+wx_buildfile_var(wxUSE_UNICODE)
 wx_buildfile_var(wxUSE_EXCEPTIONS)
 wx_buildfile_var(wxUSE_THREADS)
 wx_buildfile_var(wxUSE_AUI)

@@ -3,6 +3,7 @@
 // Purpose:     wxColourDialog class. Use generic version if no
 //              platform-specific implementation.
 // Author:      Stefan Csomor
+// Modified by:
 // Created:     1998-01-01
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
@@ -22,11 +23,11 @@ class WXDLLIMPEXP_CORE wxColourDialog: public wxDialog
     wxDECLARE_DYNAMIC_CLASS(wxColourDialog);
 public:
     wxColourDialog();
-    wxColourDialog(wxWindow *parent, const wxColourData *data = nullptr);
+    wxColourDialog(wxWindow *parent, const wxColourData *data = NULL);
 
-    bool Create(wxWindow *parent, const wxColourData *data = nullptr);
+    bool Create(wxWindow *parent, const wxColourData *data = NULL);
 
-    int ShowModal() override;
+    int ShowModal() wxOVERRIDE;
     wxColourData& GetColourData() { return m_colourData; }
 
 protected:

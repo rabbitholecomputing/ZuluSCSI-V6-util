@@ -38,9 +38,11 @@ protected:
               s += wxString(static_cast<const char *>(data), size);
               break;
 
+#if wxUSE_UNICODE
           case wxIPC_UNICODETEXT:
               s += wxString(static_cast<const wchar_t *>(data), size);
               break;
+#endif // wxUSE_UNICODE
 
           case wxIPC_UTF8TEXT:
               s += wxString::FromUTF8(static_cast<const char *>(data), size);

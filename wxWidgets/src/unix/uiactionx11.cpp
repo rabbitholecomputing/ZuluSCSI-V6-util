@@ -30,9 +30,8 @@
 #include "wx/window.h" // for wxGetActiveWindow
 #include "wx/unix/utilsx11.h"
 
-#ifdef __WXGTK__
+#ifdef __WXGTK20__
 #include "wx/gtk/private/wrapgtk.h"
-#include "wx/gtk/private/gtk3-compat.h"
 #include <gdk/gdkx.h>
 
 GtkWidget* wxGetTopLevelGTK();
@@ -130,11 +129,11 @@ public:
     // The returned pointer is owned by the caller.
     static wxUIActionSimulatorImpl* New();
 
-    virtual bool MouseMove(long x, long y) override;
-    virtual bool MouseDown(int button = wxMOUSE_BTN_LEFT) override;
-    virtual bool MouseUp(int button = wxMOUSE_BTN_LEFT) override;
+    virtual bool MouseMove(long x, long y) wxOVERRIDE;
+    virtual bool MouseDown(int button = wxMOUSE_BTN_LEFT) wxOVERRIDE;
+    virtual bool MouseUp(int button = wxMOUSE_BTN_LEFT) wxOVERRIDE;
 
-    virtual bool DoKey(int keycode, int modifiers, bool isDown) override;
+    virtual bool DoKey(int keycode, int modifiers, bool isDown) wxOVERRIDE;
 
 protected:
     // This ctor takes ownership of the display.
@@ -159,7 +158,7 @@ protected:
         Window focus = None;
         wxWindow* win = wxGetActiveWindow();
 
-    #if defined(__WXGTK__)
+    #if defined(__WXGTK20__)
         if ( win && !win->IsTopLevel() )
         {
             win = wxGetTopLevelParent(win);
@@ -241,9 +240,9 @@ public:
     }
 
 private:
-    virtual bool DoX11Button(int xbutton, bool isDown) override;
-    virtual bool DoX11MouseMove(long x, long y) override;
-    virtual bool DoX11Key(KeyCode xkeycode, int modifiers, bool isDown) override;
+    virtual bool DoX11Button(int xbutton, bool isDown) wxOVERRIDE;
+    virtual bool DoX11MouseMove(long x, long y) wxOVERRIDE;
+    virtual bool DoX11Key(KeyCode xkeycode, int modifiers, bool isDown) wxOVERRIDE;
 
     wxDECLARE_NO_COPY_CLASS(wxUIActionSimulatorPlainX11Impl);
 };
@@ -355,9 +354,9 @@ public:
     }
 
 private:
-    virtual bool DoX11Button(int xbutton, bool isDown) override;
-    virtual bool DoX11MouseMove(long x, long y) override;
-    virtual bool DoX11Key(KeyCode xkeycode, int modifiers, bool isDown) override;
+    virtual bool DoX11Button(int xbutton, bool isDown) wxOVERRIDE;
+    virtual bool DoX11MouseMove(long x, long y) wxOVERRIDE;
+    virtual bool DoX11Key(KeyCode xkeycode, int modifiers, bool isDown) wxOVERRIDE;
 
     wxDECLARE_NO_COPY_CLASS(wxUIActionSimulatorXTestImpl);
 };
@@ -376,7 +375,7 @@ bool wxUIActionSimulatorXTestImpl::DoX11MouseMove(long x, long y)
     // "device pixels" for the X call below, so scale them if we have the
     // required support at both compile- and run-time.
 #if GTK_CHECK_VERSION(3,10,0)
-    if ( gtk_check_version(3, 10, 0) == nullptr )
+    if ( gtk_check_version(3, 10, 0) == NULL )
     {
         // For multi-monitor support we would need to determine to which
         // monitor the point (x, y) belongs, for now just use the scale
@@ -435,14 +434,10 @@ bool wxUIActionSimulatorX11Impl::MouseMove(long x, long y)
     if ( !m_display )
         return false;
 
-#ifdef  __WXGTK__
-#ifdef  __WXGTK3__
-    GdkDisplay* const display = gdk_window_get_display(wxGetTopLevelGDK());
-    GdkDevice* const device = wx_get_gdk_device_from_display(display);
-#endif
-    GdkWindow* const gdkwin1 = wx_gdk_device_get_window_at_position(device, nullptr, nullptr);
+#ifdef  __WXGTK20__
+    GdkWindow* const gdkwin1 = gdk_window_at_pointer(NULL, NULL);
     const bool ret = DoX11MouseMove(x, y);
-    GdkWindow* const gdkwin2 = wx_gdk_device_get_window_at_position(device, nullptr, nullptr);
+    GdkWindow* const gdkwin2 = gdk_window_at_pointer(NULL, NULL);
 
     if ( gdkwin1 != gdkwin2 )
     {

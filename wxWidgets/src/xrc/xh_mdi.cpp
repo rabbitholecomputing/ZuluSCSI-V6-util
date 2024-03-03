@@ -74,7 +74,7 @@ wxWindow *wxMdiXmlHandler::CreateFrame()
         if ( !mdiParent )
         {
             ReportError("parent of wxMDIChildFrame must be wxMDIParentFrame");
-            return nullptr;
+            return NULL;
         }
 
         XRC_MAKE_INSTANCE(frame, wxMDIChildFrame)

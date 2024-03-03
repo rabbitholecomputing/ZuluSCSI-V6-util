@@ -37,7 +37,7 @@ public:
 
         #define wxLOAD_FUNC(name)               \
             wxDL_INIT_FUNC(, name, m_winhttp);  \
-            result &= (name != nullptr);
+            result &= (name != NULL);
 
         wxLOAD_FUNC(WinHttpQueryOption)
         wxLOAD_FUNC(WinHttpQueryHeaders)
@@ -148,7 +148,7 @@ static wxString wxWinHTTPQueryHeaderString(HINTERNET hRequest, DWORD dwInfoLevel
 {
     wxString result;
     DWORD bufferLen = 0;
-    wxWinHTTP::WinHttpQueryHeaders(hRequest, dwInfoLevel, pwszName, nullptr, &bufferLen,
+    wxWinHTTP::WinHttpQueryHeaders(hRequest, dwInfoLevel, pwszName, NULL, &bufferLen,
         WINHTTP_NO_HEADER_INDEX);
     if ( ::GetLastError() == ERROR_INSUFFICIENT_BUFFER )
     {
@@ -176,7 +176,7 @@ static wxString wxWinHTTPQueryOptionString(HINTERNET hInternet, DWORD dwOption)
 {
     wxString result;
     DWORD bufferLen = 0;
-    wxWinHTTP::WinHttpQueryOption(hInternet, dwOption, nullptr, &bufferLen);
+    wxWinHTTP::WinHttpQueryOption(hInternet, dwOption, NULL, &bufferLen);
     if ( ::GetLastError() == ERROR_INSUFFICIENT_BUFFER )
     {
         // Same as above: convert length in bytes into size in characters.
@@ -238,8 +238,8 @@ wxWebRequestWinHTTP::wxWebRequestWinHTTP(wxWebSession& session,
     wxWebRequestImpl(session, sessionImpl, handler, id),
     m_sessionImpl(sessionImpl),
     m_url(url),
-    m_connect(nullptr),
-    m_request(nullptr),
+    m_connect(NULL),
+    m_request(NULL),
     m_dataWritten(0)
 {
 }
@@ -329,7 +329,7 @@ void wxWebRequestWinHTTP::WriteData()
                 m_request,
                 m_dataWriteBuffer.GetData(),
                 dataWriteSize,
-                nullptr    // [out] bytes written, must be null in async mode
+                NULL    // [out] bytes written, must be null in async mode
             ) )
     {
         SetFailedWithLastError("Writing data");
@@ -340,7 +340,7 @@ void wxWebRequestWinHTTP::CreateResponse()
 {
     wxLogTrace(wxTRACE_WEBREQUEST, "Request %p: creating response", this);
 
-    if ( !wxWinHTTP::WinHttpReceiveResponse(m_request, nullptr) )
+    if ( !wxWinHTTP::WinHttpReceiveResponse(m_request, NULL) )
     {
         SetFailedWithLastError("Receiving response");
         return;
@@ -421,7 +421,7 @@ void wxWebRequestWinHTTP::Start()
                      urlComps.nPort,
                      wxRESERVED_PARAM
                 );
-    if ( m_connect == nullptr )
+    if ( m_connect == NULL )
     {
         SetFailedWithLastError("Connecting");
         return;
@@ -432,19 +432,19 @@ void wxWebRequestWinHTTP::Start()
         objectName += wxString(urlComps.lpszExtraInfo, urlComps.dwExtraInfoLength);
 
     // Open a request
-    static const wchar_t* acceptedTypes[] = { L"*/*", nullptr };
+    static const wchar_t* acceptedTypes[] = { L"*/*", NULL };
     m_request = wxWinHTTP::WinHttpOpenRequest
                   (
                     m_connect,
                     method.wc_str(), objectName.wc_str(),
-                    nullptr,   // protocol version: use default, i.e. HTTP/1.1
+                    NULL,   // protocol version: use default, i.e. HTTP/1.1
                     WINHTTP_NO_REFERER,
                     acceptedTypes,
                     urlComps.nScheme == INTERNET_SCHEME_HTTPS
                         ? WINHTTP_FLAG_SECURE
                         : 0
                   );
-    if ( m_request == nullptr )
+    if ( m_request == NULL )
     {
         SetFailedWithLastError("Opening request");
         return;
@@ -500,7 +500,7 @@ void wxWebRequestWinHTTP::SendRequest()
             (
                 m_request,
                 allHeaders.wc_str(), allHeaders.length(),
-                nullptr, 0,        // No extra optional data right now
+                NULL, 0,        // No extra optional data right now
                 m_dataSize,
                 (DWORD_PTR)this
             ) )
@@ -513,7 +513,7 @@ void wxWebRequestWinHTTP::SendRequest()
 void wxWebRequestWinHTTP::DoCancel()
 {
     wxWinHTTPCloseHandle(m_request);
-    m_request = nullptr;
+    m_request = NULL;
 }
 
 //
@@ -581,7 +581,7 @@ bool wxWebResponseWinHTTP::ReadData()
                 m_requestHandle,
                 GetDataBuffer(m_readSize),
                 m_readSize,
-                nullptr    // [out] bytes read, must be null in async mode
+                NULL    // [out] bytes read, must be null in async mode
              ) == TRUE;
 }
 
@@ -663,7 +663,7 @@ wxWebAuthChallengeWinHTTP::SetCredentials(const wxWebCredentials& cred)
 //
 
 wxWebSessionWinHTTP::wxWebSessionWinHTTP():
-    m_handle(nullptr)
+    m_handle(NULL)
 {
 }
 

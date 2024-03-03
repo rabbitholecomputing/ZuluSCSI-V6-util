@@ -15,72 +15,72 @@ class WXDLLIMPEXP_CORE wxPrinterDCImpl : public wxDCImpl
 public:
     wxPrinterDCImpl( wxPrinterDC *, const wxPrintData & );
 
-    virtual bool CanDrawBitmap() const override;
-    virtual bool CanGetTextExtent() const override;
+    virtual bool CanDrawBitmap() const wxOVERRIDE;
+    virtual bool CanGetTextExtent() const wxOVERRIDE;
 
-    virtual void DoGetSize(int *width, int *height) const override;
-    virtual void DoGetSizeMM(int* width, int* height) const override;
+    virtual void DoGetSize(int *width, int *height) const wxOVERRIDE;
+    virtual void DoGetSizeMM(int* width, int* height) const wxOVERRIDE;
 
-    virtual int GetDepth() const override;
-    virtual wxSize GetPPI() const override;
+    virtual int GetDepth() const wxOVERRIDE;
+    virtual wxSize GetPPI() const wxOVERRIDE;
 
-    virtual void SetFont(const wxFont& font) override;
-    virtual void SetPen(const wxPen& pen) override;
-    virtual void SetBrush(const wxBrush& brush) override;
-    virtual void SetBackground(const wxBrush& brush) override;
-    virtual void SetBackgroundMode(int mode) override;
+    virtual void SetFont(const wxFont& font) wxOVERRIDE;
+    virtual void SetPen(const wxPen& pen) wxOVERRIDE;
+    virtual void SetBrush(const wxBrush& brush) wxOVERRIDE;
+    virtual void SetBackground(const wxBrush& brush) wxOVERRIDE;
+    virtual void SetBackgroundMode(int mode) wxOVERRIDE;
 
 #if wxUSE_PALETTE
-    virtual void SetPalette(const wxPalette& palette) override;
+    virtual void SetPalette(const wxPalette& palette) wxOVERRIDE;
 #endif // wxUSE_PALETTE
 
-    virtual void SetLogicalFunction(wxRasterOperationMode function) override;
+    virtual void SetLogicalFunction(wxRasterOperationMode function) wxOVERRIDE;
 
-    virtual wxCoord GetCharHeight() const override;
-    virtual wxCoord GetCharWidth() const override;
+    virtual wxCoord GetCharHeight() const wxOVERRIDE;
+    virtual wxCoord GetCharWidth() const wxOVERRIDE;
     virtual void DoGetTextExtent(const wxString& string,
                                  wxCoord *x, wxCoord *y,
-                                 wxCoord *descent = nullptr,
-                                 wxCoord *externalLeading = nullptr,
-                                 const wxFont *theFont = nullptr) const override;
+                                 wxCoord *descent = NULL,
+                                 wxCoord *externalLeading = NULL,
+                                 const wxFont *theFont = NULL) const wxOVERRIDE;
 
-    virtual void Clear() override;
+    virtual void Clear() wxOVERRIDE;
 
     virtual void DoSetClippingRegion(wxCoord x, wxCoord y,
-                                     wxCoord width, wxCoord height) override;
+                                     wxCoord width, wxCoord height) wxOVERRIDE;
 
-    virtual void DoSetDeviceClippingRegion(const wxRegion& region) override;
+    virtual void DoSetDeviceClippingRegion(const wxRegion& region) wxOVERRIDE;
 
     virtual bool DoFloodFill(wxCoord x, wxCoord y, const wxColour& col,
-                             wxFloodFillStyle style = wxFLOOD_SURFACE) override;
+                             wxFloodFillStyle style = wxFLOOD_SURFACE) wxOVERRIDE;
 
-    virtual bool DoGetPixel(wxCoord x, wxCoord y, wxColour *col) const override;
+    virtual bool DoGetPixel(wxCoord x, wxCoord y, wxColour *col) const wxOVERRIDE;
 
-    virtual void DoDrawPoint(wxCoord x, wxCoord y) override;
-    virtual void DoDrawLine(wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2) override;
+    virtual void DoDrawPoint(wxCoord x, wxCoord y) wxOVERRIDE;
+    virtual void DoDrawLine(wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2) wxOVERRIDE;
 
     virtual void DoDrawArc(wxCoord x1, wxCoord y1,
                            wxCoord x2, wxCoord y2,
-                           wxCoord xc, wxCoord yc) override;
+                           wxCoord xc, wxCoord yc) wxOVERRIDE;
     virtual void DoDrawEllipticArc(wxCoord x, wxCoord y, wxCoord w, wxCoord h,
-                                   double sa, double ea) override;
+                                   double sa, double ea) wxOVERRIDE;
 
-    virtual void DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoord height) override;
+    virtual void DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoord height) wxOVERRIDE;
     virtual void DoDrawRoundedRectangle(wxCoord x, wxCoord y,
                                         wxCoord width, wxCoord height,
-                                        double radius) override;
+                                        double radius) wxOVERRIDE;
     virtual void DoDrawEllipse(wxCoord x, wxCoord y,
-                               wxCoord width, wxCoord height) override;
+                               wxCoord width, wxCoord height) wxOVERRIDE;
 
-    virtual void DoCrossHair(wxCoord x, wxCoord y) override;
+    virtual void DoCrossHair(wxCoord x, wxCoord y) wxOVERRIDE;
 
-    virtual void DoDrawIcon(const wxIcon& icon, wxCoord x, wxCoord y) override;
+    virtual void DoDrawIcon(const wxIcon& icon, wxCoord x, wxCoord y) wxOVERRIDE;
     virtual void DoDrawBitmap(const wxBitmap &bmp, wxCoord x, wxCoord y,
-                              bool useMask = false) override;
+                              bool useMask = false) wxOVERRIDE;
 
-    virtual void DoDrawText(const wxString& text, wxCoord x, wxCoord y) override;
+    virtual void DoDrawText(const wxString& text, wxCoord x, wxCoord y) wxOVERRIDE;
     virtual void DoDrawRotatedText(const wxString& text,
-                                   wxCoord x, wxCoord y, double angle) override;
+                                   wxCoord x, wxCoord y, double angle) wxOVERRIDE;
 
     virtual bool DoBlit(wxCoord xdest, wxCoord ydest,
                         wxCoord width, wxCoord height,
@@ -89,14 +89,14 @@ public:
                         wxRasterOperationMode rop = wxCOPY,
                         bool useMask = false,
                         wxCoord xsrcMask = wxDefaultCoord,
-                        wxCoord ysrcMask = wxDefaultCoord) override;
+                        wxCoord ysrcMask = wxDefaultCoord) wxOVERRIDE;
 
     virtual void DoDrawLines(int n, const wxPoint points[],
-                             wxCoord xoffset, wxCoord yoffset ) override;
+                             wxCoord xoffset, wxCoord yoffset ) wxOVERRIDE;
 
     virtual void DoDrawPolygon(int n, const wxPoint points[],
                            wxCoord xoffset, wxCoord yoffset,
-                           wxPolygonFillMode fillStyle = wxODDEVEN_RULE) override;
+                           wxPolygonFillMode fillStyle = wxODDEVEN_RULE) wxOVERRIDE;
 
 private:
     wxDECLARE_CLASS(wxPrinterDCImpl);
