@@ -20,8 +20,8 @@ LDFLAGS_LIBUSB=-L $(BUILD)/libusb/libusb/.libs -lusb-1.0
 endif
 
 ifeq ($(USE_SYSTEM_HIDAPI), Yes)
-CPPFLAGS_HIDAPI=$(shell pkg-config hidapi-hidraw --cflags)
-LDFLAGS_HIDAPI=$(shell pkg-config hidapi-hidraw --libs)
+CPPFLAGS_HIDAPI=$(shell pkg-config hidapi-hidraw --cflags) -DUSE_SYSTEM_HID=1
+LDFLAGS_HIDAPI=$(shell pkg-config hidapi-hidraw --libs) -lhidapi
 else
 CPPFLAGS_HIDAPI=-I hidapi/hidapi
 LDFLAGS_HIDAPI=
@@ -62,7 +62,11 @@ LDFLAGS += -L$(BUILD)/libzipper/.libs -lzipper \
 # wxWidgets 3.0.2 uses broken Webkit headers under OSX Yosemeti
 # liblzma not available on OSX 10.7
 # --disable-mediactrl for missing Quicktime.h on Mac OSX Sierra
-WX_CONFIG=--disable-webkit --disable-webviewwebkit  --disable-mediactrl \
+#WX_CONFIG=--disable-webkit --disable-webviewwebkit  --disable-mediactrl \
+#	--without-libtiff --without-libjbig --without-liblzma --without-opengl \
+#	--enable-monolithic --enable-stl --disable-shared
+
+WX_CONFIG=--disable-mediactrl \
 	--without-libtiff --without-libjbig --without-liblzma --without-opengl \
 	--enable-monolithic --enable-stl --disable-shared
 
@@ -113,8 +117,7 @@ ifeq ($(TARGET),Darwin)
 	BUILD := $(PWD)/build/mac
 all: $(BUILD)/zuluscsi-util.dmg
 
-$(BUILD)/zuluscsi-v6-util.dmg: $(BUILD)/zuluscsi-v6-util $(BUILD)/
-dfu-util/buildstamp
+$(BUILD)/zuluscsi-v6-util.dmg: $(BUILD)/zuluscsi-v6-util $(BUILD)/dfu-util/buildstamp
 	rm -rf $(dir $@)/dmg $@
 	mkdir -p $(dir $@)/dmg
 	cp $(BUILD)/zuluscsi-v6-util $(BUILD)/dfu-util/src/dfu-util $(dir $@)/dmg
@@ -192,7 +195,7 @@ $(BUILD)/zlib/buildstamp:
 		cd $(dir $@) && \
 		cp -a $(CURDIR)/zlib-1.2.8/* . && \
 		CROSS_PREFIX=${CROSS_PREFIX} ./configure --static && \
-		$(MAKE) \
+		$(MAKE) -f win32/Makefile.gcc\
 	) && \
 	touch $@
 endif
