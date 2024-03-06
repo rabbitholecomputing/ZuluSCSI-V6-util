@@ -1,12 +1,17 @@
 @echo off
 
-REM This bash script regenerates the HTML doxygen version of the
-REM wxWidgets manual and adjusts the doxygen log to make it more
-REM readable.
+REM This batch script is used to regenerate the CHM doxygen version of the
+REM wxWidgets manual.
 
-mkdir out 2>&1 >NUL
-mkdir out\html 2>&1 >NUL
-mkdir out\html\generic 2>&1 >NUL
+where /q doxygen
+if %ERRORLEVEL% neq 0 (
+    echo Error: Doxygen was not found in your PATH.
+    exit /b 1
+)
+
+if not exist out (mkdir out)
+if not exist out\html (mkdir out\html)
+if not exist out\html\generic (mkdir out\html\generic)
 
 REM These not automatically copied by Doxygen because they're not
 REM used in doxygen documentation, only in our html footer and by our
@@ -16,6 +21,10 @@ copy images\generic\*.png out\html\generic 2>&1 >NUL
 pushd ..\..
 set WXWIDGETS=%CD%
 popd
+
+REM SVG is not supported by CHM and we can't/don't need to use custom JS with it.
+set HTML_HEADER=custom_header_simple.html
+set DOT_IMAGE_FORMAT=png
 
 REM Defaults for settings controlled by this script
 set GENERATE_DOCSET=NO
@@ -92,6 +101,7 @@ REM     not included!
 REM
 set PATH=%PATH%;%HHC_PATH%
 doxygen Doxyfile
+if %errorlevel% neq 0 exit /b %errorlevel%
 
 REM Check that class inheritance diagram images are present for html/chm docs.
 REM

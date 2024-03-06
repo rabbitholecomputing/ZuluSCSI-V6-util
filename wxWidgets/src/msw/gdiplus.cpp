@@ -3,7 +3,7 @@
 // Purpose:     implements wrappers for GDI+ flat API
 // Author:      Vadim Zeitlin
 // Created:     2007-03-14
-// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -18,9 +18,6 @@
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_GRAPHICS_CONTEXT
 
@@ -744,7 +741,7 @@ wxFOR_ALL_GDIPLUS_STATUS_FUNCS(wxDECL_GDIPLUS_FUNC_TYPE)
 // and load gdiplus.dll dynamically, it's not defined in our case resulting in
 // linking errors -- so just provide it ourselves, it doesn't matter where it
 // is and if Cygwin headers are modified to not use it in the future, it's not
-// a big deal neither, we'll just have an unused pointer.
+// a big deal either, we'll just have an unused pointer.
 #if defined(__CYGWIN__) || defined(__MINGW32__)
 void *_GdipStringFormatCachedGenericTypographic = NULL;
 #endif // __CYGWIN__ || __MINGW32__
@@ -861,13 +858,13 @@ bool wxGdiPlus::DoInit()
 class wxGdiPlusModule : public wxModule
 {
 public:
-    virtual bool OnInit() { return true; }
-    virtual void OnExit() { wxGdiPlus::Terminate(); }
+    virtual bool OnInit() wxOVERRIDE { return true; }
+    virtual void OnExit() wxOVERRIDE { wxGdiPlus::Terminate(); }
 
-    DECLARE_DYNAMIC_CLASS(wxGdiPlusModule)
+    wxDECLARE_DYNAMIC_CLASS(wxGdiPlusModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxGdiPlusModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGdiPlusModule, wxModule);
 
 // ============================================================================
 // implementation of the functions themselves

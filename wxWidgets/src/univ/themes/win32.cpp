@@ -19,9 +19,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/univ/theme.h"
 
@@ -1584,7 +1581,7 @@ void wxWin32Renderer::DrawLabel(wxDC& dc,
     {
         // the combination of wxCONTROL_SELECTED and wxCONTROL_DISABLED
         // currently only can happen for a menu item and it seems that Windows
-        // doesn't draw the shadow in this case, so we don't do it neither
+        // doesn't draw the shadow in this case, so we don't do it either
         if ( flags & wxCONTROL_SELECTED )
         {
             // just make the label text greyed out
@@ -1771,7 +1768,7 @@ void wxWin32Renderer::DrawToolBarButton(wxDC& dc,
     }
     else if (style == wxTOOL_STYLE_SEPARATOR)
     {
-        // leave a small gap aroudn the line, also account for the toolbar
+        // leave a small gap around the line, also account for the toolbar
         // border itself
         if(rectOrig.height > rectOrig.width)
         {
@@ -2026,7 +2023,7 @@ wxRect wxWin32Renderer::GetSliderShaftRect(const wxRect& rectOrig,
     if (orient == wxHORIZONTAL)
     {
         rect.x += SLIDER_MARGIN;
-        if (left & right)
+        if (left && right)
         {
             rect.y += wxMax ((rect.height - 2*BORDER_THICKNESS) / 2, sizeThumb.y/2);
         }
@@ -2044,7 +2041,7 @@ wxRect wxWin32Renderer::GetSliderShaftRect(const wxRect& rectOrig,
     else // == wxVERTICAL
     {
         rect.y += SLIDER_MARGIN;
-        if (left & right)
+        if (left && right)
         {
             rect.x += wxMax ((rect.width - 2*BORDER_THICKNESS) / 2, sizeThumb.x/2);
         }
@@ -2286,21 +2283,21 @@ void wxWin32Renderer::DrawSliderTicks(wxDC& dc,
     {
         wxCoord x = x1 + (len*n) / range;
 
-        if (left & (y1 > y3))
+        if (left && (y1 > y3))
         {
             DrawLine(dc, x, y1, x, y3, orient == wxVERTICAL);
         }
-        if (right & (y4 > y2))
+        if (right && (y4 > y2))
         {
             DrawLine(dc, x, y2, x, y4, orient == wxVERTICAL);
         }
     }
     // always draw the line at the end position
-    if (left & (y1 > y3))
+    if (left && (y1 > y3))
     {
         DrawLine(dc, x2, y1, x2, y3, orient == wxVERTICAL);
     }
-    if (right & (y4 > y2))
+    if (right && (y4 > y2))
     {
         DrawLine(dc, x2, y2, x2, y4, orient == wxVERTICAL);
     }
@@ -3148,7 +3145,7 @@ void wxWin32Renderer::AdjustSize(wxSize *size, const wxWindow *window)
     {
         if ( !(window->GetWindowStyle() & wxBU_EXACTFIT) )
         {
-            // TODO: don't harcode all this
+            // TODO: don't hardcode all this
             size->x += 3*window->GetCharWidth();
 
             wxCoord heightBtn = (11*(window->GetCharHeight() + 8))/10;
@@ -3603,7 +3600,7 @@ public:
     void Detach();
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     void OnSystemMenu(wxCommandEvent &event);
     void OnCloseFrame(wxCommandEvent &event);
     void OnClose(wxCloseEvent &event);
@@ -3652,11 +3649,11 @@ void wxWin32SystemMenuEvtHandler::Detach()
     }
 }
 
-BEGIN_EVENT_TABLE(wxWin32SystemMenuEvtHandler, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxWin32SystemMenuEvtHandler, wxEvtHandler)
     EVT_MENU(wxID_SYSTEM_MENU, wxWin32SystemMenuEvtHandler::OnSystemMenu)
     EVT_MENU(wxID_CLOSE_FRAME, wxWin32SystemMenuEvtHandler::OnCloseFrame)
     EVT_CLOSE(wxWin32SystemMenuEvtHandler::OnClose)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxWin32SystemMenuEvtHandler::OnSystemMenu(wxCommandEvent &WXUNUSED(event))
 {

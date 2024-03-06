@@ -166,7 +166,7 @@ wxWindow *wxButton::SetDefault()
 }
 
 /* static */
-wxSize wxButtonBase::GetDefaultSize()
+wxSize wxButtonBase::GetDefaultSize(wxWindow* WXUNUSED(win))
 {
     return wxSize(80,26);
 }
@@ -212,7 +212,7 @@ wxSize wxButton::DoGetBestSize() const
 {
     // the default button in wxGTK is bigger than the other ones because of an
     // extra border around it, but we don't want to take it into account in
-    // our size calculations (otherwsie the result is visually ugly), so
+    // our size calculations (otherwise the result is visually ugly), so
     // always return the size of non default button from here
     const bool isDefault = GTK_WIDGET_HAS_DEFAULT(m_widget);
     if ( isDefault )
@@ -238,7 +238,6 @@ wxSize wxButton::DoGetBestSize() const
         if (ret.y < defaultSize.y) ret.y = defaultSize.y;
     }
 
-    CacheBestSize(ret);
     return ret;
 }
 

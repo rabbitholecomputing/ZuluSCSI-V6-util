@@ -27,7 +27,7 @@
 #include "wx/dialog.h"      // the base class
 #include "wx/panel.h"       // ditto
 #include "wx/event.h"       // wxEVT_XXX constants
-#include "wx/bitmap.h"
+#include "wx/bmpbndl.h"
 
 // Extended style to specify a help button
 #define wxWIZARD_EX_HELPBUTTON   0x00000010
@@ -42,7 +42,7 @@
 #define wxWIZARD_TILE             0x40
 
 // forward declarations
-class WXDLLIMPEXP_FWD_ADV wxWizard;
+class WXDLLIMPEXP_FWD_CORE wxWizard;
 
 // ----------------------------------------------------------------------------
 // wxWizardPage is one of the wizards screen: it must know what are the
@@ -52,7 +52,7 @@ class WXDLLIMPEXP_FWD_ADV wxWizard;
 // used as such (i.e. controls may be placed directly on it &c).
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxWizardPage : public wxPanel
+class WXDLLIMPEXP_CORE wxWizardPage : public wxPanel
 {
 public:
     wxWizardPage() { Init(); }
@@ -62,10 +62,10 @@ public:
     // that no other parameters are needed because the wizard will resize and
     // reposition the page anyhow
     wxWizardPage(wxWizard *parent,
-                 const wxBitmap& bitmap = wxNullBitmap);
+                 const wxBitmapBundle& bitmap = wxBitmapBundle());
 
     bool Create(wxWizard *parent,
-                const wxBitmap& bitmap = wxNullBitmap);
+                const wxBitmapBundle& bitmap = wxBitmapBundle());
 
     // these functions are used by the wizard to show another page when the
     // user chooses "Back" or "Next" button
@@ -76,23 +76,23 @@ public:
     // cases - override this method if you want to create the bitmap to be used
     // dynamically or to do something even more fancy. It's ok to return
     // wxNullBitmap from here - the default one will be used then.
-    virtual wxBitmap GetBitmap() const { return m_bitmap; }
+    virtual wxBitmap GetBitmap() const { return m_bitmap.GetBitmapFor(this); }
 
 #if wxUSE_VALIDATORS
     // Override the base functions to allow a validator to be assigned to this page.
-    virtual bool TransferDataToWindow()
+    virtual bool TransferDataToWindow() wxOVERRIDE
     {
         return GetValidator() ? GetValidator()->TransferToWindow()
                               : wxPanel::TransferDataToWindow();
     }
 
-    virtual bool TransferDataFromWindow()
+    virtual bool TransferDataFromWindow() wxOVERRIDE
     {
         return GetValidator() ? GetValidator()->TransferFromWindow()
                               : wxPanel::TransferDataFromWindow();
     }
 
-    virtual bool Validate()
+    virtual bool Validate() wxOVERRIDE
     {
         return GetValidator() ? GetValidator()->Validate(this)
                               : wxPanel::Validate();
@@ -103,10 +103,10 @@ protected:
     // common part of ctors:
     void Init();
 
-    wxBitmap m_bitmap;
+    wxBitmapBundle m_bitmap;
 
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxWizardPage)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxWizardPage);
 };
 
 // ----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ private:
 // this, you must derive from wxWizardPage directly.
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxWizardPageSimple : public wxWizardPage
+class WXDLLIMPEXP_CORE wxWizardPageSimple : public wxWizardPage
 {
 public:
     wxWizardPageSimple() { Init(); }
@@ -127,7 +127,7 @@ public:
     wxWizardPageSimple(wxWizard *parent,
                        wxWizardPage *prev = NULL,
                        wxWizardPage *next = NULL,
-                       const wxBitmap& bitmap = wxNullBitmap)
+                       const wxBitmapBundle& bitmap = wxBitmapBundle())
     {
         Create(parent, prev, next, bitmap);
     }
@@ -135,7 +135,7 @@ public:
     bool Create(wxWizard *parent = NULL, // let it be default ctor too
                 wxWizardPage *prev = NULL,
                 wxWizardPage *next = NULL,
-                const wxBitmap& bitmap = wxNullBitmap)
+                const wxBitmapBundle& bitmap = wxBitmapBundle())
     {
         m_prev = prev;
         m_next = next;
@@ -165,8 +165,8 @@ public:
     }
 
     // base class pure virtuals
-    virtual wxWizardPage *GetPrev() const;
-    virtual wxWizardPage *GetNext() const;
+    virtual wxWizardPage *GetPrev() const wxOVERRIDE;
+    virtual wxWizardPage *GetNext() const wxOVERRIDE;
 
 private:
     // common part of ctors:
@@ -180,14 +180,14 @@ private:
     wxWizardPage *m_prev,
                  *m_next;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxWizardPageSimple)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxWizardPageSimple);
 };
 
 // ----------------------------------------------------------------------------
 // wxWizard
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxWizardBase : public wxDialog
+class WXDLLIMPEXP_CORE wxWizardBase : public wxDialog
 {
 public:
     /*
@@ -197,7 +197,7 @@ public:
         wxWizard(wxWindow *parent,
                  int id = wxID_ANY,
                  const wxString& title = wxEmptyString,
-                 const wxBitmap& bitmap = wxNullBitmap,
+                 const wxBitmapBundle& bitmap = wxBitmapBundle(),
                  const wxPoint& pos = wxDefaultPosition,
                  long style = wxDEFAULT_DIALOG_STYLE);
     */
@@ -246,9 +246,9 @@ public:
     /// Override these functions to stop InitDialog from calling TransferDataToWindow
     /// for _all_ pages when the wizard starts. Instead 'ShowPage' will call
     /// TransferDataToWindow for the first page only.
-    bool TransferDataToWindow() { return true; }
-    bool TransferDataFromWindow() { return true; }
-    bool Validate() { return true; }
+    bool TransferDataToWindow() wxOVERRIDE { return true; }
+    bool TransferDataFromWindow() wxOVERRIDE { return true; }
+    bool Validate() wxOVERRIDE { return true; }
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxWizardBase);
@@ -263,7 +263,7 @@ private:
 // window hierarchy as usual
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxWizardEvent : public wxNotifyEvent
+class WXDLLIMPEXP_CORE wxWizardEvent : public wxNotifyEvent
 {
 public:
     wxWizardEvent(wxEventType type = wxEVT_NULL,
@@ -279,26 +279,26 @@ public:
 
     wxWizardPage*   GetPage() const { return m_page; }
 
-    virtual wxEvent *Clone() const { return new wxWizardEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxWizardEvent(*this); }
 
 private:
     bool m_direction;
     wxWizardPage*    m_page;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxWizardEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN_DEF_COPY(wxWizardEvent);
 };
 
 // ----------------------------------------------------------------------------
 // macros for handling wxWizardEvents
 // ----------------------------------------------------------------------------
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_PAGE_CHANGED, wxWizardEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_PAGE_CHANGING, wxWizardEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_CANCEL, wxWizardEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_HELP, wxWizardEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_FINISHED, wxWizardEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_PAGE_SHOWN, wxWizardEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_WIZARD_BEFORE_PAGE_CHANGED, wxWizardEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_WIZARD_PAGE_CHANGED, wxWizardEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_WIZARD_PAGE_CHANGING, wxWizardEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_WIZARD_CANCEL, wxWizardEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_WIZARD_HELP, wxWizardEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_WIZARD_FINISHED, wxWizardEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_WIZARD_PAGE_SHOWN, wxWizardEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_WIZARD_BEFORE_PAGE_CHANGED, wxWizardEvent );
 
 typedef void (wxEvtHandler::*wxWizardEventFunction)(wxWizardEvent&);
 

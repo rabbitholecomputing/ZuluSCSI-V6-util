@@ -8,6 +8,8 @@
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
+// This can be defined to 1 to force using wxGenericTreeCtrl even on the
+// platforms where the native controls would normally be used (wxMSW and wxQt).
 #define USE_GENERIC_TREECTRL 0
 
 #if USE_GENERIC_TREECTRL
@@ -18,13 +20,20 @@
 #endif
 #endif
 
+// This one is defined if we're actually using the generic control, either
+// because it was explicitly requested above or because there is no other one
+// on this platform anyhow.
+#if USE_GENERIC_TREECTRL || (!defined(__WXMSW__) && !defined(__WXQT__))
+    #define HAS_GENERIC_TREECTRL
+#endif
+
 // Define a new application type
 class MyApp : public wxApp
 {
 public:
     MyApp() { m_showImages = true; m_showStates = true; m_showButtons = false; }
 
-    bool OnInit();
+    bool OnInit() wxOVERRIDE;
 
     void SetShowImages(bool show) { m_showImages = show; }
     bool ShowImages() const { return m_showImages; }
@@ -67,7 +76,7 @@ public:
     MyTreeCtrl(wxWindow *parent, const wxWindowID id,
                const wxPoint& pos, const wxSize& size,
                long style);
-    virtual ~MyTreeCtrl(){};
+    virtual ~MyTreeCtrl(){}
 
     void OnBeginDrag(wxTreeEvent& event);
     void OnBeginRDrag(wxTreeEvent& event);
@@ -94,10 +103,16 @@ public:
     void OnRMouseUp(wxMouseEvent& event);
     void OnRMouseDClick(wxMouseEvent& event);
 
+    wxTreeItemId GetLastTreeITem() const;
     void GetItemsRecursively(const wxTreeItemId& idParent,
                              wxTreeItemIdValue cookie = 0);
 
-    void CreateImageList(int size = 16);
+    // This function behaves differently depending on the value of size:
+    //  - If it's -1, it turns off the use of images entirely.
+    //  - If it's 0, it reuses the last used size.
+    //  - If it's strictly positive, it creates icons in this size.
+    void CreateImages(int size);
+
     void CreateButtonsImageList(int size = 11);
     void CreateStateImageList(bool del = false);
 
@@ -105,7 +120,6 @@ public:
 
     void DoSortChildren(const wxTreeItemId& item, bool reverse = false)
         { m_reverseSort = reverse; wxTreeCtrl::SortChildren(item); }
-    void DoEnsureVisible() { if (m_lastItem.IsOk()) EnsureVisible(m_lastItem); }
 
     void DoToggleIcon(const wxTreeItemId& item);
     void DoToggleState(const wxTreeItemId& item);
@@ -113,8 +127,6 @@ public:
     void ShowMenu(wxTreeItemId id, const wxPoint& pt);
 
     int ImageSize(void) const { return m_imageSize; }
-
-    void SetLastItem(wxTreeItemId id) { m_lastItem = id; }
 
     void SetAlternateImages(bool show) { m_alternateImages = show; }
     bool AlternateImages() const { return m_alternateImages; }
@@ -130,7 +142,7 @@ public:
     }
 
 protected:
-    virtual int OnCompareItems(const wxTreeItemId& i1, const wxTreeItemId& i2);
+    virtual int OnCompareItems(const wxTreeItemId& i1, const wxTreeItemId& i2) wxOVERRIDE;
 
     // is this the test item which we use in several event handlers?
     bool IsTestItem(const wxTreeItemId& item)
@@ -140,6 +152,7 @@ protected:
     }
 
 private:
+    // Find the very last item in the tree.
     void AddItemsRecursively(const wxTreeItemId& idParent,
                              size_t nChildren,
                              size_t depth,
@@ -148,12 +161,11 @@ private:
     void DoResetBrokenStateImages(const wxTreeItemId& idParent,
                                   wxTreeItemIdValue cookie, int state);
 
-    void LogEvent(const wxChar *name, const wxTreeEvent& event);
+    void LogEvent(const wxString& name, const wxTreeEvent& event);
 
     int          m_imageSize;               // current size of images
     bool         m_reverseSort;             // flag for OnCompareItems
-    wxTreeItemId m_lastItem,                // for OnEnsureVisible()
-                 m_draggedItem;             // item being dragged right now
+    wxTreeItemId m_draggedItem;             // item being dragged right now
     bool         m_alternateImages;
     bool         m_alternateStates;
 
@@ -217,6 +229,7 @@ public:
     void OnDeleteChildren(wxCommandEvent& event);
     void OnDeleteAll(wxCommandEvent& event);
 
+    void OnFreezeThaw(wxCommandEvent& event);
     void OnRecreate(wxCommandEvent& event);
     void OnToggleButtons(wxCommandEvent& event);
     void OnToggleImages(wxCommandEvent& event);
@@ -337,6 +350,7 @@ enum
     TreeTest_Delete,
     TreeTest_DeleteChildren,
     TreeTest_DeleteAll,
+    TreeTest_FreezeThaw,
     TreeTest_Recreate,
     TreeTest_ToggleImages,
     TreeTest_ToggleStates,

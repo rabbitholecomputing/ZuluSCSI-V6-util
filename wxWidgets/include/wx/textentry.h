@@ -3,7 +3,7 @@
 // Purpose:     declares wxTextEntry interface defining a simple text entry
 // Author:      Vadim Zeitlin
 // Created:     2007-09-24
-// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -57,7 +57,7 @@ public:
 
     virtual void Replace(long from, long to, const wxString& value);
     virtual void Remove(long from, long to) = 0;
-    virtual void Clear() { SetValue(wxString()); }
+    virtual void Clear() { Remove(0, -1); }
     void RemoveSelection();
 
 
@@ -138,9 +138,15 @@ public:
     virtual void SetEditable(bool editable) = 0;
 
 
+    // input restrictions
+    // ------------------
+
     // set the max number of characters which may be entered in a single line
     // text control
     virtual void SetMaxLength(unsigned long WXUNUSED(len)) { }
+
+    // convert any lower-case characters to upper-case on the fly in this entry
+    virtual void ForceUpper();
 
 
     // hints
@@ -208,6 +214,10 @@ public:
             SuppressTextChangedEvents();
     }
 
+    // change the entry value to be in upper case only, if needed (i.e. if it's
+    // not already the case)
+    void ConvertToUpperCase();
+
 protected:
     // flags for DoSetValue(): common part of SetValue() and ChangeValue() and
     // also used to implement WriteText() in wxMSW
@@ -238,6 +248,12 @@ protected:
     virtual bool DoAutoCompleteFileNames(int WXUNUSED(flags)) // wxFILE | wxDIR
         { return false; }
     virtual bool DoAutoCompleteCustom(wxTextCompleter *completer);
+
+
+    // Stub virtual functions for forward binary compatibility. DO NOT USE.
+    virtual void* WXReservedTextEntry1(void*);
+    virtual void* WXReservedTextEntry2(void*);
+    virtual void* WXReservedTextEntry3(void*);
 
 
     // class which should be used to temporarily disable text change events
@@ -319,8 +335,8 @@ private:
     #include "wx/msw/textentry.h"
 #elif defined(__WXMOTIF__)
     #include "wx/motif/textentry.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/textentry.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/textentry.h"
 #else
     // no platform-specific implementation of wxTextEntry yet
     class WXDLLIMPEXP_CORE wxTextEntry : public wxTextEntryBase

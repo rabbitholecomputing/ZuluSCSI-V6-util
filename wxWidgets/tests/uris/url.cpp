@@ -12,9 +12,6 @@
 
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
@@ -22,6 +19,8 @@
 
 #include "wx/url.h"
 #include "wx/mstream.h"
+#include "wx/scopedptr.h"
+#include "wx/utils.h"
 
 // ----------------------------------------------------------------------------
 // test class
@@ -30,7 +29,7 @@
 class URLTestCase : public CppUnit::TestCase
 {
 public:
-    URLTestCase(); 
+    URLTestCase();
     ~URLTestCase();
 
 private:
@@ -42,7 +41,7 @@ private:
     void GetInputStream();
     void CopyAndAssignment();
 
-    DECLARE_NO_COPY_CLASS(URLTestCase)
+    wxDECLARE_NO_COPY_CLASS(URLTestCase);
 };
 
 // register in the unnamed registry so that these tests are run by default
@@ -66,23 +65,34 @@ void URLTestCase::GetInputStream()
 {
     if (!IsNetworkAvailable())      // implemented in test.cpp
     {
-        wxLogWarning("No network connectivity; skipping the URLTestCase::GetInputStream test unit.");
+        WARN("No network connectivity; skipping the URLTestCase::GetInputStream test unit.");
         return;
     }
 
-    wxURL url("http://www.wxwidgets.org/assets/img/header-logo.png");
+    // We need a site never redirecting to HTTPs and this one seems better than
+    // the other alternatives such as Microsoft's www.msftconnecttest.com or
+    // Apple's captive.apple.com. IANAs example.com might be another good
+    // choice but it's not clear if it's never going to redirect to HTTPs.
+    wxURL url("http://detectportal.firefox.com/");
     CPPUNIT_ASSERT_EQUAL(wxURL_NOERR, url.GetError());
 
-    wxInputStream *in_stream = url.GetInputStream();
-    CPPUNIT_ASSERT(in_stream && in_stream->IsOk());
+    wxScopedPtr<wxInputStream> in_stream(url.GetInputStream());
+    if ( !in_stream && IsAutomaticTest() )
+    {
+        // Sometimes the connection fails during CI runs, don't consider this
+        // as a fatal error because it happens from time to time and there is
+        // nothing we can do about it.
+        WARN("Connection to HTTP URL failed, skipping the test.");
+        return;
+    }
+
+    CPPUNIT_ASSERT(in_stream);
+    CPPUNIT_ASSERT(in_stream->IsOk());
 
     wxMemoryOutputStream ostream;
     CPPUNIT_ASSERT(in_stream->Read(ostream).GetLastError() == wxSTREAM_EOF);
 
-    CPPUNIT_ASSERT_EQUAL(13677, ostream.GetSize());
-
-    // we have to delete the object created by GetInputStream()
-    delete in_stream;
+    CPPUNIT_ASSERT_EQUAL(strlen("success\n"), ostream.GetSize());
 }
 
 void URLTestCase::CopyAndAssignment()
@@ -122,7 +132,9 @@ void URLTestCase::CopyAndAssignment()
     CPPUNIT_ASSERT(url1 == url2);
 
     // assignment to self
+    wxCLANG_WARNING_SUPPRESS(self-assign-overloaded)
     url2 = url2;
+    wxCLANG_WARNING_RESTORE(self-assign-overloaded)
 
     // check for destructor (with base pointer!)
     puri = new wxURL();

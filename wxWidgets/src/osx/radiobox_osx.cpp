@@ -25,12 +25,12 @@
 // spacing between InterfaceBuild and the Human Interface Guidelines, we stick
 // to the latter, as those are also used eg in the System Preferences Dialogs
 
-IMPLEMENT_DYNAMIC_CLASS(wxRadioBox, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxRadioBox, wxControl);
 
 
-BEGIN_EVENT_TABLE(wxRadioBox, wxControl)
+wxBEGIN_EVENT_TABLE(wxRadioBox, wxControl)
     EVT_RADIOBUTTON( wxID_ANY , wxRadioBox::OnRadioButton )
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 void wxRadioBox::OnRadioButton( wxCommandEvent &outer )
@@ -59,18 +59,21 @@ wxRadioBox::~wxRadioBox()
 
     wxRadioButton *next, *current;
 
-    current = m_radioButtonCycle->NextInCycle();
+    current = m_radioButtonCycle;
     if (current != NULL)
     {
-        while (current != m_radioButtonCycle)
+        // We need to start deleting the buttons from the second one because
+        // deleting the first one would change the pointers stored in them.
+        for (current = current->NextInCycle();;)
         {
             next = current->NextInCycle();
             delete current;
 
+            if (next == m_radioButtonCycle)
+                break;
+
             current = next;
         }
-
-        delete current;
     }
 }
 
@@ -101,6 +104,9 @@ bool wxRadioBox::Create( wxWindow *parent,
     
     if ( !wxControl::Create( parent, id, pos, size, style, val, name ) )
         return false;
+
+    // The radio box itself never accepts focus, only its child buttons do.
+    m_container.DisableSelfFocus();
 
     // during construction we must keep this at 0, otherwise GetBestSize fails
     m_noItems = 0;
@@ -193,13 +199,6 @@ bool wxRadioBox::IsItemEnabled(unsigned int item) const
     return current->IsEnabled();
 }
 
-// Returns the radiobox label
-//
-wxString wxRadioBox::GetLabel() const
-{
-    return wxControl::GetLabel();
-}
-
 // Returns the label for the given button
 //
 wxString wxRadioBox::GetString(unsigned int item) const
@@ -236,13 +235,6 @@ int wxRadioBox::GetSelection() const
     }
 
     return i;
-}
-
-// Sets the radiobox label
-//
-void wxRadioBox::SetLabel(const wxString& label)
-{
-    return wxControl::SetLabel( label );
 }
 
 // Sets the label of a given button
@@ -350,6 +342,9 @@ void wxRadioBox::Command( wxCommandEvent& event )
 //
 void wxRadioBox::SetFocus()
 {
+    if (!m_radioButtonCycle)
+        return;
+
     wxRadioButton *current;
 
     current = m_radioButtonCycle;
@@ -363,16 +358,11 @@ void wxRadioBox::SetFocus()
 
 // Simulates the effect of the user issuing a command to the item
 //
-#if wxOSX_USE_CARBON
-    #define RADIO_SIZE 20
-#else
-    // Cocoa has an additional border are of about 3 pixels
-    #define RADIO_SIZE 23
-#endif
+// Cocoa has an additional border are of about 3 pixels
+#define RADIO_SIZE 23
 
 void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
-    int i;
     wxRadioButton *current;
 
     // define the position
@@ -474,6 +464,7 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     y_offset = y_start;
 
     current = m_radioButtonCycle;
+    int i;
     for (i = 0 ; i < (int)m_noItems; i++)
     {
         // not to do for the zero button!

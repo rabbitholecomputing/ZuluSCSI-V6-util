@@ -20,7 +20,6 @@
 
 // ----- taken from RPC.H
 #ifndef UUID_DEFINED            // in some cases RPC.H will be already
-  #ifdef  __WIN32__             // included, so avoid redefinition
     typedef struct
     {
       unsigned long   Data1;
@@ -28,7 +27,6 @@
       unsigned short  Data3;
       unsigned char   Data4[8];
     } UUID;                     // UUID = GUID = CLSID = LIBID = IID
-  #endif  // WIN32
 #endif  // UUID_DEFINED
 
 #ifndef GUID_DEFINED
@@ -39,7 +37,7 @@
 typedef unsigned char uchar;
 
 // ------------------------------------------------------------------
-// a class to store UUID and it's string representation
+// a class to store UUID and its string representation
 // ------------------------------------------------------------------
 
 // uses RPC functions to create/convert Universally Unique Identifiers

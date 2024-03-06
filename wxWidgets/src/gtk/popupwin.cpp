@@ -16,7 +16,7 @@
 #ifndef WX_PRECOMP
 #endif // WX_PRECOMP
 
-#include <gtk/gtk.h>
+#include "wx/gtk/private/wrapgtk.h"
 
 #include "wx/gtk/private/win_gtk.h"
 
@@ -63,6 +63,7 @@ static gint gtk_popup_button_press (GtkWidget *widget, GdkEvent *gdk_event, wxPo
 //-----------------------------------------------------------------------------
 
 extern "C" {
+static
 bool gtk_dialog_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WXUNUSED(event), wxPopupWindow *win )
 {
     if (win->IsEnabled())
@@ -77,9 +78,9 @@ bool gtk_dialog_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WXUNUSED
 //-----------------------------------------------------------------------------
 
 #ifdef __WXUNIVERSAL__
-BEGIN_EVENT_TABLE(wxPopupWindow,wxPopupWindowBase)
+wxBEGIN_EVENT_TABLE(wxPopupWindow,wxPopupWindowBase)
     EVT_SIZE(wxPopupWindow::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 #endif
 
 wxPopupWindow::~wxPopupWindow()
@@ -105,26 +106,19 @@ bool wxPopupWindow::Create( wxWindow *parent, int style )
     g_object_ref( m_widget );
 
     gtk_widget_set_name( m_widget, "wxPopupWindow" );
-    // wxPopupWindow is used for different windows as well
-    // gtk_window_set_type_hint( GTK_WINDOW(m_widget), GDK_WINDOW_TYPE_HINT_COMBO );
+
+    // While wxPopupWindow is used for different windows as well, we don't
+    // really know how is it going to be used but we do know that without the
+    // hint at all, it doesn't work correctly, at least under Wayland, where
+    // GTK only maps COMBO and {DROPDOWN,POPUP}_MENU to popups, so do set it.
+    gtk_window_set_type_hint( GTK_WINDOW(m_widget), GDK_WINDOW_TYPE_HINT_COMBO );
 
     // Popup windows can be created without parent, so handle this correctly.
     if (parent)
     {
         GtkWidget *toplevel = gtk_widget_get_toplevel( parent->m_widget );
         if (GTK_IS_WINDOW (toplevel))
-        {
-#if GTK_CHECK_VERSION(2,10,0)
-#ifndef __WXGTK3__
-            if (!gtk_check_version(2,10,0))
-#endif
-            {
-                gtk_window_group_add_window (gtk_window_get_group (GTK_WINDOW (toplevel)), GTK_WINDOW (m_widget));
-            }
-#endif
             gtk_window_set_transient_for (GTK_WINDOW (m_widget), GTK_WINDOW (toplevel));
-        }
-        gtk_window_set_screen (GTK_WINDOW (m_widget), gtk_widget_get_screen (GTK_WIDGET (parent->m_widget)));
     }
 
     gtk_window_set_resizable (GTK_WINDOW (m_widget), FALSE);
@@ -176,12 +170,12 @@ void wxPopupWindow::DoSetSize( int x, int y, int width, int height, int sizeFlag
 
     ConstrainSize();
 
-    if ((m_x != -1) || (m_y != -1))
+    if (m_x != old_x || m_y != old_y)
     {
-        if ((m_x != old_x) || (m_y != old_y))
-        {
-            gtk_window_move( GTK_WINDOW(m_widget), m_x, m_y );
-        }
+        gtk_window_move(GTK_WINDOW(m_widget), m_x, m_y);
+        wxMoveEvent event(wxPoint(m_x, m_y), GetId());
+        event.SetEventObject(this);
+        HandleWindowEvent(event);
     }
 
     if ((m_width != old_width) || (m_height != old_height))

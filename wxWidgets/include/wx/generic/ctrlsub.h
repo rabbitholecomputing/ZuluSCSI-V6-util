@@ -3,7 +3,7 @@
 // Purpose:     common functionality of wxItemContainer-derived controls
 // Author:      Vadim Zeitlin
 // Created:     2007-07-25
-// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
+// Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -102,7 +102,7 @@ private:
             if ( type == wxClientData_None )
             {
                 // we didn't have the client data before and are not asked to
-                // store it now neither
+                // store it now either
                 return false;
             }
 

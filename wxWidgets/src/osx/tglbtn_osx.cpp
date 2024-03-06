@@ -29,7 +29,7 @@
 // macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxToggleButton, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxToggleButton, wxControl);
 wxDEFINE_EVENT( wxEVT_TOGGLEBUTTON, wxCommandEvent );
 
 // ============================================================================
@@ -104,10 +104,10 @@ bool wxToggleButton::OSXHandleClicked( double WXUNUSED(timestampsec) )
 // wxBitmapToggleButton
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxBitmapToggleButton, wxToggleButton)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBitmapToggleButton, wxToggleButton);
 
 bool wxBitmapToggleButton::Create(wxWindow *parent, wxWindowID id,
-                            const wxBitmap& label,
+                            const wxBitmapBundle& label,
                             const wxPoint& pos,
                             const wxSize& size, long style,
                             const wxValidator& validator,

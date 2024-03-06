@@ -21,6 +21,8 @@
     #include "wx/crt.h"
 #endif
 
+#include "wx/private/spinctrl.h"
+
 #include "wx/gtk1/private.h"
 
 //-----------------------------------------------------------------------------
@@ -69,7 +71,7 @@ wx_gtk_spin_output(GtkSpinButton* spin, wxSpinCtrl* win)
     gtk_entry_set_text
     (
         GTK_ENTRY(spin),
-        wxPrivate::wxSpinCtrlFormatAsHex(val, win->GetMax()).utf8_str()
+        wxSpinCtrlImpl::FormatAsHex(val, win->GetMax()).utf8_str()
     );
 
     return TRUE;
@@ -82,7 +84,7 @@ static void gtk_spinctrl_callback( GtkWidget *WXUNUSED(widget), wxSpinCtrl *win 
     if (!win->m_hasVMT) return;
     if (g_blockEventsOnDrag) return;
 
-    wxCommandEvent event( wxEVT_SPINCTRL, win->GetId());
+    wxSpinEvent event( wxEVT_SPINCTRL, win->GetId());
     event.SetEventObject( win );
 
     // note that we don't use wxSpinCtrl::GetValue() here because it would
@@ -122,9 +124,9 @@ gtk_spinctrl_text_changed_callback( GtkWidget *WXUNUSED(widget), wxSpinCtrl *win
 // wxSpinCtrl
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxSpinCtrl, wxControl)
+wxBEGIN_EVENT_TABLE(wxSpinCtrl, wxControl)
     EVT_CHAR(wxSpinCtrl::OnChar)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 bool wxSpinCtrl::Create(wxWindow *parent, wxWindowID id,
                         const wxString& value,
@@ -163,6 +165,22 @@ bool wxSpinCtrl::Create(wxWindow *parent, wxWindowID id,
     return true;
 }
 
+void wxSpinCtrl::DoSetIncrement(double inc)
+{
+    wxCHECK_RET( m_widget, "invalid spin button" );
+
+    GtkAdjustment* adj = gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(m_widget));
+    adj->step_increment = inc;
+}
+
+double wxSpinCtrl::DoGetIncrement() const
+{
+    wxCHECK_MSG( (m_widget != NULL), 0, wxT("invalid spin button") );
+
+    GtkAdjustment* adj = gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(m_widget));
+    return adj->step_increment;
+}
+
 void wxSpinCtrl::GtkDisableEvents()
 {
     gtk_signal_disconnect_by_func( GTK_OBJECT(m_adjust),
@@ -199,6 +217,13 @@ int wxSpinCtrl::GetMax() const
     wxCHECK_MSG( (m_widget != NULL), 0, wxT("invalid spin button") );
 
     return (int)ceil(m_adjust->upper);
+}
+
+wxString wxSpinCtrl::GetTextValue() const
+{
+    wxCHECK_MSG(m_widget, wxEmptyString, "invalid spin button");
+
+    return gtk_entry_get_text( GTK_ENTRY(m_widget) );
 }
 
 int wxSpinCtrl::GetValue() const
@@ -330,10 +355,7 @@ bool wxSpinCtrl::IsOwnGtkWindow( GdkWindow *window )
 
 wxSize wxSpinCtrl::DoGetBestSize() const
 {
-    wxSize ret( wxControl::DoGetBestSize() );
-    wxSize best(95, ret.y);
-    CacheBestSize(best);
-    return best;
+    return wxSize(95, wxControl::DoGetBestSize().y);
 }
 
 bool wxSpinCtrl::SetBase(int base)

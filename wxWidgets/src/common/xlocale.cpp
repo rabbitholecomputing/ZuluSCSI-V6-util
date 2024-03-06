@@ -18,9 +18,6 @@
 
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_XLOCALE
 
@@ -28,6 +25,7 @@
     #include "wx/module.h"
 #endif
 
+#include "wx/uilocale.h"
 #include "wx/xlocale.h"
 
 #include <errno.h>
@@ -54,13 +52,13 @@ wxXLocale wxNullXLocale;
 class wxXLocaleModule : public wxModule
 {
 public:
-    virtual bool OnInit() { return true; }
-    virtual void OnExit() { wxDELETE(gs_cLocale); }
+    virtual bool OnInit() wxOVERRIDE { return true; }
+    virtual void OnExit() wxOVERRIDE { wxDELETE(gs_cLocale); }
 
-    DECLARE_DYNAMIC_CLASS(wxXLocaleModule)
+    wxDECLARE_DYNAMIC_CLASS(wxXLocaleModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxXLocaleModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxXLocaleModule, wxModule);
 
 
 // ============================================================================
@@ -87,18 +85,18 @@ wxXLocale& wxXLocale::GetCLocale()
 
 #ifdef wxHAS_XLOCALE_SUPPORT
 
+#if wxUSE_INTL
 wxXLocale::wxXLocale(wxLanguage lang)
 {
-    const wxLanguageInfo * const info = wxLocale::GetLanguageInfo(lang);
-    if ( !info )
-    {
-        m_locale = NULL;
-    }
-    else
+    m_locale = NULL;
+
+    const wxLanguageInfo * const info = wxUILocale::GetLanguageInfo(lang);
+    if ( info )
     {
         Init(info->GetLocaleName().c_str());
     }
 }
+#endif // wxUSE_INTL
 
 #if wxCHECK_VISUALC_VERSION(8)
 

@@ -41,7 +41,7 @@ public:
 
 
 /** @addtogroup group_funcmacro_appinitterm */
-//@{
+///@{
 
 /**
     This function can be used to perform the initialization of wxWidgets if you
@@ -66,8 +66,7 @@ bool wxEntryStart(int& argc, wxChar** argv);
     This is an additional overload of wxEntryStart() provided under MSW only.
     It is meant to be called with the parameters passed to WinMain().
 
-    @note Under Windows CE platform, and only there, the type of @a pCmdLine is
-    @c wchar_t *, otherwise it is @c char *, even in Unicode build.
+    @note The type of @a pCmdLine is @c char *, even in Unicode build.
 
     @onlyfor{wxmsw}
 
@@ -107,5 +106,5 @@ bool wxInitialize(int argc = 0, wxChar **argv = NULL);
 */
 void wxUninitialize();
 
-//@}
+///@}
 

@@ -13,9 +13,6 @@
 
 #include "testprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
@@ -25,8 +22,7 @@
 #include "wx/hashmap.h"
 #include "wx/hashset.h"
 
-#if defined wxLongLong_t && !defined wxLongLongIsLong && \
-        (!defined __VISUALC__ || __VISUALC__ > 1100)    // doesn't work on VC5
+#if defined wxLongLong_t && !defined wxLongLongIsLong
     #define TEST_LONGLONG
 #endif
 
@@ -104,7 +100,7 @@ private:
 #endif
     void wxHashSetTest();
 
-    DECLARE_NO_COPY_CLASS(HashesTestCase)
+    wxDECLARE_NO_COPY_CLASS(HashesTestCase);
 };
 
 // register in the unnamed registry so that these tests are run by default
@@ -119,11 +115,11 @@ void HashesTestCase::wxHashTableTest()
 
     {
         wxHashTable hash(wxKEY_INTEGER, 10), hash2(wxKEY_STRING);
-        wxObject o;
+        wxObject o[20];
         int i;
 
         for ( i = 0; i < COUNT; ++i )
-            hash.Put(i, &o + i);
+            hash.Put(i, o + i);
 
         hash.BeginFind();
         wxHashTable::compatibility_iterator it = hash.Next();
@@ -138,39 +134,39 @@ void HashesTestCase::wxHashTableTest()
         CPPUNIT_ASSERT( i == COUNT );
 
         for ( i = 99; i >= 0; --i )
-            CPPUNIT_ASSERT( hash.Get(i) == &o + i );
+            CPPUNIT_ASSERT( hash.Get(i) == o + i );
 
         for ( i = 0; i < COUNT; ++i )
-            hash.Put(i, &o + i + 20);
+            hash.Put(i, o + i + 20);
 
         for ( i = 99; i >= 0; --i )
-            CPPUNIT_ASSERT( hash.Get(i) == &o + i);
+            CPPUNIT_ASSERT( hash.Get(i) == o + i);
 
         for ( i = 0; i < COUNT/2; ++i )
-            CPPUNIT_ASSERT( hash.Delete(i) == &o + i);
+            CPPUNIT_ASSERT( hash.Delete(i) == o + i);
 
         for ( i = COUNT/2; i < COUNT; ++i )
-            CPPUNIT_ASSERT( hash.Get(i) == &o + i);
+            CPPUNIT_ASSERT( hash.Get(i) == o + i);
 
         for ( i = 0; i < COUNT/2; ++i )
-            CPPUNIT_ASSERT( hash.Get(i) == &o + i + 20);
+            CPPUNIT_ASSERT( hash.Get(i) == o + i + 20);
 
         for ( i = 0; i < COUNT/2; ++i )
-            CPPUNIT_ASSERT( hash.Delete(i) == &o + i + 20);
+            CPPUNIT_ASSERT( hash.Delete(i) == o + i + 20);
 
         for ( i = 0; i < COUNT/2; ++i )
             CPPUNIT_ASSERT( hash.Get(i) == NULL);
 
-        hash2.Put(wxT("foo"), &o + 1);
-        hash2.Put(wxT("bar"), &o + 2);
-        hash2.Put(wxT("baz"), &o + 3);
+        hash2.Put(wxT("foo"), o + 1);
+        hash2.Put(wxT("bar"), o + 2);
+        hash2.Put(wxT("baz"), o + 3);
 
         CPPUNIT_ASSERT(hash2.Get(wxT("moo")) == NULL);
-        CPPUNIT_ASSERT(hash2.Get(wxT("bar")) == &o + 2);
+        CPPUNIT_ASSERT(hash2.Get(wxT("bar")) == o + 2);
 
-        hash2.Put(wxT("bar"), &o + 0);
+        hash2.Put(wxT("bar"), o + 0);
 
-        CPPUNIT_ASSERT(hash2.Get(wxT("bar")) == &o + 2);
+        CPPUNIT_ASSERT(hash2.Get(wxT("bar")) == o + 2);
     }
 
     // and now some corner-case testing; 3 and 13 hash to the same bucket
@@ -208,13 +204,13 @@ void HashesTestCase::wxHashTableTest()
     // wrong key or wrong value returns NULL)
     {
         wxHashTable hash(wxKEY_INTEGER, 10);
-        wxObject dummy;
+        wxObject dummy[8];
 
-        hash.Put(3, 7, &dummy + 7);
-        hash.Put(4, 8, &dummy + 8);
+        hash.Put(3, 7, dummy + 7);
+        hash.Put(4, 8, dummy + 8);
 
         CPPUNIT_ASSERT(hash.Get(7) == NULL);
-        CPPUNIT_ASSERT(hash.Get(3, 7) == &dummy + 7);
+        CPPUNIT_ASSERT(hash.Get(3, 7) == dummy + 7);
         CPPUNIT_ASSERT(hash.Get(4) == NULL);
         CPPUNIT_ASSERT(hash.Get(3) == NULL);
         CPPUNIT_ASSERT(hash.Get(8) == NULL);
@@ -222,7 +218,7 @@ void HashesTestCase::wxHashTableTest()
 
         CPPUNIT_ASSERT(hash.Delete(7) == NULL);
         CPPUNIT_ASSERT(hash.Delete(3) == NULL);
-        CPPUNIT_ASSERT(hash.Delete(3, 7) == &dummy + 7);
+        CPPUNIT_ASSERT(hash.Delete(3, 7) == dummy + 7);
     }
 
 }
@@ -377,7 +373,15 @@ void MakeKeyValuePair(size_t i, size_t count, T*& key, ValueT& value)
 
 // the test
 template <class HashMapT>
-void HashMapTest()
+void
+#if defined(__GNUC__) && !defined(__clang__)
+// At least g++ 4.8.2 (included in Ubuntu 14.04) is known to miscompile the
+// code in this function and make all the loops below infinite when using -O2,
+// so we need to turn off optimizations for it to allow the tests to run at
+// all.
+__attribute__((optimize("O0")))
+#endif // g++
+HashMapTest()
 {
     typedef typename HashMapT::value_type::second_type value_type;
     typedef typename HashMapT::key_type key_type;
@@ -467,12 +471,6 @@ void HashesTestCase::UShortHashMapTest() { HashMapTest<myTestHashMap4>();    }
 void HashesTestCase::LLongHashMapTest()  { HashMapTest<myLLongHashMap>();    }
 void HashesTestCase::ULLongHashMapTest() { HashMapTest<myULLongHashMap>();   }
 #endif
-
-#ifdef __VISUALC__
-    #if __VISUALC__ <= 1200
-        #pragma warning(disable:4284) // operator->() returns a non-UDT
-    #endif
-#endif // __VISUALC__
 
 // test compilation of basic set types
 WX_DECLARE_HASH_SET( int*, wxPointerHash, wxPointerEqual, myPtrHashSet );

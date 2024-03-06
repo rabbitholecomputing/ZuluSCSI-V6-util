@@ -200,7 +200,7 @@ static void wxgtk_text_draw( GtkWidget *widget, GdkRectangle *rect)
 //  wxTextCtrl
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
+wxBEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
     EVT_CHAR(wxTextCtrl::OnChar)
 
     EVT_MENU(wxID_CUT, wxTextCtrl::OnCut)
@@ -214,7 +214,7 @@ BEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
     EVT_UPDATE_UI(wxID_PASTE, wxTextCtrl::OnUpdatePaste)
     EVT_UPDATE_UI(wxID_UNDO, wxTextCtrl::OnUpdateUndo)
     EVT_UPDATE_UI(wxID_REDO, wxTextCtrl::OnUpdateRedo)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxTextCtrl::Init()
 {
@@ -1018,7 +1018,7 @@ bool wxTextCtrl::IsOwnGtkWindow( GdkWindow *window )
     }
 }
 
-// the font will change for subsequent text insertiongs
+// the font will change for subsequent text insertions
 bool wxTextCtrl::SetFont( const wxFont &font )
 {
     wxCHECK_MSG( m_text != NULL, false, wxT("invalid text ctrl") );
@@ -1255,10 +1255,7 @@ void wxTextCtrl::OnInternalIdle()
 wxSize wxTextCtrl::DoGetBestSize() const
 {
     // FIXME should be different for multi-line controls...
-    wxSize ret( wxControl::DoGetBestSize() );
-    wxSize best(80, ret.y);
-    CacheBestSize(best);
-    return best;
+    return wxSize(80, wxControl::DoGetBestSize().y);
 }
 
 // ----------------------------------------------------------------------------

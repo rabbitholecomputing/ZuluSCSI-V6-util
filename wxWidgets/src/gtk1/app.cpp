@@ -49,7 +49,7 @@
         #include <poll.h>
     #else
         // bug in the OpenBSD headers: at least in 3.1 there is no extern "C"
-        // in neither poll.h nor sys/poll.h which results in link errors later
+        // in either poll.h or sys/poll.h which results in link errors later
         #ifdef __OPENBSD__
             extern "C"
             {
@@ -377,7 +377,7 @@ GtkWidget* wxGetRootWindow()
 // wxApp
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxApp,wxEvtHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxApp,wxEvtHandler);
 
 wxApp::wxApp()
 {

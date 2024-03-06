@@ -49,7 +49,7 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl);
 
 // ----------------------------------------------------------------------------
 // private functions
@@ -80,8 +80,8 @@ public:
     wxToolBarTool(wxToolBar *tbar,
                   int id,
                   const wxString& label,
-                  const wxBitmap& bmpNormal,
-                  const wxBitmap& bmpToggled,
+                  const wxBitmapBundle& bmpNormal,
+                  const wxBitmapBundle& bmpToggled,
                   wxItemKind kind,
                   wxObject *clientData,
                   const wxString& shortHelp,
@@ -142,8 +142,8 @@ wxString wxToolBarTimer::helpString;
 
 wxToolBarToolBase *wxToolBar::CreateTool(int id,
                                          const wxString& label,
-                                         const wxBitmap& bmpNormal,
-                                         const wxBitmap& bmpToggled,
+                                         const wxBitmapBundle& bmpNormal,
+                                         const wxBitmapBundle& bmpToggled,
                                          wxItemKind kind,
                                          wxObject *clientData,
                                          const wxString& shortHelp,

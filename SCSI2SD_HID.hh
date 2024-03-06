@@ -18,7 +18,11 @@
 #ifndef SCSI2SD_HID_H
 #define SCSI2SD_HID_H
 
+#ifdef USE_SYSTEM_HID
+#include <hidapi/hidapi.h>
+#else
 #include "hidapi.h"
+#endif
 
 #if __cplusplus >= 201103L
 #include <cstdint>

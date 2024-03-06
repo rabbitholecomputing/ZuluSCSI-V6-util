@@ -11,9 +11,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #if wxUSE_OWNER_DRAWN
 
@@ -23,15 +20,15 @@
 #include "wx/msw/private/dc.h"
 #include "wx/msw/wrapcctl.h"            // for HIMAGELIST
 
-// ----------------------------------------------------------------------------
-// constants for base class
-// ----------------------------------------------------------------------------
-
-int wxOwnerDrawnBase::ms_defaultMargin = 3;
-
 // ============================================================================
 // implementation of wxOwnerDrawn class
 // ============================================================================
+
+int wxOwnerDrawn::MSWGetTextType() const
+{
+    // By default, handle the mnemonics.
+    return DST_PREFIXTEXT;
+}
 
 // draw the item
 bool wxOwnerDrawn::OnDrawItem(wxDC& dc, const wxRect& rc,
@@ -73,7 +70,7 @@ bool wxOwnerDrawn::OnDrawItem(wxDC& dc, const wxRect& rc,
         SIZE sizeRect;
         ::GetTextExtentPoint32(hdc, text.c_str(), text.length(), &sizeRect);
 
-        int flags = DST_PREFIXTEXT;
+        int flags = MSWGetTextType();
         if ( (stat & wxODDisabled) && !(stat & wxODSelected) )
             flags |= DSS_DISABLED;
 

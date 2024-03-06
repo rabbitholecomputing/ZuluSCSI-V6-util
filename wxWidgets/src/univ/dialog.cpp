@@ -16,9 +16,6 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "wx/dialog.h"
 
@@ -34,12 +31,12 @@
 // wxDialog
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxDialog,wxDialogBase)
+wxBEGIN_EVENT_TABLE(wxDialog,wxDialogBase)
     EVT_BUTTON  (wxID_OK,       wxDialog::OnOK)
     EVT_BUTTON  (wxID_CANCEL,   wxDialog::OnCancel)
     EVT_BUTTON  (wxID_APPLY,    wxDialog::OnApply)
     EVT_CLOSE   (wxDialog::OnCloseWindow)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxDialog::Init()
 {
@@ -99,8 +96,12 @@ void wxDialog::OnOK(wxCommandEvent &WXUNUSED(event))
         }
         else
         {
-            SetReturnCode(wxID_OK);
-            Show(false);
+            // don't change return code from event char if it was set earlier
+            if (GetReturnCode() == 0)
+            {
+                SetReturnCode(wxID_OK);
+                Show(false);
+            }
         }
     }
 }
@@ -180,10 +181,8 @@ int wxDialog::ShowModal()
     {
         m_parent = parent;
     }
-
-    Show(true);
-
     m_isShowingModal = true;
+    Show(true);
 
     wxASSERT_MSG( !m_windowDisabler, wxT("disabling windows twice?") );
 

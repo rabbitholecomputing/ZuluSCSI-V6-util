@@ -69,7 +69,7 @@ private:
 #define M_CURSORDATA ((wxCursorRefData *)m_refData)
 #define M_CURSORHANDLERDATA ((wxCursorRefData *)bitmap->m_refData)
 
-IMPLEMENT_DYNAMIC_CLASS(wxCursor, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCursor, wxObject);
 
 wxCursorRefData::wxCursorRefData()
 {
@@ -93,7 +93,7 @@ wxCursor::wxCursor()
 }
 
 #if wxUSE_IMAGE
-wxCursor::wxCursor(const wxImage & image)
+void wxCursor::InitFromImage(const wxImage & image)
 {
     unsigned char * rgbBits = image.GetData();
     int w = image.GetWidth() ;
@@ -173,6 +173,16 @@ wxCursor::wxCursor(const wxImage & image)
 
     delete[] bits;
     delete[] maskBits;
+}
+
+wxCursor::wxCursor(const wxImage& image)
+{
+    InitFromImage(image);
+}
+
+wxCursor::wxCursor(const char* const* xpmData)
+{
+    InitFromImage(wxImage(xpmData));
 }
 #endif
 

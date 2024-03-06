@@ -18,9 +18,9 @@
 #include "wx/button.h"
 
 // FIXME: right now only wxMSW, wxGTK and wxOSX implement bitmap support in wxButton
-//        itself, this shouldn't be used for the other platforms neither
+//        itself, this shouldn't be used for the other platforms either
 //        when all of them do it
-#if (defined(__WXMSW__) || defined(__WXGTK20__) || defined(__WXOSX__)) && !defined(__WXUNIVERSAL__)
+#if (defined(__WXMSW__) || defined(__WXGTK20__) || defined(__WXOSX__) || defined(__WXQT__)) && !defined(__WXUNIVERSAL__)
     #define wxHAS_BUTTON_BITMAP
 #endif
 
@@ -59,17 +59,31 @@ public:
         // And we also use wxBU_EXACTFIT to avoid being resized up to the
         // standard button size as this doesn't make sense for bitmap buttons
         // which are not standard anyhow and should fit their bitmap size.
-        return wxButton::Create(parent, winid, "",
+        return wxButton::Create(parent, winid, wxString(),
                                 pos, size,
                                 style | wxBU_NOTEXT | wxBU_EXACTFIT,
                                 validator, name);
     }
 
-    // Special creation function for a standard "Close" bitmap. It allows to
-    // simply create a close button with the image appropriate for the common
-    // platform.
-    static wxBitmapButton* NewCloseButton(wxWindow* parent, wxWindowID winid);
+    /*
+        Derived classes also need to declare, but not define, as it's done in
+        common code in bmpbtncmn.cpp, the following function:
 
+    bool CreateCloseButton(wxWindow* parent,
+                           wxWindowID winid,
+                           const wxString& name = wxString());
+
+        which is used by NewCloseButton(), and, as Create(), must be
+        called on default-constructed wxBitmapButton object.
+    */
+
+    // Special creation function for a standard "Close" bitmap. It allows to
+    // simply create a close button with the image appropriate for the current
+    // platform.
+    static wxBitmapButton*
+    NewCloseButton(wxWindow* parent,
+                   wxWindowID winid,
+                   const wxString& name = wxString());
 
     // set/get the margins around the button
     virtual void SetMargins(int x, int y)
@@ -80,23 +94,14 @@ public:
     int GetMarginX() const { return DoGetBitmapMargins().x; }
     int GetMarginY() const { return DoGetBitmapMargins().y; }
 
-    // deprecated synonym for SetBitmapLabel()
-#if WXWIN_COMPATIBILITY_2_6
-    wxDEPRECATED_INLINE( void SetLabel(const wxBitmap& bitmap),
-       SetBitmapLabel(bitmap); )
-
-    // prevent virtual function hiding
-    virtual void SetLabel(const wxString& label)
-        { wxWindow::SetLabel(label); }
-#endif // WXWIN_COMPATIBILITY_2_6
-
 protected:
 #ifndef wxHAS_BUTTON_BITMAP
     // function called when any of the bitmaps changes
     virtual void OnSetBitmap() { InvalidateBestSize(); Refresh(); }
 
-    virtual wxBitmap DoGetBitmap(State which) const { return m_bitmaps[which]; }
-    virtual void DoSetBitmap(const wxBitmap& bitmap, State which)
+    virtual wxBitmap DoGetBitmap(State which) const
+        { return m_bitmaps[which].GetBitmap(wxDefaultSize); }
+    virtual void DoSetBitmap(const wxBitmapBundle& bitmap, State which)
         { m_bitmaps[which] = bitmap; OnSetBitmap(); }
 
     virtual wxSize DoGetBitmapMargins() const
@@ -110,8 +115,8 @@ protected:
         m_marginY = y;
     }
 
-    // the bitmaps for various states
-    wxBitmap m_bitmaps[State_Max];
+    // the bitmap bundles for various states
+    wxBitmapBundle m_bitmaps[State_Max];
 
     // the margins around the bitmap
     int m_marginX,
@@ -133,10 +138,8 @@ protected:
     #include "wx/gtk1/bmpbuttn.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/bmpbuttn.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/bmpbuttn.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/bmpbuttn.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/bmpbuttn.h"
 #endif
 
 #endif // wxUSE_BMPBUTTON
